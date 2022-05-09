@@ -93,6 +93,15 @@ elif (str(HOME) == '/mmfs1/home/pmacc'):
     remote_dir0 = '/dat1/parker'
     local_user = 'pmacc'
 
+## -------------------------------------------------------------------
+
+elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
+    lo_env = 'al_perigee'
+    roms_out1 = Path('/boildat1/parker/LiveOcean_roms/output')  # LiveOcean current
+    roms_out2 = Path('/data1/parker/LiveOcean_roms/output')     # LiveOcean past I
+    roms_out3 = Path('/data2/parker/LiveOcean_roms/output')     # LiveOcean past II
+    roms_out4 = Path('/boildat1/parker/LO_roms')                # LO boiler
+
 Ldir0 = dict()
 Ldir0['lo_env'] = lo_env
 Ldir0['parent'] = parent
