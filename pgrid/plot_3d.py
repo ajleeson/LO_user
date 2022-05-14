@@ -93,6 +93,10 @@ ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
 ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
 ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
 ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+# label axis
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.set_zlabel('Depth (m)')
 #ax.text(.05, .95, Gr['gridname'], transform=ax.transAxes)
 #ax.text(.95, .05, str(mask_rho.shape), ha='right', transform=ax.transAxes)
 if do_riv:
