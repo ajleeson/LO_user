@@ -104,10 +104,10 @@ elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
 
 elif (str(HOME) == '/mmfs1/home/auroral'):
     lo_env = 'al_klone'
-    remote_user = 'parker'
-    remote_machine = 'apogee.ocean.washington.edu'
-    remote_dir0 = '/dat1/parker'
-    local_user = 'pmacc'
+    remote_user = 'auroral'
+    remote_machine = 'perigee.ocean.washington.edu'
+    remote_dir0 = '/data1/auroral'
+    local_user = 'aleeson'
 
 Ldir0 = dict()
 Ldir0['lo_env'] = lo_env
