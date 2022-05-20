@@ -102,6 +102,13 @@ elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
     roms_out3 = Path('/data2/parker/LiveOcean_roms/output')     # LiveOcean past II
     roms_out4 = Path('/boildat1/parker/LO_roms')                # LO boiler
 
+elif (str(HOME) == '/mmfs1/home/auroral'):
+    lo_env = 'al_klone'
+    remote_user = 'parker'
+    remote_machine = 'apogee.ocean.washington.edu'
+    remote_dir0 = '/dat1/parker'
+    local_user = 'pmacc'
+
 Ldir0 = dict()
 Ldir0['lo_env'] = lo_env
 Ldir0['parent'] = parent
