@@ -60,10 +60,10 @@ V = dict()
 V['zeta'] = np.zeros((NT, NR, NC))
 V['ubar'] = np.zeros((NT, NR, NC-1))
 V['vbar'] = np.zeros((NT, NR-1, NC))
-# Make estuary half full of fresh water (fresh water on top)
+# Make estuary half full of fresh water (fresh water on top) at t = 0
 print('Ocean forcing from LO_user')
 V['salt'] = 30 * np.ones((NT, NZ, NR, NC))
-V['salt'][:,int(NZ/2)::,:,:] = 0 * V['salt'][:,int(NZ/2)::,:,:]
+V['salt'][0,int(NZ/2)::,:,:] = 0 * V['salt'][0,int(NZ/2)::,:,:]
 V['temp'] = 10 * np.ones((NT, NZ, NR, NC))
 V['u'] = np.zeros((NT, NZ, NR, NC-1))
 V['v'] = np.zeros((NT, NZ, NR-1, NC))
