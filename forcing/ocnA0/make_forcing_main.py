@@ -63,7 +63,8 @@ V['vbar'] = np.zeros((NT, NR-1, NC))
 # Make estuary half full of fresh water (in latitude) at t = 0
 print('Ocean forcing from LO_user')
 V['salt'] = 30 * np.ones((NT, NZ, NR, NC))
-V['salt'][0,:,int(NR/2)::,:] = 0 * V['salt'][0,:,int(NR/2)::,:]
+V['salt'][0,:,int(NR/1.8)::,:] = 0 * V['salt'][0,:,int(NR/1.8)::,:]
+print("min NR = {}; max NR = {}".format(np.min(NR), np.max(NR)))
 V['temp'] = 10 * np.ones((NT, NZ, NR, NC))
 V['u'] = np.zeros((NT, NZ, NR, NC-1))
 V['v'] = np.zeros((NT, NZ, NR-1, NC))
