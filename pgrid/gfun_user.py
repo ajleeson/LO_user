@@ -219,8 +219,6 @@ def make_initial_info(gridname=gridname):
 
         # sigmoid-shaped shelf
         zshelf = 240*(1/(1+np.exp(-y/5e4))) - 130
-        # sinusoid-shaped estuary with parabolic cross section, and slope that drops linearly
-        #zestuary = -20 + (x/5e3 - (y/5e4)*np.sin(y/6e3))**2 + 23*y/1e5
 
         # sinusoid-shaped estuary (amplitude scaled by chi-squared distribution)
         # with parabolic cross section, and slope that drops linearly
