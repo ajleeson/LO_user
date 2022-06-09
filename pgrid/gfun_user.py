@@ -287,7 +287,7 @@ def make_initial_info(gridname=gridname):
         zshelf = 240*(1/(1+np.exp(-y/5e4))) - 130
 
         # parabolic cross section, and slope that drops linearly
-        zestuary = -20 + 3*((x)/5e3)**2 + 20*y/1e5
+        zestuary = -20 + 3*((x)/5e3)**2 + 25*y/1e5
 
         z = zshelf
         mask = zestuary < z
