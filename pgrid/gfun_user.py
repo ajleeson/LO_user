@@ -16,7 +16,7 @@ import gfun_utility as gfu
 import gfun
 
 # This is the name of the grid that you are working on.
-gridname = 'al0'
+gridname = 'alpe'
 
 #print('I made it into LO_user')
 #print('My gridname is {}'.format(gridname))
@@ -40,6 +40,13 @@ elif gridname in ['ae0']:
     base_tag = 'v0'
 elif gridname in ['al0']:
     # AL's first analytical model estuary
+    # for analytical cases we create the river info and track in
+    # make_initial_info() below, but we still assign gridname and tag so
+    # that they get saved in the right places
+    base_gridname = 'al0'
+    base_tag = 'v0'
+elif gridname in ['alpe']:
+    # parabolic cross section estuary, but otherwise straight
     # for analytical cases we create the river info and track in
     # make_initial_info() below, but we still assign gridname and tag so
     # that they get saved in the right places
@@ -227,6 +234,60 @@ def make_initial_info(gridname=gridname):
         yscale = 1e4
         zestuary = -20 + 3*(x/5e3 -\
         (((y/yscale)**(k/2-1)*np.exp(-(y/yscale)/2)/(2**(k/2)*gamma)))*np.sin(y/2e3))**2 + 25*y/1e5
+
+        z = zshelf
+        mask = zestuary < z
+        z[mask] = zestuary[mask]
+        
+        # create a river file
+        Ldir = Lfun.Lstart(gridname=base_gridname, tag=base_tag)
+        ri_dir = Ldir['LOo'] / 'pre' / 'river' / Ldir['gtag']
+        Lfun.make_dir(ri_dir)
+        gri_fn = ri_dir / 'river_info.csv'
+        with open(gri_fn, 'w') as rf:
+            rf.write('rname,usgs,ec,nws,ratio,depth,flow_units,temp_units\n')
+            rf.write('creek0,,,,1.0,5.0,m3/s,degC\n')
+        # and make a track for the river
+        track_dir = ri_dir / 'tracks'
+        Lfun.make_dir(track_dir)
+        track_fn = track_dir / 'creek0.p'
+        track_df = pd.DataFrame()
+        NTR = 100
+        track_df['lat'] = np.linspace(45,50,NTR) # OK to go past edge of domain
+        track_df['lon'] = 0*np.ones(NTR)
+        track_df.to_pickle(track_fn)
+
+    elif gridname == 'alpe':
+        # get list of default choices
+        dch = gfun.default_choices()
+
+        # So far I have left this unchanged because I don't understand it
+        lon_list = [-2, 0, 1, 2]
+        x_res_list = [2500, 500, 500, 2500]
+        lat_list = [43, 44.9, 45.1, 47]
+        y_res_list = [2500, 500, 500, 2500]
+        Lon_vec, Lat_vec = gfu.stretched_grid(lon_list, x_res_list,
+                                            lat_list, y_res_list)
+        lon, lat = np.meshgrid(Lon_vec, Lat_vec)
+        # defining bathymetry analytically
+        dch['analytical'] = True
+        # I want my river to come from the north and ocean to come from the south
+        dch['nudging_edges'] = ['south', 'east', 'west']
+        # Let mean sea level equal NAVD88
+        dch['use_z_offset'] = False
+        # tidy up dch (make sure there is no carryover from prior runs?)
+        dch['z_offset'] = 0.0
+        dch['t_dir'] = 'BLANK'
+        dch['t_list'] = ['BLANK']
+        # make bathymetry by hand
+        z = np.zeros(lon.shape)
+        x, y = zfun.ll2xy(lon, lat, 0, 45)
+
+        # sigmoid-shaped shelf
+        zshelf = 240*(1/(1+np.exp(-y/5e4))) - 130
+
+        # parabolic cross section, and slope that drops linearly
+        zestuary = -20 + 3*((x)/5e3)**2 + 20*y/1e5
 
         z = zshelf
         mask = zestuary < z
