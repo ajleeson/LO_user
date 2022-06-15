@@ -11,18 +11,10 @@ I ran the model between 01/01/2020 through 02/10/2020 with the following forcing
 
 |Forcing | Model Input|
 |---|---|
-|River Flowrate|1000*|
+|River Flowrate|1000 $m^3s^{-1}$|
 |Tidal Forcing| Includes spring-neap cycle|
 |Ocean Forcing| Estuary half fresh at t=0|
 |Atmospheric Forcing|Not implemented in this model|
-
-  <span style="color:red">
- <i>*Note: Need clarification on units of river flowrate (from river forcing file):</i>
-  </span>. 
-
-  ~~~
-   Q_mat[:,ii] = 1000 * np.ones(NT) * gri_df.loc[rn, 'isign']
-  ~~~
 
 ## Results
 
