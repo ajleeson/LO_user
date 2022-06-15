@@ -1,8 +1,8 @@
 # 06/21/2022 Update
 
 ### Weekly Todos
-- [ ] Create mooring extraction and make a superplot to see tides
-- [ ] 
+ [ ] Create mooring extraction and make a superplot to see tides
+
 
 # 06/15/2022 Update
 
@@ -16,7 +16,7 @@ I ran the model between 01/01/2020 through 02/10/2020 with the following forcing
 
 |Forcing | Model Input|
 |---|---|
-|River Flowrate|1000 <img src="https://render.githubusercontent.com/render/math?math=m^3 s^{-1}">|
+|River Flowrate|1000 cms|
 |Tidal Forcing| Includes spring-neap cycle|
 |Ocean Forcing| Estuary half fresh at t=0|
 |Atmospheric Forcing|Not implemented in this model|
