@@ -1,7 +1,7 @@
 # 06/21/2022 Update
 
 ### Weekly Todos
- [ ] Create mooring extraction and make a superplot to see tides
+- [ ] Create mooring extraction and make a superplot to see tides
 
 
 # 06/15/2022 Update
