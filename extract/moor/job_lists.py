@@ -143,6 +143,12 @@ def get_sta_dict(job_name):
         'ORCA_Hoodsport': (-123.1126, 47.4218),
         'CE02':(-124.304, 44.6393) # Oregon Shelf (80 m)
         }
+
+    elif job_name == 'alpe':
+        sta_dict = {
+        'River_Mouth': (0,45.4),
+        'Estuary_Mouth': (0,45.1)
+        }
             
     else:
         print('Unsupported job name!')
