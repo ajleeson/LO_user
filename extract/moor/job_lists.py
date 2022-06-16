@@ -146,7 +146,7 @@ def get_sta_dict(job_name):
 
     elif job_name == 'alpe':
         sta_dict = {
-        'River_Mouth': (0,45.4),
+        'superplot': (0,45.4),
         'Estuary_Mouth': (0,45.1)
         }
             
