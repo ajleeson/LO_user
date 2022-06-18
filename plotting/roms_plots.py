@@ -1041,7 +1041,7 @@ def P_sect_alpe(in_dict):
     else:
         plt.show()
         
-def P_sect_alpe_withTides(in_dict):
+def P_superplot_alpe_withTides(in_dict):
     """
     This plots a map and a section (distance, z), and makes sure
     that the color limits are identical.  If the color limits are
@@ -1105,11 +1105,22 @@ def P_sect_alpe_withTides(in_dict):
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
     # -----------------------------------------------------------
 
-    # Location of zeta
-    zeta_lat = 320
+    # hardcoded latitude of mooring location from superplot
+    lat = 45.4
+
     # get zeta and latitude
     zetas = v2['zeta']
     lats = v2['lat']
+    
+    # difference from lats to desired lat
+    lats_diff = abs(lats - lat*np.ones(np.shape(lats)))
+
+    # lat_index
+    lat_index = np.where(lats_diff == np.min(lats_diff))
+
+    # Location of zeta
+    zeta_lat = lat_index
+    
 
     pfun.add_info(ax, in_dict['fn'], loc='upper_right')
     ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
@@ -1121,9 +1132,9 @@ def P_sect_alpe_withTides(in_dict):
     ax.plot(x, y, '-r', linewidth=2)
     ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
         markeredgecolor='r', markeredgewidth=2)
-    ax.plot(x[idist0],lats[zeta_lat]*np.ones(np.shape(y[idist0])),marker='*',markersize=15,color='hotpink')
+    ax.plot(x[idist0],lat*np.ones(np.shape(y[idist0])),marker='*',markersize=15,color='hotpink')
 
-    # section
+    # section -------------------------------------------------------------------
     ax = fig.add_subplot(2, 3, (2,3))
     ax.plot(dist, v2['zbot'], '-k', linewidth=2)
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
@@ -1144,10 +1155,38 @@ def P_sect_alpe_withTides(in_dict):
     T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
     dt_local = pfun.get_dt_local(T['dt'])
 
-    # Tidal Amplitude
+    # Tidal Amplitude -------------------------------------------------------------
 
     ax = fig.add_subplot(2, 3, (5,6))
-    ax.plot(dt_local,zetas[zeta_lat],marker='*',markersize=8,color='hotpink')
+    # ax.plot(dt_local,zetas[zeta_lat],marker='*',markersize=8,color='hotpink')
+
+    # get model fields
+    ds = xr.open_dataset(in_dict['fn'])
+    
+    gtagex = str(in_dict['fn']).split('/')[-3]
+    year_str = str(in_dict['fn']).split('/')[-2].split('.')[0][1:]
+
+    # get forcing fields
+    ffn = Ldir['LOo'] / 'extract' / gtagex / 'superplot' / ('forcing_' + gtagex + '_' + year_str + '.p')
+    fdf = pd.read_pickle(ffn)
+
+    # # get the day
+    tm = T['dt'] # datetime
+    TM = datetime(tm.year, tm.month, tm.day, tm.hour)
+
+    # Tides
+    alpha = 1
+    # convert zeta timestamp to local time
+    local_t_tides = [pfun.get_dt_local(x) for x in fdf['Timestamp']]
+
+    ax.plot(local_t_tides, fdf['Tide Height (m)'].values, '-k',
+        lw=1.5, alpha=alpha)
+
+    # time marker
+    ax.plot(fdf.loc[TM, 'Timestamp'], fdf.loc[TM, 'Tide Height (m)'],
+        marker='*', color='hotpink', markersize=20)
+    ax.set_ylim(-2,2)
+    # ax.set_axis_off()
 
     # FINISH
     ds.close()
@@ -2395,6 +2434,172 @@ def P_superplot_chl(in_dict):
         fontsize=fs, horizontalalignment='center', style='italic')
     ax.text(1, 0, 'FALL', transform=ax.transAxes, color=clist[3],
         fontsize=fs, horizontalalignment='right', style='italic')
+
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+def P_superplot_salt_alpe(in_dict):
+    # Plot salinity maps and section, with forcing time-series.
+    # Super clean design.  Updated to avoid need for tide data, which it
+    # now just gets from the same mooring extraction it uses for wind.
+
+    vn = 'salt'
+    vlims = (0, 33) # full map
+    vlims2 = (22, 32) # PS map
+    vlims3 = (29, 32) # PS section
+    cmap = 'Spectral_r'
+
+    # get model fields
+    ds = xr.open_dataset(in_dict['fn'])
+    
+    gtagex = str(in_dict['fn']).split('/')[-3]
+    year_str = str(in_dict['fn']).split('/')[-2].split('.')[0][1:]
+
+    # get forcing fields
+    ffn = Ldir['LOo'] / 'extract' / gtagex / 'superplot' / ('forcing_' + gtagex + '_' + year_str + '.p')
+    fdf = pd.read_pickle(ffn)
+    fdf['yearday'] = fdf.index.dayofyear - 0.5 # .5 to 364.5
+
+    # get section
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # create section by hand
+    lon = G['lon_rho']
+    lat = G['lat_rho']
+    zdeep = -30
+
+    y = np.linspace(1.04*lat.min(), 0.975*lat.max(), 500)
+    x = np.zeros(y.shape)
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+
+    # PLOTTING
+    fig = plt.figure(figsize=(17,9))
+    fs = 18 # fontsize
+
+    # Full map
+    ax = fig.add_subplot(131)
+    lon = ds['lon_psi'].values
+    lat = ds['lat_psi'].values
+    v =ds[vn][0, -1, 1:-1, 1:-1].values
+    fac=pinfo.fac_dict[vn]
+    vv = fac * v
+    vv[:, :6] = np.nan
+    vv[:6, :] = np.nan
+    cs = ax.pcolormesh(lon, lat, vv, vmin=vlims[0], vmax=vlims[1], cmap=cmap)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_axis_off()
+    # add a box for the subplot
+    aa = [-123.5, -122.1, 47.03, 48.8]
+    pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
+    # labels
+    ax.text(.95, .07, 'LiveOcean\nSalinity\n'
+        + datetime.strftime(T['dt'], '%Y'), fontsize=fs, color='k',
+        transform=ax.transAxes, horizontalalignment='center',
+        fontweight='bold')
+    ax.text(.95, .03, datetime.strftime(T['dt'], '%Y.%m.%d'), fontsize=fs*.7, color='k',
+        transform=ax.transAxes, horizontalalignment='center')
+    
+    ax.text(.99,.97,'S range\n'+ str(vlims), transform=ax.transAxes,
+        va='top', ha='right', c='orange', size=.6*fs, weight='bold')
+
+    # # PS map
+    # ax = fig.add_subplot(132)
+    # cs = ax.pcolormesh(lon, lat, vv, vmin=vlims2[0], vmax=vlims2[1],
+    #     cmap=cmap)
+    # #fig.colorbar(cs)
+    # pfun.add_coast(ax)
+    # ax.axis(aa)
+    # pfun.dar(ax)
+    # pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
+    # ax.set_axis_off()
+
+
+    # add section track
+    sect_color = 'violet'
+    n_ai = int(len(x)/6)
+    n_tn = int(4.5*len(x)/7)
+    ax.plot(x, y, linestyle='--', color='k', linewidth=2)
+    ax.plot(x[n_ai], y[n_ai], marker='*', color=sect_color, markersize=14,
+        markeredgecolor='k')
+    ax.plot(x[n_tn], y[n_tn], marker='o', color=sect_color, markersize=10,
+        markeredgecolor='k')
+    ax.text(.93,.97,'S range\n'+ str(vlims2), transform=ax.transAxes,
+        va='top', ha='right', c='orange', size=.6*fs, weight='bold')
+    
+
+    # Section
+    ax =  fig.add_subplot(433)
+    ax.plot(dist, v2['zeta']+5, linestyle='--', color='k', linewidth=2)
+    ax.plot(dist[n_ai], v2['zeta'][n_ai] + 5, marker='*', color=sect_color,
+        markersize=14, markeredgecolor='k')
+    ax.plot(dist[n_tn], v2['zeta'][n_tn] + 5, marker='o', color=sect_color,
+        markersize=10, markeredgecolor='k')
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 25)
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # plot section
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=vlims3[0], vmax=vlims3[1], cmap=cmap)
+    ax.text(.99,.4,'S range\n'+ str(vlims3), transform=ax.transAxes,
+        va='bottom', ha='right', c='orange', size=.6*fs, weight='bold')
+                       
+    #fig.colorbar(cs)
+    # labels
+    ax.text(0, 0, 'SECTION\nPuget Sound', fontsize=fs, color='b',
+        transform=ax.transAxes)
+    ax.set_axis_off()
+
+    # get the day
+    tm = T['dt'] # datetime
+    TM = datetime(tm.year, tm.month, tm.day)
+    # get yearday
+    yearday = fdf['yearday'].values
+    this_yd = fdf.loc[TM, 'yearday']
+
+    # Tides
+    alpha = .4
+    ax = fig.add_subplot(436)
+    ax.plot(yearday, fdf['RMS Tide Height (m)'].values, '-k',
+        lw=3, alpha=alpha)
+    # time marker
+    ax.plot(this_yd, fdf.loc[TM, 'RMS Tide Height (m)'],
+        marker='o', color='r', markersize=7)
+    # # labels
+    # ax.text(1, .05, 'NEAP TIDES', transform=ax.transAxes,
+    #     alpha=alpha, fontsize=fs, horizontalalignment='right')
+    # ax.text(1, .85, 'SPRING TIDES', transform=ax.transAxes,
+    #     alpha=alpha, fontsize=fs, horizontalalignment='right')
+    # limits
+    #ax.set_xlim(0,365)
+    ax.set_ylim(0,1.5)
+    ax.set_axis_off()
+
+    # # Time Axis
+    # clist = ['gray', 'gray', 'gray', 'gray']
+    # if tm.month in [1, 2, 3]:
+    #     clist[0] = 'r'
+    # if tm.month in [4, 5, 6]:
+    #     clist[1] = 'r'
+    # if tm.month in [7, 8, 9]:
+    #     clist[2] = 'r'
+    # if tm.month in [10, 11, 12]:
+    #     clist[3] = 'r'
+    # ax.text(0, 0, 'WINTER', transform=ax.transAxes, color=clist[0],
+    #     fontsize=fs, horizontalalignment='left', style='italic')
+    # ax.text(.4, 0, 'SPRING', transform=ax.transAxes, color=clist[1],
+    #     fontsize=fs, horizontalalignment='center', style='italic')
+    # ax.text(.68, 0, 'SUMMER', transform=ax.transAxes, color=clist[2],
+    #     fontsize=fs, horizontalalignment='center', style='italic')
+    # ax.text(1, 0, 'FALL', transform=ax.transAxes, color=clist[3],
+    #     fontsize=fs, horizontalalignment='right', style='italic')
 
     fig.tight_layout()
 

@@ -55,12 +55,19 @@ Lfun.make_dir(outdir)
 # Mooring
 moor_fn = Ldir['LOo'] / 'extract' / gtagex / 'moor' / gridname / ('superplot_' + d_str + '.nc')
 moor_ds = xr.open_dataset(moor_fn)
-eta_rms = np.sqrt(zfun.lowpass(moor_ds.zeta.values**2, f='godin'))[1::24]
+
+# Parker took the rms tide height, but I want the tide height every hour because I'm look at only 10 days
+#eta_rms = np.sqrt(zfun.lowpass(moor_ds.zeta.values**2, f='godin'))[1::24]
+eta_rms = moor_ds.zeta.values
+
 # svstr_lp = zfun.filt_AB8d(moor_ds['svstr'].values)[1::24]
 
 # Combined
-comb_df = pd.DataFrame(index=pd.date_range(start='2/1/'+year, end='2/10/'+year))
-comb_df.loc[:,'RMS Tide Height (m)'] = eta_rms
+# comb_df = pd.DataFrame(index=pd.date_range(start='2/1/'+year, end='2/10/'+year))
+# comb_df.loc[:,'RMS Tide Height (m)'] = eta_rms
+comb_df = pd.DataFrame(index=pd.date_range(start='2/1/'+year, end='2/11/'+year, freq= '1H'))
+comb_df.loc[:,'Timestamp'] = pd.date_range(start='2/1/'+year, end='2/11/'+year, freq= '1H')
+comb_df.loc[:,'Tide Height (m)'] = eta_rms
 # comb_df.loc[:,'8-day NS Wind Stress (Pa)'] = svstr_lp
 # comb_df.loc[:,'Columbia R. Flow (1000 m3/s)'] = flow_da.sel(riv='columbia')/1000
 # comb_df.loc[:,'Fraser R. Flow (1000 m3/s)'] = flow_da.sel(riv='fraser')/1000
@@ -73,6 +80,6 @@ comb_df.to_pickle(out_fn)
 
 # plotting
 plt.close('all')
-comb_df.plot(subplots=True, xlim=(comb_df.index[0], comb_df.index[-1]), grid=True)
+comb_df.plot(subplots=True, xlim=(comb_df.index[1], comb_df.index[-1]), grid=True)
 plt.show()
 
