@@ -19,6 +19,7 @@ import pickle
 from datetime import datetime, timedelta
 import pandas as pd
 from cmocean import cm
+import matplotlib.dates as mdates
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -1186,7 +1187,11 @@ def P_superplot_alpe_withTides(in_dict):
     ax.plot(fdf.loc[TM, 'Timestamp'], fdf.loc[TM, 'Tide Height (m)'],
         marker='*', color='hotpink', markersize=20)
     ax.set_ylim(-2,2)
-    # ax.set_axis_off()
+    ax.set_title('Sea Surface Height (m)')
+    ax.set_ylabel(r'$\zeta$ (m)')
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%D"))
+    ax.tick_params('x', labelrotation=45)
+    fig.tight_layout()
 
     # FINISH
     ds.close()
