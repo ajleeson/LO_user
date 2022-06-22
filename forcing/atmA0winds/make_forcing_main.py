@@ -46,16 +46,16 @@ ot_vec = np.array([Lfun.datetime_to_modtime(dt0), Lfun.datetime_to_modtime(dt1)]
 NT = len(ot_vec)
 
 # Create fields for the state variables.
-vn_list = ['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind','svstr']
+vn_list = ['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind']
 
 # For now we just fill everything with zeros and nan's (except svstr)
 omat = np.zeros((NT, NR, NC))
 mr2 = np.ones((NT, NR, NC)) * G['mask_rho'].reshape((1, NR, NC))
 omat[mr2==0] = np.nan
 
-# svstr (using 0.1 because that's what Elizabeth used)
-cws = 0.1*np.zeros((NT, NR, NC))
-cws[mr2==0] = np.nan
+# Uwind = 6 m/s
+windspeed = 6*np.zeros((NT, NR, NC))
+windspeed[mr2==0] = np.nan
 
 for vn in vn_list:  
     out_fn = out_dir / (vn + '.nc')
@@ -65,9 +65,9 @@ for vn in vn_list:
     tname =  vinfo['time_name']
     dims = (tname,) + vinfo['space_dims_tup']
 
-    if vn == 'svstr':
+    if vn == 'Uwind':
         # set constant winds stress in v
-        ds[vn] = (dims, cws.copy())
+        ds[vn] = (dims, windspeed.copy())
     else:
         # You could intervene here by writing something different than omat.
         ds[vn] = (dims, omat.copy())
