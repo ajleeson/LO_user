@@ -2495,6 +2495,7 @@ def P_tidal_avg_vel_alpev40d(in_dict):
 
     # calculate average depth
     avgz = zfun.lowpass(np.array(z_rho), f='godin')[12::24]
+    print('shape(avgz) = {}'.format(np.shape(avgz)))
 
     # plot
     fig, ax = plt.subplots(1,1,figsize = (8,6))
@@ -2505,7 +2506,7 @@ def P_tidal_avg_vel_alpev40d(in_dict):
     colors = cm.thermal(np.linspace(0, 1, n))
 
     for i, c in zip(range(n),colors):
-        plt.plot(v_godin[i,:],avgz, label = dates[i], color = c)
+        plt.plot(v_godin[i,:],avgz[i,:], label = dates[i], color = c)
 
     plt.legend(loc = 'best')
     plt.axvline(0, color='k', linestyle='--')
