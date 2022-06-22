@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from cmocean import cm
 import matplotlib.dates as mdates
+import argparse
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -2450,166 +2451,69 @@ def P_superplot_chl(in_dict):
     else:
         plt.show()
 
-def P_superplot_salt_alpe(in_dict):
-    # Plot salinity maps and section, with forcing time-series.
-    # Super clean design.  Updated to avoid need for tide data, which it
-    # now just gets from the same mooring extraction it uses for wind.
+def P_tidal_avg_vel_alpev40d(in_dict):
+    # Plot tidally averaged velocity profile from mooring data.
 
-    vn = 'salt'
-    vlims = (0, 33) # full map
-    vlims2 = (22, 32) # PS map
-    vlims3 = (29, 32) # PS section
-    cmap = 'Spectral_r'
-
-    # get model fields
-    ds = xr.open_dataset(in_dict['fn'])
-    
+    # get gtagex
     gtagex = str(in_dict['fn']).split('/')[-3]
     year_str = str(in_dict['fn']).split('/')[-2].split('.')[0][1:]
 
-    # get forcing fields
-    ffn = Ldir['LOo'] / 'extract' / gtagex / 'superplot' / ('forcing_' + gtagex + '_' + year_str + '.p')
-    fdf = pd.read_pickle(ffn)
-    fdf['yearday'] = fdf.index.dayofyear - 0.5 # .5 to 364.5
+    # Define dates
+    d_str = '2020.02.01_2020.02.10'
 
-    # get section
-    G, S, T = zrfun.get_basic_info(in_dict['fn'])
-    # create section by hand
-    lon = G['lon_rho']
-    lat = G['lat_rho']
-    zdeep = -30
+    # get gridname
+    gridname = 'alpe'
 
-    y = np.linspace(1.04*lat.min(), 0.975*lat.max(), 500)
-    x = np.zeros(y.shape)
-    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+    # mooring
+    fn = Ldir['LOo'] / 'extract' / gtagex / 'moor' / gridname / ('superplot_' + d_str + '.nc')
+    moor = xr.open_dataset(fn)
 
-    # PLOTTING
-    fig = plt.figure(figsize=(17,9))
-    fs = 18 # fontsize
+    v = moor['v']
+    z_w = moor['z_w']
+    z_rho = moor['z_rho']
 
-    # Full map
-    ax = fig.add_subplot(131)
-    lon = ds['lon_psi'].values
-    lat = ds['lat_psi'].values
-    v =ds[vn][0, -1, 1:-1, 1:-1].values
-    fac=pinfo.fac_dict[vn]
-    vv = fac * v
-    vv[:, :6] = np.nan
-    vv[:6, :] = np.nan
-    cs = ax.pcolormesh(lon, lat, vv, vmin=vlims[0], vmax=vlims[1], cmap=cmap)
-    pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
-    pfun.dar(ax)
-    ax.set_axis_off()
-    # add a box for the subplot
-    aa = [-123.5, -122.1, 47.03, 48.8]
-    pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
-    # labels
-    ax.text(.95, .07, 'LiveOcean\nSalinity\n'
-        + datetime.strftime(T['dt'], '%Y'), fontsize=fs, color='k',
-        transform=ax.transAxes, horizontalalignment='center',
-        fontweight='bold')
-    ax.text(.95, .03, datetime.strftime(T['dt'], '%Y.%m.%d'), fontsize=fs*.7, color='k',
-        transform=ax.transAxes, horizontalalignment='center')
-    
-    ax.text(.99,.97,'S range\n'+ str(vlims), transform=ax.transAxes,
-        va='top', ha='right', c='orange', size=.6*fs, weight='bold')
+    year = '2020'
+    dates = pd.date_range(start='2/1/'+year, end='2/11/'+year)
+    dates_local = [pfun.get_dt_local(x) for x in dates]
 
-    # # PS map
-    # ax = fig.add_subplot(132)
-    # cs = ax.pcolormesh(lon, lat, vv, vmin=vlims2[0], vmax=vlims2[1],
-    #     cmap=cmap)
-    # #fig.colorbar(cs)
-    # pfun.add_coast(ax)
-    # ax.axis(aa)
-    # pfun.dar(ax)
-    # pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
-    # ax.set_axis_off()
+    # Calculate first difference of z_w
+    dz = np.diff(z_w)
 
+    # Calculate transport velocity
+    vdz = v * dz
 
-    # add section track
-    sect_color = 'violet'
-    n_ai = int(len(x)/6)
-    n_tn = int(4.5*len(x)/7)
-    ax.plot(x, y, linestyle='--', color='k', linewidth=2)
-    ax.plot(x[n_ai], y[n_ai], marker='*', color=sect_color, markersize=14,
-        markeredgecolor='k')
-    ax.plot(x[n_tn], y[n_tn], marker='o', color=sect_color, markersize=10,
-        markeredgecolor='k')
-    ax.text(.93,.97,'S range\n'+ str(vlims2), transform=ax.transAxes,
-        va='top', ha='right', c='orange', size=.6*fs, weight='bold')
-    
+    # time average using godin filter, and subsample per day (At noon)
+    vdz_godin = zfun.lowpass(np.array(vdz), f='godin')[12::24]
+    dz_godin = zfun.lowpass(np.array(dz), f='godin')[12::24]
 
-    # Section
-    ax =  fig.add_subplot(433)
-    ax.plot(dist, v2['zeta']+5, linestyle='--', color='k', linewidth=2)
-    ax.plot(dist[n_ai], v2['zeta'][n_ai] + 5, marker='*', color=sect_color,
-        markersize=14, markeredgecolor='k')
-    ax.plot(dist[n_tn], v2['zeta'][n_tn] + 5, marker='o', color=sect_color,
-        markersize=10, markeredgecolor='k')
-    ax.set_xlim(dist.min(), dist.max())
-    ax.set_ylim(zdeep, 25)
-    sf = pinfo.fac_dict[vn] * v3['sectvarf']
-    # plot section
-    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
-                       vmin=vlims3[0], vmax=vlims3[1], cmap=cmap)
-    ax.text(.99,.4,'S range\n'+ str(vlims3), transform=ax.transAxes,
-        va='bottom', ha='right', c='orange', size=.6*fs, weight='bold')
-                       
-    #fig.colorbar(cs)
-    # labels
-    ax.text(0, 0, 'SECTION\nPuget Sound', fontsize=fs, color='b',
-        transform=ax.transAxes)
-    ax.set_axis_off()
+    print('shape(vdz_godin) = {}'.format(np.shape(vdz_godin)))
+    print('shape(dz_godin) = {}'.format(np.shape(dz_godin)))
 
-    # get the day
-    tm = T['dt'] # datetime
-    TM = datetime(tm.year, tm.month, tm.day)
-    # get yearday
-    yearday = fdf['yearday'].values
-    this_yd = fdf.loc[TM, 'yearday']
+    # divide average tranpsort velocity by average dz
+    v_godin = vdz_godin/dz_godin
+    print('shape(v_godin) = {}'.format(np.shape(v_godin)))
 
-    # Tides
-    alpha = .4
-    ax = fig.add_subplot(436)
-    ax.plot(yearday, fdf['RMS Tide Height (m)'].values, '-k',
-        lw=3, alpha=alpha)
-    # time marker
-    ax.plot(this_yd, fdf.loc[TM, 'RMS Tide Height (m)'],
-        marker='o', color='r', markersize=7)
-    # # labels
-    # ax.text(1, .05, 'NEAP TIDES', transform=ax.transAxes,
-    #     alpha=alpha, fontsize=fs, horizontalalignment='right')
-    # ax.text(1, .85, 'SPRING TIDES', transform=ax.transAxes,
-    #     alpha=alpha, fontsize=fs, horizontalalignment='right')
-    # limits
-    #ax.set_xlim(0,365)
-    ax.set_ylim(0,1.5)
-    ax.set_axis_off()
+    # calculate average depth
+    avgz = zfun.lowpass(np.array(z_rho), f='godin')[12::24]
 
-    # # Time Axis
-    # clist = ['gray', 'gray', 'gray', 'gray']
-    # if tm.month in [1, 2, 3]:
-    #     clist[0] = 'r'
-    # if tm.month in [4, 5, 6]:
-    #     clist[1] = 'r'
-    # if tm.month in [7, 8, 9]:
-    #     clist[2] = 'r'
-    # if tm.month in [10, 11, 12]:
-    #     clist[3] = 'r'
-    # ax.text(0, 0, 'WINTER', transform=ax.transAxes, color=clist[0],
-    #     fontsize=fs, horizontalalignment='left', style='italic')
-    # ax.text(.4, 0, 'SPRING', transform=ax.transAxes, color=clist[1],
-    #     fontsize=fs, horizontalalignment='center', style='italic')
-    # ax.text(.68, 0, 'SUMMER', transform=ax.transAxes, color=clist[2],
-    #     fontsize=fs, horizontalalignment='center', style='italic')
-    # ax.text(1, 0, 'FALL', transform=ax.transAxes, color=clist[3],
-    #     fontsize=fs, horizontalalignment='right', style='italic')
+    # plot
+    fig, ax = plt.subplots(1,1,figsize = (8,6))
 
-    fig.tight_layout()
+    n = np.shape(v_godin)[0]
+
+    # Make color gradient
+    colors = cm.thermal(np.linspace(0, 1, n))
+
+    for i, c in zip(range(n),colors):
+        plt.plot(v_godin[i,:],avgz, label = dates[i], color = c)
+
+    plt.legend(loc = 'best')
+    plt.axvline(0, color='k', linestyle='--')
+    plt.ylabel('Z (m)')
+    plt.title(r'Velcotiy Profile ($m \ s^{-1}$)')
 
     # FINISH
-    ds.close()
+    moor.close()
     if len(str(in_dict['fn_out'])) > 0:
         plt.savefig(in_dict['fn_out'])
         plt.close()
