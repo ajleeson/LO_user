@@ -46,7 +46,7 @@ ot_vec = np.array([Lfun.datetime_to_modtime(dt0), Lfun.datetime_to_modtime(dt1)]
 NT = len(ot_vec)
 
 # Create fields for the state variables.
-vn_list = ['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind']
+vn_list = ['Uwind']#['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind']
 
 # For now we just fill everything with zeros and nan's (except svstr)
 omat = np.zeros((NT, NR, NC))
