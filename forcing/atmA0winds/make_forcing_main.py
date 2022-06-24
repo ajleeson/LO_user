@@ -46,16 +46,10 @@ ot_vec = np.array([Lfun.datetime_to_modtime(dt0), Lfun.datetime_to_modtime(dt1)]
 NT = len(ot_vec)
 
 # Create fields for the state variables.
-vn_list = ['Uwind']#['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind']
+vn_list = ['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind']
 
-# For now we just fill everything with zeros and nan's (except svstr)
-omat = np.zeros((NT, NR, NC))
+# create a mask
 mr2 = np.ones((NT, NR, NC)) * G['mask_rho'].reshape((1, NR, NC))
-omat[mr2==0] = np.nan
-
-# Uwind = 6 m/s
-windspeed = 6*np.zeros((NT, NR, NC))
-windspeed[mr2==0] = np.nan
 
 for vn in vn_list:  
     out_fn = out_dir / (vn + '.nc')
@@ -65,12 +59,33 @@ for vn in vn_list:
     tname =  vinfo['time_name']
     dims = (tname,) + vinfo['space_dims_tup']
 
-    if vn == 'Uwind':
-        # set constant winds stress in v
-        ds[vn] = (dims, windspeed.copy())
-    else:
-        # You could intervene here by writing something different than omat.
-        ds[vn] = (dims, omat.copy())
+    if vn == 'Pair':
+        const = 1013.25 # [mbar] atmospheric
+
+    elif vn == 'rain':
+        const = 0 # no rain
+    
+    elif vn == 'swrad':
+        const = 40 # [W/m^2]
+
+    elif vn == 'lwrad_down':
+        const = 5 # [W/m^2]
+
+    elif vn == 'Tair':
+        const = 283.15 # [K]
+
+    elif vn == 'Qair':
+        const = 65 # [%]
+
+    elif vn == 'Uwind':
+        const = 6 # [m/s]
+
+    elif vn == 'Vwind':
+        const = 0 # [m/s]
+
+    values = const*np.ones((NT, NR, NC))
+    values[mr2==0] = np.nan
+    ds[vn] = (dims, values)
 
     ds[vn].attrs['units'] = vinfo['units']
     ds[vn].attrs['long_name'] = vinfo['long_name']
