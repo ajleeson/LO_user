@@ -72,7 +72,7 @@ for vn in vn_list:
         const = 5 # [W/m^2]
 
     elif vn == 'Tair':
-        const = 283.15 # [K]
+        const = 10 # [C]
 
     elif vn == 'Qair':
         const = 65 # [%]
