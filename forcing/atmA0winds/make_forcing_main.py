@@ -66,10 +66,10 @@ for vn in vn_list:
         const = 0 # no rain
     
     elif vn == 'swrad':
-        const = 40 # [W/m^2]
+        const = 400 # [W/m^2]
 
     elif vn == 'lwrad_down':
-        const = 5 # [W/m^2]
+        const = 300 # [W/m^2]
 
     elif vn == 'Tair':
         const = 10 # [C]
