@@ -2473,7 +2473,7 @@ def P_tidal_avg_vel_alpev40d(in_dict):
     z_rho = moor['z_rho']
 
     year = '2020'
-    dates = pd.date_range(start='2/1/'+year, end='2/11/'+year)
+    dates = pd.date_range(start='2/1/'+year, end='2/11/'+year, freq= '1H')[12::24]
     dates_local = [pfun.get_dt_local(x) for x in dates]
 
     # Calculate first difference of z_w
@@ -2482,36 +2482,149 @@ def P_tidal_avg_vel_alpev40d(in_dict):
     # Calculate transport velocity
     vdz = v * dz
 
-    # time average using godin filter, and subsample per day (At noon)
-    vdz_godin = zfun.lowpass(np.array(vdz), f='godin')[12::24]
-    dz_godin = zfun.lowpass(np.array(dz), f='godin')[12::24]
+    # time average using 24-hour hanning window filter, and subsample per day (At noon)
+    vdz_filtered = zfun.lowpass(np.array(vdz), f='hanning', n=24, nanpad=True)[12::24]
+    dz_filtered = zfun.lowpass(np.array(dz), f='hanning', n=24, nanpad=True)[12::24]
 
-    print('shape(vdz_godin) = {}'.format(np.shape(vdz_godin)))
-    print('shape(dz_godin) = {}'.format(np.shape(dz_godin)))
+    print('shape(vdz_filtered) = {}'.format(np.shape(vdz_filtered)))
+    print('shape(dz_filtered) = {}'.format(np.shape(dz_filtered)))
 
     # divide average tranpsort velocity by average dz
-    v_godin = vdz_godin/dz_godin
-    print('shape(v_godin) = {}'.format(np.shape(v_godin)))
+    v_filtered = vdz_filtered/dz_filtered
+    print('shape(v_filtered) = {}'.format(np.shape(v_filtered)))
 
     # calculate average depth
-    avgz = zfun.lowpass(np.array(z_rho), f='godin')[12::24]
+    avgz = zfun.lowpass(np.array(z_rho), f='hanning', n=24, nanpad=True)[12::24]
     print('shape(avgz) = {}'.format(np.shape(avgz)))
 
     # plot
-    fig, ax = plt.subplots(1,1,figsize = (8,6))
+    pfun.start_plot(figsize=(15,7))
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 3, (1,2))
 
-    n = np.shape(v_godin)[0]
+    n = np.shape(v_filtered)[0]
 
     # Make color gradient
-    colors = cm.thermal(np.linspace(0, 1, n))
+    colors = cm.haline(np.linspace(0.1, 0.9, n))
 
     for i, c in zip(range(n),colors):
-        plt.plot(v_godin[i,:],avgz[i,:], label = dates[i], color = c)
+        ax.plot(v_filtered[i,:],avgz[i,:], label = dates_local[i].strftime('%b-%d'), color = c)
+
+    ax.legend(loc = 'best')
+    ax.axvline(0, color='k', linestyle='--')
+    ax.set_ylabel('Z (m)')
+    ax.set_title(r'Daily Average Velocity Profile ($m \ s^{-1}$)')
+
+    # Calculate tidally-averaged velocity profile
+    v_7day = v[72::,:] # get one week of half spring and half neap tide
+    z_7day = z_rho[72::,:] 
+    depth_7day = z_w[72::,:]
+    n = np.shape(v_7day)[0]
+    # average for whole day
+    v_7dayavg = zfun.lowpass(np.array(v_7day), f='hanning', n=n, nanpad=True)[int(n/2)]
+    z_7dayavg = zfun.lowpass(np.array(z_7day), f='hanning', n=n, nanpad=True)[int(n/2)]
+
+    # Calculate average depth
+    depth_avg = zfun.lowpass(np.array(depth_7day), f='hanning', n=n, nanpad=True)[int(n/2)]
+    depth_avg = -1*depth_avg[0]
+
+    # Add comparison of model and analytical velocity profile from CEWA 570
+    ax = fig.add_subplot(1, 3, 3)
+
+    # INITIALIZE CONSTANTS
+    s1 = 0         # [ppt] river salinity
+    s2 = 30        # [ppt] PS salinity
+    del_s = s2-s1  # [ppt]
+    Q = 1000       # [m^3/s] river discharge
+    beta = 0.77e-3 # [ppt^-1] 
+    H = depth_avg     # [m] estuary depth
+    print(H)
+    B = 5767       # [m] estuary width
+    L = 10e3       # [m] estuary length
+    nu_e = 1e-2    # [m^2/s] eddy viscosity
+    g = 9.8        # [m/s^2] gravity
+
+    # x3 vector
+    x3 = np.linspace(-H,0,10000)
+
+    # Define a temporary wind velocity scale u star
+    u_star = 0 # 1e-2        # [m/s]
+
+    # Calculate component velocity scales
+    u_R = Q/(B*H)
+    u_W = np.square(u_star)*H/nu_e
+    u_E = g*beta*del_s*np.power(H,3)/(48*nu_e*L)
+
+    # Calculate component velocity profiles
+    u_river = -1*u_R*(3/2 - (3/2)*np.square(x3/H))
+    u_wind = -1*u_W*((3/4)*np.square(x3/H) + (x3/H) + 1/4)
+    u_density = -1*u_E*(1 - 9*np.square(x3/H) - 8*np.power(x3/H,3))
+
+    # Calculate tidally-averaged velocity profile
+    u_1 = u_river + u_wind + u_density
+
+    ax.plot(u_1,x3,label = 'analytical')
+    ax.plot(v_7dayavg,z_7dayavg, label = 'numerical')
+    ax.axvline(0, color='k', linestyle='--')
+    ax.legend(loc = 'best')
+
+    # FINISH
+    moor.close()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+
+def P_tidal_avg_sal_alpev40d(in_dict):
+    # Plot tidally averaged velocity profile from mooring data.
+
+    # get gtagex
+    gtagex = str(in_dict['fn']).split('/')[-3]
+    year_str = str(in_dict['fn']).split('/')[-2].split('.')[0][1:]
+
+    # Define dates
+    d_str = '2020.02.01_2020.02.10'
+
+    # get gridname
+    gridname = 'alpe'
+
+    # mooring
+    fn = Ldir['LOo'] / 'extract' / gtagex / 'moor' / gridname / ('superplot_' + d_str + '.nc')
+    moor = xr.open_dataset(fn)
+
+    z_rho = moor['z_rho']
+    salt = moor['salt']
+
+    year = '2020'
+    dates = pd.date_range(start='2/1/'+year, end='2/11/'+year, freq= '1H')[12::24]
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+
+
+    # time average using 24-hour hanning window filter, and subsample per day (At noon)
+    sal_filtered = zfun.lowpass(np.array(salt), f='hanning', n=24, nanpad=True)[12::24]
+    print('shape(sal_filtered) = {}'.format(np.shape(sal_filtered)))
+
+    # calculate average depth
+    avgz = zfun.lowpass(np.array(z_rho), f='hanning', n=24, nanpad=True)[12::24]
+    print('shape(avgz) = {}'.format(np.shape(avgz)))
+
+    # plot
+    fig, ax = plt.subplots(1,1,figsize = (7,5))
+
+    n = np.shape(sal_filtered)[0]
+
+    # Make color gradient
+    colors = cm.haline(np.linspace(0.1, 0.9, n))
+
+    for i, c in zip(range(n),colors):
+        plt.plot(sal_filtered[i,:],avgz[i,:], label = dates_local[i].strftime('%b-%d'), color = c)
 
     plt.legend(loc = 'best')
-    plt.axvline(0, color='k', linestyle='--')
     plt.ylabel('Z (m)')
-    plt.title(r'Velcotiy Profile ($m \ s^{-1}$)')
+    plt.title(r'Daily Average Salinity Profile ($g \ kg^{-1}$)')
+
 
     # FINISH
     moor.close()
