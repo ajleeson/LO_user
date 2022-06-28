@@ -41,7 +41,7 @@ NR = G['M']; NC = G['L']
 # Make the time vector.  Make hourly time points. This vector must span just one day. 
 dt0 = datetime.strptime(Ldir['date_string'], Lfun.ds_fmt)
 ot_vec = [Lfun.datetime_to_modtime(dt0)]
-for i in range(1,24):
+for i in range(0,24):
     dt1 = dt0 + timedelta(hours=1)
     ot_vec.append(Lfun.datetime_to_modtime(dt1))
     dt0 = dt1
