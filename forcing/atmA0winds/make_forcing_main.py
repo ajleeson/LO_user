@@ -12,6 +12,7 @@ run make_forcing_main.py -g ae0 -t v0 -r backfill -s continuation -d 2020.01.01 
 from pathlib import Path
 import sys
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
 
 from lo_tools import forcing_argfun as ffun
 
@@ -37,12 +38,14 @@ out_dir = Ldir['LOo'] / 'forcing' / Ldir['gtag'] / ('f' + Ldir['date_string']) /
 G = zrfun.get_basic_info(Ldir['grid'] / 'grid.nc', only_G=True)
 NR = G['M']; NC = G['L']
 
-# Make the time vector.  Here I just have two time points, at the start
-# and end of the day, but you could have more, e.g. hourly.  You would still
-# want the total time to just be one day.
+# Make the time vector.  Make hourly time points. This vector must span just one day. 
 dt0 = datetime.strptime(Ldir['date_string'], Lfun.ds_fmt)
-dt1 = dt0 + timedelta(days=1)
-ot_vec = np.array([Lfun.datetime_to_modtime(dt0), Lfun.datetime_to_modtime(dt1)])
+ot_vec = [Lfun.datetime_to_modtime(dt0)]
+for i in range(1,24):
+    dt1 = dt0 + timedelta(hours=1)
+    ot_vec.append(Lfun.datetime_to_modtime(dt1))
+    dt0 = dt1
+
 NT = len(ot_vec)
 
 # Create fields for the state variables.
@@ -61,29 +64,48 @@ for vn in vn_list:
 
     if vn == 'Pair':
         const = 1013.25 # [mbar] atmospheric
+        values = const*np.ones((NT, NR, NC))
 
     elif vn == 'rain':
         const = 0 # no rain
+        values = const*np.ones((NT, NR, NC))
     
     elif vn == 'swrad':
-        const = 400 # [W/m^2]
+        # const = 400 # [W/m^2]
+        values = np.ones((NT, NR, NC))
+        # define shortwave radiation function
+        hours = np.linspace(0,NT-1,NT)
+        shortwave = np.clip(800*np.sin(np.pi/12*(hours-14)),0,2e3) # [W/m^2]
+        for i in range(NT):
+            values[i,:,:] = shortwave[i]
+
+        print(values[:,0,0])      
+
+        # plt.plot(hours,shortwave)
+        # plt.title(r'Hourly Shortwave Radiation ($W \ m^{-2}$)')
+        # plt.xlabel('Hour (UTC)')
+        # plt.show()
 
     elif vn == 'lwrad_down':
         const = 300 # [W/m^2]
+        values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Tair':
         const = 10 # [C]
+        values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Qair':
         const = 65 # [%]
+        values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Uwind':
         const = 6 # [m/s]
+        values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Vwind':
         const = 0 # [m/s]
+        values = const*np.ones((NT, NR, NC))
 
-    values = const*np.ones((NT, NR, NC))
     values[mr2==0] = np.nan
     ds[vn] = (dims, values)
 
