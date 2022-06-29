@@ -111,9 +111,18 @@ for O in list('NSEW'):
 
 # DERIVED VALUES
 if multi_core:
-    if Ldir['np_num'] == 40: # klone
+    if Ldir['np_num'] == 80: # klone
+        ntilei = '8' # number of tiles in I-direction
+        ntilej = '10' # number of tiles in J-direction
+    elif Ldir['np_num'] == 40: # klone
+        ntilei = '5' # number of tiles in I-direction
+        ntilej = '8' # number of tiles in J-direction
+    elif Ldir['np_num'] == 20: # klone
+        ntilei = '4' # number of tiles in I-direction
+        ntilej = '5' # number of tiles in J-direction
+    elif Ldir['np_num'] == 10: # klone
         ntilei = '2' # number of tiles in I-direction
-        ntilej = '20' # number of tiles in J-direction
+        ntilej = '5' # number of tiles in J-direction
     else:
         print('Unsupported number of processors: %d' % (Ldir['np_num']))
 else:
