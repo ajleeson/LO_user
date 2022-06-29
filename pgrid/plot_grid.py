@@ -66,7 +66,7 @@ pfun.start_plot(figsize=(12,12))
 # bathymetry
 fig = plt.figure(figsize=(8,8))
 ax = fig.add_subplot(111)
-cs = ax.pcolormesh(plon, plat, zm, vmin=-130, vmax=0, cmap=plt.get_cmap(plasma))#cmocean.cm.deep_r)
+cs = ax.pcolormesh(plon, plat, zm, vmin=-20, vmax=0, cmap=plt.get_cmap(cmocean.cm.deep_r))
 fig.colorbar(cs, ax=ax)
 if dch['analytical'] == True:
     pass
