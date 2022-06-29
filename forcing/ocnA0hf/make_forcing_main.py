@@ -50,6 +50,9 @@ NZ = S['N']; NR = G['M']; NC = G['L']
 # and end of the day, but you could have more, e.g. hourly.  You would still
 # want the total time to just be one day.
 dt0 = datetime.strptime(Ldir['date_string'], Lfun.ds_fmt)
+jan1 = datetime.strptime('2020.01.01', Lfun.ds_fmt)
+print(dt0)
+print(jan1)
 dt1 = dt0 + timedelta(days=1)
 ot_vec = np.array([Lfun.datetime_to_modtime(dt0), Lfun.datetime_to_modtime(dt1)])
 NT = len(ot_vec)
@@ -60,11 +63,11 @@ V = dict()
 V['zeta'] = np.zeros((NT, NR, NC))
 V['ubar'] = np.zeros((NT, NR, NC-1))
 V['vbar'] = np.zeros((NT, NR-1, NC))
-# Make estuary half full of fresh water (in latitude) at t = 0
-print('Ocean forcing from LO_user')
+# Make estuary half full of fresh water (in latitude) only at t=0 on Jan 1st
 V['salt'] = 30 * np.ones((NT, NZ, NR, NC))
-V['salt'][0,:,int(NR/1.8)::,:] = 0 * V['salt'][0,:,int(NR/1.8)::,:]
-print("min NR = {}; max NR = {}".format(np.min(NR), np.max(NR)))
+if dt0 == jan1 :
+    V['salt'][0,:,int(NR/1.8)::,:] = 0 * V['salt'][0,:,int(NR/1.8)::,:]
+    
 V['temp'] = 10 * np.ones((NT, NZ, NR, NC))
 V['u'] = np.zeros((NT, NZ, NR, NC-1))
 V['v'] = np.zeros((NT, NZ, NR-1, NC))
@@ -127,9 +130,10 @@ print('- Write bry file: %0.2f sec' % (time()-tt0))
 sys.stdout.flush()
 
 def print_info(fn):
-    print('\n' + str(fn))
+    #print('\n' + str(fn))
     ds = xr.open_dataset(fn)#, decode_times=False)
     print(ds)
+    print("salt = {}".format(V['salt'][0,0,-1,0]))
     ds.close()
 
 # Check results
