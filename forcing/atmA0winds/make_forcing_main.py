@@ -99,7 +99,7 @@ for vn in vn_list:
         values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Uwind':
-        const = 6 # [m/s]
+        const = 0 # [m/s]
         values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Vwind':
