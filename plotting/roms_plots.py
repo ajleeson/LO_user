@@ -1228,9 +1228,11 @@ def P_superplot_alpe2_withTides(in_dict):
         lat = G['lat_rho']
         zdeep = -30
 
-        y = np.linspace(1.04*lat.min(), 0.975*lat.max(), 500)
+        # CAUTION: the multipliers will change the start and end points of the section. Sometimes, I've accidentally
+        # set it such that the multiplier times the min is larger than the multiplier times the max,
+        # so the section line looked flipped. 
+        y = np.linspace(44.8, 45.8, 500)
         x = np.zeros(y.shape)
-
 
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
 
@@ -1257,7 +1259,7 @@ def P_superplot_alpe2_withTides(in_dict):
     AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
     fs = 14
     hgt = 10
-    ratio = ((hgt*2.5/AR)/(hgt))
+    ratio = ((hgt*1.0/AR)/(hgt))
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
@@ -1352,6 +1354,8 @@ def P_superplot_alpe2_withTides(in_dict):
     ax.set_ylabel(r'$\zeta$ (m)')
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%D"))
     ax.tick_params('x', labelrotation=45)
+    #set aspect ratio
+    ax.set_aspect(5/2)
     fig.tight_layout()
 
     # FINISH
