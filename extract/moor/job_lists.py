@@ -149,6 +149,12 @@ def get_sta_dict(job_name):
         'superplot': (0,45.4),
         'Estuary_Mouth': (0,45.1)
         }
+
+    elif job_name == 'alpe2':
+        sta_dict = {
+        'superplot': (0,45.3),
+        'Estuary_Mouth': (0,45.1)
+        }
             
     else:
         print('Unsupported job name!')
