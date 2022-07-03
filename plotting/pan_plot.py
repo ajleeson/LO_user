@@ -59,6 +59,7 @@ argsd = args.__dict__
 gridname, tag, ex_name = args.gtagex.split('_')
 # get the dict Ldir
 Ldir = Lfun.Lstart(gridname=gridname, tag=tag, ex_name=ex_name)
+print('hello world')
 # add more entries to Ldir
 for a in argsd.keys():
     if a not in Ldir.keys():
@@ -68,9 +69,11 @@ if Ldir['ds1'] == None:
     Ldir['ds1'] = Ldir['ds0']
 # set where to look for model output
 if Ldir['roms_out_num'] == 0:
+    print('here')
     pass
 elif Ldir['roms_out_num'] > 0:
-    Ldir['roms_out'] = Ldir['roms_out' + str(Ldir['roms_out_num'])]
+    Ldir['roms_out'] = Ldir['roms_out' + str(Ldir['roms_out_num']) + '_blowup']
+    print(Ldir['roms_out'])
 
 # choose the type of list to make
 if Ldir['list_type'] == None:
