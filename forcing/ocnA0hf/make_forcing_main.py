@@ -65,8 +65,10 @@ V['ubar'] = np.zeros((NT, NR, NC-1))
 V['vbar'] = np.zeros((NT, NR-1, NC))
 # Make estuary half full of fresh water (in latitude) only at t=0 on Jan 1st
 V['salt'] = 30 * np.ones((NT, NZ, NR, NC))
-if dt0 == jan1 :
-    V['salt'][0,:,int(NR/1.8)::,:] = 0 * V['salt'][0,:,int(NR/1.8)::,:]
+if dt0 == jan1:
+    div = 1.6
+    print('fresh water starting at lat = {} deg'.format(G['lat_rho'][int(NR/div),0]))
+    V['salt'][0,:,int(NR/div)::,:] = 0 * V['salt'][0,:,int(NR/div)::,:]
     
 V['temp'] = 10 * np.ones((NT, NZ, NR, NC))
 V['u'] = np.zeros((NT, NZ, NR, NC-1))
