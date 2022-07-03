@@ -49,7 +49,7 @@ for i in range(0,24):
 NT = len(ot_vec)
 
 # Create fields for the state variables.
-vn_list = ['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind']
+vn_list = ['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind', 'EminusP']
 
 # create a mask
 mr2 = np.ones((NT, NR, NC)) * G['mask_rho'].reshape((1, NR, NC))
@@ -103,6 +103,10 @@ for vn in vn_list:
         values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Vwind':
+        const = 0 # [m/s]
+        values = const*np.ones((NT, NR, NC))
+
+    elif vn == 'EminusP':
         const = 0 # [m/s]
         values = const*np.ones((NT, NR, NC))
 
