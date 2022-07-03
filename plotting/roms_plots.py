@@ -1203,6 +1203,167 @@ def P_superplot_alpe_withTides(in_dict):
     else:
         plt.show()
 
+def P_superplot_alpe2_withTides(in_dict):
+    """
+    This plots a map and a section (distance, z), and makes sure
+    that the color limits are identical.  If the color limits are
+    set automatically then the section is the preferred field for
+    setting the limits.
+    
+    I think this works best with -avl False (the default).
+    """
+    # START
+    fs = 14
+    pfun.start_plot(fs=fs, figsize=(20,9))
+    fig = plt.figure()
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    vn = 'salt'
+    # GET DATA
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # CREATE THE SECTION
+    # create track by hand
+    if True:
+        lon = G['lon_rho']
+        lat = G['lat_rho']
+        zdeep = -30
+
+        y = np.linspace(1.04*lat.min(), 0.975*lat.max(), 500)
+        x = np.zeros(y.shape)
+
+
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+
+    
+    # COLOR
+    # scaled section data
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # now we use the scaled section as the preferred field for setting the
+    # color limits of both figures in the case -avl True
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = pfun.auto_lims(sf)
+    
+    # PLOTTING
+
+    # map with section line
+    ax = fig.add_subplot(2, 3, (1,4))
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+
+    # -----------------------------------------------------------
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    ratio = ((hgt*2.5/AR)/(hgt))
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
+    # -----------------------------------------------------------
+
+    # hardcoded latitude of mooring location from superplot
+    lat = 45.3
+
+    # get zeta and latitude
+    zetas = v2['zeta']
+    lats = v2['lat']
+    
+    # difference from lats to desired lat
+    lats_diff = abs(lats - lat*np.ones(np.shape(lats)))
+
+    # lat_index
+    lat_index = np.where(lats_diff == np.min(lats_diff))
+
+    # Location of zeta
+    zeta_lat = lat_index
+    
+
+    pfun.add_info(ax, in_dict['fn'], loc='upper_right')
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    # add section track
+    print('xlims: {},{}'.format(x.min(),x.max()))
+    print('ylims: {},{}'.format(y.min(),y.max()))
+    ax.plot(x, y, '-r', linewidth=2)
+    ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+        markeredgecolor='r', markeredgewidth=2)
+    ax.plot(x[idist0],lat*np.ones(np.shape(y[idist0])),marker='*',markersize=15,color='hotpink')
+
+    # section -------------------------------------------------------------------
+    ax = fig.add_subplot(2, 3, (2,3))
+    ax.plot(dist, v2['zbot'], '-k', linewidth=2)
+    ax.plot(dist, v2['zeta'], '-b', linewidth=1)
+    ax.plot(dist[zeta_lat],zetas[zeta_lat],marker='*',markersize=25,color='hotpink')
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 5)
+    # plot section
+    svlims = pinfo.vlims_dict[vn]
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+    fig.colorbar(cs, ax=ax)
+    ax.set_xlabel('Distance (km)')
+    ax.set_ylabel('Z (m)')
+    ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    fig.tight_layout()
+
+    # Get time
+    T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
+    dt_local = pfun.get_dt_local(T['dt'])
+
+    # Tidal Amplitude -------------------------------------------------------------
+
+    ax = fig.add_subplot(2, 3, (5,6))
+    # ax.plot(dt_local,zetas[zeta_lat],marker='*',markersize=8,color='hotpink')
+
+    # get model fields
+    ds = xr.open_dataset(in_dict['fn'])
+    
+    gtagex = str(in_dict['fn']).split('/')[-3]
+    year_str = str(in_dict['fn']).split('/')[-2].split('.')[0][1:]
+
+    # get forcing fields
+    ffn = Ldir['LOo'] / 'extract' / gtagex / 'superplot' / ('forcing_' + gtagex + '_' + year_str + '.p')
+    fdf = pd.read_pickle(ffn)
+
+    # # get the day
+    tm = T['dt'] # datetime
+    TM = datetime(tm.year, tm.month, tm.day, tm.hour)
+
+    # Tides
+    alpha = 1
+    # convert zeta timestamp to local time
+    local_t_tides = [pfun.get_dt_local(x) for x in fdf['Timestamp']]
+
+    ax.plot(local_t_tides, fdf['Tide Height (m)'].values, '-k',
+        lw=1.5, alpha=alpha)
+
+    # time marker
+    ax.plot(fdf.loc[TM, 'Timestamp'], fdf.loc[TM, 'Tide Height (m)'],
+        marker='*', color='hotpink', markersize=20)
+    ax.set_ylim(-2,2)
+    ax.set_title('Sea Surface Height (m)')
+    ax.set_ylabel(r'$\zeta$ (m)')
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%D"))
+    ax.tick_params('x', labelrotation=45)
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+
 def P_sect_soundspeed(in_dict):
     """
     Soundspeed section plot
@@ -2575,7 +2736,6 @@ def P_tidal_avg_vel_alpev40d(in_dict):
         plt.close()
     else:
         plt.show()
-
 
 def P_tidal_avg_sal_alpev40d(in_dict):
     # Plot tidally averaged velocity profile from mooring data.
