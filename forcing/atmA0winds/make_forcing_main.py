@@ -95,7 +95,7 @@ for vn in vn_list:
         values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Qair':
-        const = 65 # [%] maybe this is a little low
+        const = 83 # [%] 
         values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Uwind':
