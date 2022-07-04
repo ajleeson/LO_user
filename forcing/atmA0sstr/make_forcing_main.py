@@ -49,7 +49,7 @@ for i in range(0,24):
 NT = len(ot_vec)
 
 # Create fields for the state variables.
-vn_list = ['Pair','rain','swrad','lwrad_down','Tair','Qair','Uwind','Vwind', 'EminusP']
+vn_list = ['sustr','svstr']
 
 # create a mask
 mr2 = np.ones((NT, NR, NC)) * G['mask_rho'].reshape((1, NR, NC))
@@ -62,53 +62,12 @@ for vn in vn_list:
     tname =  vinfo['time_name']
     dims = (tname,) + vinfo['space_dims_tup']
 
-    if vn == 'Pair':
-        const = 1013.25 # [mbar] atmospheric
+    if vn == 'sustr':
+        const = 0.1 # [N/m2] Pascal
         values = const*np.ones((NT, NR, NC))
 
-    elif vn == 'rain':
-        const = 0 # no rain
-        values = const*np.ones((NT, NR, NC))
-    
-    elif vn == 'swrad':
-        # const = 400 # [W/m^2]
-        values = np.ones((NT, NR, NC))
-        # define shortwave radiation function
-        hours = np.linspace(0,NT-1,NT)
-        shortwave = np.clip(600*np.sin(np.pi/12*(hours)),0,2e3) # [W/m^2]
-        #shortwave = np.clip(800*np.sin(np.pi/12*(hours-14)),0,2e3) # [W/m^2]
-        for i in range(NT):
-            values[i,:,:] = shortwave[i]
-
-        print(values[:,0,0])      
-
-        plt.plot(hours,shortwave)
-        plt.title(r'Hourly Shortwave Radiation ($W \ m^{-2}$)')
-        plt.xlabel('Hour (UTC)')
-        plt.show()
-
-    elif vn == 'lwrad_down':
-        const = 300 # [W/m^2]
-        values = const*np.ones((NT, NR, NC))
-
-    elif vn == 'Tair':
-        const = 10 # [C]
-        values = const*np.ones((NT, NR, NC))
-
-    elif vn == 'Qair':
-        const = 83 # [%] 
-        values = const*np.ones((NT, NR, NC))
-
-    elif vn == 'Uwind':
-        const = 0 # [m/s]
-        values = const*np.ones((NT, NR, NC))
-
-    elif vn == 'Vwind':
-        const = 0 # [m/s]
-        values = const*np.ones((NT, NR, NC))
-
-    elif vn == 'EminusP':
-        const = 0 # [m/s]
+    elif vn == 'svstr':
+        const = 0 # [N/m2]
         values = const*np.ones((NT, NR, NC))
 
     values[mr2==0] = np.nan
