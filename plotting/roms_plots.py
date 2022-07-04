@@ -1367,7 +1367,6 @@ def P_superplot_alpe2_withTides(in_dict):
     else:
         plt.show()
 
-
 def P_sect_soundspeed(in_dict):
     """
     Soundspeed section plot
