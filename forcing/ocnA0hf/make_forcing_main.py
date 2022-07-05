@@ -66,7 +66,7 @@ V['vbar'] = np.zeros((NT, NR-1, NC))
 # Make estuary half full of fresh water (in latitude) only at t=0 on Jan 1st
 V['salt'] = 30 * np.ones((NT, NZ, NR, NC))
 if dt0 == jan1:
-    fresh_lat = 45.12 # DEFINE LATITUDE ABOVE WHICH WATER IS FRESH AT T=0 ON THE FRIST RUN DAY
+    fresh_lat = 45.12 # DEFINE LATITUDE ABOVE WHICH WATER IS FRESH AT T=0 ON THE FIRST RUN DAY
     # difference from lats to desired lat
     lats = G['lat_rho'][:,0]
     lats_diff = abs(lats - fresh_lat*np.ones(np.shape(lats)))
