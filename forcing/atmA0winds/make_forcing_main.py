@@ -88,7 +88,7 @@ for vn in vn_list:
         plt.show()
 
     elif vn == 'lwrad_down':
-        const = 365 # [W/m^2]
+        const = 300 # [W/m^2]
         values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Tair':
