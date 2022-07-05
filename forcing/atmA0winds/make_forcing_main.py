@@ -88,7 +88,7 @@ for vn in vn_list:
         plt.show()
 
     elif vn == 'lwrad_down':
-        const = 300 # [W/m^2]
+        const = 365 # [W/m^2]
         values = const*np.ones((NT, NR, NC))
 
     elif vn == 'Tair':
@@ -111,7 +111,8 @@ for vn in vn_list:
         const = 0 # [m/s]
         values = const*np.ones((NT, NR, NC))
 
-    values[mr2==0] = np.nan
+    # apply mask
+    #values[mr2==0] = np.nan
     ds[vn] = (dims, values)
 
     ds[vn].attrs['units'] = vinfo['units']
@@ -122,7 +123,7 @@ for vn in vn_list:
     ds[tname].attrs['long_name'] = 'ocean time'
     # and save to NetCDF
     Enc_dict = {vn:zrfun.enc_dict for vn in ds.data_vars}
-    ds.to_netcdf(out_fn, encoding=Enc_dict)
+    ds.to_netcdf(out_fn) #, encoding=Enc_dict)
     ds.close()
 
 def print_info(fn):
