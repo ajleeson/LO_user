@@ -155,6 +155,14 @@ def get_sta_dict(job_name):
         'superplot': (0,45.3),
         'Estuary_Mouth': (0,45.1)
         }
+
+    # 07/07/2022 added job to extract moorings for wind experiment analyses
+    elif job_name == 'wind_ana':
+        sta_dict = {
+        'eastern_moor': (1.0,44.85),
+        'central_moor': (0.0,44.85),
+        'western_moor': (-1.0,44.85)
+        }
             
     else:
         print('Unsupported job name!')
