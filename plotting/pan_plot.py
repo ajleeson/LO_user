@@ -1,3 +1,4 @@
+#%%
 """
 Plot fields in one or more history files.
 
@@ -28,6 +29,8 @@ from lo_tools import Lfun
 import roms_plots
 from importlib import reload
 reload(roms_plots)
+
+#%%
 
 parser = argparse.ArgumentParser()
 
