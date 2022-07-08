@@ -1057,8 +1057,8 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
                 $force_dir$/$atm$/swrad.nc \
                 $force_dir$/$atm$/Tair.nc \
                 $force_dir$/$atm$/Uwind.nc \
-                $force_dir$/$atm$/Vwind.nc \
-                $force_dir$/$atm$/EminusP.nc
+                $force_dir$/$atm$/Vwind.nc 
+!                $force_dir$/$atm$/EminusP.nc
 
 ! Output NetCDF file names, [1:Ngrids].
 
