@@ -123,7 +123,7 @@ for vn in vn_list:
     ds[tname].attrs['long_name'] = 'ocean time'
     # and save to NetCDF
     Enc_dict = {vn:zrfun.enc_dict for vn in ds.data_vars}
-    ds.to_netcdf(out_fn) #, encoding=Enc_dict)
+    ds.to_netcdf(out_fn, encoding=Enc_dict)
     ds.close()
 
 def print_info(fn):
