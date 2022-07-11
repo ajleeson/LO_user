@@ -4,7 +4,7 @@ Plots a timeseries of different variables at mooring stations to compare differe
 
 Inputs: list of gtagex, label names, moor job name (As defined in job_lists), start date, end date
 
-The labels names should be the distinguishin factor between the gtagexes.
+The labels names should be the distinguishing factor between the gtagexes.
 
 I need to define these inputs at line 38 in this document. 
 
@@ -42,6 +42,7 @@ jobname = 'wind_ana'
 startdate = '2020.02.01'
 enddate = '2020.02.15'
 dayafterend = '2020.02.16' # for making date arrays. The next day after we have no more data
+year = '2020' # for making a date label
 
 #%%  PLOT THE MOORING LOCATIONS -----------------------------------------
 
@@ -106,6 +107,11 @@ for i,station in enumerate(sta_dict.keys()):
 dates = pd.date_range(start= startdate, end= dayafterend, freq= '1H')
 dates_local = [pfun.get_dt_local(x) for x in dates]
 
+# create colors list
+n = len(gtagexes)
+print(n)
+colors = cmocean.cm.haline(np.linspace(0.1, 0.8, n))
+
 # Loop through all of the mooring stations
 for i,station in enumerate(sta_dict.keys()):
 
@@ -122,6 +128,7 @@ for i,station in enumerate(sta_dict.keys()):
     ax[1].set_ylabel('Salinity')
     ax[2].set_ylabel(r'$\zeta$ (m)')
     ax[3].set_ylabel('E-W Wind Stress (Pa)')
+    ax[3].set_xlabel('Date ' + year)
 
     # loop through all of the model scenarios
     for j,gtagex in enumerate(gtagexes):
@@ -132,23 +139,24 @@ for i,station in enumerate(sta_dict.keys()):
         # print(fn)
         ds = xr.open_dataset(fn)
 
-        # depth layer
+        # depth layer (currently at the surface)
         dl = 29
 
         # plot E-W velocities
-        ax[0].plot(dates_local, ds.u.values[:,dl], label=labels[j])
-        ax[0].legend(loc = 'best')
+        ax[0].plot(dates_local, ds.u.values[:,dl], color = colors[j])
 
         # plot salinities
-        ax[1].plot(dates_local, ds.salt.values[:,dl])
+        ax[1].plot(dates_local, ds.salt.values[:,dl], color = colors[j])
 
         # plot free surface
-        ax[2].plot(dates_local, ds.zeta.values)
+        ax[2].plot(dates_local, ds.zeta.values, color = colors[j])
 
         # E-W wind stress
-        ax[3].plot(dates_local, ds.sustr.values)
+        ax[3].plot(dates_local, ds.sustr.values, color = colors[j], label=labels[j])
+        ax[3].legend(loc = 'best')
 
-        ax[3].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
+        ax[3].xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
+        plt.xticks(rotation=45)
 
 
 #%% GENERATE PLOTS ------------------------------------------------------------------------------
