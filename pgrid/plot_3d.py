@@ -63,19 +63,22 @@ plt.close('all')
 pfun.start_plot(figsize=(12,12))
 
 # zoom in
-latmin = round(0.5*np.shape(plat)[1]) - round(0.3*np.shape(plat)[1])
-latmax = round(0.5*np.shape(plat)[1]) + round(0.15*np.shape(plat)[1])
-
-lonmin = round(0.5*np.shape(plon)[0]) - round(0.15*np.shape(plon)[0])
-lonmax = round(0.5*np.shape(plon)[0]) + round(0.35*np.shape(plon)[0])
+# latmin = round(0.5*np.shape(plat)[1]) - round(0.3*np.shape(plat)[1])
+# latmax = round(0.5*np.shape(plat)[1]) + round(0.15*np.shape(plat)[1])
+# lonmin = round(0.5*np.shape(plon)[0]) - round(0.15*np.shape(plon)[0])
+# lonmax = round(0.5*np.shape(plon)[0]) + round(0.35*np.shape(plon)[0])
+latmin = round(0.5*np.shape(plat)[1]) - round(0.5*np.shape(plat)[1])
+latmax = round(0.5*np.shape(plat)[1]) + round(0.5*np.shape(plat)[1])
+lonmin = round(0.5*np.shape(plon)[0]) - round(0.5*np.shape(plon)[0])
+lonmax = round(0.5*np.shape(plon)[0]) + round(0.5*np.shape(plon)[0])
 
 # bathymetry
 fig = plt.figure(figsize=(8,8))
 ax = fig.add_subplot(111, projection='3d')
 cs = ax.plot_surface(plon[lonmin:lonmax,latmin:latmax], plat[lonmin:lonmax,latmin:latmax], zm[lonmin:lonmax,latmin:latmax],
- rstride=1, cstride=1, edgecolor='none', alpha = 1, cmap=cmocean.cm.thermal)#deep_r)
+ rstride=1, cstride=1, edgecolor='none', alpha = 1, cmap=cmocean.cm.deep_r)
 cset = ax.contourf(plon[lonmin:lonmax,latmin:latmax], plat[lonmin:lonmax,latmin:latmax], zm[lonmin:lonmax,latmin:latmax],
- zdir='z', offset=np.min(zm[lonmin:lonmax,latmin:latmax]), cmap=cmocean.cm.thermal)#deep_r)
+ zdir='z', offset=np.min(zm[lonmin:lonmax,latmin:latmax]), cmap=cmocean.cm.deep_r)
 fig.colorbar(cs, ax=ax)
 if dch['analytical'] == True:
     pass

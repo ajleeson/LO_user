@@ -16,7 +16,7 @@ import gfun_utility as gfu
 import gfun
 
 # This is the name of the grid that you are working on.
-gridname = 'alpe2'
+gridname = 'fsg'
 
 #print('I made it into LO_user')
 #print('My gridname is {}'.format(gridname))
@@ -55,6 +55,10 @@ elif gridname in ['alpe']:
 elif gridname in ['alpe2']:
     # a shortened version of alpe
     base_gridname = 'alpe2'
+    base_tag = 'v0'
+elif gridname in ['fsg']:
+    # flat shelf grid
+    base_gridname = 'fsg'
     base_tag = 'v0'
 
 def make_initial_info(gridname=gridname):
@@ -368,6 +372,37 @@ def make_initial_info(gridname=gridname):
         track_df['lat'] = np.linspace(45,48,NTR) # OK to go past edge of domain
         track_df['lon'] = 0*np.ones(NTR)
         track_df.to_pickle(track_fn)
+
+    elif gridname == 'fsg':
+        # get list of default choices
+        dch = gfun.default_choices()
+
+        # So far I have left this unchanged because I don't understand it
+        lon_list = [-1.5, -0.5, 0.5, 1.5]
+        x_res_list = [2500, 500, 500, 2500]
+        lat_list = [44, 44.4, 44.6, 45]
+        y_res_list = [2500, 500, 500, 2500]
+        Lon_vec, Lat_vec = gfu.stretched_grid(lon_list, x_res_list,
+                                            lat_list, y_res_list)
+        lon, lat = np.meshgrid(Lon_vec, Lat_vec)
+        # defining bathymetry analytically
+        dch['analytical'] = True
+        # Land is toward the north
+        dch['nudging_edges'] = ['south', 'east', 'west']
+        # Let mean sea level equal NAVD88
+        dch['use_z_offset'] = False
+        # tidy up dch (make sure there is no carryover from prior runs?)
+        dch['z_offset'] = 0.0
+        dch['t_dir'] = 'BLANK'
+        dch['t_list'] = ['BLANK']
+        # make bathymetry by hand
+        z = np.zeros(lon.shape)
+
+        # flat bottomed shelf
+        z[lat < 44.75] = -100
+
+        # print(z[:,0])
+
         
     else:
         print('Error from make_initial_info: unsupported gridname')
