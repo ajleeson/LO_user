@@ -101,9 +101,8 @@ for O in list('NSEW'):
     if O in list(D['open']):
         D[O+'fs'] = 'Cha'
         D[O+'2']  = 'Fla'
-        D[O+'3']  = 'Gra'
-        # D[O+'3']  = 'RadNud'
-        # D[O+'tem']= 'Gra'
+        D[O+'3']  = 'RadNud'
+    
     else:
         D[O+'fs'] = 'Clo'
         D[O+'2']  = 'Clo'
