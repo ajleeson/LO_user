@@ -470,7 +470,7 @@ LtracerSponge == F F                            ! temperature, salinity, inert
       Lm2CLM == T                          ! 2D momentum
       Lm3CLM == T                          ! 3D momentum
 
-  LtracerCLM == T T                        ! temperature, salinity, inert
+  LtracerCLM == F T                        ! temperature, salinity, inert
 
 ! Logical switches (TRUE/FALSE) to nudge the desired climatology field(s).
 ! If not analytical climatology fields, users need to turn ON the logical
