@@ -480,7 +480,7 @@ LtracerSponge == F F                            ! temperature, salinity, inert
  LnudgeM2CLM == T                          ! 2D momentum
  LnudgeM3CLM == T                          ! 3D momentum
 
-  LnudgeTCLM == T T                        ! temperature, salinity, inert
+  LnudgeTCLM == F T                        ! temperature, salinity, inert
 
 ! Starting (DstrS) and ending (DendS) day for adjoint sensitivity forcing.
 ! DstrS must be less or equal to DendS. If both values are zero, their
