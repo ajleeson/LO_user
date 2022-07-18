@@ -454,14 +454,14 @@ LtracerSponge == F F                            ! temperature, salinity, inert
 ! point Sources/Sinks (like river runoff transport) and mass point
 ! Sources/Sinks (like volume vertical influx), [1:Ngrids].
 
-      LuvSrc == T                          ! horizontal momentum transport
+      LuvSrc == F                          ! horizontal momentum transport
        LwSrc == F                          ! volume vertical influx
 
 ! Logical switches (TRUE/FALSE) to activate tracers point Sources/Sinks
 ! (like river runoff) and to specify which tracer variables to consider:
 ! [1:NAT+NPT,Ngrids].  See glossary below for details.
 
-  LtracerSrc == T T                        ! temperature, salinity, inert
+  LtracerSrc == F F                        ! temperature, salinity, inert
 
 ! Logical switches (TRUE/FALSE) to read and process climatology fields.
 ! See glossary below for details.
@@ -1024,11 +1024,11 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
 ! Input Sources/Sinks forcing (like river runoff) file name.
 
-     SSFNAME == $force_dir$/$riv$/rivers.nc
+!     SSFNAME == $force_dir$/$riv$/rivers.nc
 
 ! Input tidal forcing file name.
 
-    TIDENAME == $force_dir$/$tide$/tides.nc
+!    TIDENAME == $force_dir$/$tide$/tides.nc
 
 ! Input forcing NetCDF file name(s).
 !
