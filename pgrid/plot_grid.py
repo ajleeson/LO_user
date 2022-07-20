@@ -92,7 +92,7 @@ if do_wwtp:
     # plot wwtp locations on grid
     ax.scatter(wwtp_df['lon'],wwtp_df['lat'], color='black')
     # print labels
-    for i,wwtp in enumerate(wwtp_df['name']):
+    for i,wwtp in enumerate(wwtp_df['dname']):
         wwtp_lon = wwtp_df['lon'][i]
         wwtp_lat = wwtp_df['lat'][i]+0.03
         ax.text(wwtp_lon, wwtp_lat, wwtp, fontsize=12, horizontalalignment='center')
