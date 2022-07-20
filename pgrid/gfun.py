@@ -105,10 +105,11 @@ def increment_filename(fn, tag):
     Creates an updated filename (Path object), increasing the number
     for the specified tag.
     """
-    if tag not in ['_m', '_r', '_s', '_x']:
+    if tag not in ['_m', '_r', '_d', '_s', '_x']:
         print('Error in increment_filename: unrecognized tag.')
         return
     fns = fn.name
+    print('fns = {}' .format(fns))
     # create the new file name
     gni = fns.find(tag)
     new_num = ('00' + str(int(fns[gni+2: gni+4]) + 1))[-2:]
