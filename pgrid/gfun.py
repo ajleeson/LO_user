@@ -31,7 +31,8 @@ def gstart(gridname=gridname):
     pgdir = Ldir['LOo'] / 'pgrid'
     gdir = pgdir / gridname # where grid.nc will end up
     ri_dir = Ldir['LOo'] / 'pre' / 'river' / Ldir['gtag']
-    Gr ={'gridname': gridname,'pgdir': pgdir, 'gdir': gdir,'ri_dir': ri_dir}
+    wwtp_dir = Ldir['LOu'] / 'wwtps' / gridname
+    Gr ={'gridname': gridname,'pgdir': pgdir, 'gdir': gdir,'ri_dir': ri_dir, 'wwtp_dir': wwtp_dir}
     return Gr
 
 def default_choices():
