@@ -36,7 +36,7 @@ if Gr['gdir'].is_dir():
     else:
         sys.exit()
 
-fn = 'grid_m00_r00_s00_x00.nc'
+fn = 'grid_m00_r00_d00_s00_x00.nc'
 out_fn = Gr['gdir'] / fn
 print(60*'*')
 print(str(out_fn).center(60,'-'))
