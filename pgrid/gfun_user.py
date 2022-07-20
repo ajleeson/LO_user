@@ -16,10 +16,7 @@ import gfun_utility as gfu
 import gfun
 
 # This is the name of the grid that you are working on.
-gridname = 'fsg'
-
-#print('I made it into LO_user')
-#print('My gridname is {}'.format(gridname))
+gridname = 'alpe2'
 
 # default s-coordinate info (could override below)
 s_dict = {'THETA_S': 4, 'THETA_B': 2, 'TCLINE': 10, 'N': 30,
