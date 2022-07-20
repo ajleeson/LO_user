@@ -80,6 +80,25 @@ ax.text(.95, .05, str(mask_rho.shape), ha='right', transform=ax.transAxes)
 if do_riv:
     gfp.add_river_tracks(Gr, ds, ax)
 
+# plot wwtps if they exist
+do_wwtp = False
+wwtp_fn = Gr['wwtp_dir'] / 'wwtp_loc_info.csv'
+# read wwtp lat lon info
+if wwtp_fn.is_file():
+    do_wwtp = True
+    wwtp_df = pd.read_csv(wwtp_fn)
+    # print(wwtp_df)
+if do_wwtp:
+    # plot wwtp locations on grid
+    ax.scatter(wwtp_df['lon'],wwtp_df['lat'], color='black')
+    # print labels
+    for i,wwtp in enumerate(wwtp_df['name']):
+        wwtp_lon = wwtp_df['lon'][i]
+        wwtp_lat = wwtp_df['lat'][i]+0.03
+        ax.text(wwtp_lon, wwtp_lat, wwtp, fontsize=12, horizontalalignment='center')
+
+     
+
 if False:    
     # mask
     fig = plt.figure()
