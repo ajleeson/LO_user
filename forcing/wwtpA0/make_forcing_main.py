@@ -67,8 +67,8 @@ ds['river'] = (('river',), np.arange(1,NWWTP+1))
 ds['river'].attrs['long_name'] = 'point source identification number'
 
 # Add river names
-ds['wwtp_name'] = (('river',), list(gri_df.index))
-ds['wwtp_name'].attrs['long_name'] = 'wwtp name'
+ds['river_name'] = (('river',), list(gri_df.index))
+ds['river_name'].attrs['long_name'] = 'river name'
 
 # Add Vshape
 vn = 'river_Vshape'
