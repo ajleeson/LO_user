@@ -63,17 +63,17 @@ ds['river_time'].attrs['units'] = Lfun.roms_time_units
 ds['river_time'].attrs['long_name'] = 'river time'
 
 # Add river coordinate
-ds['wwtp'] = (('wwtp',), np.arange(1,NWWTP+1))
-ds['wwtp'].attrs['long_name'] = 'point source identification number'
+ds['river'] = (('river',), np.arange(1,NWWTP+1))
+ds['river'].attrs['long_name'] = 'point source identification number'
 
 # Add river names
-ds['wwtp_name'] = (('wwtp',), list(gri_df.index))
+ds['wwtp_name'] = (('river',), list(gri_df.index))
 ds['wwtp_name'].attrs['long_name'] = 'wwtp name'
 
 # Add Vshape
 vn = 'river_Vshape'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
-dims = ('s_rho', 'wwtp')
+dims = ('s_rho', 'river')
 # For Vtransform = 2, even spacing is a good approximation, and
 # we implement this by using 1/N as the fraction in each vertical cell.
 Vshape = (1/N) * np.ones((N, NWWTP))
@@ -85,7 +85,7 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     if vn == 'river_direction':
         wwtp_dir = 2 * np.ones(NWWTP) # set point source diretion to enter vertically (2)
-        ds[vn] = (('wwtp',), wwtp_dir)
+        ds[vn] = (('river',), wwtp_dir)
     elif vn == 'river_Xposition':
         X_vec = np.nan * np.ones(NWWTP)
         ii = 0
@@ -97,7 +97,7 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
             # Kind of just added this case, but need to double check !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             X_vec[ii] = gri_df.loc[wn, 'col_py']
             ii += 1
-        ds[vn] = (('wwtp',), X_vec)
+        ds[vn] = (('river',), X_vec)
     elif vn == 'river_Eposition':
         E_vec = np.nan * np.ones(NWWTP)
         ii = 0
@@ -109,13 +109,13 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
             # Kind of just added this case, but need to double check !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             E_vec[ii] = gri_df.loc[wn, 'row_py']
             ii += 1
-        ds[vn] = (('wwtp',), E_vec)
+        ds[vn] = (('river',), E_vec)
     ds[vn].attrs['long_name'] = vinfo['long_name']
         
 # Add transport
 vn = 'river_transport'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
-dims = (vinfo['time'],) + ('wwtp',)
+dims = (vinfo['time'],) + ('river',)
 Q_mat = np.zeros((NT, NWWTP))
 ii = 0
 for wn in gri_df.index:
