@@ -78,7 +78,7 @@ dims = ('s_rho', 'river')
 # we implement this by using 1/N as the fraction in each vertical cell.
 Vshape = (1/N) * np.ones((N, NRIV))
 ds[vn] = (dims, Vshape)
-ds[vn].attrs['long_name'] = vinfo['long_name']
+ds['river_Vshape'].attrs['long_name'] = vinfo['long_name']
 
 # Add position and direction
 for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:

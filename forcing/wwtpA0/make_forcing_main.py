@@ -73,18 +73,18 @@ ds['wwtp_name'].attrs['long_name'] = 'wwtp name'
 # Add Vshape
 vn = 'river_Vshape'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
-dims = ('s_rho', 'river')
+dims = ('s_rho', 'wwtp')
 # For Vtransform = 2, even spacing is a good approximation, and
 # we implement this by using 1/N as the fraction in each vertical cell.
 Vshape = (1/N) * np.ones((N, NWWTP))
 ds[vn] = (dims, Vshape)
-ds[vn].attrs['long_name'] = vinfo['long_name']
+ds[vn].attrs['long_name'] = vinfo['long_name'] 
 
 # Add position and direction
 for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     if vn == 'river_direction':
-        wwtp_dir = [2.] # set point source diretion to enter vertically (2)
+        wwtp_dir = 2 * np.ones(NWWTP) # set point source diretion to enter vertically (2)
         ds[vn] = (('wwtp',), wwtp_dir)
     elif vn == 'river_Xposition':
         X_vec = np.nan * np.ones(NWWTP)
