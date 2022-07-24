@@ -1,9 +1,9 @@
 """
-This is the main program for making the TIDE forcing file.
+This is the main program for making the WWTP forcing file.
 
 Test on mac in ipython:
 
-run make_forcing_main.py -g ae0 -t v0 -r backfill -s continuation -d 2020.01.01 -f wwtp0 -test True
+run make_forcing_main.py -g awwtp1 -t v0 -r backfill -s continuation -d 2020.01.01 -f wwtp0 -test True
 
 """
 
@@ -49,7 +49,7 @@ N = S['N']
 grid_fn = Ldir['grid'] / 'grid.nc'
 G = zrfun.get_basic_info(grid_fn, only_G=True)
 
-# get the list of rivers and indices for this grid
+# get the list of wwtps and indices for this grid
 gri_fn = Ldir['grid'] / 'wwtp_info.csv'
 gri_df = pd.read_csv(gri_fn, index_col='wname')
 NWWTP = len(gri_df)
@@ -63,12 +63,12 @@ ds['river_time'].attrs['units'] = Lfun.roms_time_units
 ds['river_time'].attrs['long_name'] = 'river time'
 
 # Add river coordinate
-ds['river'] = (('river',), np.arange(1,NWWTP+1))
-ds['river'].attrs['long_name'] = 'river runoff identification number'
+ds['wwtp'] = (('wwtp',), np.arange(1,NWWTP+1))
+ds['wwtp'].attrs['long_name'] = 'point source identification number'
 
 # Add river names
-ds['river_name'] = (('river',), list(gri_df.index))
-ds['river_name'].attrs['long_name'] = 'river name'
+ds['wwtp_name'] = (('wwtp',), list(gri_df.index))
+ds['wwtp_name'].attrs['long_name'] = 'wwtp name'
 
 # Add Vshape
 vn = 'river_Vshape'
@@ -84,43 +84,49 @@ ds[vn].attrs['long_name'] = vinfo['long_name']
 for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     if vn == 'river_direction':
-        ds[vn] = (('river',), gri_df.idir.to_numpy())
+        wwtp_dir = 2 # set point source diretion to enter vertically (2)
+        ds[vn] = (('wwtp',), wwtp_dir)
     elif vn == 'river_Xposition':
         X_vec = np.nan * np.ones(NWWTP)
         ii = 0
-        for rn in gri_df.index:
-            if gri_df.loc[rn, 'idir'] == 0:
-                X_vec[ii] = gri_df.loc[rn, 'col_py'] + 1
-            elif gri_df.loc[rn, 'idir'] == 1:
-                X_vec[ii] = gri_df.loc[rn, 'col_py']
+        for wn in gri_df.index:
+            # if gri_df.loc[wn, 'idir'] == 0:
+            #     X_vec[ii] = gri_df.loc[wn, 'col_py'] + 1
+            # elif gri_df.loc[wn, 'idir'] == 1:
+            #     X_vec[ii] = gri_df.loc[wn, 'col_py']
+            # Kind of just added this case, but need to double check !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            X_vec[ii] = gri_df.loc[wn, 'col_py']
             ii += 1
-        ds[vn] = (('river',), X_vec)
+        ds[vn] = (('wwtp',), X_vec)
     elif vn == 'river_Eposition':
         E_vec = np.nan * np.ones(NWWTP)
         ii = 0
-        for rn in gri_df.index:
-            if gri_df.loc[rn, 'idir'] == 0:
-                E_vec[ii] = gri_df.loc[rn, 'row_py']
-            elif gri_df.loc[rn, 'idir'] == 1:
-                E_vec[ii] = gri_df.loc[rn, 'row_py'] + 1
+        for wn in gri_df.index:
+            # if gri_df.loc[wn, 'idir'] == 0:
+            #     E_vec[ii] = gri_df.loc[wn, 'row_py']
+            # elif gri_df.loc[wn, 'idir'] == 1:
+            #     E_vec[ii] = gri_df.loc[wn, 'row_py'] + 1
+            # Kind of just added this case, but need to double check !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            E_vec[ii] = gri_df.loc[wn, 'row_py']
             ii += 1
-        ds[vn] = (('river',), E_vec)
+        ds[vn] = (('wwtp',), E_vec)
     ds[vn].attrs['long_name'] = vinfo['long_name']
         
 # Add transport
 vn = 'river_transport'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
-dims = (vinfo['time'],) + ('river',)
+dims = (vinfo['time'],) + ('wwtp',)
 Q_mat = np.zeros((NT, NWWTP))
 ii = 0
-for rn in gri_df.index:
-    if rn == 'creek0':
-        Q_mat[:,ii] = 1000 * np.ones(NT) * gri_df.loc[rn, 'isign']
+for wn in gri_df.index:
+    if wn == 'creek0':
+        Q_mat[:,ii] = 1000 * np.ones(NT) * gri_df.loc[wn, 'isign']
         # You could make the transport a function of time, for example by making
         # dti = pd.DatetimeIndex([dt0, dt1]) and then using a function of
         # dti.dayofyear.
     else:
         # You could add other rivers here
+        Q_mat[:,ii] = 1000 * np.ones(NT)
         pass
     ii += 1
 ds[vn] = (dims, Q_mat)
