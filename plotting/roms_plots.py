@@ -31,10 +31,10 @@ reload(pinfo)
 
 import sys
 from pathlib import Path
-pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'pgrid'
-if str(pth) not in sys.path:
-    sys.path.append(str(pth))
-import gfun_utility as gfu
+# pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'pgrid'
+# if str(pth) not in sys.path:
+#     sys.path.append(str(pth))
+# import gfun_utility as gfu
 
 pth = Path(__file__).absolute().parent.parent.parent / 'LO_user' / 'pgrid'
 if str(pth) not in sys.path:
