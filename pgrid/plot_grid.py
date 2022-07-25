@@ -108,8 +108,8 @@ if do_ps:
     # plot point source locations on grid
     X = lon[0,:]
     Y = lat[:,0]
-    ps_lon = [X[int(ind)] for ind in ps_df['row_py']]
-    ps_lat = [Y[int(ind)] for ind in ps_df['col_py']]
+    ps_lon = [X[int(ind)] for ind in ps_df['col_py']]
+    ps_lat = [Y[int(ind)] for ind in ps_df['row_py']]
     ax.scatter(ps_lon,ps_lat, color='deeppink', marker='x', s=20, label='point source')
     for i,ps in enumerate(ps_df['wname']):
         ax.plot([wwtp_df['lon'][i], ps_lon[i]],
