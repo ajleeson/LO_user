@@ -76,6 +76,44 @@ def P_basic(in_dict):
             pfun.add_info(ax, in_dict['fn'])
             #pfun.add_windstress_flower(ax, ds)
             pfun.add_bathy_contours(ax, ds, txt=True)
+
+            # plot wwtps if they exist
+            do_wwtp = False
+            wwtp_fn = Gr['wwtp_dir'] / 'wwtp_loc_info.csv'
+            # read wwtp lat lon info
+            if wwtp_fn.is_file():
+                do_wwtp = True
+                wwtp_df = pd.read_csv(wwtp_fn)
+                # print(wwtp_df)
+            if do_wwtp:
+                # plot wwtp locations on grid
+                ax.scatter(wwtp_df['lon'],wwtp_df['lat'], color='black', label='wwtps')
+                # print labels
+                for i,wwtp in enumerate(wwtp_df['dname']):
+                    wwtp_lon = wwtp_df['lon'][i]
+                    wwtp_lat = wwtp_df['lat'][i]+0.03
+                    ax.text(wwtp_lon, wwtp_lat, wwtp, fontsize=12, horizontalalignment='center')
+
+            # plot point sources linked to the wwtp if the point sources have been created
+            do_ps = False
+            ps_fn = Gr['gdir'] / 'roms_wwtp_info.csv'
+            # read point source location data
+            if ps_fn.is_file():
+                do_ps = True
+                ps_df = pd.read_csv(ps_fn)
+            if do_ps:
+                # plot point source locations on grid
+                X = lon[0,:]
+                Y = lat[:,0]
+                ps_lon = [X[int(ind)] for ind in ps_df['col_py']]
+                ps_lat = [Y[int(ind)] for ind in ps_df['row_py']]
+                ax.scatter(ps_lon,ps_lat, color='deeppink', marker='x', s=20, label='point source')
+                for i,ps in enumerate(ps_df['wname']):
+                    ax.plot([wwtp_df['lon'][i], ps_lon[i]],
+                    [wwtp_df['lat'][i], ps_lat[i]],
+                    color='deeppink', linewidth=0.5)
+                    ax.legend(loc='best',fontsize=12)
+
         elif ii == 2:
             ax.set_yticklabels([])
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
