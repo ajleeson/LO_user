@@ -220,6 +220,13 @@ for wn in wwtp_df.index:
     except FileNotFoundError:
         pass
 
+
+# In reality, we don't need to save a new grid file
+# but it helps to keep track of what steps have already been run
+print('Creating ' + str(out_fn))
+ds.to_netcdf(out_fn)
+ds.close()
+
 # save the roms point source info
 out_wfn = Gr['gdir'] / 'roms_wwtp_info.csv'
 print('\nCreating ' + str(out_wfn))
