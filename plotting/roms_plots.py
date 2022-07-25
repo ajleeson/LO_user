@@ -109,6 +109,8 @@ def P_basic(in_dict):
                 ps_df = pd.read_csv(ps_fn)
             if do_ps:
                 # plot point source locations on grid
+                lon = ds.lon_rho.values
+                lat = ds.lat_rho.values
                 X = lon[0,:]
                 Y = lat[:,0]
                 ps_lon = [X[int(ind)] for ind in ps_df['col_py']]
