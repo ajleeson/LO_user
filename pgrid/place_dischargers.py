@@ -22,9 +22,6 @@ import pickle
 wwtp_fn = Gr['wwtp_dir'] / 'wwtp_loc_info.csv'
 wwtp_df = pd.read_csv(wwtp_fn, index_col='dname')
 
-# gri_fn = Gr['ri_dir'] / 'river_info.csv'
-# ri_df = pd.read_csv(gri_fn, index_col='rname')
-
 # select and increment grid file (the new tag is called _d for dischargers)
 in_fn = gfun.select_file(Gr)
 out_fn = gfun.increment_filename(in_fn, '_d')
@@ -214,8 +211,8 @@ for wn in wwtp_df.index:
             # - add 1 to column of E/W sources.
 
             # save location of point source
-            roms_info_df.loc[wn, 'row_py'] = psII 
-            roms_info_df.loc[wn, 'col_py'] = psJJ 
+            roms_info_df.loc[wn, 'row_py'] = psJJ 
+            roms_info_df.loc[wn, 'col_py'] = psII 
         
         else:
             print(' >> excluding ' + wn.title())
