@@ -90,11 +90,6 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
         X_vec = np.nan * np.ones(NWWTP)
         ii = 0
         for wn in gri_df.index:
-            # if gri_df.loc[wn, 'idir'] == 0:
-            #     X_vec[ii] = gri_df.loc[wn, 'col_py'] + 1
-            # elif gri_df.loc[wn, 'idir'] == 1:
-            #     X_vec[ii] = gri_df.loc[wn, 'col_py']
-            # Kind of just added this case, but need to double check !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             X_vec[ii] = gri_df.loc[wn, 'col_py']
             ii += 1
         ds[vn] = (('river',), X_vec)
@@ -102,11 +97,6 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
         E_vec = np.nan * np.ones(NWWTP)
         ii = 0
         for wn in gri_df.index:
-            # if gri_df.loc[wn, 'idir'] == 0:
-            #     E_vec[ii] = gri_df.loc[wn, 'row_py']
-            # elif gri_df.loc[wn, 'idir'] == 1:
-            #     E_vec[ii] = gri_df.loc[wn, 'row_py'] + 1
-            # Kind of just added this case, but need to double check !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             E_vec[ii] = gri_df.loc[wn, 'row_py']
             ii += 1
         ds[vn] = (('river',), E_vec)
@@ -125,9 +115,9 @@ for wn in gri_df.index:
         # dti = pd.DatetimeIndex([dt0, dt1]) and then using a function of
         # dti.dayofyear.
     else:
-        # You could add other rivers here
+        # wwtps all have the same flowrate
         Q_mat[:,ii] = 1000 * np.ones(NT)
-        pass
+        print('{} flowrate:{}'.format(wn,Q_mat[0,0]))
     ii += 1
 ds[vn] = (dims, Q_mat)
 ds[vn].attrs['long_name'] = vinfo['long_name']

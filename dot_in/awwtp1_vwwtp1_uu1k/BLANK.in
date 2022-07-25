@@ -1025,7 +1025,7 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 ! Input Sources/Sinks forcing (like river runoff) file name.
 
 !     SSFNAME == $force_dir$/$riv$/rivers.nc
-     SSFNAME == $force_dir$/$riv$/wwtps.nc
+     SSFNAME == $force_dir$/$wwtp$/wwtps.nc
 
 ! Input tidal forcing file name.
 
