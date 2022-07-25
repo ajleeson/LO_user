@@ -79,7 +79,7 @@ def P_basic(in_dict):
         ax.set_xlabel('Longitude')
         if ii == 1:
             ax.set_ylabel('Latitude')
-            pfun.add_info(ax, in_dict['fn'])
+            # pfun.add_info(ax, in_dict['fn']) I commented this out so it is easier to see the point sources. Add back in later. --------------
             #pfun.add_windstress_flower(ax, ds)
             pfun.add_bathy_contours(ax, ds, txt=True)
 
@@ -97,8 +97,8 @@ def P_basic(in_dict):
                 # print labels
                 for i,wwtp in enumerate(wwtp_df['dname']):
                     wwtp_lon = wwtp_df['lon'][i]
-                    wwtp_lat = wwtp_df['lat'][i]+0.03
-                    ax.text(wwtp_lon, wwtp_lat, wwtp, fontsize=12, horizontalalignment='center')
+                    wwtp_lat = wwtp_df['lat'][i]+0.05
+                    ax.text(wwtp_lon, wwtp_lat, wwtp, fontsize=14, horizontalalignment='center')
 
             # plot point sources linked to the wwtp if the point sources have been created
             do_ps = False
@@ -115,12 +115,12 @@ def P_basic(in_dict):
                 Y = lat[:,0]
                 ps_lon = [X[int(ind)] for ind in ps_df['col_py']]
                 ps_lat = [Y[int(ind)] for ind in ps_df['row_py']]
-                ax.scatter(ps_lon,ps_lat, color='deeppink', marker='x', s=20, label='point source')
+                ax.scatter(ps_lon,ps_lat, color='deeppink', marker='x', s=40, label='point sources')
                 for i,ps in enumerate(ps_df['wname']):
                     ax.plot([wwtp_df['lon'][i], ps_lon[i]],
                     [wwtp_df['lat'][i], ps_lat[i]],
-                    color='deeppink', linewidth=0.5)
-                    ax.legend(loc='best',fontsize=12)
+                    color='deeppink', linewidth=1)
+                    ax.legend(loc='best',fontsize=14)
 
         elif ii == 2:
             ax.set_yticklabels([])
