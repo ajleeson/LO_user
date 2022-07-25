@@ -37,6 +37,8 @@ if str(pth) not in sys.path:
 import gfun_utility as gfu
 import gfun
 
+Gr = gfun.gstart()
+
 Ldir = Lfun.Lstart()
 if '_mac' in Ldir['lo_env']: # mac version
     pass
