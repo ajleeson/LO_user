@@ -81,7 +81,7 @@ def P_basic(in_dict):
             ax.set_ylabel('Latitude')
             # pfun.add_info(ax, in_dict['fn']) I commented this out so it is easier to see the point sources. Add back in later. --------------
             #pfun.add_windstress_flower(ax, ds)
-            pfun.add_bathy_contours(ax, ds, txt=True)
+            pfun.add_bathy_contours(ax, ds, txt=False)
 
             # plot wwtps if they exist
             do_wwtp = False
