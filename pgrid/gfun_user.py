@@ -16,7 +16,7 @@ import gfun_utility as gfu
 import gfun
 
 # This is the name of the grid that you are working on.
-gridname = 'awwtp1'
+gridname = 'alpe2'
 
 # default s-coordinate info (could override below)
 s_dict = {'THETA_S': 4, 'THETA_B': 2, 'TCLINE': 10, 'N': 30,
@@ -437,26 +437,7 @@ def make_initial_info(gridname=gridname):
         z = zshelf
         mask = zestuary < z
         z[mask] = zestuary[mask]
-        
-        # # create a river file
-        # Ldir = Lfun.Lstart(gridname=base_gridname, tag=base_tag)
-        # ri_dir = Ldir['LOo'] / 'pre' / 'river' / Ldir['gtag']
-        # Lfun.make_dir(ri_dir)
-        # gri_fn = ri_dir / 'river_info.csv'
-        # with open(gri_fn, 'w') as rf:
-        #     rf.write('rname,usgs,ec,nws,ratio,depth,flow_units,temp_units\n')
-        #     rf.write('creek0,,,,1.0,5.0,m3/s,degC\n')
-        # # and make a track for the river
-        # track_dir = ri_dir / 'tracks'
-        # Lfun.make_dir(track_dir)
-        # track_fn = track_dir / 'creek0.p'
-        # track_df = pd.DataFrame()
-        # NTR = 100
-        # track_df['lat'] = np.linspace(45,48,NTR) # OK to go past edge of domain
-        # track_df['lon'] = 0*np.ones(NTR)
-        # track_df.to_pickle(track_fn)
-
-        
+      
     else:
         print('Error from make_initial_info: unsupported gridname')
         return
