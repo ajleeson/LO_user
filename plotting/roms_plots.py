@@ -1114,7 +1114,7 @@ def P_sect_alpe2(in_dict):
         lat = G['lat_rho']
         zdeep = -30
 
-        x = np.zeros(0.9*lon.min(), 0.9*lon.max(), 500)
+        x = np.linspace(1.04*lat.min(), 0.975*lat.max(), 500)
         y = 45.06 * np.ones(x.shape)
 
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
