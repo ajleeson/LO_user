@@ -1112,10 +1112,10 @@ def P_sect_alpe2(in_dict):
     if True:
         lon = G['lon_rho']
         lat = G['lat_rho']
-        zdeep = -30
+        zdeep = -20
 
         x = np.linspace(-1.4, 1.4, 500)
-        y = 45.06 * np.ones(x.shape)
+        y = 45.07 * np.ones(x.shape)
 
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
 
@@ -1146,7 +1146,7 @@ def P_sect_alpe2(in_dict):
     fs = 14
     hgt = 10
     #pfun.start_plot(fs=fs, figsize=(int(hgt*2.5/AR),int(hgt)))
-    ratio = ((hgt*2.5/AR)/(hgt))
+    ratio = ((hgt*1.02/AR)/(hgt))
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
