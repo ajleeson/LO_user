@@ -102,7 +102,7 @@ def P_basic(in_dict):
 
             # plot point sources linked to the wwtp if the point sources have been created
             do_ps = False
-            ps_fn = Gr['gdir'] / 'roms_wwtp_info.csv'
+            ps_fn = Ldir['Lod']/ 'grids'/ Gr['gridname'] / 'wwtp_info.csv'
             # read point source location data
             if ps_fn.is_file():
                 do_ps = True
