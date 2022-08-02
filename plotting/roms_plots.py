@@ -1182,7 +1182,7 @@ def P_sect_alpe2(in_dict):
     # plot section
     svlims = pinfo.vlims_dict[vn]
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
-                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+                       vmin=2, vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
     fig.colorbar(cs, ax=ax)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
@@ -1194,7 +1194,7 @@ def P_sect_alpe2(in_dict):
     y_low, y_high = ax.get_ylim()
 
     #set aspect ratio
-    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.35)
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.7)
 
     # FINISH
     ds.close()
