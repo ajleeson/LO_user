@@ -1194,7 +1194,7 @@ def P_sect_alpe2(in_dict):
     y_low, y_high = ax.get_ylim()
 
     #set aspect ratio
-    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*4)
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.25)
 
     # FINISH
     ds.close()
