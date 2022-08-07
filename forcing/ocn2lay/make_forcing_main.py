@@ -13,6 +13,7 @@ from pathlib import Path
 import sys
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import gsw
 
 from lo_tools import forcing_argfun as ffun
 
@@ -66,8 +67,7 @@ V = dict()
 V['zeta'] = np.zeros((NT, NR, NC))
 V['ubar'] = np.zeros((NT, NR, NC-1))
 V['vbar'] = np.zeros((NT, NR-1, NC))
-# Make estuary half full of fresh water (in latitude) only at t=0 on Jan 1st
-V['salt'] = 30 * np.ones((NT, NZ, NR, NC))
+V['temp'] = 10 * np.ones((NT, NZ, NR, NC))
 
 # Create different first day initial conditions
 if diffDay1:
@@ -80,22 +80,38 @@ if diffDay1:
         lat_index = int(np.where(lats_diff == np.min(lats_diff))[0])
         V['salt'][0,:,lat_index::,:] = 0 * V['salt'][0,:,lat_index::,:]
     
-V['temp'] = np.ones((NT, NZ, NR, NC))
-# make two layers with temperature. Bottom layer to be cold
-V['temp'][:,round(NZ/2)::,:,:] = 10 * V['temp'][:,round(NZ/2)::,:,:]
-V['temp'][:,0:round(NZ/2),:,:] = 5 * V['temp'][:,0:round(NZ/2),:,:]
+V['salt'] = np.ones((NT, NZ, NR, NC))
+# make two layers with salinity. Bottom layer to be more saline
+V['salt'][:,round(NZ/2)::,:,:] = 30 * V['salt'][:,round(NZ/2)::,:,:]
+V['salt'][:,0:round(NZ/2),:,:] = 33 * V['salt'][:,0:round(NZ/2),:,:]
 
-# # Plotting temperatue depth profile
-# # print(V['temp'][0,:,0,0])
-# s_rho = S['s_rho']
-# depths = zrfun.get_z(100 * np.ones((1,1)), np.zeros((1,1)), S)
-# # print(depths[0])
-# plt.plot(V['temp'][0,:,0,0],depths[0])
-# plt.title('Ocean Temperature Profile')
-# plt.xlabel('Temperature (C)')
-# plt.ylabel('Depth (m)')
-# plt.show()
-
+# Plotting salinity depth profile -------------------------------------------------------
+fig,ax1 = plt.subplots()
+# get depth values
+depths = zrfun.get_z(100 * np.ones((1,1)), np.zeros((1,1)), S)
+rho_depths = depths[0]
+# get salinity
+sal = V['salt'][0,:,0,0]
+# get pressure
+p = [gsw.p_from_z(depth,44.5) for depth in rho_depths]
+# calculate density from pressure and salinity
+rho = [gsw.rho(sal[i],10,p[i]) for i in range(len(p))]
+# plot everything
+col1 = 'tab:purple'
+col2 = 'tab:cyan'
+ax1.plot(sal,rho_depths, color = col1, linestyle='dashed')
+ax1.set_xlabel(r'Salinity ($g \: kg^{-1}$)', color = col1, fontsize = 12)
+ax1.tick_params(axis='x', labelcolor = col1, labelsize = 12)
+ax1.set_ylabel('Depth (m)', fontsize = 12)
+ax1.tick_params(axis = 'y', labelsize = 12)
+ax2 = ax1.twiny()
+ax2.plot(rho,rho_depths, color = col2)
+ax2.set_xlabel(r'Density ($kg \: m^{-3}$)', color = col2, fontsize = 12)
+ax2.tick_params(axis = 'x', labelcolor = col2, labelsize = 12)
+plt.tight_layout
+plt.title('Ocean Salinity and Density Profile',fontsize = 14)
+plt.show()
+# -------------------------------------------------------------------------------------
 
 V['u'] = np.zeros((NT, NZ, NR, NC-1))
 V['v'] = np.zeros((NT, NZ, NR-1, NC))
@@ -160,8 +176,8 @@ sys.stdout.flush()
 def print_info(fn):
     #print('\n' + str(fn))
     ds = xr.open_dataset(fn)#, decode_times=False)
-    print(ds)
-    print("salt = {}".format(V['salt'][0,0,-1,0]))
+    # print(ds)
+    # print("salt = {}".format(V['salt'][0,0,-1,0]))
     ds.close()
 
 # Check results
