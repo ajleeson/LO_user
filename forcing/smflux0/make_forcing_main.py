@@ -5,7 +5,7 @@ Designed to run only as backfill.
 
 Testing:
 
-run make_forcing_main.py -g alpe2 -t v0 -r backfill -s continuation -d 2020.01.01 -f atmA0winds -test True
+run make_forcing_main.py -g fsg -t v0 -r backfill -s continuation -d 2020.01.01 -f upw -test True
 
 """
 
@@ -52,8 +52,8 @@ NT = len(ot_vec)
 vn_list = ['sustr','svstr']
 
 # create a mask
-mu2 = np.ones((NT, NR, NC-1)) * G['mask_rho'].reshape((1, NR, NC-1)) # shape of u2dvar
-mv2 = np.ones((NT, NR-1, NC)) * G['mask_rho'].reshape((1, NR-1, NC)) # shape of v2dvar
+# mu2 = np.ones((NT, NR, NC-1)) * G['mask_rho'].reshape((1, NR, NC-1)) # shape of u2dvar
+# mv2 = np.ones((NT, NR-1, NC)) * G['mask_rho'].reshape((1, NR-1, NC)) # shape of v2dvar
 
 for vn in vn_list:  
     out_fn = out_dir / (vn + '.nc')
@@ -65,13 +65,13 @@ for vn in vn_list:
 
     if vn == 'sustr':
         const = 0.1 # [N/m2] Pascal
-        values = const*np.ones((NT, NR, NC-1))
-        values[mu2==0] = np.nan
+        values = const*np.ones((NT, NR, NC-1)) # shape of u2dvar
+        # values[mu2==0] = np.nan
 
     elif vn == 'svstr':
         const = 0 # [N/m2]
-        values = const*np.ones((NT, NR-1, NC))
-        values[mv2==0] = np.nan
+        values = const*np.ones((NT, NR-1, NC)) # shape of v2dvar
+        # values[mv2==0] = np.nan
 
     ds[vn] = (dims, values)
 
