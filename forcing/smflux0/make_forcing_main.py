@@ -52,7 +52,8 @@ NT = len(ot_vec)
 vn_list = ['sustr','svstr']
 
 # create a mask
-mr2 = np.ones((NT, NR, NC)) * G['mask_rho'].reshape((1, NR, NC))
+mu2 = np.ones((NT, NR, NC-1)) * G['mask_rho'].reshape((1, NR, NC-1)) # shape of u2dvar
+mv2 = np.ones((NT, NR-1, NC)) * G['mask_rho'].reshape((1, NR-1, NC)) # shape of v2dvar
 
 for vn in vn_list:  
     out_fn = out_dir / (vn + '.nc')
@@ -64,13 +65,14 @@ for vn in vn_list:
 
     if vn == 'sustr':
         const = 0.1 # [N/m2] Pascal
-        values = const*np.ones((NT, NR, NC))
+        values = const*np.ones((NT, NR, NC-1))
+        values[mu2==0] = np.nan
 
     elif vn == 'svstr':
         const = 0 # [N/m2]
-        values = const*np.ones((NT, NR, NC))
+        values = const*np.ones((NT, NR-1, NC))
+        values[mv2==0] = np.nan
 
-    values[mr2==0] = np.nan
     ds[vn] = (dims, values)
 
     ds[vn].attrs['units'] = vinfo['units']
