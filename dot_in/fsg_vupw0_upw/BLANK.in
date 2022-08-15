@@ -181,15 +181,15 @@ ad_Vadvection == C4       \                     ! temperature
 !
 !                   1       2       3       4
 
-   LBC(isFsur) ==   $Wfs$   $Sfs$   $Efs$   $Nfs$       ! free-surface
-   LBC(isUbar) ==   $W2$    $S2$    $E2$    $N2$        ! 2D U-momentum
-   LBC(isVbar) ==   $W2$    $S2$    $E2$    $N2$        ! 2D V-momentum
-   LBC(isUvel) ==   $W3$    $S3$    $E3$    $N3$        ! 3D U-momentum
-   LBC(isVvel) ==   $W3$    $S3$    $E3$    $N3$        ! 3D V-momentum
-   LBC(isMtke) ==   $W3$    $S3$    $E3$    $N3$        ! mixing TKE
+   LBC(isFsur) ==   $Wp$    $Sfs$   $Ep$    $Nfs$       ! free-surface
+   LBC(isUbar) ==   $Wp$    $S2$    $Ep$    $N2$        ! 2D U-momentum
+   LBC(isVbar) ==   $Wp$    $S2$    $Ep$    $N2$        ! 2D V-momentum
+   LBC(isUvel) ==   $Wp$    $Sg$    $Ep$    $Ng$        ! 3D U-momentum
+   LBC(isVvel) ==   $Wp$    $Sg$    $Ep$    $Ng$        ! 3D V-momentum
+   LBC(isMtke) ==   $Wp$    $Sg$    $Ep$    $Ng$        ! mixing TKE
 
-   LBC(isTvar) ==   $Wtem$  $Stem$  $Etem$  $Ntem$ \    ! temperature
-                    $W3$    $S3$    $E3$    $N3$        ! salinity
+   LBC(isTvar) ==   $Wp$    $Sg$    $Ep$    $Ng$ \      ! temperature
+                    $Wp$    $Sg$    $Ep$    $Ng$        ! salinity
 
 ! Adjoint-based algorithms can have different lateral boundary
 ! conditions keywords.
