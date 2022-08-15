@@ -101,14 +101,14 @@ for O in list('NSEW'):
     if O in list(D['open']):
         D[O+'fs'] = 'Cha'
         D[O+'2']  = 'Fla'
-        D[O+'3']  = 'Gra' #'RadNud'
-        D[O+'tem']= 'Gra'
+        D[O+'g']  = 'Gra'
+        D[O+'p']  = 'Per'
 
     else:
         D[O+'fs'] = 'Clo'
         D[O+'2']  = 'Clo'
-        D[O+'3']  = 'Clo'
-        D[O+'tem']= 'Clo'
+        D[O+'g']  = 'Clo'
+        D[O+'p']  = 'Clo'
 
 #### END USER DEFINED VALUES ####
 
