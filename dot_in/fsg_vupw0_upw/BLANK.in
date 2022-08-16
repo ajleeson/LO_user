@@ -466,8 +466,8 @@ LtracerSponge == F F                            ! temperature, salinity, inert
 ! Logical switches (TRUE/FALSE) to read and process climatology fields.
 ! See glossary below for details.
 
-     LsshCLM == T                          ! sea-surface height
-      Lm2CLM == T                          ! 2D momentum
+     LsshCLM == F                          ! sea-surface height
+      Lm2CLM == F                          ! 2D momentum
       Lm3CLM == F                          ! 3D momentum
 
   LtracerCLM == F F                        ! temperature, salinity, inert
@@ -477,7 +477,7 @@ LtracerSponge == F F                            ! temperature, salinity, inert
 ! switches above to process the fields from the climatology NetCDF file
 ! that are needed for nudging. See glossary below for details.
 
- LnudgeM2CLM == T                          ! 2D momentum
+ LnudgeM2CLM == F                          ! 2D momentum
  LnudgeM3CLM == F                          ! 3D momentum
 
   LnudgeTCLM == F F                        ! temperature, salinity, inert
