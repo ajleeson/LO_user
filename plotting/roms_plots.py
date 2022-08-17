@@ -21,6 +21,7 @@ import pandas as pd
 from cmocean import cm
 import matplotlib.dates as mdates
 import argparse
+import math
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -1214,6 +1215,52 @@ def P_sect_upw(in_dict):
     
     I think this works best with -avl False (the default).
     """
+
+    # Function to get interface depth
+    def get_interface(v3,dist,sf):
+        # get rho depth values
+        zrho = [arr[0] for arr in v3['zrf']]
+        # initialize array to save values
+        zeta_depth_num = []
+
+        # loop through for every distance away from the shelf
+        for i in range(len(dist)):
+
+            # create an array of delta zrhos
+            del_zrhos = []
+            # create an array of delta salinities
+            del_sals = []
+            # create array of ds/dz
+            ds_dzs = []
+            # create array of mean rho depth
+            mean_zrhos = []
+
+            # check if the watercolumn is more or less uniform in salinity (within 1%)
+            if math.isclose(sf[0,i], sf[-1,i], rel_tol=0.01, abs_tol=0.0):
+                # if so, then there is no interface
+                zeta_depth_num = zeta_depth_num + [np.nan]
+
+            else:
+                # loop through all of the depths
+                for j in range(len(zrho)-2):
+                    # calculate depth and salinity differences between adjacent cells
+                    del_zrho = zrho[j+1]-zrho[j]
+                    del_sal = sf[j+1,i]-sf[j,i]
+                    ds_dz = del_sal/del_zrho
+                    mean_zrho = 0.5*(zrho[j+1]+zrho[j])
+                    # add values to arrays
+                    del_zrhos = del_zrhos + [del_zrho]
+                    del_sals = del_sals + [del_sal]
+                    ds_dzs = ds_dzs + [ds_dz]
+                    mean_zrhos = mean_zrhos + [mean_zrho]
+
+                # calculate depth of greatest ds/dz slope
+                i_max_dsdz = ds_dzs.index(np.min(ds_dzs))
+                zeta_depth_curr = mean_zrhos[i_max_dsdz]
+                zeta_depth_num = zeta_depth_num + [zeta_depth_curr]
+
+        return zeta_depth_num
+
     # START
     fs = 14
     pfun.start_plot(fs=fs, figsize=(12,10))
@@ -1234,7 +1281,6 @@ def P_sect_upw(in_dict):
         x = np.zeros(y.shape)
 
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
-
     
     # COLOR
     # scaled section data
@@ -1248,11 +1294,8 @@ def P_sect_upw(in_dict):
 
     # map with section line
     ax = fig.add_subplot(2, 2, (1,2))
-    #cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-     #       cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], do_mask_edges=True)
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
             cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
-    # fig.colorbar(cs, ax=ax) # It is identical to that of the section
 
     # -----------------------------------------------------------
     # find aspect ratio of the map
@@ -1261,7 +1304,6 @@ def P_sect_upw(in_dict):
     AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
     fs = 14
     hgt = 10
-    #pfun.start_plot(fs=fs, figsize=(int(hgt*2.5/AR),int(hgt)))
     ratio = ((hgt*0.2/AR)/(hgt))
 
     #get x and y limits
@@ -1271,9 +1313,6 @@ def P_sect_upw(in_dict):
     #set aspect ratio
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
     # -----------------------------------------------------------
-
-    #ax.axis(pfun.get_aa(ds))
-    #pfun.dar(ax)
 
     pfun.add_info(ax, in_dict['fn'], loc='upper_right')
     ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
@@ -1285,9 +1324,6 @@ def P_sect_upw(in_dict):
     ax.plot(x, y, '-r', linewidth=2)
     ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
         markeredgecolor='r', markeredgewidth=2)
-    # ax.set_xticks([-2, 0, 2])
-    # ax.set_yticks([44, 45, 46, 47])
-
 
     # section
     ax = fig.add_subplot(2, 2, (3,4))
@@ -1304,6 +1340,10 @@ def P_sect_upw(in_dict):
     ax.set_ylabel('Z (m)')
     ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
     fig.tight_layout()
+
+    # plot interface
+    zeta_depth = get_interface(v3,dist,sf)
+    ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2)
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
