@@ -1344,7 +1344,7 @@ def P_sect_upw(in_dict):
 
     # plot interface (numerical model)
     zeta_depth = get_interface(v3,dist,sf)
-    ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2, label=r'$\zeta$ numerical')
+    ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2, label='interface depth (numerical)')
 
     # calculate interface (analytical model)
     kms = np.linspace(0,90,91) # km
@@ -1364,7 +1364,7 @@ def P_sect_upw(in_dict):
     zeta_ana = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms]
     # plot interface (analytical model)
     ax.plot(kms,zeta_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
-     linestyle = '--', label=r'$\zeta$ analytical')
+     linestyle = '--', label='interface depth (analytical)')
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
