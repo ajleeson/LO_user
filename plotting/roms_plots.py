@@ -1217,7 +1217,7 @@ def P_sect_upw(in_dict):
     I think this works best with -avl False (the default).
     """
 
-    # Function to get interface depth
+    # Function to get interface depth from numerical model results
     def get_interface(v3,dist,sf):
         # get rho depth values
         zrho = [arr[0] for arr in v3['zrf']]
@@ -1227,54 +1227,32 @@ def P_sect_upw(in_dict):
         # loop through for every distance away from the shelf
         for i in range(len(dist)):
 
-            # create an array of delta zrhos
-            del_zrhos = []
-            # create an array of delta salinities
-            del_sals = []
-            # create array of ds/dz
-            ds_dzs = []
-            # create array of mean rho depth
-            mean_zrhos = []
-
             # apply cubic spline interpolation to salinity
             sal_spline = interp.CubicSpline(zrho, sf[:,i],
              bc_type='not-a-knot', extrapolate=None)
 
-            # # check if the watercolumn is more or less uniform in salinity (within 1%)
-            # if math.isclose(sf[0,i], sf[-1,i], rel_tol=0.01, abs_tol=0.0):
-            #     # if so, then there is no interface
-            #     zeta_depths = zeta_depths + [np.nan]
+            # check if the watercolumn is more or less uniform in salinity (within 2%)
+            if math.isclose(sf[0,i], sf[-1,i], rel_tol=0.02, abs_tol=0.0):
+                # if so, then there is no interface
+                zeta_depths = zeta_depths + [np.nan]
 
-            # # loop through all of the depths
-            # for j in range(len(zrho)-2):
-            #     # calculate depth and salinity differences between adjacent cells
-            #     del_zrho = zrho[j+1]-zrho[j]
-            #     del_sal = sf[j+1,i]-sf[j,i]
-            #     ds_dz = del_sal/del_zrho
-            #     mean_zrho = 0.5*(zrho[j+1]+zrho[j])
+            else:
+                # calculate depth of greatest salinity gradient
+                ds_dz_spline = sal_spline.derivative()
+                ds_dz_vals = ds_dz_spline(range(-100,0))
 
-            #     # add values to arrays
-            #     del_zrhos = del_zrhos + [del_zrho]
-            #     del_sals = del_sals + [del_sal]
-            #     ds_dzs = ds_dzs + [ds_dz]
-            #     mean_zrhos = mean_zrhos + [mean_zrho]
-
-            # calculate depth of greatest salinity gradient
-            ds_dz_spline = sal_spline.derivative()
-            ds_dz_vals = ds_dz_spline(range(-100,0))
-
-            # calculate depth of greatest ds/dz slope
-            zeta_index = np.where(ds_dz_vals == np.min(ds_dz_vals))
-            # create array from 0 to -100, and index into it
-            depths = np.linspace(-100,-1,100)
-            zeta_depth_curr = depths[zeta_index[0]]
-            zeta_depths = zeta_depths + [zeta_depth_curr]
+                # calculate depth of greatest ds/dz slope
+                zeta_index = np.where(ds_dz_vals == np.min(ds_dz_vals))
+                # create array from 0 to -100, and index into it
+                depths = np.linspace(-100,-1,100)
+                zeta_depth_curr = depths[zeta_index[0]]
+                zeta_depths = zeta_depths + [zeta_depth_curr]
         
-        # fit cubic spline to interface so we get a smooth line
-        zeta_depth_spline = interp.CubicSpline(dist, zeta_depths,
-         bc_type='not-a-knot', extrapolate=None)
+        # # fit cubic spline to interface so we get a smooth line
+        # zeta_depth_spline = interp.CubicSpline(dist, zeta_depths)
+        # #  bc_type='not-a-knot', extrapolate=None)
 
-        return zeta_depth_spline
+        return zeta_depths #zeta_depth_spline
 
     # START
     fs = 14
@@ -1356,9 +1334,29 @@ def P_sect_upw(in_dict):
     ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
     fig.tight_layout()
 
-    # plot interface
+    # plot interface (numerical model)
     zeta_depth = get_interface(v3,dist,sf)
-    ax.plot(range(0,88),zeta_depth(range(0,88)),color = 'cyan',linewidth = 2)
+    ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2, label=r'$\zeta$ numerical')
+
+    # calculate interface (analytical model)
+    kms = np.linspace(0,90,91) # km
+    H = 24.5 # m
+    tau = 0.1 # N m-2
+    rho = 1023 # kg m-3
+    F = tau/(rho*H) # m s-2
+    f = 1e-4 # s-1
+    g = 9.8 # m s-1
+    gprime = g*(2.5/rho) # m s-1
+    lambda_ = np.sqrt(gprime*H)/f # m
+    T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
+    curr_time = T['dt']
+    start_time = datetime(2020, 1, 1, 0, 0)
+    t = (curr_time - start_time).total_seconds()
+    # calculate zeta (includes offset from the starting interface depth)
+    zeta_ana = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms]
+    # plot interface (analytical model)
+    ax.plot(kms,zeta_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
+     linestyle = '--', label=r'$\zeta$ analytical')
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
@@ -1366,6 +1364,9 @@ def P_sect_upw(in_dict):
 
     #set aspect ratio
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.5)
+
+    # add legend
+    ax.legend(fancybox=True, loc='lower left', framealpha = 0)
 
     # FINISH
     ds.close()
