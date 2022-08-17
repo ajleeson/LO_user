@@ -22,6 +22,7 @@ from cmocean import cm
 import matplotlib.dates as mdates
 import argparse
 import math
+import scipy.interpolate as interp
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -1221,7 +1222,7 @@ def P_sect_upw(in_dict):
         # get rho depth values
         zrho = [arr[0] for arr in v3['zrf']]
         # initialize array to save values
-        zeta_depth_num = []
+        zeta_depths = []
 
         # loop through for every distance away from the shelf
         for i in range(len(dist)):
@@ -1235,31 +1236,45 @@ def P_sect_upw(in_dict):
             # create array of mean rho depth
             mean_zrhos = []
 
-            # check if the watercolumn is more or less uniform in salinity (within 1%)
-            if math.isclose(sf[0,i], sf[-1,i], rel_tol=0.01, abs_tol=0.0):
-                # if so, then there is no interface
-                zeta_depth_num = zeta_depth_num + [np.nan]
+            # apply cubic spline interpolation to salinity
+            sal_spline = interp.CubicSpline(zrho, sf[:,i],
+             bc_type='not-a-knot', extrapolate=None)
 
-            else:
-                # loop through all of the depths
-                for j in range(len(zrho)-2):
-                    # calculate depth and salinity differences between adjacent cells
-                    del_zrho = zrho[j+1]-zrho[j]
-                    del_sal = sf[j+1,i]-sf[j,i]
-                    ds_dz = del_sal/del_zrho
-                    mean_zrho = 0.5*(zrho[j+1]+zrho[j])
-                    # add values to arrays
-                    del_zrhos = del_zrhos + [del_zrho]
-                    del_sals = del_sals + [del_sal]
-                    ds_dzs = ds_dzs + [ds_dz]
-                    mean_zrhos = mean_zrhos + [mean_zrho]
+            # # check if the watercolumn is more or less uniform in salinity (within 1%)
+            # if math.isclose(sf[0,i], sf[-1,i], rel_tol=0.01, abs_tol=0.0):
+            #     # if so, then there is no interface
+            #     zeta_depths = zeta_depths + [np.nan]
 
-                # calculate depth of greatest ds/dz slope
-                i_max_dsdz = ds_dzs.index(np.min(ds_dzs))
-                zeta_depth_curr = mean_zrhos[i_max_dsdz]
-                zeta_depth_num = zeta_depth_num + [zeta_depth_curr]
+            # # loop through all of the depths
+            # for j in range(len(zrho)-2):
+            #     # calculate depth and salinity differences between adjacent cells
+            #     del_zrho = zrho[j+1]-zrho[j]
+            #     del_sal = sf[j+1,i]-sf[j,i]
+            #     ds_dz = del_sal/del_zrho
+            #     mean_zrho = 0.5*(zrho[j+1]+zrho[j])
 
-        return zeta_depth_num
+            #     # add values to arrays
+            #     del_zrhos = del_zrhos + [del_zrho]
+            #     del_sals = del_sals + [del_sal]
+            #     ds_dzs = ds_dzs + [ds_dz]
+            #     mean_zrhos = mean_zrhos + [mean_zrho]
+
+            # calculate depth of greatest salinity gradient
+            ds_dz_spline = sal_spline.derivative()
+            ds_dz_vals = ds_dz_spline(range(-100,0))
+
+            # calculate depth of greatest ds/dz slope
+            zeta_index = np.where(ds_dz_vals == np.min(ds_dz_vals))
+            # create array from 0 to -100, and index into it
+            depths = np.linspace(-100,-1,100)
+            zeta_depth_curr = depths[zeta_index[0]]
+            zeta_depths = zeta_depths + [zeta_depth_curr]
+        
+        # fit cubic spline to interface so we get a smooth line
+        zeta_depth_spline = interp.CubicSpline(dist, zeta_depths,
+         bc_type='not-a-knot', extrapolate=None)
+
+        return zeta_depth_spline
 
     # START
     fs = 14
@@ -1343,7 +1358,7 @@ def P_sect_upw(in_dict):
 
     # plot interface
     zeta_depth = get_interface(v3,dist,sf)
-    ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2)
+    ax.plot(range(0,88),zeta_depth(range(0,88)),color = 'cyan',linewidth = 2)
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
