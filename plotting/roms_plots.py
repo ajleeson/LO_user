@@ -1377,6 +1377,186 @@ def P_sect_upw(in_dict):
     else:
         plt.show()
 
+def P_sect_upw2(in_dict):
+    """
+    This plots a map and a section (distance, z), and makes sure
+    that the color limits are identical.  If the color limits are
+    set automatically then the section is the preferred field for
+    setting the limits.
+    
+    I think this works best with -avl False (the default).
+    """
+
+    # Function to get interface depth from numerical model results
+    def get_interface(v3,dist,sf):
+        # get rho depth values
+        zrho = [arr[0] for arr in v3['zrf']]
+        # initialize array to save values
+        zeta_depths = []
+
+        # loop through for every distance away from the shelf
+        for i in range(len(dist)):
+
+            # apply cubic spline interpolation to salinity
+            sal_spline = interp.CubicSpline(zrho, sf[:,i],
+             bc_type='not-a-knot', extrapolate=None)
+
+            # initialize array of differences
+            avg_diff = []
+
+            # check if the watercolumn is more or less uniform in salinity (within 2%)
+            if math.isclose(sf[0,i], sf[-1,i], rel_tol=0.02, abs_tol=0.0):
+                # if so, then there is no interface
+                zeta_depths = zeta_depths + [np.nan]
+                avg_diff = avg_diff + [0]
+
+            else:
+                # calculate depth of greatest salinity gradient
+                sal_vals = sal_spline(range(-100,0))
+                # else, loop through depth in 1 m increments
+                for j in range(-100,0):
+                    # calculate magnitude of difference between average salinity above and below a depth
+                    avg_bottom = np.mean(sal_vals[0:j])
+                    avg_top = np.mean(sal_vals[j::])
+                    diff = abs(avg_bottom - avg_top)
+                    avg_diff = avg_diff + [diff]
+                
+                # calculate depth of greatest ds/dz slope
+                zeta_index = avg_diff.index(np.nanmax(avg_diff))
+                # create array from 0 to -100, and index into it
+                depths = np.linspace(-100,-1,100)
+                zeta_depth_curr = depths[zeta_index]
+                zeta_depths = zeta_depths + [zeta_depth_curr]
+        
+        # # fit cubic spline to interface so we get a smooth line
+        # zeta_depth_spline = interp.CubicSpline(dist, zeta_depths)
+        # #  bc_type='not-a-knot', extrapolate=None)
+
+        return zeta_depths #zeta_depth_spline
+
+    # START
+    fs = 14
+    pfun.start_plot(fs=fs, figsize=(12,10))
+    fig = plt.figure()
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    vn = 'salt'
+    # GET DATA
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # CREATE THE SECTION
+    # create track by hand
+    if True:
+        lon = G['lon_rho']
+        lat = G['lat_rho']
+        zdeep = -100
+
+        y = np.linspace(44.8, 44, 500)
+        x = np.zeros(y.shape)
+
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+    
+    # COLOR
+    # scaled section data
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # now we use the scaled section as the preferred field for setting the
+    # color limits of both figures in the case -avl True
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = pfun.auto_lims(sf)
+    
+    # PLOTTING
+
+    # map with section line
+    ax = fig.add_subplot(2, 2, (1,2))
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+
+    # -----------------------------------------------------------
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    ratio = ((hgt*0.2/AR)/(hgt))
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
+    # -----------------------------------------------------------
+
+    pfun.add_info(ax, in_dict['fn'], loc='upper_right')
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    # add section track
+    print('xlims: {},{}'.format(x.min(),x.max()))
+    print('ylims: {},{}'.format(y.min(),y.max()))
+    ax.plot(x, y, '-r', linewidth=2)
+    ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+        markeredgecolor='r', markeredgewidth=2)
+
+    # section
+    ax = fig.add_subplot(2, 2, (3,4))
+    ax.plot(dist, v2['zbot'], '-k', linewidth=2)
+    ax.plot(dist, v2['zeta'], '-b', linewidth=1)
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 5)
+    # plot section
+    svlims = pinfo.vlims_dict[vn]
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+    fig.colorbar(cs, ax=ax)
+    ax.set_xlabel('Distance (km)')
+    ax.set_ylabel('Z (m)')
+    ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    fig.tight_layout()
+
+    # plot interface (numerical model)
+    zeta_depth = get_interface(v3,dist,sf)
+    ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2, label=r'$\zeta$ numerical')
+
+    # calculate interface (analytical model)
+    kms = np.linspace(0,90,91) # km
+    H = 24.5 # m
+    tau = 0.1 # N m-2
+    rho = 1023 # kg m-3
+    F = tau/(rho*H) # m s-2
+    f = 1e-4 # s-1
+    g = 9.8 # m s-1
+    gprime = g*(2.5/rho) # m s-1
+    lambda_ = np.sqrt(gprime*H)/f # m
+    T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
+    curr_time = T['dt']
+    start_time = datetime(2020, 1, 1, 0, 0)
+    t = (curr_time - start_time).total_seconds()
+    # calculate zeta (includes offset from the starting interface depth)
+    zeta_ana = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms]
+    # plot interface (analytical model)
+    ax.plot(kms,zeta_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
+     linestyle = '--', label=r'$\zeta$ analytical')
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.5)
+
+    # add legend
+    ax.legend(fancybox=True, loc='lower left', framealpha = 0)
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
 def P_superplot_alpe_withTides(in_dict):
     """
     This plots a map and a section (distance, z), and makes sure
