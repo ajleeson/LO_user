@@ -23,6 +23,7 @@ import matplotlib.dates as mdates
 import argparse
 import math
 import scipy.interpolate as interp
+from scipy.optimize import curve_fit
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -1246,11 +1247,18 @@ def P_sect_upw(in_dict):
                 # create array from 0 to -100, and index into it
                 depths = np.linspace(-100,-1,100)
                 zeta_depth_curr = depths[zeta_index[0]]
-                zeta_depths = zeta_depths + [zeta_depth_curr]
-        
-        # # fit cubic spline to interface so we get a smooth line
-        # zeta_depth_spline = interp.CubicSpline(dist, zeta_depths)
-        # #  bc_type='not-a-knot', extrapolate=None)
+                zeta_depths = zeta_depths + [zeta_depth_curr[0]]
+
+        # Remove nans from data
+        valid = ~(np.isnan(dist) | np.isnan(zeta_depths))
+        p0 = [1,-0.5,-24.5] # initial guess
+        # fit an exponential curve to data
+        popt, pcov = curve_fit(lambda t, a, b, c: a * np.exp(b * t) + c, dist[valid], np.array(zeta_depths)[valid], p0)
+        a = popt[0]
+        b = popt[1]
+        c = popt[2]
+        # return the exponential fit of our interface based on the calculated interface from our spline.
+        zeta_depths = a * np.exp(b * dist) + c
 
         return zeta_depths #zeta_depth_spline
 
