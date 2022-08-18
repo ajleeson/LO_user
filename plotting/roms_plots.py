@@ -1885,7 +1885,7 @@ def P_sect_upw_contour(in_dict):
     y_low, y_high = ax.get_ylim()
 
     #set aspect ratio
-    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.4)
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.3)
 
     # FINISH
     ds.close()
