@@ -1690,34 +1690,35 @@ def P_sect_upw_grad(in_dict):
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
                        vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
     fig.colorbar(cs, ax=ax)
+    ax.contour(v3['distf'], v3['zrf'], sf, levels=[31.5], colors=['coral'])
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
     ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
     fig.tight_layout()
 
-    # plot interface (numerical model)
-    zeta_depth = get_interface(v3,dist,sf)
-    ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2, label='interface depth (numerical)')
+    # # plot interface (numerical model)
+    # zeta_depth = get_interface(v3,dist,sf)
+    # ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2, label='interface depth (numerical)')
 
-    # calculate interface (analytical model)
-    kms = np.linspace(0,90,91) # km
-    H = 24.5 # m
-    tau = 0.1 # N m-2
-    rho = 1023 # kg m-3
-    F = tau/(rho*H) # m s-2
-    f = 1e-4 # s-1
-    g = 9.8 # m s-1
-    gprime = g*(2.5/rho) # m s-1
-    lambda_ = np.sqrt(gprime*H)/f # m
-    T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
-    curr_time = T['dt']
-    start_time = datetime(2020, 1, 1, 0, 0)
-    t = (curr_time - start_time).total_seconds()
-    # calculate zeta (includes offset from the starting interface depth)
-    zeta_ana = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms]
-    # plot interface (analytical model)
-    ax.plot(kms,zeta_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
-     linestyle = '--', label='interface depth (analytical)')
+    # # calculate interface (analytical model)
+    # kms = np.linspace(0,90,91) # km
+    # H = 24.5 # m
+    # tau = 0.1 # N m-2
+    # rho = 1023 # kg m-3
+    # F = tau/(rho*H) # m s-2
+    # f = 1e-4 # s-1
+    # g = 9.8 # m s-1
+    # gprime = g*(2.5/rho) # m s-1
+    # lambda_ = np.sqrt(gprime*H)/f # m
+    # T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
+    # curr_time = T['dt']
+    # start_time = datetime(2020, 1, 1, 0, 0)
+    # t = (curr_time - start_time).total_seconds()
+    # # calculate zeta (includes offset from the starting interface depth)
+    # zeta_ana = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms]
+    # # plot interface (analytical model)
+    # ax.plot(kms,zeta_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
+    #  linestyle = '--', label='interface depth (analytical)')
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
@@ -1727,7 +1728,7 @@ def P_sect_upw_grad(in_dict):
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.5)
 
     # add legend
-    ax.legend(fancybox=True, loc='lower left', framealpha = 0)
+    # ax.legend(fancybox=True, loc='lower left', framealpha = 0)
 
     # FINISH
     ds.close()
