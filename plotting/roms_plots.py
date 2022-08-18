@@ -1690,35 +1690,34 @@ def P_sect_upw_grad(in_dict):
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
                        vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
     fig.colorbar(cs, ax=ax)
-    ax.contour(v3['distf'], v3['zrf'], sf, levels=[31.5], colors=['coral'])
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
     ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
     fig.tight_layout()
 
-    # # plot interface (numerical model)
-    # zeta_depth = get_interface(v3,dist,sf)
-    # ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2, label='interface depth (numerical)')
+    # plot interface (numerical model)
+    zeta_depth = get_interface(v3,dist,sf)
+    ax.plot(dist,zeta_depth,color = 'cyan',linewidth = 2, label='interface depth (numerical)')
 
-    # # calculate interface (analytical model)
-    # kms = np.linspace(0,90,91) # km
-    # H = 24.5 # m
-    # tau = 0.1 # N m-2
-    # rho = 1023 # kg m-3
-    # F = tau/(rho*H) # m s-2
-    # f = 1e-4 # s-1
-    # g = 9.8 # m s-1
-    # gprime = g*(2.5/rho) # m s-1
-    # lambda_ = np.sqrt(gprime*H)/f # m
-    # T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
-    # curr_time = T['dt']
-    # start_time = datetime(2020, 1, 1, 0, 0)
-    # t = (curr_time - start_time).total_seconds()
-    # # calculate zeta (includes offset from the starting interface depth)
-    # zeta_ana = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms]
-    # # plot interface (analytical model)
-    # ax.plot(kms,zeta_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
-    #  linestyle = '--', label='interface depth (analytical)')
+    # calculate interface (analytical model)
+    kms = np.linspace(0,90,91) # km
+    H = 24.5 # m
+    tau = 0.1 # N m-2
+    rho = 1023 # kg m-3
+    F = tau/(rho*H) # m s-2
+    f = 1e-4 # s-1
+    g = 9.8 # m s-1
+    gprime = g*(2.5/rho) # m s-1
+    lambda_ = np.sqrt(gprime*H)/f # m
+    T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
+    curr_time = T['dt']
+    start_time = datetime(2020, 1, 1, 0, 0)
+    t = (curr_time - start_time).total_seconds()
+    # calculate zeta (includes offset from the starting interface depth)
+    zeta_ana = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms]
+    # plot interface (analytical model)
+    ax.plot(kms,zeta_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
+     linestyle = '--', label='interface depth (analytical)')
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
@@ -1728,7 +1727,165 @@ def P_sect_upw_grad(in_dict):
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.5)
 
     # add legend
-    # ax.legend(fancybox=True, loc='lower left', framealpha = 0)
+    ax.legend(fancybox=True, loc='lower left', framealpha = 0)
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+def P_sect_upw_contour(in_dict):
+    """
+    This plots a map and a section (distance, z), and makes sure
+    that the color limits are identical.  If the color limits are
+    set automatically then the section is the preferred field for
+    setting the limits.
+    """
+
+    # START
+    fs = 14
+    pfun.start_plot(fs=fs, figsize=(9,13))
+    fig = plt.figure()
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    vn = 'salt'
+    # GET DATA
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # CREATE THE SECTION
+    # create track by hand
+    if True:
+        lon = G['lon_rho']
+        lat = G['lat_rho']
+        zdeep = -100
+
+        y = np.linspace(44.8, 44, 500)
+        x = np.zeros(y.shape)
+
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+    
+    # COLOR
+    # scaled section data
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # now we use the scaled section as the preferred field for setting the
+    # color limits of both figures in the case -avl True
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = pfun.auto_lims(sf)
+    
+    # PLOTTING
+
+    # map with section line
+    ax = fig.add_subplot(3, 2, (1,2))
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+
+    # -----------------------------------------------------------
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    ratio = ((hgt*0.2/AR)/(hgt))
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
+    # -----------------------------------------------------------
+
+    pfun.add_info(ax, in_dict['fn'], loc='upper_right')
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    # add section track
+    print('xlims: {},{}'.format(x.min(),x.max()))
+    print('ylims: {},{}'.format(y.min(),y.max()))
+    ax.plot(x, y, '-r', linewidth=2)
+    ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+        markeredgecolor='r', markeredgewidth=2)
+
+    # section
+    ax = fig.add_subplot(3, 2, (3,4))
+    ax.plot(dist, v2['zbot'], '-k', linewidth=2)
+    ax.plot(dist, v2['zeta'], '-b', linewidth=1)
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 5)
+    # plot section
+    svlims = pinfo.vlims_dict[vn]
+    cs1 = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+    fig.colorbar(cs1, ax=ax)
+    ax.set_xlabel('Distance (km)')
+    ax.set_ylabel('Z (m)')
+    ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    fig.tight_layout()
+
+    # create contour line at salinity = 31.5 to get interface (numerical model)
+    cs2 = ax.contour(v3['distf'], v3['zrf'], sf, levels=[31.5], alpha=0)
+    # get values from contour line
+    points = cs2.collections[0].get_paths()[0]
+    verts = points.vertices
+    kms_num = verts[:,0]
+    zeta_num = verts[:,1]
+    # plot interface (analytical model)
+    ax.plot(kms_num,zeta_num,color = 'cyan',linewidth = 2,
+     linestyle = '-', label='interface depth (numerical)')
+
+    # calculate interface (analytical model)
+    kms = np.linspace(0,90,91) # km
+    H = 24.5 # m
+    tau = 0.1 # N m-2
+    rho = 1023 # kg m-3
+    F = tau/(rho*H) # m s-2
+    f = 1e-4 # s-1
+    g = 9.8 # m s-1
+    gprime = g*(2.5/rho) # m s-1
+    lambda_ = np.sqrt(gprime*H)/f # m
+    T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
+    curr_time = T['dt']
+    start_time = datetime(2020, 1, 1, 0, 0)
+    t = (curr_time - start_time).total_seconds()
+    # calculate zeta (includes offset from the starting interface depth)
+    zeta_ana = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms]
+    zeta_ana_to_compare = [-H + F*H/(f*lambda_)*t*np.exp(-1*(km*1000)/lambda_) for km in kms_num]
+    # plot interface (analytical model)
+    ax.plot(kms,zeta_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
+     linestyle = '--', label='interface depth (analytical)')
+
+    # add legend
+    ax.legend(fancybox=True, loc='lower left', framealpha = 0)
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.5)
+
+    # -------------------------------------------------------------------
+    # comparison of interface depth
+    ax = fig.add_subplot(3, 2, (5,6))
+    num_min_ana = zeta_num - zeta_ana_to_compare
+    ax.plot(kms_num,num_min_ana)
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(-8,H)
+    ax.set_title(r'$\zeta_{num}-\zeta_{ana}$')
+    ax.set_ylabel('Difference (m)')
+    ax.set_xlabel('Distance (km)')
+    ax.axhline(y=0,color='k',linestyle=':')
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.4)
 
     # FINISH
     ds.close()
