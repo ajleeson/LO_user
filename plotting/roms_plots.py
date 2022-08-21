@@ -3971,3 +3971,148 @@ def P_tidal_avg_sal_alpe2v2mon(in_dict):
     else:
         plt.show()
 
+def P_upw_v_vel(in_dict):
+    """
+    This plots compares the surface velocity along a section of the 
+    simulation to an analytical solution for upwelling
+    
+    """
+    # START
+    fs = 14
+    pfun.start_plot(fs=fs, figsize=(9,12))
+    fig = plt.figure()
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    vn = 'v'
+    # GET DATA
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # CREATE THE SECTION
+    # create track by hand
+    if True:
+        lon = G['lon_v']
+        lat = G['lat_v']
+        zdeep = -100
+
+        y = np.linspace(44.8, 44, 500)
+        x = np.zeros(y.shape)
+
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+    
+    # COLOR
+    # scaled section data
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # now we use the scaled section as the preferred field for setting the
+    # color limits of both figures in the case -avl True
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = pfun.auto_lims(sf)
+    
+    # PLOTTING
+
+    # map with section line
+    ax = fig.add_subplot(3, 2, (1,2))
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+            # cmap=cm.balance, fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+    fig.colorbar(cs, ax=ax)
+
+    # -----------------------------------------------------------
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    ratio = ((hgt*0.2/AR)/(hgt))
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
+    # -----------------------------------------------------------
+
+    pfun.add_info(ax, in_dict['fn'], loc='upper_right')
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    # add section track
+    print('xlims: {},{}'.format(x.min(),x.max()))
+    print('ylims: {},{}'.format(y.min(),y.max()))
+    ax.plot(x, y, '-r', linewidth=2)
+    ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+        markeredgecolor='r', markeredgewidth=2)
+
+    # plot cross-shore velocity (numerical model)
+    ax = fig.add_subplot(3, 2, (3,4))
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(-0.1, 0.1)
+    v_num = sf[-1,:] # surface layer
+    ax.plot(dist,v_num, color = 'cyan', linewidth = 2, label='cross-shore velocity (numerical,surface)')
+    # for i in range(1,15):
+    #     ax.plot(dist,sf[-1*i,:], alpha=0.3)
+
+    ax.set_xlabel('Distance (km)')
+    ax.set_ylabel('Z (m)')
+    ax.set_title('Section Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    fig.tight_layout()
+
+    # calculate cross-shore velocity (analytical model)
+    H = 24.5 # m
+    tau = 0.1 # N m-2
+    rho = 1023 # kg m-3
+    F = tau/(rho*H) # m s-2
+    f = 1e-4 # s-1
+    g = 9.8 # m s-1
+    gprime = g*(2.5/rho) # m s-1
+    lambda_ = np.sqrt(gprime*H)/f # m
+    T = zrfun.get_basic_info(in_dict['fn'], only_T=True)
+    curr_time = T['dt']
+    start_time = datetime(2020, 1, 1, 0, 0)
+    t = (curr_time - start_time).total_seconds()
+    # cross-shore velocity
+    v_ana = [-1*(F/f)*(1-np.exp(-1*(km*1000)/lambda_)) for km in dist] # negative because southward
+    # plot velocity (analytical model)
+    ax.plot(dist,v_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
+     linestyle = '--', label='cross-shore velocity (analytical)')
+
+    # line at zero
+    ax.axhline(y=0,color='k',linestyle=':')
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.3)
+
+    # add legend
+    ax.legend(fancybox=True, loc='upper right', framealpha = 0)
+
+    # -------------------------------------------------------------------
+    # comparison of velocity
+    ax = fig.add_subplot(3, 2, (5,6))
+    num_min_ana = v_num - v_ana
+    ax.plot(dist,num_min_ana)
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(-0.07,0.07)
+    ax.set_title(r'$v_{num}-v_{ana}$')
+    ax.set_ylabel(r'Difference (m $s^{-1}$)')
+    ax.set_xlabel('Distance (km)')
+    ax.axhline(y=0,color='k',linestyle=':')
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.3)
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
