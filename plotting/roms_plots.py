@@ -4279,7 +4279,7 @@ def P_upw_u_vel(in_dict):
     # u_num = sf[-15:-1,:] # top 15 layers
     # u_num = np.mean(u_num, axis = 0)
     u_num = sf[-1,:] # surface layer
-    ax.plot(dist,u_num, color = 'cyan', linewidth = 2, label='cross-shore velocity (numerical,surface)')
+    ax.plot(dist,u_num, color = 'cyan', linewidth = 2, label='along-shore velocity (numerical,surface)')
     # for i in range(1,15):
     #     ax.plot(dist,sf[-1*i,:], alpha=0.3)
 
@@ -4305,7 +4305,7 @@ def P_upw_u_vel(in_dict):
     u_ana = [F*t*np.exp(-1*(km*1000)/lambda_) for km in dist] # negative because southward
     # plot velocity (analytical model)
     ax.plot(dist,u_ana,color = 'xkcd:bubblegum pink',linewidth = 2,
-     linestyle = '--', label='cross-shore velocity (analytical)')
+     linestyle = '--', label='along-shore velocity (analytical)')
 
     # line at zero
     ax.axhline(y=0,color='k',linestyle=':')
