@@ -129,19 +129,46 @@ ri_ds[vn] = (dims, Q_mat)
 ri_ds[vn].attrs['long_name'] = vinfo['long_name']
 ri_ds[vn].attrs['units'] = vinfo['units']
 
-# Add salinity and temperature
-for vn in ['river_salt', 'river_temp']:
+# Add salinity and temperature and biogeochemistry
+for vn in ['river_salt', 'river_temp',
+ 'river_NO3','river_NH4','river_Chlo','river_Phyt',
+ 'river_Zoop','river_LDeN','river_SDeN','river_LDeC',
+ 'river_SDeC','river_TIC','river_TAlk','river_Oxyg']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     dims = (vinfo['time'],) + ('s_rho', 'river')
     if vn == 'river_salt':
         TR_mat = np.zeros((NT, N, NRIV))
     elif vn == 'river_temp':
         TR_mat = 10 * np.ones((NT, N, NRIV))
+    elif vn == 'river_NO3':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_NH4':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_Chlo':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_Phyt':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_Zoop':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_LDeN':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_SDeN':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_LDeC':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_SDeC':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_TIC':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_TAlk':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
+    elif vn == 'river_Oxyg':
+        TR_mat = 0 * np.ones((NT, N, NRIV))
     ri_ds[vn] = (dims, TR_mat)
     ri_ds[vn].attrs['long_name'] = vinfo['long_name']
     ri_ds[vn].attrs['units'] = vinfo['units']
     
-# WWTPs -------------------------------------------------------------------------------------
+# WWTPs --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # get the list of wwtps and indices for this grid
 gwwtp_fn = Ldir['grid'] / 'wwtp_info.csv'
@@ -215,13 +242,40 @@ wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
 wwtp_ds[vn].attrs['units'] = vinfo['units']
 
 # Add salinity and temperature
-for vn in ['river_salt', 'river_temp']:
+for vn in ['river_salt', 'river_temp',
+ 'river_NO3','river_NH4','river_Chlo','river_Phyt',
+ 'river_Zoop','river_LDeN','river_SDeN','river_LDeC',
+ 'river_SDeC','river_TIC','river_TAlk','river_Oxyg']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     dims = (vinfo['time'],) + ('s_rho', 'river')
     if vn == 'river_salt':
         TR_mat = np.zeros((NT, N, NWWTP))
     elif vn == 'river_temp':
         TR_mat = 10 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_NO3':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_NH4':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_Chlo':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_Phyt':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_Zoop':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_LDeN':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_SDeN':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_LDeC':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_SDeC':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_TIC':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_TAlk':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
+    elif vn == 'river_Oxyg':
+        TR_mat = 0 * np.ones((NT, N, NWWTP))
     wwtp_ds[vn] = (dims, TR_mat)
     wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
     wwtp_ds[vn].attrs['units'] = vinfo['units']
