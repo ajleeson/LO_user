@@ -66,7 +66,7 @@ V['u'] = np.zeros((NT, NZ, NR, NC-1))
 V['v'] = np.zeros((NT, NZ, NR-1, NC))
 
 # Add biogeochemistry
-V['NO3'] = 1.6766 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['NO3'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['NH4'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['chlorophyll'] = 0 * np.ones((NT, NZ, NR, NC)) # [milligrams/m3]
 V['phytoplankton'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
