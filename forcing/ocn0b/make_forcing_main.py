@@ -66,7 +66,19 @@ V['u'] = np.zeros((NT, NZ, NR, NC-1))
 V['v'] = np.zeros((NT, NZ, NR-1, NC))
 
 # Add biogeochemistry
-V['NO3'] = 1.6766 * np.ones((NT, NZ, NR, NC)) # r3dvar, [millimole/m3]
+V['NO3'] = 1.6766 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['NH4'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['chlorophyll'] = 0 * np.ones((NT, NZ, NR, NC)) # [milligrams/m3]
+V['phytoplankton'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['zooplankton'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['LdetritusN'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['SdetritusN'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['LdetritusC'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['SdetritusC'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['TIC'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['alkalinity'] = 0 * np.ones((NT, NZ, NR, NC)) # [milliequivalents/m3]
+V['oxygen'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+
 
 # Create masks
 mr2 = np.ones((NT, NR, NC)) * G['mask_rho'].reshape((1, NR, NC))
@@ -84,7 +96,19 @@ V['salt'][mr3==0] = np.nan
 V['temp'][mr3==0] = np.nan
 V['u'][mu3==0] = np.nan
 V['v'][mv3==0] = np.nan
+
 V['NO3'][mr3==0] = np.nan
+V['NH4'][mr3==0] = np.nan
+V['chlorophyll'][mr3==0] = np.nan
+V['phytoplankton'][mr3==0] = np.nan
+V['zooplankton'][mr3==0] = np.nan
+V['LdetritusN'][mr3==0] = np.nan
+V['SdetritusN'][mr3==0] = np.nan
+V['LdetritusC'][mr3==0] = np.nan
+V['SdetritusC'][mr3==0] = np.nan
+V['TIC'][mr3==0] = np.nan
+V['alkalinity'][mr3==0] = np.nan
+V['oxygen'][mr3==0] = np.nan
 
 # Write climatology file: first use of zrfun.get_varinfo().
 tt0 = time()
