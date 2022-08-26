@@ -66,7 +66,7 @@ V['u'] = np.zeros((NT, NZ, NR, NC-1))
 V['v'] = np.zeros((NT, NZ, NR-1, NC))
 
 # Add biogeochemistry
-V['NO3'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['NO3'] = 27 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['NH4'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['chlorophyll'] = 0 * np.ones((NT, NZ, NR, NC)) # [milligrams/m3]
 V['phytoplankton'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
@@ -75,9 +75,9 @@ V['LdetritusN'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['SdetritusN'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['LdetritusC'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['SdetritusC'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
-V['TIC'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
-V['alkalinity'] = 0 * np.ones((NT, NZ, NR, NC)) # [milliequivalents/m3]
-V['oxygen'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['TIC'] = 2037 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['alkalinity'] = 2077 * np.ones((NT, NZ, NR, NC)) # [milliequivalents/m3]
+V['oxygen'] = 219 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 
 
 # Create masks
