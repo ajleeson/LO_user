@@ -253,7 +253,7 @@ for vn in ['river_salt', 'river_temp',
     elif vn == 'river_temp':
         TR_mat = 10 * np.ones((NT, N, NWWTP))
     elif vn == 'river_NO3':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
+        TR_mat = 100 * np.ones((NT, N, NWWTP))
     elif vn == 'river_NH4':
         TR_mat = 0 * np.ones((NT, N, NWWTP))
     elif vn == 'river_Chlo':
