@@ -136,14 +136,16 @@ for vn in ['river_salt', 'river_temp',
  'river_SDeC','river_TIC','river_TAlk','river_Oxyg']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     dims = (vinfo['time'],) + ('s_rho', 'river')
+
+    # values based on averages from Skagit River (411_Skagit R.xlsx)
     if vn == 'river_salt':
         TR_mat = np.zeros((NT, N, NRIV))
     elif vn == 'river_temp':
         TR_mat = 10 * np.ones((NT, N, NRIV))
     elif vn == 'river_NO3':
-        TR_mat = 0 * np.ones((NT, N, NRIV))
+        TR_mat = 0.09*16.13 * np.ones((NT, N, NRIV))
     elif vn == 'river_NH4':
-        TR_mat = 0 * np.ones((NT, N, NRIV))
+        TR_mat = 0.01*55.43 * np.ones((NT, N, NRIV))
     elif vn == 'river_Chlo':
         TR_mat = 0 * np.ones((NT, N, NRIV))
     elif vn == 'river_Phyt':
@@ -159,11 +161,11 @@ for vn in ['river_salt', 'river_temp',
     elif vn == 'river_SDeC':
         TR_mat = 0 * np.ones((NT, N, NRIV))
     elif vn == 'river_TIC':
-        TR_mat = 0 * np.ones((NT, N, NRIV))
+        TR_mat = 454.67 * np.ones((NT, N, NRIV))
     elif vn == 'river_TAlk':
-        TR_mat = 0 * np.ones((NT, N, NRIV))
+        TR_mat = 410.40 * np.ones((NT, N, NRIV))
     elif vn == 'river_Oxyg':
-        TR_mat = 0 * np.ones((NT, N, NRIV))
+        TR_mat = 11.57*31.26 * np.ones((NT, N, NRIV))
     ri_ds[vn] = (dims, TR_mat)
     ri_ds[vn].attrs['long_name'] = vinfo['long_name']
     ri_ds[vn].attrs['units'] = vinfo['units']
@@ -241,21 +243,23 @@ wwtp_ds[vn] = (dims, Q_mat)
 wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
 wwtp_ds[vn].attrs['units'] = vinfo['units']
 
-# Add salinity and temperature
+# Add salinity and temperature & biogeochemistry
 for vn in ['river_salt', 'river_temp',
  'river_NO3','river_NH4','river_Chlo','river_Phyt',
  'river_Zoop','river_LDeN','river_SDeN','river_LDeC',
  'river_SDeC','river_TIC','river_TAlk','river_Oxyg']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     dims = (vinfo['time'],) + ('s_rho', 'river')
+
+    # values based on averages from West Point (539_West Point.xlsx)
     if vn == 'river_salt':
         TR_mat = np.zeros((NT, N, NWWTP))
     elif vn == 'river_temp':
         TR_mat = 10 * np.ones((NT, N, NWWTP))
     elif vn == 'river_NO3':
-        TR_mat = 100 * np.ones((NT, N, NWWTP))
+        TR_mat = 4.82*16.13 * np.ones((NT, N, NWWTP))
     elif vn == 'river_NH4':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
+        TR_mat = 4.48*55.43 * np.ones((NT, N, NWWTP))
     elif vn == 'river_Chlo':
         TR_mat = 0 * np.ones((NT, N, NWWTP))
     elif vn == 'river_Phyt':
@@ -271,11 +275,11 @@ for vn in ['river_salt', 'river_temp',
     elif vn == 'river_SDeC':
         TR_mat = 0 * np.ones((NT, N, NWWTP))
     elif vn == 'river_TIC':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
+        TR_mat = 2638.45 * np.ones((NT, N, NWWTP))
     elif vn == 'river_TAlk':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
+        TR_mat = 2000 * np.ones((NT, N, NWWTP))
     elif vn == 'river_Oxyg':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
+        TR_mat = 5.9*31.26 * np.ones((NT, N, NWWTP))
     wwtp_ds[vn] = (dims, TR_mat)
     wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
     wwtp_ds[vn].attrs['units'] = vinfo['units']
