@@ -237,7 +237,7 @@ for ii,rn in enumerate(gwwtp_df.index):
         Q_mat[:,ii] = 3000 * np.ones(NT)
     else:
         # wwtps all have the same flowrate
-        Q_mat[:,ii] = 10 * np.ones(NT)
+        Q_mat[:,ii] = 100 * np.ones(NT)
     # ii += 1
 wwtp_ds[vn] = (dims, Q_mat)
 wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
