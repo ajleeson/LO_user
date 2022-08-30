@@ -68,8 +68,8 @@ V['v'] = np.zeros((NT, NZ, NR-1, NC))
 # Add biogeochemistry
 V['NO3'] = 27 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['NH4'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
-V['chlorophyll'] = 0 * np.ones((NT, NZ, NR, NC)) # [milligrams/m3]
-V['phytoplankton'] = 10 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
+V['chlorophyll'] = 5 * np.ones((NT, NZ, NR, NC)) # [milligrams/m3]
+V['phytoplankton'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['zooplankton'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['LdetritusN'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
 V['SdetritusN'] = 0 * np.ones((NT, NZ, NR, NC)) # [millimole/m3]
