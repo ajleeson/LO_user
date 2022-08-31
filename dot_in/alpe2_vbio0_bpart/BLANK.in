@@ -188,7 +188,7 @@ ad_Vadvection == C4       \                     ! temperature
    LBC(isVvel) ==   $W3$    $S3$    $E3$    $N3$        ! 3D V-momentum
    LBC(isMtke) ==   $W3$    $S3$    $E3$    $N3$        ! mixing TKE
 
-   LBC(isTvar) ==   $Wtem$  $Stem$  $Etem$  $Ntem$ \    ! temperature
+   LBC(isTvar) ==   $Wgra$  $Sgra$  $Egra$  $Ngra$ \    ! temperature
                     $W3$    $S3$    $E3$    $N3$        ! salinity
 
 ! Adjoint-based algorithms can have different lateral boundary
