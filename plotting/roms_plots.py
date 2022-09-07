@@ -1107,7 +1107,7 @@ def P_sect_alpe2(in_dict):
     fig = plt.figure()
     ds = xr.open_dataset(in_dict['fn'])
     # PLOT CODE
-    vn = 'temp'
+    vn = 'salt'
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     # CREATE THE SECTION
