@@ -239,7 +239,7 @@ for ii,rn in enumerate(gwwtp_df.index):
     else:
         # wwtps all have the same flowrate
         # average from WestPoint
-        Q_mat[:,ii] = 4.5e3 * np.ones(NT)# 4.5 * np.ones(NT)
+        Q_mat[:,ii] = 350 * np.ones(NT)# 4.5 * np.ones(NT)
     # ii += 1
 wwtp_ds[vn] = (dims, Q_mat)
 wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
