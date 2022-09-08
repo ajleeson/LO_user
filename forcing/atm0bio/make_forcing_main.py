@@ -73,7 +73,7 @@ for vn in vn_list:
         # define shortwave radiation function
         hours = np.linspace(0,NT-1,NT)
         #shortwave = np.clip(600*np.sin(np.pi/12*(hours)),0,2e3) # [W/m^2]
-        shortwave = np.clip(800*np.sin(np.pi/12*(hours-14)),0,2e3) # [W/m^2]
+        shortwave = np.clip(500*np.sin(np.pi/12*(hours-14)),0,2e3) # [W/m^2]
         for i in range(NT):
             values[i,:,:] = shortwave[i]
 
