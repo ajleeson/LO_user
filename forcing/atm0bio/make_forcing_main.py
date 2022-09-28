@@ -5,7 +5,7 @@ Designed to run only as backfill.
 
 Testing:
 
-run make_forcing_main.py -g alpe2 -t v0 -r backfill -s continuation -d 2020.01.01 -f atmnow -test True
+run make_forcing_main.py -g alpe2 -t npzd0 -r backfill -s continuation -d 2020.01.01 -f atm0bio -test True
 
 """
 
