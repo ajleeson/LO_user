@@ -74,16 +74,16 @@ def get_cell_info_riv(I_ind,J_ind,X,Y,x,y,mask_rho):
             # south
             SI = I_ind
             SJ = J_ind - 1
-            # east
-            EI = I_ind + 1
-            EJ = J_ind
             # west
             WI = I_ind - 1
             WJ = J_ind
+            # east
+            EI = I_ind + 1
+            EJ = J_ind
 
             # tracker if there's a coastal cell or not
             is_coastal = False
-            coastal_type = ''
+            coastal_type = []
 
             # check if north cell is coastal
             if cell_in_domain(NI,NJ,len(X)-1,len(Y)-1):
@@ -91,56 +91,88 @@ def get_cell_info_riv(I_ind,J_ind,X,Y,x,y,mask_rho):
                 if not mask_rho[NI,NJ]:
                     # original cell is coastal
                     is_coastal = True
-                    coastal_type = 'N'
+                    coastal_type = coastal_type + ['N']
             # check if south cell is coastal
             if cell_in_domain(SI,SJ,len(X)-1,len(Y)-1):
                 # check if cell is land (meaning original cell is coastal)
                 if not mask_rho[SI,SJ]:
                     # original cell is coastal
                     is_coastal = True
-                    coastal_type = 'S'
+                    coastal_type = coastal_type + ['S']
             # check if west cell is coastal
             if cell_in_domain(WI,WJ,len(X)-1,len(Y)-1):
                 # check if cell is land (meaning original cell is coastal)
                 if not mask_rho[WI,WJ]:
                     # original cell is coastal
                     is_coastal = True
-                    coastal_type = 'W'
+                    coastal_type = coastal_type + ['W']
             # check if east cell is coastal
             if cell_in_domain(EI,EJ,len(X)-1,len(Y)-1):
                 # check if cell is land (meaning original cell is coastal)
                 if not mask_rho[EI,EJ]:
                     # original cell is coastal
                     is_coastal = True
-                    coastal_type = 'E'
+                    coastal_type = coastal_type + ['E']
 
             # write data if the cell is coastal
             if is_coastal:
-                # record distance from center of cell to wwtp location
+                # record distance from center of cell to source location
                 xmeters, ymeters = zfun.ll2xy(X[I_ind], Y[J_ind], x, y)
                 distance = np.sqrt(xmeters**2 + ymeters**2)
-                distance_list.append(distance)
-                # get specific values
+
+                # Figure out which adjacent land cell to use
+                if len(coastal_type) == 1: # easy if there is only one land cell
+                    riv_direction = coastal_type[0]
+                # if there's more than one land cell, pick the one that is closest to the original source
+                else:
+                    dist2land = []
+                    if 'N' in coastal_type:
+                        xdist,ydist = zfun.ll2xy(X[NI], Y[NJ], x, y)
+                        dist2land = dist2land + [np.sqrt(xdist**2 + ydist**2)]
+                    if 'S' in coastal_type:
+                        xdist,ydist = zfun.ll2xy(X[SI], Y[SJ], x, y)
+                        dist2land = dist2land + [np.sqrt(xdist**2 + ydist**2)]
+                    if 'W' in coastal_type:
+                        xdist,ydist = zfun.ll2xy(X[WI], Y[WJ], x, y)
+                        dist2land = dist2land + [np.sqrt(xdist**2 + ydist**2)]
+                    if 'E' in coastal_type:
+                        xdist,ydist = zfun.ll2xy(X[EI], Y[EJ], x, y)
+                        dist2land = dist2land + [np.sqrt(xdist**2 + ydist**2)]
+                    # minimum distance
+                    min_dist2land = np.min(dist2land)
+                    # index of minimum distance
+                    ind_dist2land = dist2land.index(min_dist2land)
+                    # corresponding river direction
+                    riv_direction = coastal_type[ind_dist2land]
+
+                # get river direction values
                 xoff = 0
                 yoff = 0
-                if coastal_type == 'N':
-                    idir = 1
-                    isign = -1
-                    uv = 'v'
-                elif coastal_type == 'S':
-                    idir = 1
-                    isign = 1
-                    uv = 'v'
-                    yoff = -1
-                elif coastal_type == 'W':
-                    idir = 0
-                    isign = 1
-                    uv = 'u'
-                    xoff = -1
-                elif coastal_type == 'E':
-                    idir = 0
-                    isign = -1
-                    uv = 'u'
+
+                # print('Adjacent Land = {}'.format(coastal_type))
+                # print('Selected Dir = {}'.format(riv_direction))
+
+                if riv_direction == 'N':
+                        idir = 1
+                        isign = -1
+                        uv = 'v'
+                elif riv_direction == 'S':
+                        idir = 1
+                        isign = 1
+                        uv = 'v'
+                        yoff = -1
+                elif riv_direction == 'W':
+                        idir = 0
+                        isign = 1
+                        uv = 'u'
+                        xoff = -1
+                elif riv_direction == 'E':
+                        idir = 0
+                        isign = -1
+                        uv = 'u'
+
+                # record distance
+                distance_list.append(distance)
                 # record cell indices
                 ii_list.append(I_ind + xoff)
                 jj_list.append(J_ind + yoff)
@@ -239,7 +271,7 @@ def get_nearest_coastal_cell_wwtp(sname,x,y,X,Y,mask_rho):
                     JJ_list = JJ_list + jj_list
                     dist_list = dist_list + distance_list
 
-                # calculate minimum distance coastal cell (if there were any cells in water)
+                # calculate minimum distance coastal cell (if there were any coastal cells)
                 if len(dist_list) > 0:
                     # minimum distance
                     min_dist_new = np.min(dist_list)
@@ -295,22 +327,23 @@ def get_nearest_coastal_cell_riv(sname,x,y,X,Y,mask_rho):
         # initialize a boolean to track whether a grid cell has been selected for point source
         rm_located = False
 
-        # figure out in which grid cell the wwtp is located
+        # figure out in which grid cell the source is located
         ix = zfun.find_nearest_ind(X,x)
         iy = zfun.find_nearest_ind(Y,y)
         rivII = np.array(ix)
         rivJJ = np.array(iy)
     
-        # search for best grid cell to place wwtp or river mouth -----------------------
+        # search for best grid cell to place river mouth -----------------------
     
         # First, check if the river is already located in a coastal cell
         if mask_rho[rivII,rivJJ]: # mask of 1 means water
             ii_list, jj_list, distance_list, idir_list, isign_list, uv_list = get_cell_info_riv(rivII,rivJJ,X,Y,x,y,mask_rho)
             # if list is not empty, then the cell is coastal
             if len(ii_list) > 0:
+                # save the coastal information
                 ringnum = 0
-                rmII = rivII
-                rmJJ = rivJJ
+                rmII = ii_list[0]
+                rmJJ = jj_list[0]
                 idir = idir_list[0]
                 isign = isign_list[0]
                 uv = uv_list[0]
@@ -506,7 +539,7 @@ def traps_placement(source_type):
                 checkname = sname.replace(' - 2','')
             # don't add rivers that already exist
             if SSM_repeats.str.contains(checkname).any():
-                print('{} already in LiveOcean'.format(sname))
+                # print('{} already in LiveOcean'.format(sname))
                 continue 
 
             # add river to LiveOcean if not already present
@@ -571,6 +604,9 @@ def traps_placement(source_type):
             # save ringnum for tracking. ringnum = zero means the source didn't move
             ringnums = ringnums + [ringnum]
 
+        # update name of index column
+        rowcol_df.index.name = 'rname'
+
     # write rowcol_df to LO_output/pgrid/[gridname]/output_fn
     # TODO: save the dataframe! 
     # & make sure to delete all rows that have nans!! 
@@ -605,7 +641,46 @@ def traps_placement(source_type):
     elif inflow_type == 'River':
         ax.scatter(SSMrivll_df['Lon'],SSMrivll_df['Lat'], color='hotpink', label='SSM source location')
 
-    # plot new location of sources (that are new)
+    # Add river track directions -------------------------------------------------------
+    if inflow_type == 'River':
+        rri_df = rowcol_df
+        lon = ds.lon_rho.values
+        lat = ds.lat_rho.values
+        lon_u = ds.lon_u.values
+        lat_u = ds.lat_u.values
+        lon_v = ds.lon_v.values
+        lat_v = ds.lat_v.values
+
+        for rn in rri_df.index:
+            # These are indices (python, zero-based) into either the
+            # u or v grids.
+            ii = int(rri_df.loc[rn,'col_py'])
+            jj = int(rri_df.loc[rn,'row_py'])
+            
+            uv = rri_df.loc[rn,'uv']
+            isign = rri_df.loc[rn,'isign']
+            idir = rri_df.loc[rn,'idir']
+            
+            if uv == 'u' and isign == 1:
+                # River source on W side of rho cell
+                ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
+                ax.plot(lon[jj,ii+1], lat[jj,ii+1],'oc')
+            if uv == 'u' and isign == -1:
+                # River source on E side of rho cell
+                ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
+                ax.plot(lon[jj,ii], lat[jj,ii],'oc')
+            if uv == 'v' and isign == 1:
+                # River source on S side of rho cell
+                ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
+                ax.plot(lon[jj+1,ii], lat[jj+1,ii],'oc')
+            if uv == 'v' and isign == -1:
+                # River source on N side of rho cell
+                ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
+                ax.plot(lon[jj,ii], lat[jj,ii],'oc')
+
+    # -----------------------------------------------------
+
+    # plot new location of sources (that are the same)
     ps_lon = []
     ps_lat = []
     for i,ind in enumerate(rowcol_df['col_py']):
@@ -616,13 +691,13 @@ def traps_placement(source_type):
             ps_lon = ps_lon + [X[int(ind)]]
             indy = rowcol_df['row_py'][i]
             ps_lat = ps_lat + [Y[int(indy)]]
-    ax.scatter(ps_lon,ps_lat, color='pink', marker='x', s=20, label='Placed SSM source (original location)')
+    # ax.scatter(ps_lon,ps_lat, color='pink', marker='x', s=20, label='Placed SSM source (original location)')
 
     # plot new location of sources (that are new)
     ringnums = np.array(ringnums, dtype=np.bool) # ringnum = zero means (now FALSE) means same location
     new_lon = [ps_lon[i]*val for i,val in enumerate(ringnums)] # plotting only True, which means new location
     new_lat = [ps_lat[i]*val for i,val in enumerate(ringnums)]
-    ax.scatter(new_lon,new_lat, color='purple', marker='x', s=20, label='Placed SSM source (new location)')
+    # ax.scatter(new_lon,new_lat, color='purple', marker='x', s=20, label='Placed SSM source (new location)')
     if inflow_type == 'River':
         # plot river locations
         LOrivs_fn = Ldir['grid'] / 'river_info.csv'
@@ -647,16 +722,15 @@ def traps_placement(source_type):
         #     color='hotpink', linewidth=0.8)
 
     # # print labels
-    # print(len(new_lon))
     # for i,sn in enumerate(snames):
     #     sn_lon = ps_lon[i]
     #     sn_lat = ps_lat[i]+0.003
-    #     ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=10, horizontalalignment='center')
-    # if inflow_type == 'River':
-    #     for i,rn in enumerate(LOrivns):
-    #         rn_lon = LOrivs_lon[i]
-    #         rn_lat = LOrivs_lat[i]+0.003
-    #         ax.text(rn_lon, rn_lat, rn, color = 'royalblue', fontsize=10, horizontalalignment='center')
+    #     ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=6, horizontalalignment='center')
+    # # if inflow_type == 'River':
+    # #     for i,rn in enumerate(LOrivns):
+    # #         rn_lon = LOrivs_lon[i]
+    # #         rn_lat = LOrivs_lat[i]+0.003
+    # #         ax.text(rn_lon, rn_lat, rn, color = 'royalblue', fontsize=10, horizontalalignment='center')
 
     # finalize plot
     ax.set_title('Algorithm Placement of {}s'.format(inflow_type))
