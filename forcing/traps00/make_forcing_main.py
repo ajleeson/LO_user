@@ -4,7 +4,7 @@ updated ROMS
 
 Test on mac in ipython:
 
-run make_forcing_main.py -g cas6 -t v0 -r backfill -s continuation -d 2019.07.04 -f riv00 -test True
+run make_forcing_main.py -g cas6 -t v3 -r backfill -s continuation -d 2019.07.04 -f traps00 -test True
 
 """
 
@@ -85,20 +85,20 @@ ri_df = rivfun.get_tc_rn(ri_df)
 qt_df_dict = rivfun.get_qt(gri_df, ri_df, dt_ind, yd_ind, Ldir, dt1, days)
 
 # Start Dataset
-ds = xr.Dataset()
+LOriv_ds = xr.Dataset()
 
 # Add time coordinate
-ds['river_time'] = (('river_time',), ot_vec)
-ds['river_time'].attrs['units'] = Lfun.roms_time_units
-ds['river_time'].attrs['long_name'] = 'river time'
+LOriv_ds['river_time'] = (('river_time',), ot_vec)
+LOriv_ds['river_time'].attrs['units'] = Lfun.roms_time_units
+LOriv_ds['river_time'].attrs['long_name'] = 'river time'
 
 # Add river coordinate
-ds['river'] = (('river',), np.arange(1,NRIV+1))
-ds['river'].attrs['long_name'] = 'river runoff identification number'
+LOriv_ds['river'] = (('river',), np.arange(1,NRIV+1))
+LOriv_ds['river'].attrs['long_name'] = 'river runoff identification number'
 
 # Add river names
-ds['river_name'] = (('river',), list(gri_df.index))
-ds['river_name'].attrs['long_name'] = 'river name'
+LOriv_ds['river_name'] = (('river',), list(gri_df.index))
+LOriv_ds['river_name'].attrs['long_name'] = 'river name'
 
 # Add Vshape
 vn = 'river_Vshape'
@@ -107,14 +107,14 @@ dims = ('s_rho', 'river')
 # For Vtransform = 2, even spacing is a good approximation, and
 # we implement this by using 1/N as the fraction in each vertical cell.
 Vshape = (1/N) * np.ones((N, NRIV))
-ds[vn] = (dims, Vshape)
-ds[vn].attrs['long_name'] = vinfo['long_name']
+LOriv_ds[vn] = (dims, Vshape)
+LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
 
 # Add position and direction
 for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     if vn == 'river_direction':
-        ds[vn] = (('river',), gri_df.idir.to_numpy())
+        LOriv_ds[vn] = (('river',), gri_df.idir.to_numpy())
     elif vn == 'river_Xposition':
         X_vec = np.nan * np.ones(NRIV)
         ii = 0
@@ -124,7 +124,7 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
             elif gri_df.loc[rn, 'idir'] == 1:
                 X_vec[ii] = gri_df.loc[rn, 'col_py']
             ii += 1
-        ds[vn] = (('river',), X_vec)
+        LOriv_ds[vn] = (('river',), X_vec)
     elif vn == 'river_Eposition':
         E_vec = np.nan * np.ones(NRIV)
         ii = 0
@@ -134,8 +134,8 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
             elif gri_df.loc[rn, 'idir'] == 1:
                 E_vec[ii] = gri_df.loc[rn, 'row_py'] + 1
             ii += 1
-        ds[vn] = (('river',), E_vec)
-    ds[vn].attrs['long_name'] = vinfo['long_name']
+        LOriv_ds[vn] = (('river',), E_vec)
+    LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
         
 
 # Add transport
@@ -149,9 +149,9 @@ for rn in gri_df.index:
     flow = qt_df['final'].values
     Q_mat[:,rr] = flow * gri_df.loc[rn, 'isign']
     rr += 1
-ds[vn] = (dims, Q_mat)
-ds[vn].attrs['long_name'] = vinfo['long_name']
-ds[vn].attrs['units'] = vinfo['units']
+LOriv_ds[vn] = (dims, Q_mat)
+LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
+LOriv_ds[vn].attrs['units'] = vinfo['units']
 
 # Add salinity and temperature
 for vn in ['river_salt', 'river_temp']:
@@ -170,9 +170,9 @@ for vn in ['river_salt', 'river_temp']:
     if np.isnan(TS_mat).any():
         print('Error from riv00: nans in river_temp!')
         sys.exit()
-    ds[vn] = (dims, TS_mat)
-    ds[vn].attrs['long_name'] = vinfo['long_name']
-    ds[vn].attrs['units'] = vinfo['units']
+    LOriv_ds[vn] = (dims, TS_mat)
+    LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
+    LOriv_ds[vn].attrs['units'] = vinfo['units']
     
 # Add biology (see the lineup near the end of fennel_var.h)
 bvn_list = ['NO3', 'NH4', 'Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo',
@@ -191,13 +191,23 @@ for bvn in bvn_list:
     if np.isnan(B_mat).any():
         print('Error from riv00: nans in B_mat for ' + vn)
         sys.exit()
-    ds[vn] = (dims, B_mat)
-    ds[vn].attrs['long_name'] = vinfo['long_name']
-    ds[vn].attrs['units'] = vinfo['units']
+    LOriv_ds[vn] = (dims, B_mat)
+    LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
+    LOriv_ds[vn].attrs['units'] = vinfo['units']
+###########################################################################################
+# FORCING FOR TINY RIVERS
+
+###########################################################################################
+# FORCING FOR MARINE POINT SOURCES
+
+
+
+# combine all forcing datasets
+all_ds = LOriv_ds
 
 # Save to NetCDF
-ds.to_netcdf(out_fn)
-ds.close()
+all_ds.to_netcdf(out_fn)
+all_ds.close()
 
 # -------------------------------------------------------
 

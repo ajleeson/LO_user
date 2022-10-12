@@ -191,11 +191,11 @@ def get_nearest_coastal_cell_wwtp(sname,x,y,X,Y,mask_rho):
     and the mask of the rho-cells (to identify water vs land)
     """
     # separation so it's easy to read print statements
-    print('----------------------------------')
+    # print('----------------------------------')
 
     if in_domain(x, y, X, Y):
         # we only consider dischargers in the domain
-        print('including ' + sname + ', Marine Point Source')
+        # print('including ' + sname + ', Marine Point Source')
 
         # initialize a boolean to track whether a grid cell has been selected for point source
         ps_located = False
@@ -318,11 +318,11 @@ def get_nearest_coastal_cell_riv(sname,x,y,X,Y,mask_rho):
     and the mask of the rho-cells (to identify water vs land)
     """
     # separation so it's easy to read print statements
-    print('----------------------------------')
+    # print('----------------------------------')
 
     if in_domain(x, y, X, Y):
         # we only consider dischargers in the domain
-        print('including ' + sname + ', River Mouth')
+        # print('including ' + sname + ', River Mouth')
 
         # initialize a boolean to track whether a grid cell has been selected for point source
         rm_located = False
@@ -479,19 +479,16 @@ def get_nearest_coastal_cell_riv(sname,x,y,X,Y,mask_rho):
 def traps_placement(source_type):
     
     '''
-    TODO
-    if the final csv files already exist in LO_output:
-        # look in LO_output/pgrid/[gridname]
-        return # function ends without doing anything
+    Function that looks at all of the rivers and marine point sources 
+    in SSM, and identified where to place these tiny rivers and point sources (TRAPS)
+    in the LiveOcean grid. 
     '''
 
-    # otherwise, actually run the function
-
     if source_type == 'wwtp':
-        output_fn = 'roms_wwtp_info.csv'
+        output_fn = 'wwtp_info.csv'
         inflow_type = 'Point Source'
     elif source_type == 'riv':
-        output_fn = 'roms_triv_info.csv'
+        output_fn = 'triv_info.csv'
         inflow_type = 'River'
     else:
         False # TODO: throw error
@@ -611,132 +608,164 @@ def traps_placement(source_type):
     # TODO: save the dataframe! 
     # & make sure to delete all rows that have nans!! 
     # (check in the rivers file that I've done this correction)
+    # save the river info
+    out_rfn = Ldir['grid'] / output_fn
+    print('\nCreating ' + str(out_rfn))
+    rowcol_df.to_csv(out_rfn)
 
-    # PLOTTING FOR TESTING ------------------------------------------------------------------------
-    plon, plat = pfun.get_plon_plat(lon,lat)
-    pad = 0.05*(plat[-1,0]-plat[0,0])
-    ax_lims = (plon[0,0]-pad, plon[0,-1]+pad, plat[0,0]-pad, plat[-1,0]+pad)
+    plotting = False
 
-    # make a version of z with nans where masked
-    zm = z.copy()
-    zm[np.transpose(mask_rho) == 0] = np.nan
-    zm[np.transpose(mask_rho) != 0] = -1
+    if plotting == True:
+        # PLOTTING FOR TESTING ------------------------------------------------------------------------
+        plon, plat = pfun.get_plon_plat(lon,lat)
+        pad = 0.05*(plat[-1,0]-plat[0,0])
+        ax_lims = (plon[0,0]-pad, plon[0,-1]+pad, plat[0,0]-pad, plat[-1,0]+pad)
 
-    # bathymetry
-    fig = plt.figure(figsize=(5,9))
-    ax = fig.add_subplot(111)
-    # pfun.add_coast(ax,color='lightgrey')
-    ax.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+        # make a version of z with nans where masked
+        zm = z.copy()
+        zm[np.transpose(mask_rho) == 0] = np.nan
+        zm[np.transpose(mask_rho) != 0] = -1
 
-    # ax.set_xlim(-123.5,-122) # Puget Sound
-    # ax.set_ylim(46.7,49.3) # Puget Sound
-    ax.set_xlim(-125,-122) # Salish Sea
-    ax.set_ylim(46.7,49.7) # Salish Sea
-    # ax.set_xlim(-130,-121.5) # Full Grid
-    # ax.set_ylim(42,52) # Full Grid
+        # bathymetry
+        fig = plt.figure(figsize=(5,9))
+        ax = fig.add_subplot(111)
+        # pfun.add_coast(ax,color='lightgrey')
+        ax.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
-    # plot original sources
-    if inflow_type == 'Point Source':
-        ax.scatter(latlon_df['Lon'],latlon_df['Lat'], color='hotpink', label='SSM source location')
-    elif inflow_type == 'River':
-        ax.scatter(SSMrivll_df['Lon'],SSMrivll_df['Lat'], color='hotpink', label='SSM source location')
+        # ax.set_xlim(-123.5,-122) # Puget Sound
+        # ax.set_ylim(46.7,49.3) # Puget Sound
+        ax.set_xlim(-125,-122) # Salish Sea
+        ax.set_ylim(46.7,49.7) # Salish Sea
+        # ax.set_xlim(-130,-121.5) # Full Grid
+        # ax.set_ylim(42,52) # Full Grid
 
-    # Add river track directions -------------------------------------------------------
-    if inflow_type == 'River':
-        rri_df = rowcol_df
-        lon = ds.lon_rho.values
-        lat = ds.lat_rho.values
-        lon_u = ds.lon_u.values
-        lat_u = ds.lat_u.values
-        lon_v = ds.lon_v.values
-        lat_v = ds.lat_v.values
+        # plot original sources
+        if inflow_type == 'Point Source':
+            ax.scatter(latlon_df['Lon'],latlon_df['Lat'], color='hotpink', label='SSM source location')
+        elif inflow_type == 'River':
+            ax.scatter(SSMrivll_df['Lon'],SSMrivll_df['Lat'], color='hotpink', label='SSM source location')
 
-        for rn in rri_df.index:
-            # These are indices (python, zero-based) into either the
-            # u or v grids.
-            ii = int(rri_df.loc[rn,'col_py'])
-            jj = int(rri_df.loc[rn,'row_py'])
-            
-            uv = rri_df.loc[rn,'uv']
-            isign = rri_df.loc[rn,'isign']
-            idir = rri_df.loc[rn,'idir']
-            
-            if uv == 'u' and isign == 1:
-                # River source on W side of rho cell
-                ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
-                ax.plot(lon[jj,ii+1], lat[jj,ii+1],'oc')
-            if uv == 'u' and isign == -1:
-                # River source on E side of rho cell
-                ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
-                ax.plot(lon[jj,ii], lat[jj,ii],'oc')
-            if uv == 'v' and isign == 1:
-                # River source on S side of rho cell
-                ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
-                ax.plot(lon[jj+1,ii], lat[jj+1,ii],'oc')
-            if uv == 'v' and isign == -1:
-                # River source on N side of rho cell
-                ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
-                ax.plot(lon[jj,ii], lat[jj,ii],'oc')
-
-    # -----------------------------------------------------
-
-    # plot new location of sources (that are the same)
-    ps_lon = []
-    ps_lat = []
-    for i,ind in enumerate(rowcol_df['col_py']):
-        if math.isnan(ind):
-            ps_lon = ps_lon + [np.nan]
-            ps_lat = ps_lat + [np.nan]
-        else:
-            ps_lon = ps_lon + [X[int(ind)]]
-            indy = rowcol_df['row_py'][i]
-            ps_lat = ps_lat + [Y[int(indy)]]
-    # ax.scatter(ps_lon,ps_lat, color='pink', marker='x', s=20, label='Placed SSM source (original location)')
-
-    # plot new location of sources (that are new)
-    ringnums = np.array(ringnums, dtype=np.bool) # ringnum = zero means (now FALSE) means same location
-    new_lon = [ps_lon[i]*val for i,val in enumerate(ringnums)] # plotting only True, which means new location
-    new_lat = [ps_lat[i]*val for i,val in enumerate(ringnums)]
-    # ax.scatter(new_lon,new_lat, color='purple', marker='x', s=20, label='Placed SSM source (new location)')
-    if inflow_type == 'River':
-        # plot river locations
-        LOrivs_fn = Ldir['grid'] / 'river_info.csv'
-        LOrivs_df = pd.read_csv(LOrivs_fn)
-        LOrivns = LOrivs_df['rname']
-        LOriv_row = LOrivs_df['row_py']
-        LOriv_col = LOrivs_df['col_py']
-        LOrivs_lat = [Y[int(ind)] for ind in LOriv_row]
-        LOrivs_lon = [X[int(ind)] for ind in LOriv_col]
-        ax.scatter(LOrivs_lon,LOrivs_lat, color='royalblue', marker='*', s=20, label='LiveOcean River')
-
-    # plot tracks
-    for i in range(len(ps_lon)):
+        # Add river track directions -------------------------------------------------------
         if inflow_type == 'River':
-            ax.plot([SSMrivll_df['Lon'][i], ps_lon[i]],
-            [SSMrivll_df['Lat'][i], ps_lat[i]],
-            color='hotpink', linewidth=0.5)
-        # this doesn't work for point sources for some reason?
-        # elif inflow_type == 'Point Source':
-        #     ax.plot([latlon_df['Lon'][i], ps_lon[i]],
-        #     [latlon_df['Lat'][i], ps_lat[i]],
-        #     color='hotpink', linewidth=0.8)
+            rri_df = rowcol_df
+            lon = ds.lon_rho.values
+            lat = ds.lat_rho.values
+            lon_u = ds.lon_u.values
+            lat_u = ds.lat_u.values
+            lon_v = ds.lon_v.values
+            lat_v = ds.lat_v.values
 
-    # # print labels
-    # for i,sn in enumerate(snames):
-    #     sn_lon = ps_lon[i]
-    #     sn_lat = ps_lat[i]+0.003
-    #     ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=6, horizontalalignment='center')
-    # # if inflow_type == 'River':
-    # #     for i,rn in enumerate(LOrivns):
-    # #         rn_lon = LOrivs_lon[i]
-    # #         rn_lat = LOrivs_lat[i]+0.003
-    # #         ax.text(rn_lon, rn_lat, rn, color = 'royalblue', fontsize=10, horizontalalignment='center')
+            # label counters
+            Nflow = 0
+            Sflow = 0
+            Wflow = 0
+            Eflow = 0
 
-    # finalize plot
-    ax.set_title('Algorithm Placement of {}s'.format(inflow_type))
-    ax.set_ylabel('Lat')
-    ax.set_xlabel('Lon')
-    ax.legend(loc='lower left')
-    plt.show()
+            for rn in rri_df.index:
+                # These are indices (python, zero-based) into either the
+                # u or v grids.
+                ii = int(rri_df.loc[rn,'col_py'])
+                jj = int(rri_df.loc[rn,'row_py'])
+                
+                uv = rri_df.loc[rn,'uv']
+                isign = rri_df.loc[rn,'isign']
+                idir = rri_df.loc[rn,'idir']
+                
+                if uv == 'u' and isign == 1:
+                    # River source on W side of rho cell
+                    if Eflow == 0:
+                        ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r', label='Placed river mouth (E-flowing)')
+                        Eflow += 1
+                    else:
+                        ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
+                    # ax.plot(lon[jj,ii+1], lat[jj,ii+1],'oc')
+                if uv == 'u' and isign == -1:
+                    # River source on E side of rho cell
+                    if Wflow == 0:
+                        ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r', label='Placed river mouth (W-flowing)')
+                        Wflow += 1
+                    else:
+                        ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
+                    # ax.plot(lon[jj,ii], lat[jj,ii],'oc')
+                if uv == 'v' and isign == 1:
+                    # River source on S side of rho cell
+                    if Nflow == 0:
+                        ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b', label='Placed river mouth (N-flowing)')
+                        Nflow += 1
+                    else:
+                        ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
+                    # ax.plot(lon[jj+1,ii], lat[jj+1,ii],'oc')
+                if uv == 'v' and isign == -1:
+                    # River source on N side of rho cell
+                    if Sflow == 0:
+                        ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb', label='Placed river mouth (S-flowing)')
+                        Sflow += 1
+                    else:
+                        ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
+                    # ax.plot(lon[jj,ii], lat[jj,ii],'oc')
 
-    return rowcol_df #TODO: eventually don't need to return anything. Just save the new csv file. 
+        # -----------------------------------------------------
+
+        # plot new location of sources (that are the same)
+        ps_lon = []
+        ps_lat = []
+        for i,ind in enumerate(rowcol_df['col_py']):
+            if math.isnan(ind):
+                ps_lon = ps_lon + [np.nan]
+                ps_lat = ps_lat + [np.nan]
+            else:
+                ps_lon = ps_lon + [X[int(ind)]]
+                indy = rowcol_df['row_py'][i]
+                ps_lat = ps_lat + [Y[int(indy)]]
+        
+        if inflow_type == 'Point Source':
+            ax.scatter(ps_lon,ps_lat, color='pink', marker='x', s=20, label='Placed SSM source (original location)')
+
+        # plot new location of sources (that are new)
+        ringnums = np.array(ringnums, dtype=np.bool) # ringnum = zero means (now FALSE) means same location
+        new_lon = [ps_lon[i]*val for i,val in enumerate(ringnums)] # plotting only True, which means new location
+        new_lat = [ps_lat[i]*val for i,val in enumerate(ringnums)]
+        if inflow_type == 'Point Source':
+            ax.scatter(new_lon,new_lat, color='purple', marker='x', s=20, label='Placed SSM source (new location)')
+        if inflow_type == 'River':
+            # plot river locations
+            LOrivs_fn = Ldir['grid'] / 'river_info.csv'
+            LOrivs_df = pd.read_csv(LOrivs_fn)
+            LOrivns = LOrivs_df['rname']
+            LOriv_row = LOrivs_df['row_py']
+            LOriv_col = LOrivs_df['col_py']
+            LOrivs_lat = [Y[int(ind)] for ind in LOriv_row]
+            LOrivs_lon = [X[int(ind)] for ind in LOriv_col]
+            ax.scatter(LOrivs_lon,LOrivs_lat, color='purple', marker='*', s=20, label='pre-existing LiveOcean River')
+
+        # plot tracks
+        for i in range(len(ps_lon)):
+            if inflow_type == 'River':
+                ax.plot([SSMrivll_df['Lon'][i], ps_lon[i]],
+                [SSMrivll_df['Lat'][i], ps_lat[i]],
+                color='hotpink', linewidth=0.5)
+            # this doesn't work for point sources for some reason?
+            # elif inflow_type == 'Point Source':
+            #     ax.plot([latlon_df['Lon'][i], ps_lon[i]],
+            #     [latlon_df['Lat'][i], ps_lat[i]],
+            #     color='hotpink', linewidth=0.8)
+
+        # # print labels
+        # for i,sn in enumerate(snames):
+        #     sn_lon = ps_lon[i]
+        #     sn_lat = ps_lat[i]+0.003
+        #     ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=6, horizontalalignment='center')
+        # # if inflow_type == 'River':
+        # #     for i,rn in enumerate(LOrivns):
+        # #         rn_lon = LOrivs_lon[i]
+        # #         rn_lat = LOrivs_lat[i]+0.003
+        # #         ax.text(rn_lon, rn_lat, rn, color = 'royalblue', fontsize=10, horizontalalignment='center')
+
+        # finalize plot
+        ax.set_title('Algorithm Placement of {}s'.format(inflow_type))
+        ax.set_ylabel('Lat')
+        ax.set_xlabel('Lon')
+        ax.legend(loc='lower left')
+        plt.show()
+
+    return
