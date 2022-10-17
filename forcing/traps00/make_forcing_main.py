@@ -270,7 +270,7 @@ vinfo = zrfun.get_varinfo(vn, vartype='climatology')
 dims = (vinfo['time'],) + ('river',)
 Q_mat = np.zeros((NT, NTRIV))
 for ii,rn in enumerate(gri_df.index):
-    Q_mat[:,ii] = 500 * np.ones(NT) * gri_df.loc[rn, 'isign']
+    Q_mat[:,ii] = 5 * np.ones(NT) * gri_df.loc[rn, 'isign']
 triv_ds[vn] = (dims, Q_mat)
 triv_ds[vn].attrs['long_name'] = vinfo['long_name']
 triv_ds[vn].attrs['units'] = vinfo['units']
