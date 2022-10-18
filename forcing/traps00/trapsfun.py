@@ -613,7 +613,7 @@ def traps_placement(source_type):
     print('\nCreating ' + str(out_rfn))
     rowcol_df.to_csv(out_rfn)
 
-    plotting = False
+    plotting = True
 
     if plotting == True:
         # PLOTTING FOR TESTING ------------------------------------------------------------------------
