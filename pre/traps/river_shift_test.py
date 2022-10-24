@@ -39,16 +39,28 @@ traps_info_df = pd.read_excel(traps_info_fn,usecols='D,E,F')
 # Only interested in rivers
 riv_all_df = traps_info_df.loc[traps_info_df['Inflow_Typ'] == 'River']
 # remove duplicate river names (some are listed in two rows)
-riv_singles_df = riv_all_df[traps_info_df['Name'].str.contains('- 2') == False]
+riv_singles_df = riv_all_df.loc[traps_info_df['Name'].str.contains('- 2') == False]
 # rename rivers that have a ' - 1' at the end
 riv_names_df = riv_singles_df['Name'].str.replace(' - 1', '')
 # get river names and river ids
 rivnames = riv_names_df.values
 rivids = riv_singles_df['ID'].values
 
-# just test two rivers for now -------------------------------------------------
-rivnames = rivnames[90:91]
-rivids = rivids[90:91]
+# # Union River -------------------------------------------------
+# rivnames = rivnames[90:91]
+# rivids = rivids[90:91]
+
+# # Skokomish River -------------------------------------------------
+# rivnames = rivnames[87:88]
+# rivids = rivids[87:88]
+
+# # Tahuya River -------------------------------------------------
+# rivnames = rivnames[81:82]
+# rivids = rivids[81:82]
+
+# Cushman 2 River -------------------------------------------------
+rivnames = rivnames[76:77]
+rivids = rivids[76:77]
 
 # initialize dataframes for all rivers
 flow_clim_df = pd.DataFrame()
@@ -112,6 +124,7 @@ for i,rname in enumerate(rivnames):
     style=['-',':','-',':']
     colors=['lightcoral','indigo','lightcoral','indigo']
     if plotting == True:
+        print('plotting...')
         fig, ax = plt.subplots(2,1, figsize=(11, 6), sharex = True)
         yrday = np.linspace(1,367,366)
         # Plot individual years
@@ -140,5 +153,5 @@ for i,rname in enumerate(rivnames):
         ax[0].set_ylabel(vn)
         ax[1].set_ylabel(vn)
         ax[1].set_xlabel('Julian Day')
-        fig.suptitle('Union River Flow')
+        fig.suptitle('{} Flow'.format(rname))
         plt.show()
