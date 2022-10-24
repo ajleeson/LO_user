@@ -750,16 +750,16 @@ def traps_placement(source_type):
             #     [latlon_df['Lat'][i], ps_lat[i]],
             #     color='hotpink', linewidth=0.8)
 
-        # # print labels
-        # for i,sn in enumerate(snames):
-        #     sn_lon = ps_lon[i]
-        #     sn_lat = ps_lat[i]+0.003
-        #     ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=6, horizontalalignment='center')
-        # # if inflow_type == 'River':
-        # #     for i,rn in enumerate(LOrivns):
-        # #         rn_lon = LOrivs_lon[i]
-        # #         rn_lat = LOrivs_lat[i]+0.003
-        # #         ax.text(rn_lon, rn_lat, rn, color = 'royalblue', fontsize=10, horizontalalignment='center')
+        # print labels
+        for i,sn in enumerate(snames):
+            sn_lon = ps_lon[i]
+            sn_lat = ps_lat[i]+0.003
+            ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=6, horizontalalignment='center')
+        # if inflow_type == 'River':
+        #     for i,rn in enumerate(LOrivns):
+        #         rn_lon = LOrivs_lon[i]
+        #         rn_lat = LOrivs_lat[i]+0.003
+        #         ax.text(rn_lon, rn_lat, rn, color = 'royalblue', fontsize=10, horizontalalignment='center')
 
         # finalize plot
         ax.set_title('Algorithm Placement of {}s'.format(inflow_type))
