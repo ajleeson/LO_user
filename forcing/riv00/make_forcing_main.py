@@ -1,10 +1,12 @@
 """
 This is the main program for making the RIVER forcing file, for the
-updated ROMS
+updated ROMS.
+
+This is the first code to use the new design where forcing goes into a [gridname] folder.
 
 Test on mac in ipython:
 
-run make_forcing_main.py -g cas6 -t v0 -r backfill -s continuation -d 2019.07.04 -f riv00 -test True
+run make_forcing_main.py -g cas6 -r backfill -d 2019.07.04 -f riv00 -test True
 
 """
 
@@ -12,7 +14,7 @@ from pathlib import Path
 import sys, os
 from datetime import datetime, timedelta
 
-from lo_tools import forcing_argfun as ffun
+from lo_tools import forcing_argfun2 as ffun
 
 Ldir = ffun.intro() # this handles all the argument passing
 result_dict = dict()
@@ -21,7 +23,7 @@ result_dict['start_dt'] = datetime.now()
 # ****************** CASE-SPECIFIC CODE *****************
 
 date_string = Ldir['date_string']
-out_dir = Ldir['LOo'] / 'forcing' / Ldir['gtag'] / ('f' + date_string) / Ldir['frc']
+out_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / ('f' + date_string) / Ldir['frc']
 
 import xarray as xr
 from lo_tools import Lfun, zrfun
@@ -58,8 +60,8 @@ grid_fn = Ldir['grid'] / 'grid.nc'
 G = zrfun.get_basic_info(grid_fn, only_G=True)
 
 # Load a dataframe with info for rivers to get
-gtag = 'cas6_v3'
-ri_dir = Ldir['LOo'] / 'pre' / 'river' / gtag
+gridname = 'cas6'
+ri_dir = Ldir['LOo'] / 'pre' / 'river' / gridname
 ri_fn = ri_dir / 'river_info.csv'
 ri_df = pd.read_csv(ri_fn, index_col='rname')
 
