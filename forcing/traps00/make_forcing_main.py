@@ -4,14 +4,13 @@ updated ROMS
 
 Test on mac in ipython:
 
-run make_forcing_main.py -g cas6 -r backfill -d 2021.01.01 -f traps00 -test True
+run make_forcing_main.py -g cas6 -r backfill -d 2020.01.01 -f traps00 -test True
 
 """
 
 from pathlib import Path
 import sys, os
 from datetime import datetime, timedelta
-
 from lo_tools import forcing_argfun2 as ffun
 
 Ldir = ffun.intro() # this handles all the argument passing
@@ -62,8 +61,8 @@ G = zrfun.get_basic_info(grid_fn, only_G=True)
 # LIVEOCEAN PRE-EXISTING RIVERS
 
 # Load a dataframe with info for rivers to get
-gtag = 'cas6_v3'
-ri_dir = Ldir['LOo'] / 'pre' / 'river' / gtag
+gridname = 'cas6'
+ri_dir = Ldir['LOo'] / 'pre' / 'river' / gridname
 ri_fn = ri_dir / 'river_info.csv'
 ri_df = pd.read_csv(ri_fn, index_col='rname')
 
@@ -204,12 +203,31 @@ for bvn in bvn_list:
 # Run placement algorithm to put tiny rivers on LiveOcean grid
 trapsfun.traps_placement('riv')
 
+# define directory for tiny river climatology
+tri_dir = Ldir['LOo'] / 'pre' / 'traps' / gridname / 'tiny_rivers'
+traps_type = 'triv'
+
+# climatological data files
+year0 = 1999
+year1 = 2017
+# climatological data
+Ldir['Cflow_triv_fn'] = tri_dir / 'Data_historical' / ('CLIM_flow_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['Ctemp_triv_fn'] = tri_dir / 'Data_historical' / ('CLIM_temp_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CDO_triv_fn']   = tri_dir / 'Data_historical' / ('CLIM_DO_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CNH4_triv_fn']  = tri_dir / 'Data_historical' / ('CLIM_NH4_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CNO3_triv_fn']  = tri_dir / 'Data_historical' / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CTalk_triv_fn'] = tri_dir / 'Data_historical' / ('CLIM_Talk_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CTIC_triv_fn']  = tri_dir / 'Data_historical' / ('CLIM_TIC_' + str(year0) + '_' + str(year1) + '.p')
+
 # get the list of rivers and indices for this grid
 gri_fn = Ldir['grid'] / 'triv_info.csv'
 gri_df = pd.read_csv(gri_fn, index_col='rname')
 if Ldir['testing']:
     gri_df = gri_df.loc[['Kennedy_Schneider', 'North Olympic'],:]
 NTRIV = len(gri_df)
+
+# get the flow, temperature, and nutrient data for these days
+qtbio_triv_df_dict = trapsfun.get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type)
 
 # Start Dataset
 triv_ds = xr.Dataset()
@@ -264,54 +282,79 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
         triv_ds[vn] = (('river',), E_vec)
     triv_ds[vn].attrs['long_name'] = vinfo['long_name']
 
-# Add transport (JUST A CONSTANT VALUE FOR ALL OF THEM FOR NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!)
+# Add transport
 vn = 'river_transport'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
 dims = (vinfo['time'],) + ('river',)
 Q_mat = np.zeros((NT, NTRIV))
-for ii,rn in enumerate(gri_df.index):
-    Q_mat[:,ii] = 5 * np.ones(NT) * gri_df.loc[rn, 'isign']
+rr = 0
+for rn in gri_df.index:
+    qtbio_triv_df = qtbio_triv_df_dict[rn]
+    flow = qtbio_triv_df['flow'].values
+    Q_mat[:,rr] = flow * gri_df.loc[rn, 'isign']
+    rr += 1
 triv_ds[vn] = (dims, Q_mat)
 triv_ds[vn].attrs['long_name'] = vinfo['long_name']
 triv_ds[vn].attrs['units'] = vinfo['units']
 
-# Add salinity and temperature and biogeochemistry (JUST A CONSTANT VALUE FOR ALL OF THEM FOR NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!)
-for vn in ['river_salt', 'river_temp',
- 'river_NO3','river_NH4','river_Chlo','river_Phyt',
- 'river_Zoop','river_LDeN','river_SDeN','river_LDeC',
- 'river_SDeC','river_TIC','river_TAlk','river_Oxyg']:
+# Add salinity and temperature
+for vn in ['river_salt', 'river_temp']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     dims = (vinfo['time'],) + ('s_rho', 'river')
-    # values based on averages from Skagit River (411_Skagit R.xlsx)
     if vn == 'river_salt':
-        TR_mat = np.zeros((NT, N, NTRIV))
+        TS_mat = np.zeros((NT, N, NTRIV))
     elif vn == 'river_temp':
-        TR_mat = 10 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_NO3':
-        TR_mat = 0.09*71.4 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_NH4':
-        TR_mat = 0 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_Chlo':
-        TR_mat = 0 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_Phyt':
-        TR_mat = 0 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_Zoop':
-        TR_mat = 0 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_LDeN':
-        TR_mat = 0 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_SDeN':
-        TR_mat = 0 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_LDeC':
-        TR_mat = 0 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_SDeC':
-        TR_mat = 0 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_TIC':
-        TR_mat = 454.67 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_TAlk':
-        TR_mat = 410.40 * np.ones((NT, N, NTRIV))
-    elif vn == 'river_Oxyg':
-        TR_mat = 11.57*31.26 * np.ones((NT, N, NTRIV))
-    triv_ds[vn] = (dims, TR_mat)
+        TS_mat = np.nan * np.zeros((NT, N, NTRIV))
+        rr = 0
+        for rn in gri_df.index:
+            qtbio_triv_df = qtbio_triv_df_dict[rn]
+            for nn in range(N):
+                TS_mat[:, nn, rr] = qtbio_triv_df['temp'].values
+            rr += 1
+    if np.isnan(TS_mat).any():
+        print('Error from traps00: nans in tiny river river_temp!')
+        sys.exit()
+    triv_ds[vn] = (dims, TS_mat)
+    triv_ds[vn].attrs['long_name'] = vinfo['long_name']
+    triv_ds[vn].attrs['units'] = vinfo['units']
+
+# Add biology that have existing climatology
+for var in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
+    vn = 'river_' + var
+    vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+    dims = (vinfo['time'],) + ('s_rho', 'river')
+    B_mat = np.nan * np.zeros((NT, N, NTRIV))
+    rr = 0
+    for rn in gri_df.index:
+        qtbio_triv_df = qtbio_triv_df_dict[rn]
+        for nn in range(N):
+            B_mat[:, nn, rr] = qtbio_triv_df[var].values
+        rr += 1
+    if np.isnan(TS_mat).any():
+        print('Error from traps00: nans in tiny river bio!')
+        sys.exit()
+    triv_ds[vn] = (dims, B_mat)
+    triv_ds[vn].attrs['long_name'] = vinfo['long_name']
+    triv_ds[vn].attrs['units'] = vinfo['units']
+
+# Add remaining biology (see the lineup near the end of fennel_var.h)
+# I'm pretty sure this is simply filling everything with zeros
+bvn_list = ['Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo', 'LDeC', 'SDeC']
+for bvn in bvn_list:
+    vn = 'river_' + bvn
+    vinfo = zrfun.get_varinfo(vn)
+    dims = (vinfo['time'],) + ('s_rho', 'river')
+    B_mat = np.nan * np.zeros((NT, N, NTRIV))
+    rr = 0
+    for rn in gri_df.index:
+        qtbio_triv_df = qtbio_triv_df_dict[rn]
+        for nn in range(N):
+            B_mat[:, nn, rr] = rivfun.get_bio_vec(bvn, rn, yd_ind)
+        rr += 1
+    if np.isnan(B_mat).any():
+        print('Error from traps00: nans in B_mat for tiny river ' + vn)
+        sys.exit()
+    triv_ds[vn] = (dims, B_mat)
     triv_ds[vn].attrs['long_name'] = vinfo['long_name']
     triv_ds[vn].attrs['units'] = vinfo['units']
 
@@ -320,13 +363,32 @@ for vn in ['river_salt', 'river_temp',
 
 # Run placement algorithm to put marine point sources on LiveOcean grid
 trapsfun.traps_placement('wwtp')
+traps_type = 'wwtp'
+
+# define directory for tiny river climatology
+wwtp_dir = Ldir['LOo'] / 'pre' / 'traps' / gridname / 'point_sources'
+
+# climatological data files
+year0 = 1999
+year1 = 2017
+# climatological data
+Ldir['Cflow_wwtp_fn'] = wwtp_dir / 'Data_historical' / ('CLIM_flow_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['Ctemp_wwtp_fn'] = wwtp_dir / 'Data_historical' / ('CLIM_temp_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CDO_wwtp_fn']   = wwtp_dir / 'Data_historical' / ('CLIM_DO_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CNH4_wwtp_fn']  = wwtp_dir / 'Data_historical' / ('CLIM_NH4_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CNO3_wwtp_fn']  = wwtp_dir / 'Data_historical' / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CTalk_wwtp_fn'] = wwtp_dir / 'Data_historical' / ('CLIM_Talk_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['CTIC_wwtp_fn']  = wwtp_dir / 'Data_historical' / ('CLIM_TIC_' + str(year0) + '_' + str(year1) + '.p')
 
 # get the list of rivers and indices for this grid
 gri_fn = Ldir['grid'] / 'wwtp_info.csv'
 gri_df = pd.read_csv(gri_fn, index_col='rname')
 if Ldir['testing']:
-    gri_df = gri_df.loc[['West Point', 'Lions Gate'],:]
+    gri_df = gri_df.loc[['West Point', 'Blaine'],:]
 NWWTP = len(gri_df)
+
+# get the flow, temperature, and nutrient data for these days
+qtbio_wwtp_df_dict = trapsfun.get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type)
 
 # Start Dataset
 wwtp_ds = xr.Dataset()
@@ -359,8 +421,8 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     if vn == 'river_direction':
         # set point source diretion to enter vertically (2)
-        wwtp_dir = 2 * np.ones(NWWTP) 
-        wwtp_ds[vn] = (('river',), wwtp_dir)
+        wwtp_direction = 2 * np.ones(NWWTP) 
+        wwtp_ds[vn] = (('river',), wwtp_direction)
     elif vn == 'river_Xposition':
         X_vec = np.nan * np.ones(NWWTP)
         for ii,wn in enumerate(gri_df.index):
@@ -382,50 +444,74 @@ vn = 'river_transport'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
 dims = (vinfo['time'],) + ('river',)
 Q_mat = np.zeros((NT, NWWTP))
-for ii,rn in enumerate(gri_df.index):
-    Q_mat[:,ii] = 4.5 * np.ones(NT)
+rr = 0
+for rn in gri_df.index:
+    qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
+    flow = qtbio_wwtp_df['flow'].values
+    Q_mat[:,rr] = flow
+    rr += 1
 wwtp_ds[vn] = (dims, Q_mat)
 wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
 wwtp_ds[vn].attrs['units'] = vinfo['units']
 
-# Add salinity and temperature & biogeochemistry (JUST A CONSTANT VALUE FOR ALL OF THEM FOR NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!)
-for vn in ['river_salt', 'river_temp',
- 'river_NO3','river_NH4','river_Chlo','river_Phyt',
- 'river_Zoop','river_LDeN','river_SDeN','river_LDeC',
- 'river_SDeC','river_TIC','river_TAlk','river_Oxyg']:
+# Add salinity and temperature
+for vn in ['river_salt', 'river_temp']:
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     dims = (vinfo['time'],) + ('s_rho', 'river')
-
-    # values based on averages from West Point (539_West Point.xlsx)
     if vn == 'river_salt':
-        TR_mat = np.zeros((NT, N, NWWTP))
+        TS_mat = np.zeros((NT, N, NWWTP))
     elif vn == 'river_temp':
-        TR_mat = 10 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_NO3':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))# 4.82*71.4 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_NH4':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))# 4.48*71.4 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_Chlo':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_Phyt':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_Zoop':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_LDeN':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_SDeN':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_LDeC':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_SDeC':
-        TR_mat = 0 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_TIC':
-        TR_mat = 2638.45 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_TAlk':
-        TR_mat = 2000 * np.ones((NT, N, NWWTP))
-    elif vn == 'river_Oxyg':
-        TR_mat = 5.9*31.26 * np.ones((NT, N, NWWTP))
-    wwtp_ds[vn] = (dims, TR_mat)
+        TS_mat = np.nan * np.zeros((NT, N, NWWTP))
+        rr = 0
+        for rn in gri_df.index:
+            qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
+            for nn in range(N):
+                TS_mat[:, nn, rr] = qtbio_wwtp_df['temp'].values
+            rr += 1
+    if np.isnan(TS_mat).any():
+        print('Error from traps00: nans in point source river_temp!')
+        sys.exit()
+    wwtp_ds[vn] = (dims, TS_mat)
+    wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
+    wwtp_ds[vn].attrs['units'] = vinfo['units']
+
+# Add biology that have existing climatology
+for var in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
+    vn = 'river_' + var
+    vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+    dims = (vinfo['time'],) + ('s_rho', 'river')
+    B_mat = np.nan * np.zeros((NT, N, NWWTP))
+    rr = 0
+    for rn in gri_df.index:
+        qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
+        for nn in range(N):
+            B_mat[:, nn, rr] = qtbio_wwtp_df[var].values
+        rr += 1
+    if np.isnan(TS_mat).any():
+        print('Error from traps00: nans in tiny river bio!')
+        sys.exit()
+    wwtp_ds[vn] = (dims, B_mat)
+    wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
+    wwtp_ds[vn].attrs['units'] = vinfo['units']
+
+# Add remaining biology (see the lineup near the end of fennel_var.h)
+# I'm pretty sure this is simply filling everything with zeros
+bvn_list = ['Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo', 'LDeC', 'SDeC']
+for bvn in bvn_list:
+    vn = 'river_' + bvn
+    vinfo = zrfun.get_varinfo(vn)
+    dims = (vinfo['time'],) + ('s_rho', 'river')
+    B_mat = np.nan * np.zeros((NT, N, NWWTP))
+    rr = 0
+    for rn in gri_df.index:
+        qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
+        for nn in range(N):
+            B_mat[:, nn, rr] = rivfun.get_bio_vec(bvn, rn, yd_ind)
+        rr += 1
+    if np.isnan(B_mat).any():
+        print('Error from traps00: nans in B_mat for tiny river ' + vn)
+        sys.exit()
+    wwtp_ds[vn] = (dims, B_mat)
     wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
     wwtp_ds[vn].attrs['units'] = vinfo['units']
 
@@ -433,7 +519,8 @@ for vn in ['river_salt', 'river_temp',
 
 # combine all forcing datasets
 all_ds = xr.merge([LOriv_ds,triv_ds, wwtp_ds])
-print(all_ds)
+# print(all_ds['river_name'])
+# print(all_ds['river_Chlo'][0][0])
 
 # Save to NetCDF
 all_ds.to_netcdf(out_fn)

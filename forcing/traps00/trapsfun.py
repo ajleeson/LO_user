@@ -8,7 +8,8 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import cmocean
-from lo_tools import forcing_argfun as ffun
+import sys
+from lo_tools import forcing_argfun2 as ffun
 from lo_tools import zfun
 from lo_tools import plotting_functions as pfun
 
@@ -604,7 +605,6 @@ def traps_placement(source_type):
         # update name of index column
         rowcol_df.index.name = 'rname'
 
-    # write rowcol_df to LO_output/pgrid/[gridname]/output_fn
     # TODO: save the dataframe! 
     # & make sure to delete all rows that have nans!! 
     # (check in the rivers file that I've done this correction)
@@ -613,7 +613,7 @@ def traps_placement(source_type):
     print('\nCreating ' + str(out_rfn))
     rowcol_df.to_csv(out_rfn)
 
-    plotting = True
+    plotting = False
 
     if plotting == True:
         # PLOTTING FOR TESTING ------------------------------------------------------------------------
@@ -769,3 +769,41 @@ def traps_placement(source_type):
         plt.show()
 
     return
+
+def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
+    # load climatological data
+    Cflow_df = pd.read_pickle(Ldir['Cflow_'+traps_type+'_fn'])
+    Ctemp_df = pd.read_pickle(Ldir['Ctemp_'+traps_type+'_fn'])
+    CDO_df   = pd.read_pickle(Ldir['CDO_'+traps_type+'_fn'])
+    CNH4_df  = pd.read_pickle(Ldir['CNH4_'+traps_type+'_fn'])
+    CNO3_df  = pd.read_pickle(Ldir['CNO3_'+traps_type+'_fn'])
+    CTalk_df = pd.read_pickle(Ldir['CTalk_'+traps_type+'_fn'])
+    CTIC_df  = pd.read_pickle(Ldir['CTIC_'+traps_type+'_fn'])
+
+    # initialize output dict
+    qtbio_df_dict = dict()
+    for rn in gri_df.index:
+        
+        # initialize screen output
+        sout = '-- ' + rn + ': '
+        
+        # initialize a qtbio (flow and temperature vs. time) DataFrame for this river
+        qtbio_df = pd.DataFrame(index=dt_ind, columns=['flow','temp','Oxyg','NH4','NO3','TAlk','TIC'])
+        # fill with climatological fields
+        qtbio_df.loc[:, 'flow'] = Cflow_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'temp'] = Ctemp_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'Oxyg']   = CDO_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'NH4']  = CNH4_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'NO3']  = CNO3_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'TAlk'] = CTalk_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'TIC']  = CTIC_df.loc[yd_ind,rn].values
+        sout += 'filled from climatology (Ecology dataset)'
+          
+        # save in the dict
+        qtbio_df_dict[rn] = qtbio_df
+        
+        # screen output
+        print(sout)
+        sys.stdout.flush()
+        
+    return qtbio_df_dict
