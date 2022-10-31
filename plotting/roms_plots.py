@@ -78,7 +78,8 @@ def P_basic(in_dict):
         pfun.add_coast(ax)
         # ax.axis(pfun.get_aa(ds))
         # Puget Sound:
-        ax.set(xlim=(-125, -122), ylim=(46.5, 50))
+        ax.set(xlim=(-123.5, -122), ylim=(46.8, 49))
+        plt.locator_params(axis='x', nbins=3)
         pfun.dar(ax)
         ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=1.2*fs)
         ax.set_xlabel('Longitude')
