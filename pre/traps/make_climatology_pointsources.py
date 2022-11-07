@@ -67,9 +67,9 @@ wwtp_names_df = wwtp_all_df['Name'].str.replace(' - 1', '')
 wwtpnames = wwtp_names_df.values
 wwtpids = wwtp_all_df['ID'].values
 
-# # just test two wwtps for now -------------------------------------------------
-# wwtpnames = wwtpnames[46:59]
-# wwtpids = wwtpids[46:59]
+# # just test Brightwater for now -------------------------------------------------
+# wwtpnames = wwtpnames[46:47]
+# wwtpids = wwtpids[46:47]
 
 # initialize dataframes for all rivers
 flow_clim_df = pd.DataFrame()
@@ -149,10 +149,11 @@ for i,wname in enumerate(wwtpnames):
                 plt.plot(yrday,wwtp_yr_df[vn],alpha=0.5, label=yr)
         # Plot average
         plt.plot(yrday,wwtp_avgs_df[vn].values, label='average', color='black', linewidth=2)
-        plt.legend(loc='best', ncol = 4)
-        plt.ylabel(vn)
-        plt.xlabel('Julian Day')
-        plt.title(wname)
+        plt.legend(loc='best', ncol = 4,fontsize=12)
+        plt.ylabel(vn,fontsize=16)
+        plt.xlabel('Julian Day',fontsize=16)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        plt.title(wname,fontsize=18)
         plt.show()
 
     # Add data to climatology dataframes, and convert to units that LiveOcean expects
