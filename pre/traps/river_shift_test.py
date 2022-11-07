@@ -46,9 +46,9 @@ riv_names_df = riv_singles_df['Name'].str.replace(' - 1', '')
 rivnames = riv_names_df.values
 rivids = riv_singles_df['ID'].values
 
-# # Union River -------------------------------------------------
-# rivnames = rivnames[90:91]
-# rivids = rivids[90:91]
+# Union River -------------------------------------------------
+rivnames = rivnames[90:91]
+rivids = rivids[90:91]
 
 # # Skokomish River -------------------------------------------------
 # rivnames = rivnames[87:88]
@@ -58,9 +58,9 @@ rivids = riv_singles_df['ID'].values
 # rivnames = rivnames[81:82]
 # rivids = rivids[81:82]
 
-# Cushman 2 River -------------------------------------------------
-rivnames = rivnames[76:77]
-rivids = rivids[76:77]
+# # Cushman 2 River -------------------------------------------------
+# rivnames = rivnames[76:77]
+# rivids = rivids[76:77]
 
 # initialize dataframes for all rivers
 flow_clim_df = pd.DataFrame()

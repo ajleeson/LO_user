@@ -43,7 +43,7 @@ riv_names_df = riv_singles_df['Name'].str.replace(' - 1', '')
 rivnames = riv_names_df.values
 rivids = riv_singles_df['ID'].values
 
-# # just test two rivers for now -------------------------------------------------
+# # just Union River for now -------------------------------------------------
 # rivnames = rivnames[90:91]
 # rivids = rivids[90:91]
 
@@ -127,10 +127,11 @@ for i,rname in enumerate(rivnames):
                 plt.plot(yrday,riv_yr_df[vn],alpha=0.5, label=yr)
         # Plot average
         plt.plot(yrday,riv_avgs_df[vn].values, label='average', color='black', linewidth=2)
-        plt.legend(loc='best', ncol = 4)
-        plt.ylabel(vn)
-        plt.xlabel('Julian Day')
-        plt.title(rname)
+        plt.legend(loc='best', ncol = 4,fontsize=14)
+        plt.ylabel(vn,fontsize=16)
+        plt.xlabel('Julian Day',fontsize=16)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        plt.title(rname,fontsize=18)
         plt.show()
 
     # Add data to climatology dataframes, and convert to units that LiveOcean expects
