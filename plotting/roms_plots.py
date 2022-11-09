@@ -24,6 +24,7 @@ import argparse
 import math
 import scipy.interpolate as interp
 from scipy.optimize import curve_fit
+from matplotlib.patches import Rectangle
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -297,7 +298,8 @@ def P_dive_vort(in_dict):
             ax.set_title('Surface Vorticity $[s^{-1}]$', fontsize=1.2*fs)
         fig.colorbar(cs)
         pfun.add_coast(ax)
-        ax.axis(aa)
+        # ax.axis(aa)
+        ax.set(xlim=(-123, -122.5), ylim=(48.8, 49))
         pfun.dar(ax)
         ax.set_xlabel('Longitude')
         if ii == 1:
@@ -665,6 +667,11 @@ def P_debug(in_dict):
         cs = ax.pcolormesh(px, py, v, cmap=cmap, vmin=vmin, vmax=vmax)
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
+        # # Debugging:
+        # # ax.set(xlim=(-123, -122.5), ylim=(48.8, 49))
+        # ax.add_patch(Rectangle((-123, 48.8), 0.5, 0.2, edgecolor='red',facecolor='none',lw=4))
+        # # Puget Sound:
+        # ax.set(xlim=(-124, -122), ylim=(47, 49.2))
         pfun.dar(ax)
         if ii == 1:
             pfun.add_info(ax, in_dict['fn'], his_num=True)

@@ -6,11 +6,15 @@ Test on mac in ipython:
 
 run make_forcing_main.py -g cas6 -r backfill -d 2020.01.01 -f traps00 -test True
 
+# Testing Birch Bay:
+python driver_forcing3.py -g cas6 -r backfill -s new -0 2020.01.01 -1 2020.01.03 -f traps00
+
 """
 
 from pathlib import Path
 import sys, os
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
 from lo_tools import forcing_argfun2 as ffun
 
 Ldir = ffun.intro() # this handles all the argument passing
@@ -384,7 +388,7 @@ Ldir['CTIC_wwtp_fn']  = wwtp_dir / 'Data_historical' / ('CLIM_TIC_' + str(year0)
 gri_fn = Ldir['grid'] / 'wwtp_info.csv'
 gri_df = pd.read_csv(gri_fn, index_col='rname')
 if Ldir['testing']:
-    gri_df = gri_df.loc[['West Point', 'Blaine'],:]
+    gri_df = gri_df.loc[['West Point', 'Birch Bay'],:]
 NWWTP = len(gri_df)
 
 # get the flow, temperature, and nutrient data for these days
@@ -439,7 +443,7 @@ for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
         wwtp_ds[vn] = (('river',), E_vec)
     wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
 
-# Add transport (JUST A CONSTANT VALUE FOR ALL OF THEM FOR NOW!!!!!!!!!!!!!!!!!!!!!!!!!!!)
+# Add transport
 vn = 'river_transport'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
 dims = (vinfo['time'],) + ('river',)
@@ -453,6 +457,16 @@ for rn in gri_df.index:
 wwtp_ds[vn] = (dims, Q_mat)
 wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
 wwtp_ds[vn].attrs['units'] = vinfo['units']
+
+# # Test Birch Bay Transport (this doesn't really work right...)
+# bb_flow = wwtp_ds['river_transport'].values
+# fig, ax = plt.subplots(1,1, figsize=(11, 6))
+# plt.plot(dt_ind,bb_flow)
+# plt.ylabel('Flow (m3/s)',fontsize=16)
+# plt.xlabel('Date',fontsize=16)
+# ax.tick_params(axis='both', which='major', labelsize=14)
+# plt.title('Birch Bay WWTP Flow (within forcing script)',fontsize=18)
+# plt.show()
 
 # Add salinity and temperature
 for vn in ['river_salt', 'river_temp']:
