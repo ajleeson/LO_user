@@ -71,6 +71,10 @@ wwtpids = wwtp_all_df['ID'].values
 # wwtpnames = wwtpnames[46:47]
 # wwtpids = wwtpids[46:47]
 
+# # just test Birch Bay for now -------------------------------------------------
+# wwtpnames = wwtpnames[26:27]
+# wwtpids = wwtpids[26:27]
+
 # initialize dataframes for all rivers
 flow_clim_df = pd.DataFrame()
 # salt_clim_df = pd.DataFrame()

@@ -599,6 +599,10 @@ def traps_placement(source_type):
             rowcol_df.loc[sname, 'row_py'] = row 
             rowcol_df.loc[sname, 'col_py'] = col
             snames = snames + [sname]
+            # if sname == 'Birch Bay':
+            #     print('Birch Bay lat/lon')
+            #     print(Y[int(row)])
+            #     print(X[int(col)])
             # save ringnum for tracking. ringnum = zero means the source didn't move
             ringnums = ringnums + [ringnum]
 
@@ -613,7 +617,7 @@ def traps_placement(source_type):
     print('\nCreating ' + str(out_rfn))
     rowcol_df.to_csv(out_rfn)
 
-    plotting = False
+    plotting = True
 
     if plotting == True:
         # PLOTTING FOR TESTING ------------------------------------------------------------------------
