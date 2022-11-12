@@ -391,6 +391,71 @@ def P_dive_vort2(in_dict):
         plt.close()
     else:
         plt.show()
+
+def P_dive_vort_birchbay(in_dict):
+    # START
+    ds = xr.open_dataset(in_dict['fn'])
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    fs = 14
+    pfun.start_plot(fs=fs, figsize=(16,10))
+    fig = plt.figure()
+    
+    # create fields
+    u = ds.u[0,-1,:,:].values
+    v = ds.v[0,-1,:,:].values
+    dx = 1/ds.pm.values
+    dy = 1/ds.pn.values
+    # dive is on the trimmed rho grid
+    dive = np.diff(u[1:-1,:], axis=1)/dx[1:-1,1:-1] + np.diff(v[:,1:-1],axis=0)/dy[1:-1,1:-1]
+    # vort is on the psi grid (plot with lon_rho, lat_rho)
+    vort = np.diff(v,axis=1)/dx[1:,1:] - np.diff(u,axis=0)/dy[1:,1:]
+
+    vmin=-0.05
+    vmax=0.05
+    
+    for ii in [1,2]:
+        ax = fig.add_subplot(1, 2, ii)
+        cmap=plt.get_cmap(cm.curl)
+        if ii == 1:
+            plon, plat = pfun.get_plon_plat(ds.lon_rho[1:-1,1:-1].values, ds.lat_rho[1:-1,1:-1].values)
+            cs = plt.pcolormesh(plon, plat, dive, cmap=cmap, vmin = vmin, vmax = vmax)
+            ax.set_title('Surface Divergence $[s^{-1}]$', fontsize=1.2*fs)
+        elif ii == 2:
+            cs = plt.pcolormesh(ds.lon_rho.values, ds.lat_rho.values, vort, cmap=cmap, vmin = vmin, vmax = vmax)
+            ax.set_title('Surface Vorticity $[s^{-1}]$', fontsize=1.2*fs)
+        pfun.add_coast(ax)
+        ax.set(xlim=(-122.9, -122.7), ylim=(48.85, 48.95))
+
+        # plot location of wwtp
+        ax.scatter(-122.8030401205365,48.8975820886066, s=80, marker='^',
+                    color='deeppink', edgecolors='pink', label='Birch Bay WWTP Location')
+        ax.legend(loc='upper left', fontsize = 12)
+        # add colorbar
+        cbar = plt.colorbar(cs,ax=ax, location='bottom')
+        cbar.ax.tick_params(labelsize=12, rotation=30)
+        pfun.dar(ax)
+        plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+            #pfun.add_windstress_flower(ax, ds)
+            pfun.add_bathy_contours(ax, ds, txt=True)
+        elif ii == 2:
+            pass
+            #pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+        ii += 1
+    #fig.tight_layout()
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+  
         
 def P_ri(in_dict):
     """
@@ -689,6 +754,77 @@ def P_debug(in_dict):
         plt.close()
     else:
         plt.show()
+
+def P_debug_birchbay(in_dict):
+    # Focused on debugging
+    vn_list = ['u', 'v', 'w']
+    do_wetdry = False
+    
+    # START
+    fs = 10
+    pfun.start_plot(fs=fs, figsize=(8*len(vn_list),10))
+    plt.tight_layout()
+    fig = plt.figure()
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    ii = 1
+    for vn in vn_list:
+        if 'lon_rho' in ds[vn].coords:
+            tag = 'rho'
+        if 'lon_u' in ds[vn].coords:
+            tag = 'u'
+        if 'lon_v' in ds[vn].coords:
+            tag = 'v'
+        x = ds['lon_'+tag].values
+        y = ds['lat_'+tag].values
+        px, py = pfun.get_plon_plat(x,y)
+        if vn in ['u', 'v']:
+            v = ds[vn][0,-1,:,:].values
+            vmin = -2
+            vmax = 2
+            cmap=plt.get_cmap(cm.balance)
+        if vn in ['w']:
+            v = ds[vn][0,-1,:,:].values
+            vmin = -0.01
+            vmax = 0.01
+            cmap=plt.get_cmap(cm.balance)
+        else:
+            v = ds[vn][0, -1,:,:].values
+        ax = fig.add_subplot(1, len(vn_list), ii)
+
+        cs = ax.pcolormesh(px, py, v, cmap=cmap, vmin=vmin, vmax=vmax)
+        pfun.add_coast(ax)
+        ax.axis(pfun.get_aa(ds))
+        ax.set(xlim=(-122.9, -122.7), ylim=(48.85, 48.95))
+
+        # plot location of wwtp
+        ax.scatter(-122.8030401205365,48.8975820886066, s=80, marker='^',
+                    color='deeppink', edgecolors='pink', label='Birch Bay WWTP Location')
+        ax.legend(loc='upper left', fontsize = 12)
+        # add colorbar
+        cbar = plt.colorbar(cs,ax=ax, location='bottom')
+        cbar.ax.tick_params(labelsize=12, rotation=30)
+
+        pfun.dar(ax)
+        if ii == 1:
+            pfun.add_info(ax, in_dict['fn'], his_num=True)
+        vmax, vjmax, vimax, vmin, vjmin, vimin = pfun.maxmin(v)
+        ax.plot(x[vjmax,vimax], y[vjmax,vimax],'*y', mec='k', markersize=15)
+        ax.plot(x[vjmin,vimin], y[vjmin,vimin],'oy', mec='k', markersize=10)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+        ax.set_title(('%s ((*)max=%0.1f, (o)min=%0.1f)' % (vn, vmax, vmin)), fontsize = 20)
+        ii += 1
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
 
 def P_layer(in_dict):
     # START
