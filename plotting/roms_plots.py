@@ -429,7 +429,9 @@ def P_dive_vort_birchbay(in_dict):
 
         # plot location of wwtp
         ax.scatter(-122.8030401205365,48.8975820886066, s=80, marker='^',
-                    color='deeppink', edgecolors='pink', label='Birch Bay WWTP Location')
+                    color='deeppink', edgecolors='pink', label='Original Birch Bay WWTP Location')
+        ax.scatter(-122.82323857665777,48.8975820886066, s=80, marker='^',
+                    color='limegreen', edgecolors='chartreuse', label='Shifted Birch Bay WWTP Location')
         ax.legend(loc='upper left', fontsize = 12)
         # add colorbar
         cbar = plt.colorbar(cs,ax=ax, location='bottom')
