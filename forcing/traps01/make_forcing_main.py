@@ -204,7 +204,7 @@ for bvn in bvn_list:
 trapsfun.traps_placement('riv')
 
 # define directory for tiny river climatology
-tri_dir = Ldir['LOo'] / 'pre' / 'traps' / gridname / 'tiny_rivers'
+tri_dir = Ldir['LOo'] / 'pre' / 'traps' / 'tiny_rivers'
 traps_type = 'triv'
 
 # climatological data files
@@ -366,7 +366,7 @@ trapsfun.traps_placement('wwtp')
 traps_type = 'wwtp'
 
 # define directory for tiny river climatology
-wwtp_dir = Ldir['LOo'] / 'pre' / 'traps' / gridname / 'point_sources'
+wwtp_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources'
 
 # climatological data files
 year0 = 1999

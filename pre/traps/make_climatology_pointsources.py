@@ -6,6 +6,9 @@ Based on Ecology's timeseries, stored in LO_data/traps
 
 This code shows how powerful pandas is for this kind of task.
 Really just one line to make a climatology (the groupby call)
+
+To run, from ipython:
+run make_climatology_pointsources.py
 """
 
 from lo_tools import Lfun
@@ -47,9 +50,6 @@ def monthly2daily(df):
 # define year range to create climatologies
 year0 = 1999
 year1 = 2017
-
-# define gridname
-gridname = 'cas6'
 
 # file with all traps names and ID numbers
 traps_info_fn = Ldir['data'] / 'traps' / 'SSM_source_info.xlsx'
@@ -123,8 +123,8 @@ for i,wname in enumerate(wwtpnames):
                             'Diatoms', 'Dinoflag', 'Chl', 'DIC(mmol/m3)',
                             'Alk(mmol/m3)'], axis=1, inplace=False)
 
-    # replace all zeros with nans, so zeros don't bias data
-    wwtp_df = wwtp_df.replace(0, np.nan)
+    # # replace all zeros with nans, so zeros don't bias data
+    # wwtp_df = wwtp_df.replace(0, np.nan)
 
     # calculate averages (compress 1999-2017 timeseries to single day, with an average for each day)
     wwtp_avgs_monthly_df = wwtp_df.groupby(['Month','Day']).mean().reset_index()
@@ -162,19 +162,18 @@ for i,wname in enumerate(wwtpnames):
 
     # Add data to climatology dataframes, and convert to units that LiveOcean expects
     flow_clim_df[wname] = wwtp_avgs_df['Flow(m3/s)']             # [m3/s]
-    # salt_clim_df[rname] = riv_avgs_df['Salt(ppt)']              # [PSS]
     temp_clim_df[wname] = wwtp_avgs_df['Temp(C)']                # [C]
     NO3_clim_df[wname]  = wwtp_avgs_df['NO3+NO2(mg/L)'] * 71.4   # [mmol/m3]
     NH4_clim_df[wname]  = wwtp_avgs_df['NH4(mg/L)'] * 71.4       # [mmol/m3]
-    # phyto_clim_df[rname] = riv_avgs_df['Diatoms'] + riv_avgs_df['Dinoflag'] # [mmol/m3]
-    # chlo_clim_df[rname] = riv_avgs_df['Chl']                    # [mg/L]
     TIC_clim_df[wname]  = wwtp_avgs_df['DIC(mmol/m3)']           # [mmol/m3]
     Talk_clim_df[wname] = wwtp_avgs_df['Alk(mmol/m3)']           # [meq/m3]
     DO_clim_df[wname]   = wwtp_avgs_df['DO(mg/L)'] * 31.26       # [mmol/m3]
 
+    # # Set any negative TIC concentrations to zero
+    # TIC_clim_df[TIC_clim_df < 0] = 0
+
     # Sort in descending order (so it's easier to visualize when graphing)
     flow_clim_df = flow_clim_df.sort_values(by = 1, axis = 1, ascending = False)
-    # salt_clim_df = salt_clim_df.sort_values(by = 1, axis = 1, ascending = False)
     temp_clim_df = temp_clim_df.sort_values(by = 1, axis = 1, ascending = False)
     NO3_clim_df = NO3_clim_df.sort_values(by = 1, axis = 1, ascending = False)
     NH4_clim_df = NH4_clim_df.sort_values(by = 1, axis = 1, ascending = False)
@@ -182,33 +181,9 @@ for i,wname in enumerate(wwtpnames):
     Talk_clim_df = Talk_clim_df.sort_values(by = 1, axis = 1, ascending = False)
     DO_clim_df = DO_clim_df.sort_values(by = 1, axis = 1, ascending = False)
 
-# print('\n--------------------------------FLOW--------------------------------')
-# print(flow_clim_df[27:32])
-# # print('\n--------------------------------SALT--------------------------------')
-# # print(salt_clim_df[27:32])
-# print('\n--------------------------------TEMP--------------------------------')
-# print(temp_clim_df[27:32])
-# print('\n--------------------------------NO3--------------------------------')
-# print(NO3_clim_df[27:32])
-# print('\n--------------------------------NH4--------------------------------')
-# print(NH4_clim_df[27:32])
-# # print('\n--------------------------------PHYTO--------------------------------')
-# # print(phyto_clim_df[27:32])
-# # print('\n--------------------------------CHLO--------------------------------')
-# # print(chlo_clim_df[27:32])
-# print('\n--------------------------------TIC--------------------------------')
-# print(TIC_clim_df[27:32])
-# print('\n--------------------------------TALK--------------------------------')
-# print(Talk_clim_df[27:32])
-# print('\n--------------------------------DO--------------------------------')
-# print(DO_clim_df[27:32])
-
-
 # check for missing values:
 if pd.isnull(flow_clim_df).sum().sum() != 0:
     print('Warning, there are missing flow values!')
-# if pd.isnull(salt_clim_df).sum().sum() != 0:
-#     print('Warning, there are missing salinity values!')
 if pd.isnull(temp_clim_df).sum().sum() != 0:
     print('Warning, there are missing temperature values!')
 if pd.isnull(NO3_clim_df).sum().sum() != 0:
@@ -223,9 +198,8 @@ if pd.isnull(DO_clim_df).sum().sum() != 0:
     print('Warning, there are missing oxygen values!')
 
 # save results
-clim_dir = Ldir['LOo'] / 'pre' / 'traps' / gridname / 'point_sources' /'Data_historical'
+clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources' /'Data_historical'
 flow_clim_df.to_pickle(clim_dir / ('CLIM_flow_' + str(year0) + '_' + str(year1) + '.p'))
-# salt_clim_df.to_pickle(clim_dir / ('CLIM_salt_' + str(year0) + '_' + str(year1) + '.p'))
 temp_clim_df.to_pickle(clim_dir / ('CLIM_temp_' + str(year0) + '_' + str(year1) + '.p'))
 NO3_clim_df.to_pickle(clim_dir / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p'))
 NH4_clim_df.to_pickle(clim_dir / ('CLIM_NH4_' + str(year0) + '_' + str(year1) + '.p'))
@@ -251,21 +225,6 @@ for ii in range(1,13):
         ax.set_ylabel(r'Flow [$m^{3}s^{-1}$]', fontsize = 10)
 plt.tight_layout()
 fig.savefig(clim_dir / ('CLIM_flow_plot.png'))
-
-# fig = plt.figure(figsize=(18,10))
-# rn_split = np.array_split(salt_clim_df.columns, 24)
-# for ii in range(1,25):
-#     ax = fig.add_subplot(6,4,ii)
-#     salt_clim_df[rn_split[ii-1]].plot(ax=ax)
-#     ax.set_xlim(0,366)
-#     ax.set_ylim(0, 25)
-#     plt.legend(fontsize=6, ncol=3, loc='best')
-#     ax.tick_params(axis='both', labelsize=8)
-#     if ii >= 21:
-#         ax.set_xlabel('Yearday')
-#     if ii in [1, 5, 9, 13, 17, 21]:
-#         ax.set_ylabel(r'Salinity [$g kg^{-1}$]', fontsize = 10)
-# fig.savefig(clim_dir / ('CLIM_salt_plot.png'))
 
 fig = plt.figure(figsize=(16,8))
 rn_split = np.array_split(temp_clim_df.columns, 12)
