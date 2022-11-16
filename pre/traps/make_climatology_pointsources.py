@@ -169,8 +169,8 @@ for i,wname in enumerate(wwtpnames):
     Talk_clim_df[wname] = wwtp_avgs_df['Alk(mmol/m3)']           # [meq/m3]
     DO_clim_df[wname]   = wwtp_avgs_df['DO(mg/L)'] * 31.26       # [mmol/m3]
 
-    # # Set any negative TIC concentrations to zero
-    # TIC_clim_df[TIC_clim_df < 0] = 0
+    # Set any negative TIC concentrations to zero
+    TIC_clim_df[TIC_clim_df < 0] = 0
 
     # Sort in descending order (so it's easier to visualize when graphing)
     flow_clim_df = flow_clim_df.sort_values(by = 1, axis = 1, ascending = False)
