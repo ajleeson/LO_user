@@ -51,6 +51,9 @@ def monthly2daily(df):
 year0 = 1999
 year1 = 2017
 
+# location to save file
+clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources' /'Data_historical'
+
 # file with all traps names and ID numbers
 traps_info_fn = Ldir['data'] / 'traps' / 'SSM_source_info.xlsx'
 # location of historical data to process
@@ -77,12 +80,9 @@ wwtpids = wwtp_all_df['ID'].values
 
 # initialize dataframes for all rivers
 flow_clim_df = pd.DataFrame()
-# salt_clim_df = pd.DataFrame()
 temp_clim_df = pd.DataFrame()
 NO3_clim_df  = pd.DataFrame()
 NH4_clim_df  = pd.DataFrame()
-# phyto_clim_df = pd.DataFrame()
-# chlo_clim_df = pd.DataFrame()
 TIC_clim_df  = pd.DataFrame()
 Talk_clim_df = pd.DataFrame()
 DO_clim_df   = pd.DataFrame()
@@ -123,42 +123,71 @@ for i,wname in enumerate(wwtpnames):
                             'Diatoms', 'Dinoflag', 'Chl', 'DIC(mmol/m3)',
                             'Alk(mmol/m3)'], axis=1, inplace=False)
 
-    # # replace all zeros with nans, so zeros don't bias data
-    # wwtp_df = wwtp_df.replace(0, np.nan)
+    # replace all zeros with nans, so zeros don't bias data
+    wwtp_df = wwtp_df.replace(0, np.nan)
 
     # calculate averages (compress 1999-2017 timeseries to single day, with an average for each day)
     wwtp_avgs_monthly_df = wwtp_df.groupby(['Month','Day']).mean().reset_index()
+    # calculate standard deviation
+    wwtp_sds_monthly_df = wwtp_df.groupby(['Month','Day']).std(ddof=0).reset_index()
 
     # convert monthly data to daily
     wwtp_avgs_df = monthly2daily(wwtp_avgs_monthly_df)
-    wwtp_avgs_df.index = wwtp_avgs_df.index + 1 # start day index from 1 instead of 0
-    # print(wwtp_avgs_monthly_df)
-    # print(wwtp_avgs_df)
+    wwtp_sds_df = monthly2daily(wwtp_sds_monthly_df)
 
-    # Plot averages (this was written to test one wwtp at a time, so only pass one wwtp through for-loop)
-    plotting = False
-    vn = 'Flow(m3/s)'
-    if plotting == True:
-        fig, ax = plt.subplots(1,1, figsize=(11, 6))
-        yrday = np.linspace(1,367,366)
+    # replace all nans with zeros, so I'm no longer injecting nans
+    wwtp_avgs_df = wwtp_avgs_df.replace(np.nan,0)
+    wwtp_sds_df = wwtp_sds_df.replace(np.nan,0)
+
+    # Set any negative TIC concentrations to zero
+    wwtp_avgs_df['DIC(mmol/m3)'] = wwtp_avgs_df['DIC(mmol/m3)'].mask(wwtp_avgs_df['DIC(mmol/m3)'].lt(0),0)
+
+    # Plot and save averages for each source
+    vns = ['Flow(m3/s)','Temp(C)','NO3+NO2(mg/L)','NH4(mg/L)','DIC(mmol/m3)','Alk(mmol/m3)','DO(mg/L)']
+    fig, axes = plt.subplots(4,2, figsize=(16, 9), sharex=True)
+    ax = axes.ravel()
+    # create one-year date range for plotting
+    yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
+    for j,vn in enumerate(vns):
+        i = j+1
+        # label subplot
+        ax[i].set_title(vn,fontsize=14)
         # Plot individual years
         for yr in range(1999,2017):
             wwtp_yr_monthly_df = wwtp_df.loc[wwtp_df['Year'] == yr]
             # convert monthly to daily
             wwtp_yr_df = monthly2daily(wwtp_yr_monthly_df)
             if yr == 2017:
-                yrday_17 = np.linspace(1,214,213) # don't have full 2017 dataset
-                plt.plot(yrday_17,wwtp_yr_df[vn],alpha=0.5, label=yr)
+                yrday_17 = pd.date_range(start ='1/1/2020', end ='8/02/2020', freq ='D') # don't have full 2017 dataset
+                ax[i].plot(yrday_17,wwtp_yr_df[vn],alpha=0.5, label=yr, linewidth=1)
             else:
-                plt.plot(yrday,wwtp_yr_df[vn],alpha=0.5, label=yr)
+                ax[i].plot(yrday,wwtp_yr_df[vn],alpha=0.5, label=yr, linewidth=1)
         # Plot average
-        plt.plot(yrday,wwtp_avgs_df[vn].values, label='average', color='black', linewidth=2)
-        plt.legend(loc='best', ncol = 4,fontsize=12)
-        plt.ylabel(vn,fontsize=16)
-        plt.xlabel('Julian Day',fontsize=16)
-        ax.tick_params(axis='both', which='major', labelsize=14)
-        plt.title(wname,fontsize=18)
-        plt.show()
+        ax[i].plot(yrday,wwtp_avgs_df[vn].values, label='average', color='black', linewidth=1.5)
+        # Plot error shading
+        upper_bound = wwtp_avgs_df[vn].values + wwtp_sds_df[vn].values
+        lower_bound = wwtp_avgs_df[vn].values - wwtp_sds_df[vn].values
+        ax[i].fill_between(yrday,upper_bound,lower_bound,label='one SD',color='k',alpha=0.5,edgecolor='none')
+        # fontsize of tick labels
+        ax[i].tick_params(axis='both', which='major', labelsize=12)
+        ax[i].tick_params(axis='x', which='major', rotation=30)
+        ax[i].set_xlim([datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)])
+        # create legend
+        if i ==7:
+            handles, labels = ax[7].get_legend_handles_labels()
+            ax[0].legend(handles, labels, loc='center', ncol = 4,fontsize=14)
+            ax[0].axis('off')
+        # Define the date format
+        if i >= 6:
+            date_form = mdates.DateFormatter("%b")
+            ax[i].xaxis.set_major_formatter(date_form)
+    # plot title is name of source
+    plt.suptitle(wname,fontsize=18)
+    # Save figure
+    figname = wname + '.png'
+    save_path = clim_dir / 'climatology_plots' / figname
+    fig.savefig(save_path)
+    plt.close('all')
 
     # Add data to climatology dataframes, and convert to units that LiveOcean expects
     flow_clim_df[wname] = wwtp_avgs_df['Flow(m3/s)']             # [m3/s]
@@ -168,9 +197,6 @@ for i,wname in enumerate(wwtpnames):
     TIC_clim_df[wname]  = wwtp_avgs_df['DIC(mmol/m3)']           # [mmol/m3]
     Talk_clim_df[wname] = wwtp_avgs_df['Alk(mmol/m3)']           # [meq/m3]
     DO_clim_df[wname]   = wwtp_avgs_df['DO(mg/L)'] * 31.26       # [mmol/m3]
-
-    # Set any negative TIC concentrations to zero
-    TIC_clim_df[TIC_clim_df < 0] = 0
 
     # Sort in descending order (so it's easier to visualize when graphing)
     flow_clim_df = flow_clim_df.sort_values(by = 1, axis = 1, ascending = False)
@@ -198,7 +224,6 @@ if pd.isnull(DO_clim_df).sum().sum() != 0:
     print('Warning, there are missing oxygen values!')
 
 # save results
-clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources' /'Data_historical'
 flow_clim_df.to_pickle(clim_dir / ('CLIM_flow_' + str(year0) + '_' + str(year1) + '.p'))
 temp_clim_df.to_pickle(clim_dir / ('CLIM_temp_' + str(year0) + '_' + str(year1) + '.p'))
 NO3_clim_df.to_pickle(clim_dir / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p'))
