@@ -105,8 +105,8 @@ for i,rname in enumerate(rivnames):
                             'Diatoms', 'Dinoflag', 'Chl', 'DIC(mmol/m3)',
                             'Alk(mmol/m3)'], axis=1, inplace=False)
 
-    # # replace all zeros with nans, so zeros don't bias data
-    # riv_df = riv_df.replace(0, np.nan)
+    # replace all zeros with nans, so zeros don't bias data
+    riv_df = riv_df.replace(0, np.nan)
 
     # calculate averages
     # (compress 1999-2017 timeseries to single day, with an average for each day)
@@ -114,9 +114,9 @@ for i,rname in enumerate(rivnames):
     # calculate standard deviation
     riv_sds_df = riv_df.groupby(['Month','Day']).std().reset_index()
 
-    # # replace all nans with zeros, so I'm no longer injecting nans
-    # riv_avgs_df = riv_avgs_df.replace(np.nan,0)
-    # riv_sds_df = riv_sds_df.replace(np.nan,0)
+    # replace all nans with zeros, so I'm no longer injecting nans
+    riv_avgs_df = riv_avgs_df.replace(np.nan,0)
+    riv_sds_df = riv_sds_df.replace(np.nan,0)
 
     # Set any negative TIC concentrations to zero
     riv_avgs_df['DIC(mmol/m3)'] = riv_avgs_df['DIC(mmol/m3)'].mask(riv_avgs_df['DIC(mmol/m3)'].lt(0),0)
