@@ -767,6 +767,7 @@ def P_debug_birchbay(in_dict):
     pfun.start_plot(fs=fs, figsize=(8*len(vn_list),10))
     plt.tight_layout()
     fig = plt.figure()
+    print(in_dict['fn'])
     ds = xr.open_dataset(in_dict['fn'])
     # PLOT CODE
     ii = 1
