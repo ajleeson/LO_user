@@ -167,7 +167,8 @@ def get_sta_dict(job_name):
     # 2022.11.09 extract mooring from Birch Bay treatment plant in LiveOcean
     elif job_name == 'birchbay_wwtp':
         sta_dict = {
-        'wwtp': (-122.8030401205365,48.8975820886066)
+        'wwtp': (-122.8030401205365,48.8975820886066),
+        'shifted-wwtp': (-122.80977293924359,48.8975820886066)
         }
             
             
