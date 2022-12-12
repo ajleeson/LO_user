@@ -164,10 +164,10 @@ for i,wname in enumerate(wwtpnames):
                 ax[i].plot(yrday,wwtp_yr_df[vn],alpha=0.5, label=yr, linewidth=1)
         # Plot average
         ax[i].plot(yrday,wwtp_avgs_df[vn].values, label='average', color='black', linewidth=1.5)
-        # Plot error shading
-        upper_bound = wwtp_avgs_df[vn].values + wwtp_sds_df[vn].values
-        lower_bound = wwtp_avgs_df[vn].values - wwtp_sds_df[vn].values
-        ax[i].fill_between(yrday,upper_bound,lower_bound,label='one SD',color='k',alpha=0.5,edgecolor='none')
+        # # Plot error shading
+        # upper_bound = wwtp_avgs_df[vn].values + wwtp_sds_df[vn].values
+        # lower_bound = wwtp_avgs_df[vn].values - wwtp_sds_df[vn].values
+        # ax[i].fill_between(yrday,upper_bound,lower_bound,label='one SD',color='k',alpha=0.5,edgecolor='none')
         # fontsize of tick labels
         ax[i].tick_params(axis='both', which='major', labelsize=12)
         ax[i].tick_params(axis='x', which='major', rotation=30)
@@ -232,113 +232,113 @@ TIC_clim_df.to_pickle(clim_dir / ('CLIM_TIC_' + str(year0) + '_' + str(year1) + 
 Talk_clim_df.to_pickle(clim_dir / ('CLIM_Talk_' + str(year0) + '_' + str(year1) + '.p'))
 DO_clim_df.to_pickle(clim_dir / ('CLIM_DO_' + str(year0) + '_' + str(year1) + '.p'))
 
-# Plotting
-plt.close('all')
+# # Plotting
+# plt.close('all')
 
-fig = plt.figure(figsize=(16,8))
-rn_split = np.array_split(flow_clim_df.columns, 12)
-for ii in range(1,13):
-    ax = fig.add_subplot(4,3,ii)
-    flow_clim_df[rn_split[ii-1]].plot(ax=ax)
-    ax.set_xlim(0,366)
-    ax.set_ylim(bottom=0)
-    plt.legend(fontsize=6, ncol=3, loc='best')
-    ax.tick_params(axis='both', labelsize=8)
-    if ii >= 7:
-        ax.set_xlabel('Yearday')
-    if ii in [1, 4,7,10]:
-        ax.set_ylabel(r'Flow [$m^{3}s^{-1}$]', fontsize = 10)
-plt.tight_layout()
-fig.savefig(clim_dir / ('CLIM_flow_plot.png'))
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(flow_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     flow_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'Flow [$m^{3}s^{-1}$]', fontsize = 10)
+# plt.tight_layout()
+# fig.savefig(clim_dir / ('CLIM_flow_plot.png'))
 
-fig = plt.figure(figsize=(16,8))
-rn_split = np.array_split(temp_clim_df.columns, 12)
-for ii in range(1,13):
-    ax = fig.add_subplot(4,3,ii)
-    temp_clim_df[rn_split[ii-1]].plot(ax=ax)
-    ax.set_xlim(0,366)
-    ax.set_ylim(bottom=0)
-    plt.legend(fontsize=6, ncol=3, loc='best')
-    ax.tick_params(axis='both', labelsize=8)
-    if ii >= 7:
-        ax.set_xlabel('Yearday')
-    if ii in [1, 4,7,10]:
-        ax.set_ylabel(r'Temp [$^{\circ}C$]', fontsize = 10)
-fig.savefig(clim_dir / ('CLIM_temp_plot.png'))
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(temp_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     temp_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'Temp [$^{\circ}C$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_temp_plot.png'))
 
-fig = plt.figure(figsize=(16,8))
-rn_split = np.array_split(NO3_clim_df.columns, 12)
-for ii in range(1,13):
-    ax = fig.add_subplot(4,3,ii)
-    NO3_clim_df[rn_split[ii-1]].plot(ax=ax)
-    ax.set_xlim(0,366)
-    ax.set_ylim(bottom=0)
-    plt.legend(fontsize=6, ncol=3, loc='best')
-    ax.tick_params(axis='both', labelsize=8)
-    if ii >= 7:
-        ax.set_xlabel('Yearday')
-    if ii in [1, 4,7,10]:
-        ax.set_ylabel(r'NO3 [$mmol m^3$]', fontsize = 10)
-fig.savefig(clim_dir / ('CLIM_NO3_plot.png'))
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(NO3_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     NO3_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'NO3 [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_NO3_plot.png'))
 
-fig = plt.figure(figsize=(16,8))
-rn_split = np.array_split(NH4_clim_df.columns, 12)
-for ii in range(1,13):
-    ax = fig.add_subplot(4,3,ii)
-    NH4_clim_df[rn_split[ii-1]].plot(ax=ax)
-    ax.set_xlim(0,366)
-    ax.set_ylim(bottom=0)
-    plt.legend(fontsize=6, ncol=3, loc='best')
-    ax.tick_params(axis='both', labelsize=8)
-    if ii >= 7:
-        ax.set_xlabel('Yearday')
-    if ii in [1, 4,7,10]:
-        ax.set_ylabel(r'NH4 [$mmol m^3$]', fontsize = 10)
-fig.savefig(clim_dir / ('CLIM_NH4_plot.png'))
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(NH4_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     NH4_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'NH4 [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_NH4_plot.png'))
 
-fig = plt.figure(figsize=(16,8))
-rn_split = np.array_split(TIC_clim_df.columns, 12)
-for ii in range(1,13):
-    ax = fig.add_subplot(4,3,ii)
-    TIC_clim_df[rn_split[ii-1]].plot(ax=ax)
-    ax.set_xlim(0,366)
-    ax.set_ylim(bottom=0)
-    plt.legend(fontsize=6, ncol=3, loc='best')
-    ax.tick_params(axis='both', labelsize=8)
-    if ii >= 7:
-        ax.set_xlabel('Yearday')
-    if ii in [1, 4,7,10]:
-        ax.set_ylabel(r'TIC [$mmol m^3$]', fontsize = 10)
-fig.savefig(clim_dir / ('CLIM_TIC_plot.png'))
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(TIC_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     TIC_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'TIC [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_TIC_plot.png'))
 
-fig = plt.figure(figsize=(16,8))
-rn_split = np.array_split(Talk_clim_df.columns, 12)
-for ii in range(1,13):
-    ax = fig.add_subplot(4,3,ii)
-    Talk_clim_df[rn_split[ii-1]].plot(ax=ax)
-    ax.set_xlim(0,366)
-    ax.set_ylim(bottom=0)
-    plt.legend(fontsize=6, ncol=3, loc='best')
-    ax.tick_params(axis='both', labelsize=8)
-    if ii >= 7:
-        ax.set_xlabel('Yearday')
-    if ii in [1, 4,7,10]:
-        ax.set_ylabel(r'Talk [$mEq m^3$]', fontsize = 10)
-fig.savefig(clim_dir / ('CLIM_Talk_plot.png'))
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(Talk_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     Talk_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'Talk [$mEq m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_Talk_plot.png'))
 
-fig = plt.figure(figsize=(16,8))
-rn_split = np.array_split(DO_clim_df.columns, 12)
-for ii in range(1,13):
-    ax = fig.add_subplot(4,3,ii)
-    DO_clim_df[rn_split[ii-1]].plot(ax=ax)
-    ax.set_xlim(0,366)
-    ax.set_ylim(bottom=0)
-    plt.legend(fontsize=6, ncol=3, loc='best')
-    ax.tick_params(axis='both', labelsize=8)
-    if ii >= 7:
-        ax.set_xlabel('Yearday')
-    if ii in [1, 4,7,10]:
-        ax.set_ylabel(r'DO [$mmol m^3$]')
-fig.savefig(clim_dir / ('CLIM_DO_plot.png'))
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(DO_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     DO_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'DO [$mmol m^3$]')
+# fig.savefig(clim_dir / ('CLIM_DO_plot.png'))
     
-plt.show()
+# plt.show()
