@@ -608,6 +608,11 @@ def traps_placement(source_type):
             y = latlon_df._get_value(source,'Lat')
             # get nearest coastal gridcell
             [row,col,ringnum] = get_nearest_coastal_cell_wwtp(sname,x,y,X,Y,mask_rho)
+            # shift Birch Bay WWTP seaward by one gridcell
+            if sname == 'Birch Bay':
+                col = col - 2
+                print('BBW Lat: {}'.format(Y[row]))
+                print('BBW Lon: {}'.format(X[col]))
             # save coordinates to rowcol_df
             rowcol_df.loc[sname, 'row_py'] = row 
             rowcol_df.loc[sname, 'col_py'] = col

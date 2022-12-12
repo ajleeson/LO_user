@@ -145,12 +145,12 @@ for i,rname in enumerate(rivnames):
                 ax[i].plot(yrday_17,riv_yr_df[vn],alpha=0.5, label=yr, linewidth=1)
             else:
                 ax[i].plot(yrday,riv_yr_df[vn],alpha=0.5, label=yr, linewidth=1)
-        # Plot average
-        ax[i].plot(yrday,riv_avgs_df[vn].values, label='average', color='black', linewidth=1.5)
-        # Plot error shading
-        upper_bound = riv_avgs_df[vn].values + riv_sds_df[vn].values
-        lower_bound = riv_avgs_df[vn].values - riv_sds_df[vn].values
-        ax[i].fill_between(yrday,upper_bound,lower_bound,label='one SD',color='k',alpha=0.5,edgecolor='none')
+        # # Plot average
+        # ax[i].plot(yrday,riv_avgs_df[vn].values, label='average', color='black', linewidth=1.5)
+        # # Plot error shading
+        # upper_bound = riv_avgs_df[vn].values + riv_sds_df[vn].values
+        # lower_bound = riv_avgs_df[vn].values - riv_sds_df[vn].values
+        # ax[i].fill_between(yrday,upper_bound,lower_bound,label='one SD',color='k',alpha=0.5,edgecolor='none')
         # fontsize of tick labels
         ax[i].tick_params(axis='both', which='major', labelsize=12)
         ax[i].tick_params(axis='x', which='major', rotation=30)
