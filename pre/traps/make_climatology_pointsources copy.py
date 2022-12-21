@@ -1,8 +1,11 @@
 """
-Make climatologies for point sources.
+Make climatologies for tiny rivers.
 Discharge rate, temperature, and biogeochemisty variables.
 
 Based on Ecology's timeseries, stored in LO_data/traps
+
+This code shows how powerful pandas is for this kind of task.
+Really just one line to make a climatology (the groupby call)
 
 To run, from ipython:
 run make_climatology_pointsources.py
@@ -168,6 +171,10 @@ for i,wname in enumerate(wwtpnames):
                 ax[i].plot(yrday,wwtp_yr_df[vn],alpha=0.5, label=yr, linewidth=1)
         # Plot average
         ax[i].plot(yrday,wwtp_avgs_df[vn].values, label='average', color='black', linewidth=1.5)
+        # # Plot error shading
+        # upper_bound = wwtp_avgs_df[vn].values + wwtp_sds_df[vn].values
+        # lower_bound = wwtp_avgs_df[vn].values - wwtp_sds_df[vn].values
+        # ax[i].fill_between(yrday,upper_bound,lower_bound,label='one SD',color='k',alpha=0.5,edgecolor='none')
         # fontsize of tick labels
         ax[i].tick_params(axis='both', which='major', labelsize=12)
         ax[i].tick_params(axis='x', which='major', rotation=30)
@@ -189,6 +196,15 @@ for i,wname in enumerate(wwtpnames):
     fig.savefig(save_path)
     plt.close('all')
 
+    # # Add data to climatology dataframes, and convert to units that LiveOcean expects
+    # flow_clim_df[wname] = wwtp_avgs_df['Flow(m3/s)']             # [m3/s]
+    # temp_clim_df[wname] = wwtp_avgs_df['Temp(C)']                # [C]
+    # NO3_clim_df[wname]  = wwtp_avgs_df['NO3+NO2(mg/L)'] * 71.4   # [mmol/m3]
+    # NH4_clim_df[wname]  = wwtp_avgs_df['NH4(mg/L)'] * 71.4       # [mmol/m3]
+    # TIC_clim_df[wname]  = wwtp_avgs_df['DIC(mmol/m3)']           # [mmol/m3]
+    # Talk_clim_df[wname] = wwtp_avgs_df['Alk(mmol/m3)']           # [meq/m3]
+    # DO_clim_df[wname]   = wwtp_avgs_df['DO(mg/L)'] * 31.26       # [mmol/m3]
+
     # Add data to climatology dataframes, and convert to units that LiveOcean expects
     flow_clim_df = pd.concat([flow_clim_df, pd.Series(wwtp_avgs_df['Flow(m3/s)'].values, name=wname)], axis = 1)     # [m3/s]
     temp_clim_df = pd.concat([temp_clim_df, pd.Series(wwtp_avgs_df['Temp(C)'].values, name=wname)], axis = 1)        # [C]
@@ -197,6 +213,15 @@ for i,wname in enumerate(wwtpnames):
     TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(wwtp_avgs_df['DIC(mmol/m3)'], name=wname)], axis = 1)          # [mmol/m3]
     Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(wwtp_avgs_df['Alk(mmol/m3)'], name=wname)], axis = 1)          # [meq/m3]
     DO_clim_df   = pd.concat([DO_clim_df, pd.Series(wwtp_avgs_df['DO(mg/L)'] * 31.26, name=wname)], axis = 1)      # [mmol/m3]
+
+    # # Sort in descending order (so it's easier to visualize when graphing)
+    # flow_clim_df = flow_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # temp_clim_df = temp_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # NO3_clim_df = NO3_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # NH4_clim_df = NH4_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # TIC_clim_df = TIC_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # Talk_clim_df = Talk_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # DO_clim_df = DO_clim_df.sort_values(by = 1, axis = 1, ascending = False)
 
 # check for missing values:
 if pd.isnull(flow_clim_df).sum().sum() != 0:
@@ -283,3 +308,122 @@ save_path = clim_dir / figname
 fig.savefig(save_path)
 # plt.close('all')
 plt.show()
+
+
+
+
+
+
+
+
+
+# # Plotting
+# plt.close('all')
+
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(flow_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     flow_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'Flow [$m^{3}s^{-1}$]', fontsize = 10)
+# plt.tight_layout()
+# fig.savefig(clim_dir / ('CLIM_flow_plot.png'))
+
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(temp_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     temp_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'Temp [$^{\circ}C$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_temp_plot.png'))
+
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(NO3_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     NO3_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'NO3 [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_NO3_plot.png'))
+
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(NH4_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     NH4_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'NH4 [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_NH4_plot.png'))
+
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(TIC_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     TIC_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'TIC [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_TIC_plot.png'))
+
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(Talk_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     Talk_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'Talk [$mEq m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_Talk_plot.png'))
+
+# fig = plt.figure(figsize=(16,8))
+# rn_split = np.array_split(DO_clim_df.columns, 12)
+# for ii in range(1,13):
+#     ax = fig.add_subplot(4,3,ii)
+#     DO_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 7:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 4,7,10]:
+#         ax.set_ylabel(r'DO [$mmol m^3$]')
+# fig.savefig(clim_dir / ('CLIM_DO_plot.png'))
+    
+# plt.show()
