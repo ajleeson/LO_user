@@ -35,23 +35,29 @@ all_his_fns = os.listdir(riv_dir)
 traps_info_df = pd.read_excel(traps_info_fn,usecols='D,E,F')
 # Only interested in rivers
 riv_all_df = traps_info_df.loc[traps_info_df['Inflow_Typ'] == 'River']
-# remove double counted river names (some are listed in two rows)
+# remove duplicate river names (some are listed in two rows)
 riv_singles_df = riv_all_df.loc[traps_info_df['Name'].str.contains('- 2') == False]
 # rename rivers that have a ' - 1' at the end
-riv_withLOrepeats_df = riv_singles_df.replace(' - 1', '', regex=True)
-# read overlapping rivers
-repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
-repeatrivs_df = pd.read_excel(repeatrivs_fn)
-SSM_repeats = repeatrivs_df['SSM_rname'].values
-# remove repeat river names from list of river names
-riv_noLOrepeats_df = riv_withLOrepeats_df[~riv_withLOrepeats_df['Name'].isin(SSM_repeats)]
+riv_names_df = riv_singles_df['Name'].str.replace(' - 1', '')
 # get river names and river ids
-rivnames = riv_noLOrepeats_df['Name'].values
-rivids = riv_noLOrepeats_df['ID'].values
+rivnames = riv_names_df.values
+rivids = riv_singles_df['ID'].values
 
-# # just Tsitsika River for now -------------------------------------------------
-# rivnames = ['Tsitika']
-# rivids = [448]
+# # just Union River for now -------------------------------------------------
+# rivnames = rivnames[90:91]
+# rivids = rivids[90:91]
+
+# # just Columbia River for now -------------------------------------------------
+# rivnames = rivnames[93:94]
+# rivids = rivids[93:94]
+
+# just Tsitsika River for now -------------------------------------------------
+# rivnames = rivnames[29:30]
+# rivids = rivids[29:30]
+
+# # just 5 rivers for now -------------------------------------------------
+# rivnames = rivnames[28:33]
+# rivids = rivids[28:33]
 
 # initialize dataframes for all rivers
 flow_clim_df = pd.DataFrame()
@@ -68,12 +74,13 @@ vns = ['Flow(m3/s)','Temp(C)','NO3+NO2(mg/L)','NH4(mg/L)','DIC(mmol/m3)','Alk(mm
 # create one-year date range for plotting
 yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
 
-# list of rivers that are not in SSM and have weird biogeochemistry values (doesn't include overlapping rivers between SSM and LO)
-weird_rivers = ['Brooks Peninsula', 'Campbell River', 'Clayoquot', 'Holberg',
+# list of rivers that are not in SSM and have weird biogeochemistry values
+weird_rivers = ['Alberni Inlet', 'Brooks Peninsula', 'Campbell River',
+                'Chehalis  R', 'Clayoquot', 'Gold River', 'Holberg',
                 'Homathco River', 'Klinaklini River', 'Knight Inlet',
                 'Neil Creek', 'Nimpkish River', 'North East Vancouver Island',
                 'Owikeno Lake', 'Salmon River', 'Seymour Inlet', 'Tahsis',
-                'Toba Inlet', 'Tsitika River', 'Willamette R']
+                'Toba Inlet', 'Tsitika River', 'Willamette R', 'Willapa R']
 
 # loop through all rivers
 for i,rname in enumerate(rivnames):
@@ -125,6 +132,9 @@ for i,rname in enumerate(rivnames):
     riv_avgs_df = riv_avgs_df.replace(np.nan,0)
     riv_sds_df = riv_sds_df.replace(np.nan,0)
 
+    # Set any negative TIC concentrations to zero
+    riv_avgs_df['DIC(mmol/m3)'] = riv_avgs_df['DIC(mmol/m3)'].mask(riv_avgs_df['DIC(mmol/m3)'].lt(0),0)
+
     # Plot and save averages for each source
     fig, axes = plt.subplots(4,2, figsize=(16, 9), sharex=True)
     ax = axes.ravel()
@@ -148,6 +158,10 @@ for i,rname in enumerate(rivnames):
                 ax[i].plot(yrday,riv_yr_df[vn],alpha=0.5, label=yr, linewidth=1)
         # Plot average
         ax[i].plot(yrday,riv_avgs_df[vn].values, label='average', color='black', linewidth=1.5)
+        # # Plot error shading
+        # upper_bound = riv_avgs_df[vn].values + riv_sds_df[vn].values
+        # lower_bound = riv_avgs_df[vn].values - riv_sds_df[vn].values
+        # ax[i].fill_between(yrday,upper_bound,lower_bound,label='one SD',color='k',alpha=0.5,edgecolor='none')
         # fontsize of tick labels
         ax[i].tick_params(axis='both', which='major', labelsize=12)
         ax[i].tick_params(axis='x', which='major', rotation=30)
@@ -163,21 +177,29 @@ for i,rname in enumerate(rivnames):
             ax[i].xaxis.set_major_formatter(date_form)
     # plot title is name of source
     plt.suptitle(rname,fontsize=18)
-    # Save figure if not a weird river
-    if rname not in weird_rivers:
-        figname = rname + '.png'
-        save_path = clim_dir / 'climatology_plots' / figname
-        fig.savefig(save_path)
-        plt.close('all')
-        # plt.show()
+    # Save figure
+    figname = rname + '.png'
+    save_path = clim_dir / 'climatology_plots' / figname
+    fig.savefig(save_path)
+    plt.close('all')
+    # plt.show()
+
+    # # Add data to climatology dataframes, and convert to units that LiveOcean expects
+    # flow_clim_df[rname] = riv_avgs_df['Flow(m3/s)']             # [m3/s]
+    # temp_clim_df[rname] = riv_avgs_df['Temp(C)']                # [C]
+    # NO3_clim_df[rname]  = riv_avgs_df['NO3+NO2(mg/L)'] * 71.4   # [mmol/m3]
+    # NH4_clim_df[rname]  = riv_avgs_df['NH4(mg/L)'] * 71.4       # [mmol/m3]
+    # TIC_clim_df[rname]  = riv_avgs_df['DIC(mmol/m3)']           # [mmol/m3]
+    # Talk_clim_df[rname] = riv_avgs_df['Alk(mmol/m3)']           # [meq/m3]
+    # DO_clim_df[rname]   = riv_avgs_df['DO(mg/L)'] * 31.26       # [mmol/m3]
     
     # Add data to climatology dataframes, and convert to units that LiveOcean expects
     flow_clim_df = pd.concat([flow_clim_df, pd.Series(riv_avgs_df['Flow(m3/s)'].values, name=rname)], axis = 1)     # [m3/s]
-    temp_clim_df = pd.concat([temp_clim_df, pd.Series(riv_avgs_df['Temp(C)'].values, name=rname)], axis = 1)        # [C]
     # don't add biogeochem for rivers with unrealistic values (pad with nans)
     if rname in weird_rivers:
         nans = np.empty((366,))
         nans[:] = np.nan
+        temp_clim_df = pd.concat([temp_clim_df, pd.Series(nans, name=rname)], axis = 1)
         NO3_clim_df  = pd.concat([NO3_clim_df, pd.Series(nans, name=rname)], axis = 1)
         NH4_clim_df  = pd.concat([NH4_clim_df, pd.Series(nans, name=rname)], axis = 1)
         TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(nans, name=rname)], axis = 1)
@@ -185,11 +207,21 @@ for i,rname in enumerate(rivnames):
         DO_clim_df   = pd.concat([DO_clim_df, pd.Series(nans, name=rname)], axis = 1)
     # add biogeochem for all normal rivers
     else:
+        temp_clim_df = pd.concat([temp_clim_df, pd.Series(riv_avgs_df['Temp(C)'].values, name=rname)], axis = 1)        # [C]
         NO3_clim_df  = pd.concat([NO3_clim_df, pd.Series(riv_avgs_df['NO3+NO2(mg/L)'] * 71.4, name=rname)], axis = 1)  # [mmol/m3]
         NH4_clim_df  = pd.concat([NH4_clim_df, pd.Series(riv_avgs_df['NH4(mg/L)'] * 71.4, name=rname)], axis = 1)      # [mmol/m3]
         TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(riv_avgs_df['DIC(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
         Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(riv_avgs_df['Alk(mmol/m3)'], name=rname)], axis = 1)          # [meq/m3]
         DO_clim_df   = pd.concat([DO_clim_df, pd.Series(riv_avgs_df['DO(mg/L)'] * 31.26, name=rname)], axis = 1)      # [mmol/m3]
+
+    # # Sort in descending order (so it's easier to visualize when graphing)
+    # flow_clim_df = flow_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # temp_clim_df = temp_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # NO3_clim_df = NO3_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # NH4_clim_df = NH4_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # TIC_clim_df = TIC_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # Talk_clim_df = Talk_clim_df.sort_values(by = 1, axis = 1, ascending = False)
+    # DO_clim_df = DO_clim_df.sort_values(by = 1, axis = 1, ascending = False)
 
 # Calculate summary statistics for all tinyrivs
 clim_avgs = pd.DataFrame()
@@ -214,52 +246,13 @@ for i,vn in enumerate(vns):
     clim_sds[vn] = clim_df_list[i].std(axis=1)/scale
 
 # fill weird river biogeochemisty values with average values
-for rname in weird_rivers:
-    # temp_clim_df[rname] = clim_avgs['Temp(C)']                # [C]
+for i,rname in enumerate(weird_rivers):
+    temp_clim_df[rname] = clim_avgs['Temp(C)']                # [C]
     NO3_clim_df[rname]  = clim_avgs['NO3+NO2(mg/L)'] * 71.4   # [mmol/m3]
     NH4_clim_df[rname]  = clim_avgs['NH4(mg/L)'] * 71.4       # [mmol/m3]
     TIC_clim_df[rname]  = clim_avgs['DIC(mmol/m3)']           # [mmol/m3]
     Talk_clim_df[rname] = clim_avgs['Alk(mmol/m3)']           # [meq/m3]
     DO_clim_df[rname]   = clim_avgs['DO(mg/L)'] * 31.26       # [mmol/m3]
-    # Plot and save averages for weird rivers
-    fig, axes = plt.subplots(4,2, figsize=(16, 9), sharex=True)
-    ax = axes.ravel()
-    for j,vn in enumerate(vns):
-        i = j+1
-        # label subplot
-        ax[i].set_title(vn,fontsize=14)
-        # Plot actual river flowrate
-        if vn == 'Flow(m3/s)' or vn == 'Temp(C)':
-            ax[i].plot(yrday,clim_df_list[j][rname].values, label='Climatology profile for this river', color='black', linewidth=1.5)
-        else:
-            scale = 1
-            if vn == 'NO3+NO2(mg/L)' or vn == 'NH4(mg/L)':
-                scale = 71.4
-            elif vn == 'DO(mg/L)':
-                scale = 31.26
-            # Plot average river climatology for biogeochemistry
-            ax[i].plot(yrday,clim_df_list[j][rname].values/scale, label='Climatology profile for this river', color='black', linewidth=1.5) # this line here just for legend
-            ax[i].plot(yrday,clim_df_list[j][rname].values/scale, label='Filled with average climatology of all rivers', color='silver', linewidth=1.5)
-        # fontsize of tick labels
-        ax[i].tick_params(axis='both', which='major', labelsize=12)
-        ax[i].tick_params(axis='x', which='major', rotation=30)
-        ax[i].set_xlim([datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)])
-        # create legend
-        if i ==7:
-            handles, labels = ax[7].get_legend_handles_labels()
-            ax[0].legend(handles, labels, loc='center', ncol = 1,fontsize=14)
-            ax[0].axis('off')
-        # Define the date format
-        if i >= 6:
-            date_form = mdates.DateFormatter("%b")
-            ax[i].xaxis.set_major_formatter(date_form)
-    # plot title is name of source
-    plt.suptitle(rname,fontsize=18)
-    figname = rname + '.png'
-    save_path = clim_dir / 'climatology_plots' / figname
-    fig.savefig(save_path)
-    plt.close('all')
-    # plt.show()
 
 # check for missing values:
 if pd.isnull(flow_clim_df).sum().sum() != 0:
@@ -324,3 +317,119 @@ save_path = clim_dir / figname
 fig.savefig(save_path)
 # plt.close('all')
 plt.show()
+
+
+
+
+
+
+# # Plotting
+# plt.close('all')
+
+# fig = plt.figure(figsize=(18,10))
+# rn_split = np.array_split(flow_clim_df.columns, 24)
+# for ii in range(1,25):
+#     ax = fig.add_subplot(6,4,ii)
+#     flow_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 21:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 5, 9, 13, 17, 21]:
+#         ax.set_ylabel(r'Flow [$m^{3}s^{-1}$]', fontsize = 10)
+# plt.tight_layout()
+# fig.savefig(clim_dir / ('CLIM_flow_plot.png'))
+
+# fig = plt.figure(figsize=(18,10))
+# rn_split = np.array_split(temp_clim_df.columns, 24)
+# for ii in range(1,25):
+#     ax = fig.add_subplot(6,4,ii)
+#     temp_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 21:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 5, 9, 13, 17, 21]:
+#         ax.set_ylabel(r'Temp [$^{\circ}C$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_temp_plot.png'))
+
+# fig = plt.figure(figsize=(18,10))
+# rn_split = np.array_split(NO3_clim_df.columns, 24)
+# for ii in range(1,25):
+#     ax = fig.add_subplot(6,4,ii)
+#     NO3_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 21:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 5, 9, 13, 17, 21]:
+#         ax.set_ylabel(r'NO3 [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_NO3_plot.png'))
+
+# fig = plt.figure(figsize=(18,10))
+# rn_split = np.array_split(NH4_clim_df.columns, 24)
+# for ii in range(1,25):
+#     ax = fig.add_subplot(6,4,ii)
+#     NH4_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 21:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 5, 9, 13, 17, 21]:
+#         ax.set_ylabel(r'NH4 [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_NH4_plot.png'))
+
+# fig = plt.figure(figsize=(18,10))
+# rn_split = np.array_split(TIC_clim_df.columns, 24)
+# for ii in range(1,25):
+#     ax = fig.add_subplot(6,4,ii)
+#     TIC_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 21:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 5, 9, 13, 17, 21]:
+#         ax.set_ylabel(r'TIC [$mmol m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_TIC_plot.png'))
+
+# fig = plt.figure(figsize=(18,10))
+# rn_split = np.array_split(Talk_clim_df.columns, 24)
+# for ii in range(1,25):
+#     ax = fig.add_subplot(6,4,ii)
+#     Talk_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 21:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 5, 9, 13, 17, 21]:
+#         ax.set_ylabel(r'Talk [$mEq m^3$]', fontsize = 10)
+# fig.savefig(clim_dir / ('CLIM_Talk_plot.png'))
+
+# fig = plt.figure(figsize=(18,10))
+# rn_split = np.array_split(DO_clim_df.columns, 24)
+# for ii in range(1,25):
+#     ax = fig.add_subplot(6,4,ii)
+#     DO_clim_df[rn_split[ii-1]].plot(ax=ax)
+#     ax.set_xlim(0,366)
+#     ax.set_ylim(bottom=0)
+#     plt.legend(fontsize=6, ncol=3, loc='best')
+#     ax.tick_params(axis='both', labelsize=8)
+#     if ii >= 21:
+#         ax.set_xlabel('Yearday')
+#     if ii in [1, 5, 9, 13, 17, 21]:
+#         ax.set_ylabel(r'DO [$mmol m^3$]')
+# fig.savefig(clim_dir / ('CLIM_DO_plot.png'))
+    
+# plt.show()
