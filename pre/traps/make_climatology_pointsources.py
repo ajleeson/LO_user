@@ -23,8 +23,7 @@ import datetime
 # helper function 
 def monthly2daily(df):
     '''
-    turn a monthly dataframe into daily data
-    (Note: this works but is very sketchy code!!!!!!!!!!!!!!!!!!!!!!!!!!!!)
+    turn a monthly dataframe into daily data (for a year's worth of monthly data)
     '''
     # duplicate last row
     double_lr_df = pd.concat([df, df.iloc[-1:]], ignore_index=True)
@@ -40,7 +39,7 @@ def monthly2daily(df):
     # delete last row (1/1 on the next year)
     daily_df = double_lr_daily_df[:-1]
     # make index start from 1 and go to 366
-    daily_i_df = daily_df.reset_index(inplace=True)
+    daily_df.reset_index(inplace=True)
     return daily_df
     
 
@@ -75,7 +74,7 @@ wwtpids = wwtp_all_df['ID'].values
 # wwtpnames = wwtpnames[26:27]
 # wwtpids = wwtpids[26:27]
 
-# just test 5 WWTPs for now -------------------------------------------------
+# # just test 5 WWTPs for now -------------------------------------------------
 # wwtpnames = wwtpnames[12:17]
 # wwtpids = wwtpids[12:17]
 
@@ -94,7 +93,7 @@ vns = ['Flow(m3/s)','Temp(C)','NO3+NO2(mg/L)','NH4(mg/L)','DIC(mmol/m3)','Alk(mm
 # create one-year date range for plotting
 yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
 
-# loop through all rivers
+# loop through all point sources
 for i,wname in enumerate(wwtpnames):
 
     print('{}: {}'.format(i,wname))
