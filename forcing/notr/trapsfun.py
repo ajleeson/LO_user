@@ -617,8 +617,8 @@ def traps_placement(source_type):
         # bathymetry
         fig = plt.figure(figsize=(5,9))
         ax = fig.add_subplot(111)
-        pfun.add_coast(ax,color='black')
-        ax.pcolormesh(plon, plat, zm, edgecolor='grey', linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+        pfun.add_coast(ax,color='lightgrey')
+        ax.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
         # ax.set_xlim(-123.5,-122) # Puget Sound
         # ax.set_ylim(46.7,49.3) # Puget Sound
