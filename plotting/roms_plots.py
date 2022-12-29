@@ -831,6 +831,84 @@ def P_debug_birchbay(in_dict):
         plt.show()
 
 
+def P_debug_TRAPS0(in_dict):
+    # Focused on debugging
+    vn_list = ['u', 'v', 'w']
+    do_wetdry = False
+    
+    # START
+    fs = 10
+    pfun.start_plot(fs=fs, figsize=(8*len(vn_list),10))
+    plt.tight_layout()
+    fig = plt.figure()
+    print(in_dict['fn'])
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    ii = 1
+    for vn in vn_list:
+        if 'lon_rho' in ds[vn].coords:
+            tag = 'rho'
+        if 'lon_u' in ds[vn].coords:
+            tag = 'u'
+        if 'lon_v' in ds[vn].coords:
+            tag = 'v'
+        x = ds['lon_'+tag].values
+        y = ds['lat_'+tag].values
+        px, py = pfun.get_plon_plat(x,y)
+        if vn in ['u', 'v']:
+            v = ds[vn][0,-1,:,:].values
+            vmin = -2
+            vmax = 2
+            cmap=plt.get_cmap(cm.balance)
+        if vn in ['w']:
+            v = ds[vn][0,-1,:,:].values
+            vmin = -0.01
+            vmax = 0.01
+            cmap=plt.get_cmap(cm.balance)
+        else:
+            v = ds[vn][0, -1,:,:].values
+        ax = fig.add_subplot(1, len(vn_list), ii)
+
+        cs = ax.pcolormesh(px, py, v, cmap=cmap, vmin=vmin, vmax=vmax)
+        pfun.add_coast(ax)
+        ax.axis(pfun.get_aa(ds))
+        # ax.set(xlim=(-122.8, -122.55), ylim=(48.5, 48.6)) # max vel
+        # ax.set(xlim=(-122.6,-122.5), ylim=(47.2,47.3)) # min vel
+        ax.set(xlim=(-125,-122), ylim=(46.7,49.7)) # Salish Sea
+
+        # plot location of wwtp
+        # ax.scatter(-122.8030401205365,48.8975820886066, s=80, marker='^',
+        #             color='deeppink', edgecolors='pink', label='Original Birch Bay WWTP Location')
+        # ax.scatter(-122.81650575795068,48.8975820886066, s=80, marker='D',
+        #             color='limegreen', edgecolors='chartreuse', label='Shifted Birch Bay WWTP Location')
+        # ax.legend(loc='upper left', fontsize = 12)
+
+        # add colorbar
+        cbar = plt.colorbar(cs,ax=ax, location='bottom')
+        cbar.ax.tick_params(labelsize=12, rotation=30)
+
+        pfun.dar(ax)
+        if ii == 1:
+            pfun.add_info(ax, in_dict['fn'], his_num=True)
+        vmax, vjmax, vimax, vmin, vjmin, vimin = pfun.maxmin(v)
+        ax.plot(x[vjmax,vimax], y[vjmax,vimax],'*y', mec='k', markersize=15)
+        ax.plot(x[vjmin,vimin], y[vjmin,vimin],'oy', mec='k', markersize=10)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+        ax.set_title(('%s ((*)max=%0.1f, (o)min=%0.1f)' % (vn, vmax, vmin)), fontsize = 20)
+        ii += 1
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+
+
 def P_layer(in_dict):
     # START
     fs = 14
