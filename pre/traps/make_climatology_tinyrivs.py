@@ -68,7 +68,8 @@ vns = ['Flow(m3/s)','Temp(C)','NO3+NO2(mg/L)','NH4(mg/L)','DIC(mmol/m3)','Alk(mm
 # create one-year date range for plotting
 yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
 
-# list of rivers that are not in SSM and have weird biogeochemistry values (doesn't include overlapping rivers between SSM and LO)
+# list of rivers that are not in SSM and have weird biogeochemistry values
+# (doesn't include overlapping rivers between SSM and LO)
 weird_rivers = ['Brooks Peninsula', 'Campbell River', 'Clayoquot', 'Holberg',
                 'Homathco River', 'Klinaklini River', 'Knight Inlet',
                 'Neil Creek', 'Nimpkish River', 'North East Vancouver Island',
@@ -174,7 +175,7 @@ for i,rname in enumerate(rivnames):
     # Add data to climatology dataframes, and convert to units that LiveOcean expects
     flow_clim_df = pd.concat([flow_clim_df, pd.Series(riv_avgs_df['Flow(m3/s)'].values, name=rname)], axis = 1)     # [m3/s]
     temp_clim_df = pd.concat([temp_clim_df, pd.Series(riv_avgs_df['Temp(C)'].values, name=rname)], axis = 1)        # [C]
-    # don't add biogeochem for rivers with unrealistic values (pad with nans)
+    # don't add biogeochem for weird rivers with unrealistic values (pad with nans)
     if rname in weird_rivers:
         nans = np.empty((366,))
         nans[:] = np.nan
