@@ -602,7 +602,7 @@ def traps_placement(source_type):
     rowcol_df = rowcol_df.dropna()
     rowcol_df.to_csv(out_rfn)
 
-    plotting = True
+    plotting = False
 
     if plotting == True:
         # PLOTTING FOR TESTING ------------------------------------------------------------------------
@@ -617,17 +617,14 @@ def traps_placement(source_type):
         fig = plt.figure(figsize=(5,9))
         ax = fig.add_subplot(111)
         pfun.add_coast(ax,color='black')
-        ax.pcolormesh(plon, plat, zm, edgecolor='lightgrey', linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+        ax.pcolormesh(plon, plat, zm, edgecolor='aliceblue', linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
         # ax.set_xlim(-123.5,-122) # Puget Sound
         # ax.set_ylim(46.7,49.3) # Puget Sound
-        # ax.set_xlim(-125,-122) # Salish Sea
-        # ax.set_ylim(46.7,49.7) # Salish Sea
-        ax.set_xlim(-130,-121.5) # Full Grid
-        ax.set_ylim(42,52) # Full Grid
-
-        # ax.set_xlim(-122.6,-122.5) # Debugging
-        # ax.set_ylim(47.2,47.3) # Debugging
+        ax.set_xlim(-125,-122) # Salish Sea
+        ax.set_ylim(46.7,49.7) # Salish Sea
+        # ax.set_xlim(-130,-121.5) # Full Grid
+        # ax.set_ylim(42,52) # Full Grid
 
 
         # plot original sources
@@ -648,8 +645,9 @@ def traps_placement(source_type):
 
             # label counters
             first_label = True
+            first_label_LO = True
 
-            for rn in rri_df.index:
+            for i,rn in enumerate(rri_df.index):
                 # These are indices (python, zero-based) into either the
                 # u or v grids.
                 ii = int(rri_df.loc[rn,'col_py'])
@@ -668,18 +666,26 @@ def traps_placement(source_type):
                         first_label = False
                     else:
                         ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='purple', marker='o', linestyle = 'None')
+                    # plot tracks
+                    ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii+1]],[SSMrivll_df['Lat'][i], lat[jj,ii+1]],color='hotpink', linewidth=0.5)
                 if uv == 'u' and isign == -1:
                     # River source on E side of rho cell
                     ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
                     ax.plot(lon[jj,ii], lat[jj,ii],color='purple', marker='o', linestyle = 'None')
+                    # plot tracks
+                    ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii]],[SSMrivll_df['Lat'][i], lat[jj,ii]],color='hotpink', linewidth=0.5)
                 if uv == 'v' and isign == 1:
                     # River source on S side of rho cell
                     ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
                     ax.plot(lon[jj+1,ii], lat[jj+1,ii],color='purple', marker='o', linestyle = 'None')
+                    # plot tracks
+                    ax.plot([SSMrivll_df['Lon'][i], lon[jj+1,ii]],[SSMrivll_df['Lat'][i], lat[jj+1,ii]],color='hotpink', linewidth=0.5)
                 if uv == 'v' and isign == -1:
                     # River source on N side of rho cell
                     ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
                     ax.plot(lon[jj,ii], lat[jj,ii],color='purple', marker='o', linestyle = 'None')
+                    # plot tracks
+                    ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii]],[SSMrivll_df['Lat'][i], lat[jj,ii]],color='hotpink', linewidth=0.5)
 
         # -----------------------------------------------------
 
@@ -726,7 +732,11 @@ def traps_placement(source_type):
                 if uv == 'u' and isign == 1:
                     # River source on W side of rho cell
                     ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
-                    ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='darkorange', marker='*')
+                    if first_label_LO:
+                       ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='darkorange', marker='*', linestyle = 'None', label='pre-existing LiveOcean River')
+                       first_label_LO = False
+                    else:
+                        ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='darkorange', marker='*')
                 if uv == 'u' and isign == -1:
                     # River source on E side of rho cell
                     ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
@@ -739,18 +749,18 @@ def traps_placement(source_type):
                     # River source on N side of rho cell
                     ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
                     ax.plot(lon[jj,ii], lat[jj,ii],color='darkorange', marker='*') 
-   
-            ax.scatter(LOrivs_lon,LOrivs_lat, color='darkorange', marker='*', s=30, label='pre-existing LiveOcean River')
-
-        # plot tracks
-        for i in range(len(ps_lon)):
-            if inflow_type == 'River':
-                ax.plot([SSMrivll_df['Lon'][i], ps_lon[i]],
-                [SSMrivll_df['Lat'][i], ps_lat[i]],
-                color='hotpink', linewidth=0.5)
 
         # print labels ---------------------------------------
+        # get list of sources that discharge to the same cell (overlapping)
+        duplicate_df = rowcol_df[rowcol_df.duplicated(['row_py','col_py'], keep=False) == True]
         for i,sn in enumerate(snames):
+            # merge names of overlapping sources (actual handling of overlap is dealt with in make_forcing_main)
+            if sn == 'Purdy Cr' or sn == 'Burley Cr':
+                sn = 'Purdy Cr & Burley Cr'
+            elif sn == 'Deer Cr' or sn == 'Mable Taylor Cr':
+                sn = 'Deer Cr & Mable Taylor Cr'
+            elif sn == 'Perry Cr' or sn == 'McLane Cr':
+                sn = 'Perry Cr & McLane Cr'
             sn_lon = ps_lon[i]
             sn_lat = ps_lat[i]+0.003
             ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=10, horizontalalignment='center')
@@ -811,3 +821,33 @@ def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
         sys.stdout.flush()
         
     return qtbio_df_dict
+
+def combine_adjacent(lst):
+    """
+    Given a list, e.g. ['a','b','c','d']
+    returns: ['a&b', 'c&d']
+    """
+    combined = [x + '&' + y for x, y in zip(lst[::2],lst[1::2])]
+    return combined
+
+def weighted_average(vn,qtbio_df_1, qtbio_df_2):
+    '''
+    Calculate the weighted average properties based on flowrate of two overlapping sources
+    '''
+    # get flowrates
+    flow1 = qtbio_df_1['flow'].values
+    flow2 = qtbio_df_2['flow'].values
+    # get variable
+    var1 = qtbio_df_1[vn].values
+    var2 = qtbio_df_1[vn].values
+    # calculate weighted average based on flowrate
+    waverage = [np.average([var1[i], var2[i]], weights = [flow1[i], flow2[i]]) for i in range(len(flow1))]
+    # print('flowrates ===================================')
+    # print(flow1)
+    # print(flow2)
+    # print('variable----------------------------------------')
+    # print(var1)
+    # print(var2)
+    # print('weighted average===============================')
+    # print(waverage)
+    return waverage
