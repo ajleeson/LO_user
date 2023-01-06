@@ -791,10 +791,12 @@ def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
         LObio_names_all = list(repeatrivs_df.loc[repeatrivs_df['in_both'] == 1, 'LO_rname'])
         # remove the weird rivers
         weird_duplicate_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R', 'Columbia R', 'Comox']
+        # Note that these are the names that LO calls the rivers
         LObio_names = [rname for rname in LObio_names_all if LO2SSM_name(rname) not in weird_duplicate_rivers]
 
     # load climatological data
     if traps_type != 'LOriv':
+        # don't need flow and temp for pre-existing LO rivers
         Cflow_df = pd.read_pickle(Ldir['Cflow_'+traps_type+'_fn'])
         Ctemp_df = pd.read_pickle(Ldir['Ctemp_'+traps_type+'_fn'])
     CDO_df   = pd.read_pickle(Ldir['CDO_'+traps_type+'_fn'])

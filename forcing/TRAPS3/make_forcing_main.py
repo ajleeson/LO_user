@@ -92,13 +92,15 @@ Ldir['CNH4_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_NH4_' + str(year
 Ldir['CNO3_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p')
 Ldir['CTalk_LOriv_fn'] = LObio_dir / 'Data_historical' / ('CLIM_Talk_' + str(year0) + '_' + str(year1) + '.p')
 Ldir['CTIC_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_TIC_' + str(year0) + '_' + str(year1) + '.p')
-# get river names for which Ecology has biogeochem data
+
+# get names of rivers for which Ecology has biogeochem data
 # these are the names the LiveOcean calls them. Later, they will be converted to the name Ecology/SSM uses
 repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
 repeatrivs_df = pd.read_excel(repeatrivs_fn)
 LObio_names_all = list(repeatrivs_df.loc[repeatrivs_df['in_both'] == 1, 'LO_rname'])
 # remove the weird rivers
 weird_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R', 'Columbia R', 'Comox']
+# These are the names that LO uses
 LObio_names = [rname for rname in LObio_names_all if trapsfun.LO2SSM_name(rname) not in weird_rivers]
 
 # get the list of rivers and indices for this grid
@@ -218,10 +220,12 @@ for bvn in bvn_list:
     for rn in gri_df.index:
         # Add biogeochem climatology for rivers for which Ecology have data
         if rn in LObio_names and bvn in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
-            # get corresponding Ecology river name
+            # get corresponding Ecology/SSM river name
             rn_SSM = trapsfun.LO2SSM_name(rn)
+            # get the biogeochem values from climatology
             bio_LOriv_df = LObio_df_dict[rn_SSM]
             bvals = bio_LOriv_df[bvn].values
+        # If Ecology doesn't have data, use default LO bio
         else:
             bvals = rivfun.get_bio_vec(bvn, rn, yd_ind)
         for nn in range(N):
