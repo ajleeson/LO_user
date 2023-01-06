@@ -783,8 +783,14 @@ def traps_placement(source_type):
 
 def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
 
-    # Rivers that are already in LiveOcean and have weird biogeochemistry
-    weird_duplicate_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R', 'Columbia R', 'Comox']
+    # Only add biology to pre-existing LO river if Ecology has data
+    if traps_type == 'LOriv':
+        repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
+        repeatrivs_df = pd.read_excel(repeatrivs_fn)
+        LObio_names_all = list(repeatrivs_df.loc[repeatrivs_df['in_both'] == 1, 'LO_rname'])
+        # remove the weird rivers
+        weird_duplicate_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R', 'Columbia R', 'Comox']
+        LObio_names = [rname for rname in LObio_names_all if LO2SSM_name(rname) not in weird_duplicate_rivers]
 
     # load climatological data
     if traps_type != 'LOriv':
@@ -805,11 +811,10 @@ def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
 
         # convert LO river name to SSM river name
         if traps_type == 'LOriv':
-            rn = LO2SSM_name(rn)
-
-        # skip weird duplicate rivers
-        if str(rn) in weird_duplicate_rivers:
-            continue
+            if rn in LObio_names:
+                rn = LO2SSM_name(rn)
+            else:
+                continue    
         
         # initialize screen output
         sout = '-- ' + str(rn) + ': '
