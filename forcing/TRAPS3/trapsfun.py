@@ -812,7 +812,7 @@ def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
             continue
         
         # initialize screen output
-        sout = '-- ' + rn + ': '
+        sout = '-- ' + str(rn) + ': '
         
         # initialize a qtbio (flow and temperature vs. time) DataFrame for this river
         qtbio_df = pd.DataFrame(index=dt_ind, columns=['flow','temp','Oxyg','NH4','NO3','TAlk','TIC'])
