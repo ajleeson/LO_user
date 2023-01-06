@@ -47,6 +47,7 @@ SSM_repeats = repeatrivs_df['SSM_rname'].values
 # only look at duplicate SSM and LO rivers
 riv_onlyLOrepeats_df = riv_all_df[riv_all_df['Name'].isin(SSM_repeats)]
 # get river names and river ids
+# note that these river names are the Ecology/SSM name
 rivnames = riv_onlyLOrepeats_df['Name'].values
 rivids = riv_onlyLOrepeats_df['ID'].values
 
@@ -63,7 +64,7 @@ vns = ['NO3+NO2(mg/L)','NH4(mg/L)','DIC(mmol/m3)','Alk(mmol/m3)','DO(mg/L)']
 # create one-year date range for plotting
 yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
 
-# list of rivers that have weird biogeochemistry values
+# list of rivers that have weird biogeochemistry values. We don't want to include these
 weird_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R',
                 'Columbia R', 'Comox']
 
@@ -162,8 +163,7 @@ for i,rname in enumerate(rivnames):
         plt.close('all')
         # plt.show()
     
-        # Add data to climatology dataframes, and convert to units that LiveOcean expects
-        # don't add biogeochem for weird rivers with unrealistic values (pad with nans)
+        # Add data to climatology dataframes, and convert to units that LiveOcean expects (weird rivers are omitted)
         NO3_clim_df  = pd.concat([NO3_clim_df, pd.Series(riv_avgs_df['NO3+NO2(mg/L)'] * 71.4, name=rname)], axis = 1)  # [mmol/m3]
         NH4_clim_df  = pd.concat([NH4_clim_df, pd.Series(riv_avgs_df['NH4(mg/L)'] * 71.4, name=rname)], axis = 1)      # [mmol/m3]
         TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(riv_avgs_df['DIC(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
