@@ -831,7 +831,7 @@ def P_debug_birchbay(in_dict):
         plt.show()
 
 
-def P_debug_TRAPS0(in_dict):
+def P_debug_traps(in_dict):
     # Focused on debugging
     vn_list = ['u', 'v', 'w']
     do_wetdry = False
@@ -872,16 +872,15 @@ def P_debug_TRAPS0(in_dict):
         cs = ax.pcolormesh(px, py, v, cmap=cmap, vmin=vmin, vmax=vmax)
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
-        # ax.set(xlim=(-122.8, -122.55), ylim=(48.5, 48.6)) # max vel
-        # ax.set(xlim=(-122.6,-122.5), ylim=(47.2,47.3)) # min vel
-        ax.set(xlim=(-125,-122), ylim=(46.7,49.7)) # Salish Sea
+        # ax.set(xlim=(-125,-122), ylim=(46.7,49.7)) # Salish Sea
+        ax.set(xlim=(-122.65,-122.55), ylim=(48.24,48.32)) # Whidbey Basin TRAPS2 blowup
 
         # plot location of wwtp
-        # ax.scatter(-122.8030401205365,48.8975820886066, s=80, marker='^',
-        #             color='deeppink', edgecolors='pink', label='Original Birch Bay WWTP Location')
-        # ax.scatter(-122.81650575795068,48.8975820886066, s=80, marker='D',
-        #             color='limegreen', edgecolors='chartreuse', label='Shifted Birch Bay WWTP Location')
-        # ax.legend(loc='upper left', fontsize = 12)
+        ax.scatter(-122.6089102880491,48.29641244460101, s=80, marker='^',
+                    color='deeppink', edgecolors='pink', label='Whidbey east tiny river mouth')
+        ax.scatter(-122.5978890594361,48.28765748480291, s=80, marker='D',
+                    color='limegreen', edgecolors='chartreuse', label='Oak Harbor Lagoon WWTP')
+        ax.legend(loc='upper left', fontsize = 12)
 
         # add colorbar
         cbar = plt.colorbar(cs,ax=ax, location='bottom')

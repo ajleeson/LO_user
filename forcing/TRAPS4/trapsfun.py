@@ -297,8 +297,9 @@ def get_nearest_coastal_cell_wwtp(sname,x,y,X,Y,mask_rho):
                     # iterate into next level ring
                     ringnum += 1
 
-        row = psJJ
-        col = psII
+        # subtract 1 to convert from Python to Fortran indexing (0 vs 1)
+        row = psJJ - 1 
+        col = psII - 1
         return [row,col,ringnum]
     
     else:
