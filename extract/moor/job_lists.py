@@ -170,6 +170,12 @@ def get_sta_dict(job_name):
         'wwtp': (-122.8030401205365,48.8975820886066),
         'shifted-wwtp': (-122.80977293924359,48.8975820886066)
         }
+
+    # 2023.01.13 extract mooring from Oak Harbor Lagoon treatment plant in LiveOcean
+    elif job_name == 'oakharborlagoon_wwtp':
+        sta_dict = {
+        'wwtp': (-122.60105555932371,48.28559664274097),
+        }
             
             
     else:
