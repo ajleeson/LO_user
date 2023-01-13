@@ -860,11 +860,14 @@ def P_debug_traps(in_dict):
             vmin = -2
             vmax = 2
             cmap=plt.get_cmap(cm.balance)
+            # if vn in ['v']:
+            #     print('Whidbey easty (lon/lat): ({},{})'.format(x[897,572],y[897,572]))
         if vn in ['w']:
             v = ds[vn][0,-1,:,:].values
             vmin = -0.01
             vmax = 0.01
             cmap=plt.get_cmap(cm.balance)
+            # print('Oak Harbor Lagoon (lon/lat): ({},{})'.format(x[895,573],y[895,573]))
         else:
             v = ds[vn][0, -1,:,:].values
         ax = fig.add_subplot(1, len(vn_list), ii)
@@ -876,11 +879,11 @@ def P_debug_traps(in_dict):
         ax.set(xlim=(-122.65,-122.55), ylim=(48.24,48.32)) # Whidbey Basin TRAPS2 blowup
 
         # plot location of wwtp
-        ax.scatter(-122.6089102880491,48.29641244460101, s=80, marker='^',
+        ax.scatter(-122.6077883780308,48.29684637520174, s=110, marker='^',
                     color='deeppink', edgecolors='pink', label='Whidbey east tiny river mouth')
-        ax.scatter(-122.5978890594361,48.28765748480291, s=80, marker='D',
-                    color='limegreen', edgecolors='chartreuse', label='Oak Harbor Lagoon WWTP')
-        ax.legend(loc='upper left', fontsize = 12)
+        # ax.scatter(-122.60105555932371,48.28559664274097, s=110, marker='D',
+        #             color='limegreen', edgecolors='chartreuse', label='Oak Harbor Lagoon WWTP')
+        ax.legend(loc='upper left', fontsize = 16)
 
         # add colorbar
         cbar = plt.colorbar(cs,ax=ax, location='bottom')
