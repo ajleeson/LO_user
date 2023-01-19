@@ -595,9 +595,6 @@ def traps_placement(source_type):
         # update name of index column
         rowcol_df.index.name = 'rname'
 
-        # if sname == 'Whidbey east' or sname == 'Oak Harbor Lagoon':
-        #     print('{} coordinates:({},{})'.format(sname,x,y))
-
     # save the source info
     out_rfn = Ldir['grid'] / output_fn
     print('\nCreating ' + str(out_rfn))
@@ -605,7 +602,7 @@ def traps_placement(source_type):
     rowcol_df = rowcol_df.dropna()
     rowcol_df.to_csv(out_rfn)
 
-    plotting = True
+    plotting = False
 
     if plotting == True:
         # PLOTTING FOR TESTING ------------------------------------------------------------------------
@@ -624,10 +621,10 @@ def traps_placement(source_type):
 
         # ax.set_xlim(-123.5,-122) # Puget Sound
         # ax.set_ylim(46.7,49.3) # Puget Sound
-        # ax.set_xlim(-125,-122) # Salish Sea
-        # ax.set_ylim(46.7,49.7) # Salish Sea
-        ax.set_xlim(-130,-121.5) # Full Grid
-        ax.set_ylim(42,52) # Full Grid
+        ax.set_xlim(-125,-122) # Salish Sea
+        ax.set_ylim(46.7,49.7) # Salish Sea
+        # ax.set_xlim(-130,-121.5) # Full Grid
+        # ax.set_ylim(42,52) # Full Grid
 
 
         # plot original sources
@@ -753,25 +750,25 @@ def traps_placement(source_type):
                     ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
                     ax.plot(lon[jj,ii], lat[jj,ii],color='darkorange', marker='*') 
 
-        # # print labels ---------------------------------------
-        # # get list of sources that discharge to the same cell (overlapping)
-        # duplicate_df = rowcol_df[rowcol_df.duplicated(['row_py','col_py'], keep=False) == True]
-        # for i,sn in enumerate(snames):
-        #     # merge names of overlapping sources (actual handling of overlap is dealt with in make_forcing_main)
-        #     if sn == 'Purdy Cr' or sn == 'Burley Cr':
-        #         sn = 'Purdy Cr & Burley Cr'
-        #     elif sn == 'Deer Cr' or sn == 'Mable Taylor Cr':
-        #         sn = 'Deer Cr & Mable Taylor Cr'
-        #     elif sn == 'Perry Cr' or sn == 'McLane Cr':
-        #         sn = 'Perry Cr & McLane Cr'
-        #     sn_lon = ps_lon[i]
-        #     sn_lat = ps_lat[i]+0.003
-        #     ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=10, horizontalalignment='center')
-        # if inflow_type == 'River':
-        #     for i,rn in enumerate(LOrivns):
-        #         rn_lon = LOrivs_lon[i]
-        #         rn_lat = LOrivs_lat[i]+0.003
-        #         ax.text(rn_lon, rn_lat, rn, color = 'darkorange', fontsize=10, horizontalalignment='center')
+        # print labels ---------------------------------------
+        # get list of sources that discharge to the same cell (overlapping)
+        duplicate_df = rowcol_df[rowcol_df.duplicated(['row_py','col_py'], keep=False) == True]
+        for i,sn in enumerate(snames):
+            # merge names of overlapping sources (actual handling of overlap is dealt with in make_forcing_main)
+            if sn == 'Purdy Cr' or sn == 'Burley Cr':
+                sn = 'Purdy Cr & Burley Cr'
+            elif sn == 'Deer Cr' or sn == 'Mable Taylor Cr':
+                sn = 'Deer Cr & Mable Taylor Cr'
+            elif sn == 'Perry Cr' or sn == 'McLane Cr':
+                sn = 'Perry Cr & McLane Cr'
+            sn_lon = ps_lon[i]
+            sn_lat = ps_lat[i]+0.003
+            ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=10, horizontalalignment='center')
+        if inflow_type == 'River':
+            for i,rn in enumerate(LOrivns):
+                rn_lon = LOrivs_lon[i]
+                rn_lat = LOrivs_lat[i]+0.003
+                ax.text(rn_lon, rn_lat, rn, color = 'darkorange', fontsize=10, horizontalalignment='center')
 
         # finalize plot
         ax.set_title('Algorithm Placement of {}s'.format(inflow_type), fontsize = 18)
@@ -785,23 +782,9 @@ def traps_placement(source_type):
     return
 
 def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
-
-    # Only add biology to pre-existing LO river if Ecology has data
-    if traps_type == 'LOriv':
-        # get names of duplicate rivers
-        repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
-        repeatrivs_df = pd.read_excel(repeatrivs_fn)
-        LObio_names_all = list(repeatrivs_df.loc[repeatrivs_df['in_both'] == 1, 'LO_rname'])
-        # remove the weird rivers
-        weird_duplicate_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R', 'Columbia R', 'Comox']
-        # Note that these are the names that LO calls the rivers
-        LObio_names = [rname for rname in LObio_names_all if LO2SSM_name(rname) not in weird_duplicate_rivers]
-
     # load climatological data
-    if traps_type != 'LOriv':
-        # don't need flow and temp for pre-existing LO rivers
-        Cflow_df = pd.read_pickle(Ldir['Cflow_'+traps_type+'_fn'])
-        Ctemp_df = pd.read_pickle(Ldir['Ctemp_'+traps_type+'_fn'])
+    Cflow_df = pd.read_pickle(Ldir['Cflow_'+traps_type+'_fn'])
+    Ctemp_df = pd.read_pickle(Ldir['Ctemp_'+traps_type+'_fn'])
     CDO_df   = pd.read_pickle(Ldir['CDO_'+traps_type+'_fn'])
     CNH4_df  = pd.read_pickle(Ldir['CNH4_'+traps_type+'_fn'])
     CNO3_df  = pd.read_pickle(Ldir['CNO3_'+traps_type+'_fn'])
@@ -814,24 +797,15 @@ def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
     # initialize output dict
     qtbio_df_dict = dict()
     for rn in gri_df.index:
-
-        # convert LO river name to SSM river name
-        if traps_type == 'LOriv':
-            if rn in LObio_names:
-                rn = LO2SSM_name(rn)
-            else:
-                # skips rivers for which Ecology does not have data
-                continue    
         
         # initialize screen output
-        sout = '-- ' + str(rn) + ': '
+        sout = '-- ' + rn + ': '
         
         # initialize a qtbio (flow and temperature vs. time) DataFrame for this river
         qtbio_df = pd.DataFrame(index=dt_ind, columns=['flow','temp','Oxyg','NH4','NO3','TAlk','TIC'])
         # fill with climatological fields
-        if traps_type != 'LOriv':
-            qtbio_df.loc[:, 'flow'] = Cflow_df.loc[yd_ind,rn].values
-            qtbio_df.loc[:, 'temp'] = Ctemp_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'flow'] = Cflow_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'temp'] = Ctemp_df.loc[yd_ind,rn].values
         qtbio_df.loc[:, 'Oxyg']   = CDO_df.loc[yd_ind,rn].values
         qtbio_df.loc[:, 'NH4']  = CNH4_df.loc[yd_ind,rn].values
         qtbio_df.loc[:, 'NO3']  = CNO3_df.loc[yd_ind,rn].values
@@ -869,13 +843,3 @@ def weighted_average(vn,qtbio_df_1, qtbio_df_2):
     # calculate weighted average based on flowrate
     waverage = [np.average([var1[i], var2[i]], weights = [flow1[i], flow2[i]]) for i in range(len(flow1))]
     return waverage
-
-def LO2SSM_name(rname):
-    """
-    Given a river name in LiveOcean, find corresponding river name in SSM
-    """
-    repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
-    repeatrivs_df = pd.read_excel(repeatrivs_fn)
-    rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
-
-    return rname_SSM
