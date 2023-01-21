@@ -881,8 +881,8 @@ def P_debug_traps(in_dict):
         # plot location of wwtp
         ax.scatter(-122.6077883780308,48.29684637520174, s=110, marker='^',
                     color='deeppink', edgecolors='pink', label='Whidbey east tiny river mouth')
-        # ax.scatter(-122.60105555932371,48.28559664274097, s=110, marker='D',
-        #             color='limegreen', edgecolors='chartreuse', label='Oak Harbor Lagoon WWTP')
+        ax.scatter(-122.60105555932371,48.28559664274097, s=110, marker='D',
+                    color='limegreen', edgecolors='chartreuse', label='Oak Harbor Lagoon WWTP')
         ax.legend(loc='upper left', fontsize = 16)
 
         # add colorbar
