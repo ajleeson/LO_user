@@ -128,4 +128,42 @@ ax[2,1].tick_params(axis='both', which='major', labelsize=ls)
 ax[2,1].axvline(20.5,-15,5, color='k', linestyle=':')
 plt.show()
 
-print(list(ds.keys()))
+# Plot CFL Number ---------------------------------------------------------------------------------
+fig, ax = plt.subplots(3,1,figsize = (10,8), sharex = True)
+dt = 40 # timestep (seconds)
+# E-W
+# calculate courant number
+Cx = [(abs(U)*dt)/500 for U in u]
+cs = ax[0].pcolormesh(t, z_rho, Cx, vmin=0, vmax=1, cmap=plt.get_cmap(cmocean.cm.amp))
+plt.colorbar(cs,ax=ax[0])
+ax[0].set_ylabel('Z (m)', fontsize = fs)
+ax[0].set_title('C (x-direction)', fontsize = fs)
+ax[0].tick_params(axis='both', which='major', labelsize=ls)
+ax[0].axvline(20.5,-15,5, color='k', linestyle=':')
+# N-S
+# calculate courant number
+Cy = [(abs(U)*dt)/500 for U in v]
+cs = ax[1].pcolormesh(t, z_rho, Cy, vmin=0, vmax=1, cmap=plt.get_cmap(cmocean.cm.amp))
+plt.colorbar(cs,ax=ax[1])
+ax[1].set_ylabel('Z (m)', fontsize = fs)
+ax[1].set_title('C (y-direction)', fontsize = fs)
+ax[1].tick_params(axis='both', which='major', labelsize=ls)
+ax[1].axvline(20.5,-15,5, color='k', linestyle=':')
+# vertical
+# calculate courant number (using average vertical velocity between edges (to get w at rho point), time thickness of sigma layer)
+dz = np.diff(z_w.values, axis=0)
+w_avgs = (w.values[1::]+w.values[0:-1])/ 2
+Cz = (abs(w_avgs)*dt)/dz
+cs = ax[2].pcolormesh(t, z_rho, Cz, vmin=0, vmax=1, cmap=plt.get_cmap(cmocean.cm.amp))
+plt.colorbar(cs,ax=ax[2])
+ax[2].set_ylabel('Z (m)', fontsize = fs)
+ax[2].set_title('C (z-direction)', fontsize = fs)
+ax[2].set_xlabel('Hour', fontsize = fs)
+ax[2].tick_params(axis='both', which='major', labelsize=ls)
+ax[2].xaxis.set_ticks(np.arange(4, 21, 4))
+ax[2].axvline(20.5,-15,5, color='k', linestyle=':')
+# title
+fig.suptitle('CFL Number at Location of WWTP (2020.01.01)', fontsize = ts)
+plt.show()
+
+# print(list(ds.keys()))
