@@ -20,7 +20,7 @@ from lo_tools import plotting_functions as pfun
 
 
 # load mooring extraction data
-grid_nc = '../../LO_output/extract/cas6_TRAPS2_uu0mb/moor/oakharborlagoon_wwtp/wwtp_2021.02.19_2021.02.19.nc'
+grid_nc = '../../LO_output/extract/cas6_TRAPS9_uu0mb/moor/oakharborlagoon_wwtp/wwtp_2021.02.19_2021.02.19.nc'
 ds = xr.open_dataset(grid_nc)
 
 # get all velocities
@@ -47,9 +47,9 @@ AKs = ds['AKs'].transpose()
 # get pressure (dbar)
 p = [gsw.p_from_z(depth,48.28559664274097) for depth in z_rho.values]
 # calculate density
-rho = np.ndarray((30,20))
+rho = np.ndarray((30,19))
 for row in range(30):
-    for col in range(20):
+    for col in range(19):
         # calculate absolute salinity from practical salinity
         salt_abs = gsw.conversions.SA_from_SP(salt[row][col], p[row][col], -122.60105555932371, 48.28559664274097)
         # calculate conservative temperature from potential temperature
@@ -58,14 +58,16 @@ for row in range(30):
         rho[row][col] = gsw.rho(salt_abs,temp_cons,p[row][col])
 
 # create time variable
-t = np.linspace(1,20,20)
+t = np.linspace(1,19,19)
+print(z_w)
 
 # figure settings
 fs = 14
 ls = 12
 ts = 16
 
-plotting = False
+plotting = True
+
 if plotting:
 
     # Plot Velocities ---------------------------------------------------------------------------------
@@ -159,7 +161,7 @@ if plotting:
     plt.title('Sigma Layers at Oak Harbor Lagoon WWTP',fontsize=ts)
     plt.xlabel('Hour',fontsize=fs)
     plt.xlim(1,20)
-    plt.ylim((z_min,6))
+    plt.ylim(z_min,6)
     plt.ylabel('Depth of Sigma Layer Boundary (m)', fontsize=fs)
     ax.tick_params(axis='both', which='major', labelsize=ls)
     plt.xticks(np.arange(4, 21, 4))
@@ -232,5 +234,4 @@ if plotting:
     fig.suptitle('Density and Vertical Mixing at Oak Harbor Lagoon WWTP', fontsize = ts)
     plt.show()
 
-
-print(list(ds.keys()))
+# print(list(ds.keys()))
