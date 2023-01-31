@@ -4,6 +4,7 @@ Extract infro from rivers.nc for WWTP debugging.
 
 To run on perigee:
 run extract_rivers -gtx cas6_TRAPS2_uu0mb -0 2021.01.01 -1 2021.02.19
+run extract_rivers -gtx cas6_traps00_uu0mb -0 2020.01.01 -1 2020.01.01
 
 Copied from LO, and modified for specific use case.
 
@@ -30,9 +31,10 @@ tt0 = time()
 forcing = 'TRAPS2'
 
 # long list of variables to extract
-vn_list = ['transport', 'salt', 'temp', 'oxygen',
-    'NO3', 'phytoplankton', 'zooplankton', 'detritus', 'Ldetritus',
-    'TIC', 'alkalinity']
+vn_list = ['transport', 'salt', 'temp']
+    # , 'oxygen',
+    # 'NO3', 'phytoplankton', 'zooplankton', 'detritus', 'Ldetritus',
+    # 'TIC', 'alkalinity']
 
 
 # make sure the output directory exists
@@ -60,19 +62,22 @@ while mdt <= dt1:
 # (this is a bit titchy because of NetCDF 3 limitations on strings, forcing them
 # to be arrays of characters)
 mds = mds_list[0]
-fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
+# fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
+fn = Path('/home').absolute() / 'aleeson' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
 ds = xr.open_dataset(fn)
 rn = ds['river_name'].values
-NR = rn.shape[1]
-riv_name_list = []
-for ii in range(NR):
-    a = rn[:,ii]
-    r = []
-    for l in a:
-        r.append(l.decode())
-    rr = ''.join(r)
-    riv_name_list.append(rr)
-ds.close()
+# print(rn)
+NR = rn.shape[0]
+riv_name_list = list(rn)
+# riv_name_list = []
+# for ii in range(NR):
+#     a = rn[:,ii]
+#     r = []
+#     for l in a:
+#         r.append(l.decode())
+#     rr = ''.join(r)
+#     riv_name_list.append(rr)
+# ds.close()
 
 NT = len(mds_list)
 
@@ -88,7 +93,8 @@ for mds in mds_list:
     # if this_dt < datetime(2021,10,31):
     #     fn = Path('/boildat').absolute() / 'parker' / 'LiveOcean_output' / 'cas6_v3' / ('f' + mds) / 'riv2' / 'rivers.nc'
     # else:
-    fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
+    fn = Path('/home').absolute() / 'aleeson' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
+    # fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
     ds = xr.open_dataset(fn)
     # The river transport is given at noon of a number of days surrounding the forcing date.
     # Here we find the index of the time for the day "mds".
