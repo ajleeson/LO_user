@@ -62,8 +62,8 @@ while mdt <= dt1:
 # (this is a bit titchy because of NetCDF 3 limitations on strings, forcing them
 # to be arrays of characters)
 mds = mds_list[0]
-# fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
-fn = Path('/home').absolute() / 'aleeson' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
+fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
+# fn = Path('/home').absolute() / 'aleeson' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
 ds = xr.open_dataset(fn)
 rn = ds['river_name'].values
 # print(rn)
@@ -93,8 +93,8 @@ for mds in mds_list:
     # if this_dt < datetime(2021,10,31):
     #     fn = Path('/boildat').absolute() / 'parker' / 'LiveOcean_output' / 'cas6_v3' / ('f' + mds) / 'riv2' / 'rivers.nc'
     # else:
-    fn = Path('/home').absolute() / 'aleeson' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
-    # fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
+    # fn = Path('/home').absolute() / 'aleeson' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
+    fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / 'cas6' / ('f' + mds) / forcing / 'rivers.nc'
     ds = xr.open_dataset(fn)
     # The river transport is given at noon of a number of days surrounding the forcing date.
     # Here we find the index of the time for the day "mds".
