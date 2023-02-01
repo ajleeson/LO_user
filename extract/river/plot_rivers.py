@@ -8,11 +8,12 @@ from lo_tools import plotting_functions as pfun
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
-Ldir = Lfun.Lstart(gridname='cas6', tag='v3')
+Ldir = Lfun.Lstart(gridname='cas6', tag='v00')
 
 # load extraction (an xarray Dataset)
-fn = Ldir['LOo'] / 'pre' / 'river' / Ldir['gtag'] / 'Data_roms' / 'extraction_2017.01.01_2021.12.31.nc'
+fn = Ldir['LOo'] / 'pre' / 'river' / 'cas6' / 'Data_roms' / 'extraction_2021.01.01_2021.02.19.nc'
 x = xr.load_dataset(fn)
 
 # # get climatology
@@ -37,27 +38,51 @@ x = xr.load_dataset(fn)
         
 # plotting
 plt.close('all')
-pfun.start_plot()
-fig = plt.figure()
+# pfun.start_plot()
+# fig = plt.figure()
+
+# # for plotting time series we are better off using pandas
+# df = pd.DataFrame(index=x.time.values)
+# ii = 1
+# for rn in ['Oak Harbor Lagoon','Whidbey east']:
+#     ax = fig.add_subplot(2,1,ii)
+#     df.loc[:,'Q'] = x.transport.sel(riv=rn).values
+#     # df.loc[:,'Qclim'] = x.transport_clim.sel(riv=rn).values
+#     # if ii == 1:
+#     #     leg = True
+#     # else:
+#     #     leg = False
+#     df.plot(ax=ax, grid=True)#, legend=leg)
+#     ax.set_ylim(bottom=0)
+#     if ii == 1:
+#         ax.set_ylim(top=0.1)
+#     ax.set_xlim(x.time.values[0], x.time.values[-1])
+#     ax.text(.7,.9,rn.title(), transform=ax.transAxes)
+#     plt.title(r'Flowrate ($m^3 \ s^{-1}$)')
+#     if ii == 1:
+#         ax.set_xticklabels([])
+#     ii += 1
 
 # for plotting time series we are better off using pandas
 df = pd.DataFrame(index=x.time.values)
-ii = 1
-for rn in ['Oak Harbor Lagoon']:
-    ax = fig.add_subplot(2,2,ii)
-    df.loc[:,'Q'] = x.transport.sel(riv=rn).values
-    df.loc[:,'Qclim'] = x.transport_clim.sel(riv=rn).values
-    if ii == 1:
-        leg = True
-    else:
-        leg = False
-    df.plot(ax=ax, grid=True, legend=leg)
-    ax.set_ylim(bottom=0)
-    ax.set_xlim(x.time.values[0], x.time.values[-1])
-    ax.text(.05,.9,rn.title(), transform=ax.transAxes)
-    if ii in [1,2]:
-        ax.set_xticklabels([])
-    ii += 1
+fig, ax = plt.subplots(2,1,figsize = (10,6), sharex = True)
+for i,rn in enumerate(['Oak Harbor Lagoon','Whidbey east']):
+    Q = x.transport.sel(riv=rn).values
+    ax[i].plot(x.time.values,Q)
+    ax[i].set_ylim(bottom=0)
+    if i == 0:
+        ax[i].set_ylim(top=0.1)
+        ax[i].text(0.05,0.2,'WWTP',transform=ax[i].transAxes)
+    ax[i].set_xlim(x.time.values[0], x.time.values[-1])
+    ax[i].set_title(rn, fontsize =14)
+    if i == 1:
+        ax[i].text(0.05,0.2,'Tiny River',transform=ax[i].transAxes)
+        ax[i].set_xticks(x.time.values[::3])
+        ax[i].set_xticklabels(ax[i].get_xticks(), rotation = 45)
+        date_form = mdates.DateFormatter("%m/%d")
+        ax[i].xaxis.set_major_formatter(date_form)
+    plt.suptitle(r'Flowrate ($m^3 \ s^{-1}$)', fontsize = 16)
+
 
 plt.show()
 pfun.end_plot()

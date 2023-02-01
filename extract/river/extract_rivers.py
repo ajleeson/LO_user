@@ -4,6 +4,8 @@ Extract infro from rivers.nc for WWTP debugging.
 
 To run on perigee:
 run extract_rivers -gtx cas6_TRAPS2_uu0mb -0 2021.01.01 -1 2021.02.19
+
+testing on my pc:
 run extract_rivers -gtx cas6_traps00_uu0mb -0 2020.01.01 -1 2020.01.01
 
 Copied from LO, and modified for specific use case.
