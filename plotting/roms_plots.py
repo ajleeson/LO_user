@@ -799,16 +799,18 @@ def P_debug_birchbay(in_dict):
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
         ax.set(xlim=(-122.9, -122.7), ylim=(48.85, 48.95))
+        ax.set_xticks([])
+        ax.set_yticks([])
 
         # plot location of wwtp
-        ax.scatter(-122.8030401205365,48.8975820886066, s=80, marker='^',
-                    color='deeppink', edgecolors='pink', label='Original Birch Bay WWTP Location')
+        ax.scatter(-122.8030401205365,48.8975820886066, s=180, marker='^',
+                    color='#AEDC3C', edgecolors='k', label='Birch Bay WWTP')
         # ax.scatter(-122.81650575795068,48.8975820886066, s=80, marker='D',
         #             color='limegreen', edgecolors='chartreuse', label='Shifted Birch Bay WWTP Location')
-        ax.legend(loc='upper left', fontsize = 12)
+        ax.legend(loc='upper left', fontsize = 16)
         # add colorbar
         cbar = plt.colorbar(cs,ax=ax, location='bottom')
-        cbar.ax.tick_params(labelsize=12, rotation=30)
+        cbar.ax.tick_params(labelsize=16, rotation=30)
 
         pfun.dar(ax)
         if ii == 1:
@@ -817,9 +819,10 @@ def P_debug_birchbay(in_dict):
         ax.plot(x[vjmax,vimax], y[vjmax,vimax],'*y', mec='k', markersize=15)
         ax.plot(x[vjmin,vimin], y[vjmin,vimin],'oy', mec='k', markersize=10)
         ax.tick_params(axis='both', which='major', labelsize=14)
-        plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+        # plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
         ax.set_title(('%s ((*)max=%0.1f, (o)min=%0.1f)' % (vn, vmax, vmin)), fontsize = 20)
         ii += 1
+        
 
     # FINISH
     ds.close()
@@ -831,7 +834,7 @@ def P_debug_birchbay(in_dict):
         plt.show()
 
 
-def P_debug_traps(in_dict):
+def P_debug_oakharbor(in_dict):
     # Focused on debugging
     vn_list = ['u', 'v', 'w']
     do_wetdry = False
@@ -877,17 +880,19 @@ def P_debug_traps(in_dict):
         ax.axis(pfun.get_aa(ds))
         # ax.set(xlim=(-125,-122), ylim=(46.7,49.7)) # Salish Sea
         ax.set(xlim=(-122.65,-122.55), ylim=(48.24,48.32)) # Whidbey Basin TRAPS2 blowup
+        ax.set_xticks([])
+        ax.set_yticks([])
 
         # plot location of wwtp
-        ax.scatter(-122.6077883780308,48.29684637520174, s=110, marker='^',
-                    color='deeppink', edgecolors='pink', label='Whidbey east tiny river mouth')
-        ax.scatter(-122.60105555932371,48.28559664274097, s=110, marker='D',
-                    color='limegreen', edgecolors='chartreuse', label='Oak Harbor Lagoon WWTP')
+        ax.scatter(-122.6077883780308,48.29684637520174, s=150, marker='D',
+                    color='#7148BC', edgecolors='k', label='Whidbey East Tiny River')
+        ax.scatter(-122.60105555932371,48.28559664274097, s=150, marker='^',
+                    color='#AEDC3C', edgecolors='k', label='Oak Harbor Lagoon WWTP')
         ax.legend(loc='upper left', fontsize = 16)
 
         # add colorbar
         cbar = plt.colorbar(cs,ax=ax, location='bottom')
-        cbar.ax.tick_params(labelsize=12, rotation=30)
+        cbar.ax.tick_params(labelsize=16, rotation=30)
 
         pfun.dar(ax)
         if ii == 1:

@@ -20,7 +20,7 @@ from lo_tools import plotting_functions as pfun
 
 
 # load mooring extraction data
-grid_nc = '../../LO_output/extract/cas6_TRAPS2_uu0mb/moor/oakharborlagoon_wwtp/wwtp_2021.02.19_2021.02.19.nc'
+grid_nc = '../../LO_output/extract/cas6_TRAPS2_uu1mb/moor/oakharborlagoon_wwtp/wwtp_2021.02.19_2021.02.19.nc'
 ds = xr.open_dataset(grid_nc)
 
 # get all velocities
@@ -47,9 +47,9 @@ AKs = ds['AKs'].transpose()
 # get pressure (dbar)
 p = [gsw.p_from_z(depth,48.28559664274097) for depth in z_rho.values]
 # calculate density
-rho = np.ndarray((30,20))
+rho = np.ndarray((30,17))
 for row in range(30):
-    for col in range(20):
+    for col in range(17):
         # calculate absolute salinity from practical salinity
         salt_abs = gsw.conversions.SA_from_SP(salt[row][col], p[row][col], -122.60105555932371, 48.28559664274097)
         # calculate conservative temperature from potential temperature
@@ -58,7 +58,7 @@ for row in range(30):
         rho[row][col] = gsw.rho(salt_abs,temp_cons,p[row][col])
 
 # create time variable
-t = np.linspace(1,20,20)
+t = np.linspace(1,17,17)
 
 # figure settings
 fs = 14
@@ -71,21 +71,21 @@ if plotting:
     # Plot Velocities ---------------------------------------------------------------------------------
     fig, ax = plt.subplots(3,1,figsize = (10,8), sharex = True)
     # E-W
-    cs = ax[0].pcolormesh(t, z_rho, u, vmin=-10, vmax=10, cmap=plt.get_cmap(cmocean.cm.balance))
+    cs = ax[0].pcolormesh(t, z_rho, u, vmin=-2, vmax=2, cmap=plt.get_cmap(cmocean.cm.balance))
     plt.colorbar(cs,ax=ax[0])
     ax[0].set_ylabel('Z (m)', fontsize = fs)
     ax[0].set_title('u (m/s)', fontsize = fs)
     ax[0].tick_params(axis='both', which='major', labelsize=ls)
     ax[0].set_ylim((z_min,6))
     # N-S
-    cs = ax[1].pcolormesh(t, z_rho, v, vmin=-10, vmax=10, cmap=plt.get_cmap(cmocean.cm.balance))
+    cs = ax[1].pcolormesh(t, z_rho, v, vmin=-2, vmax=2, cmap=plt.get_cmap(cmocean.cm.balance))
     plt.colorbar(cs,ax=ax[1])
     ax[1].set_ylabel('Z (m)', fontsize = fs)
     ax[1].set_title('v (m/s)', fontsize = fs)
     ax[1].tick_params(axis='both', which='major', labelsize=ls)
     ax[1].set_ylim((z_min,6))
     # vertical
-    cs = ax[2].pcolormesh(t, z_w, w, vmin=-0.1, vmax=0.1, cmap=plt.get_cmap(cmocean.cm.balance))
+    cs = ax[2].pcolormesh(t, z_w, w, vmin=-0.01, vmax=0.01, cmap=plt.get_cmap(cmocean.cm.balance))
     plt.colorbar(cs,ax=ax[2])
     ax[2].set_ylabel('Z (m)', fontsize = fs)
     ax[2].set_title('w (m/s)', fontsize = fs)

@@ -12,6 +12,12 @@ import xarray as xr
 import cmocean
 from lo_tools import plotting_functions as pfun
 
+# define grid indices to look at
+j1 = 590
+j2 = 1170
+i1 = 220
+i2 = 652
+
 # helper function to convert Ecology name to LO name
 def SSM2LO_name(rname):
     """
@@ -67,6 +73,9 @@ avgload_wwtps = avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for col
 lon_wwtps = [X[int(col)] for col in avgload_wwtps['col_py']]
 lat_wwtps = [Y[int(row)] for row in avgload_wwtps['row_py']]
 
+# calculate total load
+totload_wwtps = np.sum(avgload_wwtps['avg-daily-load(kg/d)'])
+
 # Rivers -------------------------------------------------------------
 # Prepare data for spatial summary plots
 
@@ -104,6 +113,14 @@ for index, row in avgload_rivs.iterrows():
         avgload_rivs.loc[index]['row_py'] = griddf_LOrivs.loc[SSM2LO_name(index)]['row_py']
         avgload_rivs.loc[index]['col_py'] = griddf_LOrivs.loc[SSM2LO_name(index)]['col_py']
 
+# calculate total load
+totload_rivs = avgload_rivs.loc[(avgload_rivs['col_py'] >= i1) &
+                                (avgload_rivs['col_py'] <= i2) &
+                                (avgload_rivs['row_py'] >= j1) &
+                                (avgload_rivs['row_py'] <= j2),
+                                'avg-daily-load(kg/d)'].sum()
+# totload_rivs = np.sum(avgload_rivs['avg-daily-load(kg/d)'])
+
 # get trivs lat and lon
 lon_riv = [X[int(col)] for col in avgload_rivs['col_py']]
 lat_riv = [Y[int(row)] for row in avgload_rivs['row_py']]
@@ -121,74 +138,100 @@ lon_SJdF = -124.4
 # PLOTTING ----------------------------------------------------
 
 # define marker sizes
-sizes_wwtps = [10*np.sqrt(load) for load in avgload_wwtps['avg-daily-load(kg/d)']]
-sizes_rivs = [10*np.sqrt(load) for load in avgload_rivs['avg-daily-load(kg/d)']]
-sizes_SJdF = 10*np.sqrt(avgload_SJdF)
+# sizes_wwtps = [10*np.sqrt(load) for load in avgload_wwtps['avg-daily-load(kg/d)']]
+# sizes_rivs = [10*np.sqrt(load) for load in avgload_rivs['avg-daily-load(kg/d)']]
+# sizes_SJdF = 10*np.sqrt(avgload_SJdF)
+sizes_wwtps = [max(0.1*load,10) for load in avgload_wwtps['avg-daily-load(kg/d)']]
+sizes_rivs = [max(0.1*load,10) for load in avgload_rivs['avg-daily-load(kg/d)']]
+sizes_SJdF = 0.1*avgload_SJdF
 sizes = [sizes_wwtps,sizes_rivs]
 
 # pick colors
-color_wwtps = '#AEDC3C' #'xkcd:pinkish red'
-color_rivs = '#7148BC' #'mediumblue'
-color_SJdF = '#70B0EA' #'gold'
+color_wwtps = '#AEDC3C' # wwtp green
+color_rivs = '#7148BC' # river purple
+color_SJdF = '#70B0EA' # ocean blue
 colors = [color_wwtps, color_rivs]
 
 # define labels
 source_name = ['Point Source','River']
+
+# define total loads
+totalloads = [totload_wwtps,totload_rivs]
+
+# define subplot number
+subplotnums = [121,122]
 
 # lat and lon coords
 lats = [lat_wwtps,lat_riv]
 lons = [lon_wwtps,lon_riv]
 
 add_ocean = False
-# loop through all of the plots we need to make
-for ii in range(3):
 
-    if ii == 2:
+for j in range(2):
+    if j == 1:
         add_ocean = True
-        i = 1
-    else:
-        i = ii
 
-    # bathymetry
-    fig = plt.figure(figsize=(8,9))
-    ax = fig.add_subplot(111)
-    # pfun.add_coast(ax,color='black')
-    ax.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+    fig = plt.figure(figsize=(15,8))
+    # loop through all of the plots we need to make
+    for i,sname in enumerate(source_name):
 
-    # plot DIN sources
-    ax.scatter(lons[i],lats[i],
-        color=colors[i], edgecolors='k', alpha=0.5, s=sizes[i])
-    if add_ocean:
-        ax.scatter(lon_SJdF,lat_SJdF,
-            color=color_SJdF, edgecolors='k', alpha=0.5, s=sizes_SJdF)
-        t = ax.text(lon_SJdF,lat_SJdF-0.7,'Ocean Load \n' r'$2.6\times10^6 \ kg \ d^{-1}$',
-            horizontalalignment = 'center', fontsize = 16, color = 'k')
-        t.set_bbox(dict(facecolor='white', alpha=0.6, edgecolor='none', boxstyle = 'Round'))
+        # add water/land
+        ax = fig.add_subplot(subplotnums[i])
+        # pfun.add_coast(ax,color='black')
+        ax.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
-    # ax.set_xlim(-123.5,-122) # Puget Sound
-    # ax.set_ylim(46.7,49.3) # Puget Sound
-    ax.set_xlim(-125.5,-121.5) # Salish Sea
-    ax.set_ylim(46.7,49.9) # Salish Sea
-    # ax.set_xlim(-130,-121.5) # Full Grid
-    # ax.set_ylim(42,52) # Full Grid
+        # plot ocean load
+        if sname == 'River' and add_ocean:
+            ax.scatter(lon_SJdF,lat_SJdF,
+                color=color_SJdF, edgecolors='k', alpha=0.35, s=sizes_SJdF)
+            t = ax.text(lon_SJdF,lat_SJdF-0.8,'Ocean Load \n {:,} '.format(avgload_SJdF) +
+                        r'$kg \ d^{-1}$', #r'$2.6\times10^6 \ kg \ d^{-1}$',
+                        horizontalalignment = 'center', fontsize = 16, color = 'k')
+            t.set_bbox(dict(facecolor=color_SJdF, alpha=0.6, edgecolor='none', boxstyle = 'Round'))
+        # plot DIN sources
+        ax.scatter(lons[i],lats[i],
+            color=colors[i], edgecolors='k', alpha=0.5, s=sizes[i])
 
-    # format
-    ax.axes.xaxis.set_visible(False)
-    ax.axes.yaxis.set_visible(False)
-    ax.set_title('Average {} DIN Load'.format(source_name[i]), fontsize=20)
-    pfun.dar(ax)
+        # ax.set_xlim(-123.5,-122) # Puget Sound
+        # ax.set_ylim(46.7,49.3) # Puget Sound
+        # ax.set_xlim(-125.5,-121.5) # Salish Sea
+        # ax.set_ylim(46.7,49.9) # Salish Sea
+        # ax.set_xlim(-130,-121.5) # Full Grid
+        # ax.set_ylim(42,52) # Full Grid
 
-    # Create legend
-    if i == 0:
-        leg_szs = [10, 100, 1000, 10000]
-        szs = [10*np.sqrt(leg_sz) for leg_sz in leg_szs]
-        l0 = plt.scatter([],[], s=szs[0], color='grey', edgecolors='k', alpha=0.5)
-        l1 = plt.scatter([],[], s=szs[1], color='grey', edgecolors='k', alpha=0.5)
-        l2 = plt.scatter([],[], s=szs[2], color='grey', edgecolors='k', alpha=0.5)
-        l3 = plt.scatter([],[], s=szs[3], color='grey', edgecolors='k', alpha=0.5)
-        labels = ['10', '100', '1000', '10000']
-        legend = ax.legend([l0, l1, l2, l3], labels, fontsize = 14,
-            title=r'Loading (kg d$^{-1}$)', loc='lower left', labelspacing=1.5, borderpad=1.5)
-        plt.setp(legend.get_title(),fontsize=16)
+        ax.set_xlim(X[i1],-121.4)#X[i2]) # Salish Sea
+        ax.set_ylim(Y[j1],Y[j2]) # Salish Sea
 
-    plt.show()
+        # format
+        ax.axes.xaxis.set_visible(False)
+        ax.axes.yaxis.set_visible(False)
+        ax.set_title('Average {} DIN Load'.format(sname), fontsize=20)
+        pfun.dar(ax)
+
+        # Create legend
+        if i == 0:
+            leg_szs = [100, 1000, 10000]
+            # szs = leg_szs
+            szs = [0.1*(leg_sz) for leg_sz in leg_szs]
+            # szs = [10*np.sqrt(leg_sz) for leg_sz in leg_szs]
+            l0 = plt.scatter([],[], s=szs[0], color='grey', edgecolors='k', alpha=0.5)
+            l1 = plt.scatter([],[], s=szs[1], color='grey', edgecolors='k', alpha=0.5)
+            l2 = plt.scatter([],[], s=szs[2], color='grey', edgecolors='k', alpha=0.5)
+            l3 = plt.scatter([],[], s=0, color='grey', edgecolors='k', alpha=0.5)
+            labels = ['< 100', '1,000', '10,000', r'(kg d$^{-1}$)']
+            legend = ax.legend([l0, l1, l2, l3], labels, fontsize = 14, markerfirst=False,
+                title=r'Loading $\propto$ area', loc='lower left', labelspacing=1.5, borderpad=0.5)
+            plt.setp(legend.get_title(),fontsize=16)
+
+        # add label of total load
+        tload = ax.text(0.8,0.87, r'$\Sigma$ ' + sname + 's: \n {:,}'.format(int(round(totalloads[i],-3))) + r'$ \ kg \ d^{-1}$',
+            horizontalalignment = 'center', fontsize = 16, color = 'k', transform=ax.transAxes)
+        if sname == 'River' and add_ocean:
+            legcol = '#D4C7EA'
+            alpha = 1
+        else:
+            legcol = colors[i]
+            alpha = 0.3
+        tload.set_bbox(dict(facecolor=legcol, alpha=alpha, edgecolor='none', boxstyle = 'Round'))
+
+        plt.show()
