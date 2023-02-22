@@ -617,24 +617,24 @@ def traps_placement(source_type):
         zm[np.transpose(mask_rho) != 0] = -1
 
         # bathymetry
-        fig = plt.figure(figsize=(7,8))
+        fig = plt.figure(figsize=(5,9))
         ax = fig.add_subplot(111)
         pfun.add_coast(ax,color='black')
         ax.pcolormesh(plon, plat, zm, edgecolor='aliceblue', linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
         # ax.set_xlim(-123.5,-122) # Puget Sound
         # ax.set_ylim(46.7,49.3) # Puget Sound
-        ax.set_xlim(-123.7,-122) # Salish Sea
-        ax.set_ylim(47,49) # Salish Sea
-        # ax.set_xlim(-130,-121.5) # Full Grid
-        # ax.set_ylim(42,52) # Full Grid
+        # ax.set_xlim(-125,-122) # Salish Sea
+        # ax.set_ylim(46.7,49.7) # Salish Sea
+        ax.set_xlim(-130,-121.5) # Full Grid
+        ax.set_ylim(42,52) # Full Grid
 
 
         # plot original sources
         if inflow_type == 'Point Source':
             ax.scatter(latlon_df['Lon'],latlon_df['Lat'], color='hotpink', label='SSM source location')
         elif inflow_type == 'River':
-            ax.scatter(SSMrivll_df['Lon'],SSMrivll_df['Lat'], color='hotpink', marker='D', label='SSM source location')
+            ax.scatter(SSMrivll_df['Lon'],SSMrivll_df['Lat'], color='hotpink', label='SSM source location')
 
         # Add river track directions -------------------------------------------------------
         if inflow_type == 'River':
@@ -662,35 +662,31 @@ def traps_placement(source_type):
                 
                 if uv == 'u' and isign == 1:
                     # River source on W side of rho cell
-                    # ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
+                    ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
                     if first_label:
-                        ax.scatter(lon[jj,ii+1], lat[jj,ii+1], color='#7148BC', marker='o',
-                         edgecolor = 'k', s = 40, label='Tiny River', alpha=0.7)
+                        ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='purple', marker='o',
+                         linestyle = 'None', label='Placed river mouth')
                         first_label = False
                     else:
-                        ax.scatter(lon[jj,ii+1], lat[jj,ii+1],color='#7148BC',
-                         marker='o', edgecolor = 'k', s = 40, alpha=0.7)
+                        ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='purple', marker='o', linestyle = 'None')
                     # plot tracks
                     ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii+1]],[SSMrivll_df['Lat'][i], lat[jj,ii+1]],color='hotpink', linewidth=0.5)
                 if uv == 'u' and isign == -1:
                     # River source on E side of rho cell
-                    # ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
-                    ax.scatter(lon[jj,ii], lat[jj,ii],color='#7148BC', marker='o',
-                     edgecolor = 'k', s = 40, alpha=0.7)
+                    ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
+                    ax.plot(lon[jj,ii], lat[jj,ii],color='purple', marker='o', linestyle = 'None')
                     # plot tracks
                     ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii]],[SSMrivll_df['Lat'][i], lat[jj,ii]],color='hotpink', linewidth=0.5)
                 if uv == 'v' and isign == 1:
                     # River source on S side of rho cell
-                    # ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
-                    ax.scatter(lon[jj+1,ii], lat[jj+1,ii],color='#7148BC', marker='o',
-                     edgecolor = 'k', s = 40, alpha=0.7)
+                    ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
+                    ax.plot(lon[jj+1,ii], lat[jj+1,ii],color='purple', marker='o', linestyle = 'None')
                     # plot tracks
                     ax.plot([SSMrivll_df['Lon'][i], lon[jj+1,ii]],[SSMrivll_df['Lat'][i], lat[jj+1,ii]],color='hotpink', linewidth=0.5)
                 if uv == 'v' and isign == -1:
                     # River source on N side of rho cell
-                    # ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
-                    ax.scatter(lon[jj,ii], lat[jj,ii],color='#7148BC', marker='o', 
-                    edgecolor = 'k', s = 40, alpha=0.7)
+                    ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
+                    ax.plot(lon[jj,ii], lat[jj,ii],color='purple', marker='o', linestyle = 'None')
                     # plot tracks
                     ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii]],[SSMrivll_df['Lat'][i], lat[jj,ii]],color='hotpink', linewidth=0.5)
 
@@ -709,15 +705,14 @@ def traps_placement(source_type):
                 ps_lat = ps_lat + [Y[int(indy)]]
         
         if inflow_type == 'Point Source':
-            ax.scatter(ps_lon,ps_lat, color='#AEDC3C', marker='o', edgecolors='k', s=40, alpha=0.8)
+            ax.scatter(ps_lon,ps_lat, color='pink', marker='x', s=20, label='Placed SSM source (original location)')
 
         # plot new location of sources (that are new)
         ringnums = np.array(ringnums, dtype=np.bool) # ringnum = zero means (now FALSE) means same location
-        # new_lon = [ps_lon[i]*val for i,val in enumerate(ringnums)] # plotting only True, which means new location
-        # new_lat = [ps_lat[i]*val for i,val in enumerate(ringnums)]
-        # if inflow_type == 'Point Source':
-        #     ax.scatter(new_lon,new_lat, color='#AEDC3C', marker='o', edgecolors='k', s=40, label='Point Sources')
-        
+        new_lon = [ps_lon[i]*val for i,val in enumerate(ringnums)] # plotting only True, which means new location
+        new_lat = [ps_lat[i]*val for i,val in enumerate(ringnums)]
+        if inflow_type == 'Point Source':
+            ax.scatter(new_lon,new_lat, color='purple', marker='x', s=20, label='Placed SSM source (new location)')
         if inflow_type == 'River':
             # plot river locations
             LOrivs_fn = Ldir['grid'] / 'river_info.csv'
@@ -741,52 +736,49 @@ def traps_placement(source_type):
                     # River source on W side of rho cell
                     ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
                     if first_label_LO:
-                    #    ax.scatter(lon[jj,ii+1], lat[jj,ii+1], color='darkorange', marker='*',
-                    #     edgecolor = 'darkorange', s = 75, linestyle = 'None', label='Pre-existing LO River')
+                       ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='darkorange', marker='*', linestyle = 'None', label='pre-existing LiveOcean River')
                        first_label_LO = False
                     else:
-                        ax.scatter(lon[jj,ii+1], lat[jj,ii+1], color='darkorange', marker='*', edgecolor = 'darkorange', s = 75)
+                        ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='darkorange', marker='*')
                 if uv == 'u' and isign == -1:
                     # River source on E side of rho cell
                     ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
-                    ax.scatter(lon[jj,ii], lat[jj,ii],color='darkorange', marker='*', edgecolor = 'darkorange', s = 75)
+                    ax.plot(lon[jj,ii], lat[jj,ii],color='darkorange', marker='*')
                 if uv == 'v' and isign == 1:
                     # River source on S side of rho cell
                     ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
-                    ax.scatter(lon[jj+1,ii], lat[jj+1,ii],color='darkorange', marker='*', edgecolor = 'darkorange', s = 75)
+                    ax.plot(lon[jj+1,ii], lat[jj+1,ii],color='darkorange', marker='*')
                 if uv == 'v' and isign == -1:
                     # River source on N side of rho cell
                     ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
-                    ax.scatter(lon[jj,ii], lat[jj,ii],color='darkorange', marker='*', edgecolor = 'darkorange', s = 75) 
+                    ax.plot(lon[jj,ii], lat[jj,ii],color='darkorange', marker='*') 
 
-        # print labels ---------------------------------------
-        # get list of sources that discharge to the same cell (overlapping)
-        duplicate_df = rowcol_df[rowcol_df.duplicated(['row_py','col_py'], keep=False) == True]
-        for i,sn in enumerate(snames):
-            # merge names of overlapping sources (actual handling of overlap is dealt with in make_forcing_main)
-            if sn == 'Purdy Cr' or sn == 'Burley Cr':
-                sn = 'Purdy Cr & Burley Cr'
-            elif sn == 'Deer Cr' or sn == 'Mable Taylor Cr':
-                sn = 'Deer Cr & Mable Taylor Cr'
-            elif sn == 'Perry Cr' or sn == 'McLane Cr':
-                sn = 'Perry Cr & McLane Cr'
-            sn_lon = ps_lon[i]
-            sn_lat = ps_lat[i]+0.008
-            ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=10, horizontalalignment='center')
-        if inflow_type == 'River':
-            for i,rn in enumerate(LOrivns):
-                rn_lon = LOrivs_lon[i]
-                rn_lat = LOrivs_lat[i]+0.003
-                ax.text(rn_lon, rn_lat, rn, color = 'darkorange', fontsize=10, horizontalalignment='center')
+        # # print labels ---------------------------------------
+        # # get list of sources that discharge to the same cell (overlapping)
+        # duplicate_df = rowcol_df[rowcol_df.duplicated(['row_py','col_py'], keep=False) == True]
+        # for i,sn in enumerate(snames):
+        #     # merge names of overlapping sources (actual handling of overlap is dealt with in make_forcing_main)
+        #     if sn == 'Purdy Cr' or sn == 'Burley Cr':
+        #         sn = 'Purdy Cr & Burley Cr'
+        #     elif sn == 'Deer Cr' or sn == 'Mable Taylor Cr':
+        #         sn = 'Deer Cr & Mable Taylor Cr'
+        #     elif sn == 'Perry Cr' or sn == 'McLane Cr':
+        #         sn = 'Perry Cr & McLane Cr'
+        #     sn_lon = ps_lon[i]
+        #     sn_lat = ps_lat[i]+0.003
+        #     ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=10, horizontalalignment='center')
+        # if inflow_type == 'River':
+        #     for i,rn in enumerate(LOrivns):
+        #         rn_lon = LOrivs_lon[i]
+        #         rn_lat = LOrivs_lat[i]+0.003
+        #         ax.text(rn_lon, rn_lat, rn, color = 'darkorange', fontsize=10, horizontalalignment='center')
 
         # finalize plot
-        ax.set_title('Placement of {}s'.format(inflow_type), fontsize = 18)
-        # ax.set_ylabel('Lat', fontsize = 16)
-        # ax.set_xlabel('Lon', fontsize = 16)
-        if inflow_type == 'River':
-            ax.legend(loc='lower left', fontsize = 12)
+        ax.set_title('Algorithm Placement of {}s'.format(inflow_type), fontsize = 18)
+        ax.set_ylabel('Lat', fontsize = 16)
+        ax.set_xlabel('Lon', fontsize = 16)
+        ax.legend(loc='lower left', fontsize = 12)
         ax.tick_params(axis='both', which='major', labelsize=14)
-        pfun.dar(ax)
         plt.locator_params(nbins=4)
         plt.show()
 
