@@ -876,7 +876,7 @@ def P_debug_KCplants(in_dict):
         cs = ax.pcolormesh(px, py, v, cmap=cmap, vmin=vmin, vmax=vmax)
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
-        ax.set(xlim=(-122.55, -122.3), ylim=(47.55, 47.7))
+        ax.set(xlim=(-122.55, -122.3), ylim=(47.58, 47.73))
         ax.set_xticks([])
         ax.set_yticks([])
 
@@ -885,7 +885,11 @@ def P_debug_KCplants(in_dict):
                     color='#AEDC3C', edgecolors='k', label='South King WWTP')
         ax.scatter(X[595],Y[756], s=80, marker='D',
                     color='#7148BC', edgecolors='k', label='West Point WWTP')
-        ax.legend(loc='upper left', fontsize = 16)
+        ax.scatter(X[591],Y[748], s=190, marker='*',
+                    color='deeppink', edgecolors='k', label='Bainbridge Island City WWTP')
+        ax.scatter(X[588],Y[756], s=100, marker='s',
+                    color='orange', edgecolors='k', label='Messenger House WWTP (closed)')
+        ax.legend(loc='upper right', fontsize = 12)
         # add colorbar
         cbar = plt.colorbar(cs,ax=ax, location='bottom')
         cbar.ax.tick_params(labelsize=16, rotation=30)
