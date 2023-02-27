@@ -833,6 +833,86 @@ def P_debug_birchbay(in_dict):
     else:
         plt.show()
 
+def P_debug_KCplants(in_dict):
+    # Focused on debugging
+    vn_list = ['u', 'v', 'w']
+    do_wetdry = False
+    
+    # START
+    fs = 10
+    pfun.start_plot(fs=fs, figsize=(8*len(vn_list),10))
+    plt.tight_layout()
+    fig = plt.figure()
+    print(in_dict['fn'])
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    ii = 1
+    for vn in vn_list:
+        if 'lon_rho' in ds[vn].coords:
+            tag = 'rho'
+        if 'lon_u' in ds[vn].coords:
+            tag = 'u'
+        if 'lon_v' in ds[vn].coords:
+            tag = 'v'
+        x = ds['lon_'+tag].values
+        y = ds['lat_'+tag].values
+        X = ds['lon_rho'].values[0,:]
+        Y = ds['lat_rho'].values[:,0]
+        px, py = pfun.get_plon_plat(x,y)
+        if vn in ['u', 'v']:
+            v = ds[vn][0,-1,:,:].values
+            vmin = -2
+            vmax = 2
+            cmap=plt.get_cmap(cm.balance)
+        if vn in ['w']:
+            v = ds[vn][0,-1,:,:].values
+            vmin = -0.001
+            vmax = 0.001
+            cmap=plt.get_cmap(cm.balance)
+        else:
+            v = ds[vn][0, -1,:,:].values
+        ax = fig.add_subplot(1, len(vn_list), ii)
+
+        cs = ax.pcolormesh(px, py, v, cmap=cmap, vmin=vmin, vmax=vmax)
+        pfun.add_coast(ax)
+        ax.axis(pfun.get_aa(ds))
+        ax.set(xlim=(-122.55, -122.3), ylim=(47.55, 47.7))
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        # plot location of wwtps
+        ax.scatter(X[598],Y[743], s=180, marker='^',
+                    color='#AEDC3C', edgecolors='k', label='South King WWTP')
+        ax.scatter(X[595],Y[756], s=80, marker='D',
+                    color='#7148BC', edgecolors='k', label='West Point WWTP')
+        ax.legend(loc='upper left', fontsize = 16)
+        # add colorbar
+        cbar = plt.colorbar(cs,ax=ax, location='bottom')
+        cbar.ax.tick_params(labelsize=16, rotation=30)
+
+        pfun.dar(ax)
+        if ii == 1:
+            pfun.add_info(ax, in_dict['fn'], his_num=True)
+        # vmax, vjmax, vimax, vmin, vjmin, vimin = pfun.maxmin(v)
+        # ax.plot(x[vjmax,vimax], y[vjmax,vimax],'*y', mec='k', markersize=15)
+        # ax.plot(x[vjmin,vimin], y[vjmin,vimin],'oy', mec='k', markersize=10)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        # plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+        ax.set_title(vn,fontsize=20)#('%s ((*)max=%0.1f, (o)min=%0.1f)' % (vn, vmax, vmin)), fontsize = 20)
+        ii += 1
+        plt.suptitle('Surface Velocities',fontsize=24)
+        
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+
 
 def P_debug_oakharbor(in_dict):
     # Focused on debugging
