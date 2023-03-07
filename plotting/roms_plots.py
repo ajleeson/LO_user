@@ -916,6 +916,117 @@ def P_debug_KCplants(in_dict):
     else:
         plt.show()
 
+def P_debug_ideal_wwtp(in_dict):
+    # Focused on debugging
+    vn_list = ['u', 'v', 'w', 'zeta']
+    do_wetdry = False
+    
+    # START
+    fs = 10
+    pfun.start_plot(fs=fs, figsize=(4*len(vn_list),10))
+    fig = plt.figure()
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    ii = 1
+    for vn in vn_list:
+        if 'lon_rho' in ds[vn].coords:
+            tag = 'rho'
+        if 'lon_u' in ds[vn].coords:
+            tag = 'u'
+        if 'lon_v' in ds[vn].coords:
+            tag = 'v'
+        x = ds['lon_'+tag].values
+        y = ds['lat_'+tag].values
+        px, py = pfun.get_plon_plat(x,y)
+        if vn in ['u', 'v']:
+            v = ds[vn][0,-1,:,:].values
+            vmin = -2
+            vmax = 2
+            cmap=plt.get_cmap(cm.balance)
+        elif vn in ['w']:
+            v = ds[vn][0,-1,:,:].values
+            vmin = -0.001
+            vmax = 0.001
+            cmap=plt.get_cmap(cm.balance)
+        elif vn == 'zeta':
+            v = ds[vn][0,:,:].values
+            h = ds.h.values
+            mr = ds.mask_rho.values
+            v[mr==0] = np.nan
+            h[mr==0] = np.nan
+            # v = v + h
+            vn = 'SSH anomaly'
+            vmin = -3
+            vmax = 3
+            cmap=plt.get_cmap(cm.balance)
+        else:
+            v = ds[vn][0, -1,:,:].values
+        ax = fig.add_subplot(2,2,ii)#1, len(vn_list), ii)
+        # ax.set_xticks([])
+        # ax.set_yticks([])
+        cs = ax.pcolormesh(px, py, v, cmap=cmap, vmin=vmin, vmax=vmax)
+        # add colorbar
+        cbar = plt.colorbar(cs,ax=ax)#, location='bottom')
+        cbar.ax.tick_params(labelsize=12, rotation=30)
+        pfun.add_coast(ax)
+        ax.axis(pfun.get_aa(ds))
+        pfun.dar(ax)
+        if ii == 1:
+            pfun.add_info(ax, in_dict['fn'], his_num=True)
+        vmax, vjmax, vimax, vmin, vjmin, vimin = pfun.maxmin(v)
+        ax.set_title(vn,fontsize=20)
+        ii += 1
+
+        # plot wwtps if they exist -------------------------------------------------------
+        do_wwtp = False
+        wwtp_fn = '../wwtps/alpe2/wwtp_loc_info.csv' #Gr['wwtp_dir'] / 'wwtp_loc_info.csv'
+        # read wwtp lat lon info
+        # if wwtp_fn.is_file():
+        do_wwtp = True
+        wwtp_df = pd.read_csv(wwtp_fn)
+            # print(wwtp_df)
+        if do_wwtp:
+            # plot wwtp locations on grid
+            # ax.scatter(wwtp_df['lon'],wwtp_df['lat'], color='black', label='WWTP')
+            # print labels
+            for i,wwtp in enumerate(wwtp_df['dname']):
+                wwtp_lon = wwtp_df['lon'][i]
+                wwtp_lat = wwtp_df['lat'][i]+0.05
+                # ax.text(wwtp_lon, wwtp_lat, wwtp, fontsize=14, horizontalalignment='center')
+        # plot point sources linked to the wwtp if the point sources have been created
+        do_ps = False
+        ps_fn = Ldir['data']/ 'grids'/ Gr['gridname'] / 'wwtp_info.csv'
+        # read point source location data
+        if ps_fn.is_file():
+            do_ps = True
+            ps_df = pd.read_csv(ps_fn)
+        if do_ps:
+            # plot point source locations on grid
+            lon = ds.lon_rho.values
+            lat = ds.lat_rho.values
+            X = lon[0,:]
+            Y = lat[:,0]
+            ps_lon = [X[int(ind)] for ind in ps_df['col_py']]
+            ps_lat = [Y[int(ind)] for ind in ps_df['row_py']]
+            ax.scatter(ps_lon,ps_lat, s=100, marker='o', color='#AEDC3C', edgecolors='k', label='Placed Source')
+            # for i,ps in enumerate(ps_df['wname']):
+            #     ax.plot([wwtp_df['lon'][i], ps_lon[i]],
+            #     [wwtp_df['lat'][i], ps_lat[i]],
+            #     color='deeppink', linewidth=1)
+        if vn == 'u':
+            ax.legend(loc='upper left',fontsize=14)
+
+        ax.set_xlim([-0.7,-0.5])
+        ax.set_ylim([45,45.1])
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
 
 
 def P_debug_oakharbor(in_dict):
