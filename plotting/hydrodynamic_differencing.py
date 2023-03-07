@@ -43,7 +43,8 @@ Gr = gfun.gstart()
 Ldir = Lfun.Lstart()
 
 import matplotlib as mpl
-mpl.use('QtAgg')
+# mpl.use('QtAgg')
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 plt.close('all')
 
