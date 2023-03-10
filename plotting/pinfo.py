@@ -24,7 +24,8 @@ vlims_dict = {'salt': (14, 35),
         'ARAG': (.2, 2.2),
         'detritus': (0,1),
         'Ldetritus': (0,1),
-        'u': (-0.05,0.8)}
+        'u': (-0.05,0.8),
+        'w': (-0.001,0.001)}
 
 # Colormaps (use _r for reverse)
 cmap_dict = {'salt': cm.haline,#'Spectral_r',
@@ -41,7 +42,7 @@ cmap_dict = {'salt': cm.haline,#'Spectral_r',
              'Ldetritus': 'rainbow',
              'u': 'rainbow',
              'v': 'rainbow',
-             'w': 'rainbow',
+             'w': cm.balance,
              'zeta': 'rainbow'}
 
 # Units (after multiplying by scaling factor)

@@ -457,8 +457,7 @@ def P_dive_vort_birchbay(in_dict):
         plt.close()
     else:
         plt.show()
-  
-        
+      
 def P_ri(in_dict):
     """
     Simplified Richardson number
@@ -1028,7 +1027,6 @@ def P_debug_ideal_wwtp(in_dict):
     else:
         plt.show()
 
-
 def P_debug_oakharbor(in_dict):
     # Focused on debugging
     vn_list = ['u', 'v', 'w']
@@ -1108,8 +1106,6 @@ def P_debug_oakharbor(in_dict):
         plt.close()
     else:
         plt.show()
-
-
 
 def P_layer(in_dict):
     # START
@@ -1538,18 +1534,39 @@ def P_sect_alpe2(in_dict):
     fig = plt.figure()
     ds = xr.open_dataset(in_dict['fn'])
     # PLOT CODE
-    vn = 'salt'
+    vn = 'w' #'salt'
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     # CREATE THE SECTION
     # create track by hand
     if True:
-        lon = G['lon_rho']
-        lat = G['lat_rho']
-        zdeep = -20
+        lon = G['lon_rho'][0,:]
+        lat = G['lat_rho'][:,0]
+        
+        # Define which wwtp to focus on
+        wwtp = 'wwtp4' #'wwtp2','wwtp3','wwtp4','wwtp5','all'
 
-        x = np.linspace(-1.4, 1.4, 500)
-        y = 45.07 * np.ones(x.shape)
+        if wwtp == 'wwtp1':
+            zdeep = -5
+            x_ps = -0.07005014422652162
+            y_ps = 45.58256518583124
+            xmin = x_ps
+            xmax = x_ps + 0.2
+
+        elif wwtp == 'wwtp4':
+            zdeep = -90
+            x_ps = 0.6001938503633347
+            y_ps = 44.34291446936327
+            xmin = x_ps - 0.2
+            xmax = x_ps + 0.2
+
+        elif wwtp == 'all':
+            zdeep = -20
+            x = np.linspace(-1.4, 1.4, 500)
+            y = 45.07 * np.ones(x.shape)
+
+        x = np.linspace(xmin, xmax, 500)
+        y = y_ps * np.ones(x.shape)
 
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
 
@@ -1610,7 +1627,13 @@ def P_sect_alpe2(in_dict):
     # section
     ax = fig.add_subplot(1, 3, (2, 3))
     ax.plot(dist, v2['zbot'], '-k', linewidth=2)
-    ax.plot(dist, v2['zeta'], '-b', linewidth=1)
+    ax.plot(dist, v2['zeta'], '-b', linewidth=0.5)
+    if x_ps == xmin:
+        ax.scatter(dist[0],v2['zeta'][0]+1,marker='v',s=100,color='k')
+    elif x_ps == xmax:
+        ax.scatter(dist[-1],v2['zeta'][-1]+1,marker='v',s=100,color='k')
+    else:
+        ax.scatter(np.mean(dist),v2['zeta'][int((len(dist) - 1)/2)]+1,marker='v',s=80,color='k')
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 5)
     # plot section
