@@ -139,8 +139,8 @@ if multi_core:
         ntilei = '10' # number of tiles in I-direction
         ntilej = '20' # number of tiles in J-direction
     elif Ldir['np_num'] == 80: 
-        ntilei = '8'  # number of tiles in I-direction
-        ntilej = '10' # number of tiles in J-direction
+        ntilei = '5' #'8'  # number of tiles in I-direction
+        ntilej = '16' #'10' # number of tiles in J-direction
     elif Ldir['np_num'] == 40: # klone
         ntilei = '5' # number of tiles in I-direction
         ntilej = '8' # number of tiles in J-direction
