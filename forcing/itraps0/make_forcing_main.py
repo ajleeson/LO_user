@@ -20,7 +20,7 @@ result_dict['start_dt'] = datetime.now()
 # ****************** CASE-SPECIFIC CODE *****************
 
 date_string = Ldir['date_string']
-out_dir = Ldir['LOo'] / 'forcing' / Ldir['gtag'] / ('f' + date_string) / Ldir['frc']
+out_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / ('f' + date_string) / Ldir['frc']
 
 import xarray as xr
 from lo_tools import Lfun, zrfun
