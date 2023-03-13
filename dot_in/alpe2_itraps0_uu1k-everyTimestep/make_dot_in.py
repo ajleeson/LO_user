@@ -140,7 +140,7 @@ else:
     D['ntimes'] = int(days_to_run*86400/dtsec)
 
 D['ninfo'] = 1 #int(his_interval/dtsec) # how often to write info to the log file (# of time steps)
-D['nhis'] = int(his_interval/dtsec) # how often to write to the history files
+D['nhis'] = 1 #int(his_interval/dtsec) # how often to write to the history files
 D['ndefhis'] = D['nhis'] # how often to create new history files
 D['nrst'] = int(rst_interval*86400/dtsec)
 
