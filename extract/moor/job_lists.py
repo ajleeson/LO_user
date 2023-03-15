@@ -176,6 +176,12 @@ def get_sta_dict(job_name):
         sta_dict = {
         'wwtp': (-122.60105555932371,48.28559664274097),
         }
+
+    # 2023.03.14 extract mooring wwtp4 in idealized estuary
+    elif job_name == 'wwtp4':
+        sta_dict = {
+        'wwtp': (0.6001938503633347,44.34291446936327),
+        }
             
             
     else:

@@ -11,7 +11,7 @@ figsize = (13,8) # laptop
 # Color limits
 # If you use () then the limits will be set by the first plot
 # and then held constant at those levels thereafter.    
-vlims_dict = {'salt': (14, 35),
+vlims_dict = {'salt': (29,31),#(14, 35),
         'temp': (7, 18),
         'dye_01': (0,1),
         'NO3': (0, 44),
@@ -24,8 +24,9 @@ vlims_dict = {'salt': (14, 35),
         'ARAG': (.2, 2.2),
         'detritus': (0,1),
         'Ldetritus': (0,1),
-        'u': (-0.05,0.8),
-        'w': (-0.001,0.001)}
+        'u': (-0.5,0.5),
+        'v': (-0.3,0.3),
+        'w': (-0.005,0.005)}
 
 # Colormaps (use _r for reverse)
 cmap_dict = {'salt': cm.haline,#'Spectral_r',
@@ -40,8 +41,8 @@ cmap_dict = {'salt': cm.haline,#'Spectral_r',
              'ARAG': 'rainbow',
              'detritus': 'rainbow',
              'Ldetritus': 'rainbow',
-             'u': 'rainbow',
-             'v': 'rainbow',
+             'u': cm.balance,
+             'v': cm.balance,
              'w': cm.balance,
              'zeta': 'rainbow'}
 

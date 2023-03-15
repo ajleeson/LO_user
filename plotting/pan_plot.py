@@ -137,6 +137,9 @@ else: # remote linux version
 import matplotlib.pyplot as plt
 plt.close('all')
 
+# #---------------------------------------------------------------------
+# fn_list = fn_list[0:-5]
+
 if len(fn_list) == 1:
     # plot a single image to screen
     fn = fn_list[0]
@@ -169,7 +172,7 @@ elif len(fn_list) > 1:
     # and make a movie
     if Ldir['make_movie']:
         cmd_list = ['ffmpeg','-r','4','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
-            '-pix_fmt', 'yuv420p', '-crf', '25', str(outdir)+'/movie.mp4']
+            '-pix_fmt', 'yuv420p', '-crf', '21', str(outdir)+'/movie.mp4']
         proc = Po(cmd_list, stdout=Pi, stderr=Pi)
         stdout, stderr = proc.communicate()
         if len(stdout) > 0:

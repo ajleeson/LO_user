@@ -944,19 +944,22 @@ def P_debug_ideal_wwtp(in_dict):
             cmap=plt.get_cmap(cm.balance)
         elif vn in ['w']:
             v = ds[vn][0,-1,:,:].values
-            vmin = -0.001
-            vmax = 0.001
+            vmin = -0.0003
+            vmax = 0.0003
             cmap=plt.get_cmap(cm.balance)
         elif vn == 'zeta':
             v = ds[vn][0,:,:].values
+            meanzeta = np.nanmean(ds[vn][0,:,:].values)
+            print(meanzeta)
+            v = v - meanzeta
             h = ds.h.values
             mr = ds.mask_rho.values
             v[mr==0] = np.nan
             h[mr==0] = np.nan
             # v = v + h
             vn = 'SSH anomaly'
-            vmin = -3
-            vmax = 3
+            vmin = -1
+            vmax = 1
             cmap=plt.get_cmap(cm.balance)
         else:
             v = ds[vn][0, -1,:,:].values
@@ -1007,7 +1010,7 @@ def P_debug_ideal_wwtp(in_dict):
             Y = lat[:,0]
             ps_lon = [X[int(ind)] for ind in ps_df['col_py']]
             ps_lat = [Y[int(ind)] for ind in ps_df['row_py']]
-            ax.scatter(ps_lon,ps_lat, s=100, marker='o', color='#AEDC3C', edgecolors='k', label='Placed Source')
+            ax.scatter(ps_lon,ps_lat, s=100, marker='o', color='none', edgecolors='k', label='Placed Source')
             # for i,ps in enumerate(ps_df['wname']):
             #     ax.plot([wwtp_df['lon'][i], ps_lon[i]],
             #     [wwtp_df['lat'][i], ps_lat[i]],
@@ -1015,8 +1018,8 @@ def P_debug_ideal_wwtp(in_dict):
         if vn == 'u':
             ax.legend(loc='upper left',fontsize=14)
 
-        ax.set_xlim([-0.7,-0.5])
-        ax.set_ylim([45,45.1])
+        # ax.set_xlim([0.5,0.7])
+        # ax.set_ylim([44.3,44.4])
 
     # FINISH
     ds.close()
@@ -1534,7 +1537,7 @@ def P_sect_alpe2(in_dict):
     fig = plt.figure()
     ds = xr.open_dataset(in_dict['fn'])
     # PLOT CODE
-    vn = 'w' #'salt'
+    vn = 'salt'
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     # CREATE THE SECTION
@@ -1634,6 +1637,262 @@ def P_sect_alpe2(in_dict):
         ax.scatter(dist[-1],v2['zeta'][-1]+1,marker='v',s=100,color='k')
     else:
         ax.scatter(np.mean(dist),v2['zeta'][int((len(dist) - 1)/2)]+1,marker='v',s=80,color='k')
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 5)
+    # plot section
+    svlims = pinfo.vlims_dict[vn]
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+    fig.colorbar(cs, ax=ax)
+    ax.set_xlabel('Distance (km)')
+    ax.set_ylabel('Z (m)')
+    ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    fig.tight_layout()
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.5)
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+def P_sect_birchbay(in_dict):
+    """
+    This plots a map and a section (distance, z), and makes sure
+    that the color limits are identical.  If the color limits are
+    set automatically then the section is the preferred field for
+    setting the limits.
+    
+    I think this works best with -avl False (the default).
+    """
+    # START
+    fs = 14
+    pfun.start_plot(fs=fs, figsize=(20,9))
+    fig = plt.figure()
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    vn = 'w'#'salt'
+    # GET DATA
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # CREATE THE SECTION
+    # create track by hand
+    if True:
+        lon = G['lon_rho'][0,:]
+        lat = G['lat_rho'][:,0]
+
+        zdeep = -20
+        x_ps = -122.8030401205365
+        y_ps = 48.8975820886066
+
+        offset = 0.02
+
+        y = np.linspace(y_ps - offset, y_ps + offset, 500)
+        x = x_ps * np.ones(y.shape)
+
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+
+    
+    # COLOR
+    # scaled section data
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # now we use the scaled section as the preferred field for setting the
+    # color limits of both figures in the case -avl True
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = pfun.auto_lims(sf)
+    
+    # PLOTTING
+
+    # map with section line
+    ax = fig.add_subplot(1, 3, 1)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+
+    # -----------------------------------------------------------
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    #pfun.start_plot(fs=fs, figsize=(int(hgt*2.5/AR),int(hgt)))
+    ratio = ((hgt*1.02/AR)/(hgt))
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
+    # -----------------------------------------------------------
+
+    #ax.axis(pfun.get_aa(ds))
+
+    pfun.add_info(ax, in_dict['fn'], loc='upper_right')
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    # ax.set_xlabel('Longitude')
+    # ax.set_ylabel('Latitude')
+    # add section track
+    print('xlims: {},{}'.format(x.min(),x.max()))
+    print('ylims: {},{}'.format(y.min(),y.max()))
+    ax.plot(x, y, '-', color='deeppink', linewidth=2)
+    ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+        markeredgecolor='deeppink', markeredgewidth=2)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    ax.set(xlim=(-122.9, -122.7), ylim=(48.85, 48.95))
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    pfun.dar(ax)
+    # plot location of wwtp
+    ax.scatter(-122.8030401205365,48.8975820886066, s=180, marker='o',
+                color='none', edgecolors='limegreen', label='Birch Bay WWTP')
+    ax.legend(loc='upper left', fontsize = 16)
+
+
+    # section
+    ax = fig.add_subplot(1, 3, (2, 3))
+    ax.plot(dist, v2['zbot'], '-k', linewidth=2)
+    ax.plot(dist, v2['zeta'], '-b', linewidth=0.5)
+    ax.scatter(np.mean(dist),v2['zeta'][int((len(dist) - 1)/2)]+1,marker='v',s=80,color='k')
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 5)
+    # plot section
+    svlims = pinfo.vlims_dict[vn]
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+    fig.colorbar(cs, ax=ax)
+    ax.set_xlabel('Distance (km)')
+    ax.set_ylabel('Z (m)')
+    ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    fig.tight_layout()
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.5)
+
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+def P_sect_oakharbor(in_dict):
+    """
+    This plots a map and a section (distance, z), and makes sure
+    that the color limits are identical.  If the color limits are
+    set automatically then the section is the preferred field for
+    setting the limits.
+    
+    I think this works best with -avl False (the default).
+    """
+
+    # START
+    fs = 14
+    pfun.start_plot(fs=fs, figsize=(20,9))
+    fig = plt.figure()
+    ds = xr.open_dataset(in_dict['fn'])
+    # PLOT CODE
+    vn = 'w'#'salt'
+    # GET DATA
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # CREATE THE SECTION
+    # create track by hand
+    if True:
+        lon = G['lon_rho'][0,:]
+        lat = G['lat_rho'][:,0]
+
+        zdeep = -25
+        x_ps = -122.60105555932371
+        y_ps = 48.28559664274097
+
+        offset = 0.0075
+
+        # x = np.linspace(x_ps - offset, x_ps + offset, 500)
+        # y = y_ps * np.ones(x.shape)
+
+        y = np.linspace(y_ps - offset, y_ps + offset, 500)
+        x = x_ps * np.ones(y.shape)
+
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+
+    
+    # COLOR
+    # scaled section data
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # now we use the scaled section as the preferred field for setting the
+    # color limits of both figures in the case -avl True
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = pfun.auto_lims(sf)
+    
+    # PLOTTING
+
+    # map with section line
+    ax = fig.add_subplot(1, 3, 1)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+
+    # -----------------------------------------------------------
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    #pfun.start_plot(fs=fs, figsize=(int(hgt*2.5/AR),int(hgt)))
+    ratio = ((hgt*1.02/AR)/(hgt))
+
+    #get x and y limits
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+
+    #set aspect ratio
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
+    # -----------------------------------------------------------
+
+    #ax.axis(pfun.get_aa(ds))
+
+    pfun.add_info(ax, in_dict['fn'], loc='upper_right')
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    # ax.set_xlabel('Longitude')
+    # ax.set_ylabel('Latitude')
+    # add section track
+    print('xlims: {},{}'.format(x.min(),x.max()))
+    print('ylims: {},{}'.format(y.min(),y.max()))
+    ax.plot(x, y, '-', color='deeppink', linewidth=2)
+    ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+        markeredgecolor='deeppink', markeredgewidth=2)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    ax.set(xlim=(-122.65,-122.55), ylim=(48.24,48.32))
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    pfun.dar(ax)
+    # plot location of wwtp
+    ax.scatter(-122.60105555932371,48.28559664274097, s=180, marker='o',
+                color='none', edgecolors='limegreen', label='Oak Harbor Lagoon WWTP')
+    ax.legend(loc='upper left', fontsize = 16)
+
+
+    # section
+    ax = fig.add_subplot(1, 3, (2, 3))
+    ax.plot(dist, v2['zbot'], '-k', linewidth=2)
+    ax.plot(dist, v2['zeta'], '-b', linewidth=0.5)
+    ax.scatter(np.mean(dist),v2['zeta'][int((len(dist) - 1)/2)]+1,marker='v',s=80,color='k')
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 5)
     # plot section
