@@ -11,7 +11,7 @@ figsize = (13,8) # laptop
 # Color limits
 # If you use () then the limits will be set by the first plot
 # and then held constant at those levels thereafter.    
-vlims_dict = {'salt': (29,31),#(14, 35),
+vlims_dict = {'salt': (29.9,30),#(14, 35),
         'temp': (7, 18),
         'dye_01': (0,1),
         'NO3': (0, 44),
