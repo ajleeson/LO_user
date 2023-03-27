@@ -30,6 +30,7 @@ w = ds['w'].transpose()
 
 # get depth values
 z_rho = ds['z_rho'].transpose() # depth of u and v-velocities
+print(np.shape(z_rho))
 z_w   = ds['z_w'].transpose()   # depth of w-velocities
 z_min = np.min(z_w.values)
 
