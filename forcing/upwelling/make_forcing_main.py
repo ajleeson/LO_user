@@ -121,7 +121,7 @@ vn = 'river_transport'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
 dims = (vinfo['time'],) + ('river',)
 Q_mat = np.zeros((NT, NWWTP))
-Q_mat[:,0] = 1 * np.ones(NT)
+Q_mat[:,0] = 10 * np.ones(NT)
 # ii = 0
 # for ii,rn in enumerate(gri_df.index):
 #     if rn == 'creek0':
