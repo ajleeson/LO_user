@@ -41,9 +41,9 @@ Ldir = Lfun.Lstart()
 
 # USER OPTIONS
 
-fn = 'results/roms_his_og.nc'
-foldername = 'section_basecase_upwelling'
-vn = 'v' # options: temp, u, v, w
+fn = 'results/roms_his_LwSrc.nc' #'results/roms_his_og.nc'
+foldername = 'section_wwtp_upwelling' #'section_basecase_upwelling'
+vn = 'temp' # options: temp, u, v, w
 
 #---------------------------------------------------------
 
@@ -65,8 +65,8 @@ fs = 14
 hgt = 10
 
 # PLOT CODE
-for t in range(2):#len(ds.ocean_time)):
-    # print(t)
+for t in range(len(ds.ocean_time)):
+    print(t)
     pfun.start_plot(fs=fs, figsize=(15,8))
     fig = plt.figure()
 
