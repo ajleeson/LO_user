@@ -58,10 +58,13 @@ NWWTP = 1
 # Start Dataset
 ds = xr.Dataset()
 
-# # Add time coordinate
-# ds['river_time'] = (('river_time',), ot_vec)
+# Add time coordinate
+his_ds = xr.open_dataset('../../upwelling-tests/results/roms_his_og.nc')
+time_vec = his_ds.ocean_time.values
+# print(time_vec)
+ds['river_time'] = (('river_time',), time_vec)
 # ds['river_time'].attrs['units'] = Lfun.roms_time_units
-# ds['river_time'].attrs['long_name'] = 'river time'
+ds['river_time'].attrs['long_name'] = 'river time'
 
 # Add river coordinate
 ds['river'] = (('river',), np.arange(1,NWWTP+1))

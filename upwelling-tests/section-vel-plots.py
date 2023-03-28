@@ -59,12 +59,14 @@ outdir0 = Ldir['LOo'] / 'plots'
 outdir = outdir0 / foldername
 Lfun.make_dir(outdir, clean=True)
 
+# print(ds.ocean_time)
+
 fs = 14
 hgt = 10
 
 # PLOT CODE
-for t in range(len(ds.ocean_time)):
-    print(t)
+for t in range(2):#len(ds.ocean_time)):
+    # print(t)
     pfun.start_plot(fs=fs, figsize=(15,8))
     fig = plt.figure()
 
