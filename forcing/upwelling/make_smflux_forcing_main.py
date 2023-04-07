@@ -60,12 +60,12 @@ for vn in vn_list:
 
     if vn == 'sustr':
         const = 0 # [N/m2] Pascal
-        values = const*np.ones((NT, NR, NC-1)) # shape of u2dvar
+        values = const*np.ones((NT, NR, NC)) # shape of u2dvar
         # values[mu2==0] = np.nan
 
     elif vn == 'svstr':
         const = 0 # [N/m2]
-        values = const*np.ones((NT, NR-1, NC)) # shape of v2dvar
+        values = const*np.ones((NT, NR, NC)) # shape of v2dvar
         # values[mv2==0] = np.nan
 
     ds[vn] = (dims, values)
