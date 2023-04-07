@@ -40,7 +40,7 @@ N = 16 # 16 vertical layers
 
 NR = 82 # rows
 
-NC = 41 # cols
+NC = 42 # cols
 
 # Create fields for the state variables.
 vn_list = ['sustr','svstr']
