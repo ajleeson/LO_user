@@ -90,7 +90,7 @@ vn = 'river_transport'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
 dims = (vinfo['time'],) + ('river',)
 Q_mat = np.zeros((NT, NWWTP))
-Q_mat[:,0] = 1 * np.ones(NT)
+Q_mat[:,0] = 10 * np.ones(NT)
 ds[vn] = (dims, Q_mat)
 ds[vn].attrs['long_name'] = vinfo['long_name']
 ds[vn].attrs['units'] = vinfo['units']
