@@ -41,9 +41,9 @@ Ldir = Lfun.Lstart()
 
 # USER OPTIONS
 
-fn = 'results/roms_his_LwSrc.nc' #'results/roms_his_og.nc'
-foldername = 'section_difference_upwelling'
-vn = 'w' # options: temp, u, v, w
+fn = 'results/roms_his_botwwtp1.nc' #'results/roms_his_og.nc'
+foldername = 'section_difference_botwwtp1'
+vn = 'temp' # options: temp, u, v, w
 
 #---------------------------------------------------------
 

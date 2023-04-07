@@ -41,8 +41,8 @@ Ldir = Lfun.Lstart()
 
 # USER OPTIONS
 
-fn = 'results/roms_his_LwSrc.nc'
-foldername = 'surface_difference_upwelling'
+fn = 'results/roms_his_botwwtp10.nc'
+foldername = 'surface_difference_botwwtp10'
 
 #---------------------------------------------------------
 

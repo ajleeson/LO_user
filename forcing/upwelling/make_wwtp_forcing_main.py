@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 
 out_path = Path(out_dir)
-out_fn = out_path / 'wwtp.nc'
+out_fn = out_path / 'botwwtp10.nc'
 out_fn.unlink(missing_ok=True)
 
 # Make the time vector.
