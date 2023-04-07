@@ -43,7 +43,7 @@ Ldir = Lfun.Lstart()
 
 fn = 'results/roms_his_LwSrc.nc' #'results/roms_his_og.nc'
 foldername = 'section_wwtp_upwelling' #'section_basecase_upwelling'
-vn = 'temp' # options: temp, u, v, w
+vn = 'w' # options: temp, u, v, w
 
 #---------------------------------------------------------
 

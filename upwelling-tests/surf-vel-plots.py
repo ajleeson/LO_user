@@ -40,7 +40,7 @@ Ldir = Lfun.Lstart()
 #---------------------------------------------------------
 
 
-fn = 'results/roms_his_og.nc'
+fn = 'results/roms_his_LwSrc.nc'
 
 # START
 ds = xr.open_dataset(fn)
@@ -48,17 +48,17 @@ ds = xr.open_dataset(fn)
 
 # where to save files
 outdir0 = Ldir['LOo'] / 'plots'
-outdir = outdir0 / 'surface_basecase_upwelling'
+outdir = outdir0 / 'surface_wwtp_upwelling'
 Lfun.make_dir(outdir, clean=True)
 
 fs = 14
 hgt = 10
 # PLOT CODE
-vn_list = ['u','v','w','temp']
+vn_list = ['u','v','w','temp','zeta']
 
 for t in range(len(ds.ocean_time)):
     print(t)
-    pfun.start_plot(fs=fs, figsize=(18,8))
+    pfun.start_plot(fs=fs, figsize=(16,8))
     fig = plt.figure()
     for i,vn in enumerate(vn_list):
         ii = i + 1
@@ -68,15 +68,17 @@ for t in range(len(ds.ocean_time)):
             y = ds['eta_rho'].values
             v = ds[vn][t,-1,:,:].values
             cmap = cm.balance
-            vmin = -8e-7
-            vmax = 8e-7
+            vmin = -1e-4
+            vmax = 1e-4
+            units = 'm/s'
         elif vn == 'temp':
             x = ds['xi_rho'].values
             y = ds['eta_rho'].values
             v = ds[vn][t,-1,:,:].values
             cmap = cm.thermal
-            vmin = 17.5
+            vmin = 15
             vmax = 22
+            units = 'C'
         elif vn == 'u':
             x = ds['xi_u'].values
             y = ds['eta_u'].values
@@ -84,6 +86,7 @@ for t in range(len(ds.ocean_time)):
             cmap = cm.balance
             vmin = -1
             vmax = 1
+            units = 'm/s'
         elif vn == 'v':
             x = ds['xi_v'].values
             y = ds['eta_v'].values
@@ -91,13 +94,25 @@ for t in range(len(ds.ocean_time)):
             cmap = cm.balance
             vmin = -0.1
             vmax = 0.1
+            units = 'm/s'
+        elif vn == 'zeta':
+            x = ds['xi_rho'].values
+            y = ds['eta_rho'].values
+            v = ds[vn][t,:,:].values
+            cmap = cm.balance
+            vmin = -0.5
+            vmax = 0.5
+            units = 'm'
         cs = ax.pcolormesh(x, y, v, cmap=cmap, vmin=vmin, vmax=vmax)
-        fig.colorbar(cs)
+        cbar = plt.colorbar(cs,ax=ax, location='bottom')
+        cbar.ax.tick_params(rotation=30)
         plt.locator_params(axis='x', nbins=3)
         pfun.dar(ax)
-        ax.set_title('Surface {} (m/s)'.format(vn))
+        ax.set_xlabel('E-W Distance (km)')
+
+        ax.set_title('Surface {} ({})'.format(vn,units))
         if ii == 1:
-            pass
+            ax.set_ylabel('N-S Distance (km)')
             # pfun.add_info(ax, in_dict['fn']) I commented this out so it is easier to see the point sources. Add back in later. --------------
             #pfun.add_windstress_flower(ax, ds)
             # pfun.add_bathy_contours(ax, ds, txt=False)
@@ -141,7 +156,7 @@ for t in range(len(ds.ocean_time)):
             #         color='deeppink', linewidth=1)
             #         ax.legend(loc='best',fontsize=14)
 
-        elif ii == 2:
+        else:
             ax.set_yticklabels([])
         # ii += 1
 
