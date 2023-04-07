@@ -40,7 +40,8 @@ Ldir = Lfun.Lstart()
 #---------------------------------------------------------
 
 
-fn = 'results/roms_his_LwSrc.nc'
+fn = 'results/roms_his_base.nc'
+foldername = 'surface_base_upwelling'
 
 # START
 ds = xr.open_dataset(fn)
@@ -48,7 +49,7 @@ ds = xr.open_dataset(fn)
 
 # where to save files
 outdir0 = Ldir['LOo'] / 'plots'
-outdir = outdir0 / 'surface_wwtp_upwelling'
+outdir = outdir0 / foldername
 Lfun.make_dir(outdir, clean=True)
 
 fs = 14
