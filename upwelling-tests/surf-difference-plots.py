@@ -47,7 +47,7 @@ foldername = 'surface_difference_upwelling'
 #---------------------------------------------------------
 
 # get basecase file for differencing
-ds0 = xr.open_dataset('results/roms_his_og.nc')
+ds0 = xr.open_dataset('results/roms_his_base.nc')
 
 # START
 ds = xr.open_dataset(fn)
