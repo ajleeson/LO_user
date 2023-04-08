@@ -41,8 +41,8 @@ Ldir = Lfun.Lstart()
 
 # USER OPTIONS
 
-fn = 'results/roms_his_botwwtp1.nc' #'results/roms_his_og.nc'
-foldername = 'section_difference_botwwtp1'
+fn = 'results/roms_his_botwwtp10.nc' #'results/roms_his_og.nc'
+foldername = 'section_difference_botwwtp10'
 vn = 'temp' # options: temp, u, v, w
 
 #---------------------------------------------------------
@@ -79,8 +79,8 @@ for t in range(len(ds.ocean_time)):
         v = ds[vn][t,-1,:,:].values - ds0[vn][t,-1,:,:].values
         z_norm = ds['s_w'].values
         cmap = cm.balance
-        vmin = -5e-5
-        vmax =  5e-5
+        vmin = -1e-5
+        vmax =  1e-5
         units = 'm/s'
     elif vn == 'temp':
         x = ds['xi_rho'].values
@@ -88,8 +88,8 @@ for t in range(len(ds.ocean_time)):
         v = ds[vn][t,-1,:,:].values - ds0[vn][t,-1,:,:].values
         z_norm = ds['s_rho'].values
         cmap = cm.balance
-        vmin = -1e-3
-        vmax = 1e-3
+        vmin = -4e-3
+        vmax =  4e-3
         units = 'C'
     elif vn == 'u':
         x = ds['xi_u'].values
@@ -97,8 +97,8 @@ for t in range(len(ds.ocean_time)):
         v = ds[vn][t,-1,:,:].values - ds0[vn][t,-1,:,:].values
         z_norm = ds['s_rho'].values
         cmap = cm.balance
-        vmin = -5e-4
-        vmax = 5e-4
+        vmin = -3e-4
+        vmax =  3e-4
         units = 'm/s'
     elif vn == 'v':
         x = ds['xi_v'].values
@@ -107,8 +107,8 @@ for t in range(len(ds.ocean_time)):
         z_norm = ds['s_rho'].values
         h = ds['h'].values[1::,21] # offset v grid
         cmap = cm.balance
-        vmin = -5e-4
-        vmax = 5e-4
+        vmin = -3e-4
+        vmax =  3e-4
         units = 'm/s'
 
     # add surface profile
@@ -116,7 +116,7 @@ for t in range(len(ds.ocean_time)):
     cs = ax.pcolormesh(x, y, v, cmap=cmap, vmin=vmin, vmax=vmax)
     plt.locator_params(axis='x', nbins=3)
     pfun.dar(ax)
-    ax.set_title('Surface {} ({})'.format(vn,units))
+    ax.set_title(r'Surface $\Delta$' + '{} ({})'.format(vn,units))
     ax.set_xlabel('E-W Distance (km)')
     ax.set_ylabel('N-S Distance (km)')
     ax.axvline(21,0,85,linestyle=':', color='k')
@@ -126,11 +126,13 @@ for t in range(len(ds.ocean_time)):
     ax = fig.add_subplot(1, 3, (2,3))
     z = [[sigma*depth for depth in h] for sigma in z_norm]
     v = ds[vn][t,:,:,21] - ds0[vn][t,:,:,21]
+    max = np.max(v)
+    min = np.min(v)
     # print(np.shape(y))
     # print(np.shape(z))
     # print(np.shape(v))
     cs = ax.pcolormesh(y, z, v, cmap=cmap, vmin=vmin, vmax=vmax)
-    ax.set_title('Section {} ({})'.format(vn,units))
+    ax.set_title(r'Section $\Delta$' + '{} [{}]; min = {:0.1e} , max = {:0.1e}'.format(vn,units,min,max))
     ax.set_ylabel('Depth (m)')
     ax.set_xlabel('N-S Distance (km)')
     fig.colorbar(cs)
