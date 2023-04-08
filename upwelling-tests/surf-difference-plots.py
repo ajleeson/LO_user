@@ -77,8 +77,8 @@ for t in range(len(ds.ocean_time)):
             v0 = ds0[vn][t,-1,:,:].values
             vdiff = v - v0
             cmap = cm.balance
-            vmin = -5e-5
-            vmax =  5e-5
+            vmin = -5e-6
+            vmax =  5e-6
             units = 'm/s'
             vn = r'$\Delta w$'
         elif vn == 'temp':
@@ -88,8 +88,8 @@ for t in range(len(ds.ocean_time)):
             v0 = ds0[vn][t,-1,:,:].values
             vdiff = v - v0
             cmap = cm.balance
-            vmin = -1e-3
-            vmax = 1e-3
+            vmin = -5e-5
+            vmax =  5e-5
             units = 'C'
             vn = r'$\Delta T$'
         elif vn == 'u':
@@ -99,8 +99,8 @@ for t in range(len(ds.ocean_time)):
             v0 = ds0[vn][t,-1,:,:].values
             vdiff = v - v0
             cmap = cm.balance
-            vmin = -5e-4
-            vmax = 5e-4
+            vmin = -5e-5
+            vmax =  5e-5
             units = 'm/s'
             vn = r'$\Delta u$'
         elif vn == 'v':
@@ -110,8 +110,8 @@ for t in range(len(ds.ocean_time)):
             v0 = ds0[vn][t,-1,:,:].values
             vdiff = v - v0
             cmap = cm.balance
-            vmin = -5e-4
-            vmax = 5e-4
+            vmin = -5e-5
+            vmax =  5e-5
             units = 'm/s'
             vn = r'$\Delta v$'
         elif vn == 'zeta':
@@ -123,68 +123,30 @@ for t in range(len(ds.ocean_time)):
             # subtract mean difference
             vdiff = vdiff - np.mean(vdiff)
             cmap = cm.balance
-            vmin = -5e-5
-            vmax = 5e-5
+            vmin = -5e-6
+            vmax =  5e-6
             units = 'm'
             vn = r'$\Delta \zeta - (\Delta \zeta)_{avg}$'
+        # calculate min and max values
+        max = np.max(vdiff)
+        min = np.min(vdiff)
         cs = ax.pcolormesh(x, y, vdiff, cmap=cmap, vmin=vmin, vmax=vmax)
         cbar = plt.colorbar(cs,ax=ax, location='bottom')
-        cbar.ax.tick_params(rotation=30)
+        cbar.ax.tick_params(rotation=30, labelsize=12)
         plt.locator_params(axis='x', nbins=3)
         pfun.dar(ax)
-        ax.set_xlabel('E-W Distance (km)')
+        ax.set_xlabel('E-W Distance (km)', fontsize=12)
 
-        ax.set_title('{} [{}]'.format(vn,units))
+        ax.set_title('{} [{}] \n min = {:0.1e} \n max = {:0.1e}'.format(vn,units,min,max), fontsize=12)
         if ii == 1:
-            ax.set_ylabel('N-S Distance (km)')
-            # pfun.add_info(ax, in_dict['fn']) I commented this out so it is easier to see the point sources. Add back in later. --------------
-            #pfun.add_windstress_flower(ax, ds)
-            # pfun.add_bathy_contours(ax, ds, txt=False)
-
-            # # plot wwtps if they exist
-            # do_wwtp = False
-            # wwtp_fn = Gr['wwtp_dir'] / 'wwtp_loc_info.csv'
-            # # read wwtp lat lon info
-            # if wwtp_fn.is_file():
-            #     do_wwtp = True
-            #     wwtp_df = pd.read_csv(wwtp_fn)
-            #     # print(wwtp_df)
-            # if do_wwtp:
-            #     # plot wwtp locations on grid
-            #     ax.scatter(wwtp_df['lon'],wwtp_df['lat'], color='black', label='wwtps')
-            #     # print labels
-            #     for i,wwtp in enumerate(wwtp_df['dname']):
-            #         wwtp_lon = wwtp_df['lon'][i]
-            #         wwtp_lat = wwtp_df['lat'][i]+0.05
-            #         ax.text(wwtp_lon, wwtp_lat, wwtp, fontsize=14, horizontalalignment='center')
-
-            # # plot point sources linked to the wwtp if the point sources have been created
-            # do_ps = False
-            # ps_fn = Ldir['data']/ 'grids'/ Gr['gridname'] / 'wwtp_info.csv'
-            # # read point source location data
-            # if ps_fn.is_file():
-            #     do_ps = True
-            #     ps_df = pd.read_csv(ps_fn)
-            # if do_ps:
-            #     # plot point source locations on grid
-            #     lon = ds.lon_rho.values
-            #     lat = ds.lat_rho.values
-            #     X = lon[0,:]
-            #     Y = lat[:,0]
-            #     ps_lon = [X[int(ind)] for ind in ps_df['col_py']]
-            #     ps_lat = [Y[int(ind)] for ind in ps_df['row_py']]
-            #     ax.scatter(ps_lon,ps_lat, color='deeppink', marker='x', s=40, label='point sources')
-            #     for i,ps in enumerate(ps_df['wname']):
-            #         ax.plot([wwtp_df['lon'][i], ps_lon[i]],
-            #         [wwtp_df['lat'][i], ps_lat[i]],
-            #         color='deeppink', linewidth=1)
-            #         ax.legend(loc='best',fontsize=14)
+            ax.set_ylabel('N-S Distance (km)', fontsize=12)
 
         else:
             ax.set_yticklabels([])
         # ii += 1
 
         plt.suptitle('[With WWTP] minus [No WWTP] Surface Plots')
+        plt.subplots_adjust(top=0.8) 
 
     # FINISH
     ds.close()
