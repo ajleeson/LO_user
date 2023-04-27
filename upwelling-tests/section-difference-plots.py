@@ -43,7 +43,7 @@ Ldir = Lfun.Lstart()
 
 fn = 'results/roms_his_botwwtp10.nc' #'results/roms_his_og.nc'
 foldername = 'section_difference_botwwtp10'
-vn = 'temp' # options: temp, u, v, w
+vn = 'omega' # options: temp, u, v, w, omega
 
 #---------------------------------------------------------
 
@@ -82,6 +82,15 @@ for t in range(len(ds.ocean_time)):
         vmin = -1e-5
         vmax =  1e-5
         units = 'm/s'
+    elif vn == 'omega':
+        x = ds['xi_rho'].values
+        y = ds['eta_rho'].values
+        v = ds[vn][t,-1,:,:].values - ds0[vn][t,-1,:,:].values
+        z_norm = ds['s_w'].values
+        cmap = cm.balance
+        vmin = -3e-6
+        vmax =  3e-6
+        units = 'm3/s'
     elif vn == 'temp':
         x = ds['xi_rho'].values
         y = ds['eta_rho'].values

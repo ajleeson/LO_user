@@ -39,12 +39,13 @@ Ldir = Lfun.Lstart()
 
 #---------------------------------------------------------
 
-
-fn = 'results/roms_his_base.nc'
-foldername = 'surface_base_upwelling'
+# fn = 'his_cod_lwsrc_k15.nc'
+# foldername = 'surface_k15_cod_lwsrc'
+fn = 'his_cod_V-less.nc'
+foldername = 'surface_V-less_cod_lwsrc'
 
 # START
-ds = xr.open_dataset(fn)
+ds = xr.open_dataset(Ldir['LOr'] / 'lwsrc-test-results'/ 'results/'+fn)
 # print(list(ds.keys()))
 
 # where to save files
@@ -55,22 +56,24 @@ Lfun.make_dir(outdir, clean=True)
 fs = 14
 hgt = 10
 # PLOT CODE
-vn_list = ['u','v','w','omega','zeta','temp']
+vn_list = ['u','v','w','zeta']
+
+# print(ds.ocean_time)
 
 for t in range(len(ds.ocean_time)):
     print(t)
-    pfun.start_plot(fs=fs, figsize=(18,8))
+    pfun.start_plot(fs=fs, figsize=(12,12))
     fig = plt.figure()
     for i,vn in enumerate(vn_list):
         ii = i + 1
-        ax = fig.add_subplot(1, len(vn_list), ii)
+        ax = fig.add_subplot(int(len(vn_list)/2), 2, ii)
         if vn == 'w':
             x = ds['xi_rho'].values
             y = ds['eta_rho'].values
             v = ds[vn][t,-1,:,:].values
             cmap = cm.balance
-            vmin = -1e-4
-            vmax = 1e-4
+            vmin = -7e-4
+            vmax =  7e-4
             units = 'm/s'
         if vn == 'omega':
             x = ds['xi_rho'].values
@@ -85,49 +88,53 @@ for t in range(len(ds.ocean_time)):
             y = ds['eta_rho'].values
             v = ds[vn][t,-1,:,:].values
             cmap = cm.thermal
-            vmin = 15
-            vmax = 22
+            vmin = 10
+            vmax = 20
             units = 'C'
         elif vn == 'u':
             x = ds['xi_u'].values
             y = ds['eta_u'].values
             v = ds[vn][t,-1,:,:].values
             cmap = cm.balance
-            vmin = -1
-            vmax = 1
+            vmin = -2e-3
+            vmax =  2e-3
             units = 'm/s'
         elif vn == 'v':
             x = ds['xi_v'].values
             y = ds['eta_v'].values
             v = ds[vn][t,-1,:,:].values
             cmap = cm.balance
-            vmin = -0.1
-            vmax = 0.1
+            vmin = -2e-3
+            vmax =  2e-3
             units = 'm/s'
         elif vn == 'zeta':
             x = ds['xi_rho'].values
             y = ds['eta_rho'].values
             v = ds[vn][t,:,:].values
             cmap = cm.balance
-            vmin = -0.5
-            vmax = 0.5
+            vmin = -5e-4
+            vmax =  5e-4
             units = 'm'
         max = np.max(v)
         min = np.min(v)
-        cs = ax.pcolormesh(x, y, v, cmap=cmap, vmin=vmin, vmax=vmax)
-        cbar = plt.colorbar(cs,ax=ax, location='bottom')
+        cs = ax.pcolormesh(x*(5/39), y*(5/39), v, cmap=cmap, vmin=vmin, vmax=vmax)
+        cbar = plt.colorbar(cs,ax=ax)#, location='bottom')
         cbar.ax.tick_params(rotation=30)
         plt.locator_params(axis='x', nbins=3)
         pfun.dar(ax)
-        ax.set_xlabel('E-W Distance (km)')
 
-        ax.set_title('{} [{}] \n min = {:0.1e} \n max = {:0.1e}'.format(vn,units,min,max), fontsize=12)
-        if ii == 1:
+        ax.set_title('{} [{}] \n min = {:0.1e} \n max = {:0.1e}'.format(vn,units,min,max), fontsize=14)
+        if ii == 1 or ii == 3:
             ax.set_ylabel('N-S Distance (km)')
-
         else:
             ax.set_yticklabels([])
+        if ii == 3 or ii == 4:
+            ax.set_xlabel('E-W Distance (km)')
+        else:
+            ax.set_xticklabels([])
         # ii += 1
+
+    plt.suptitle('{} \n {}'.format(fn,ds.ocean_time[t].values),fontsize=18)
 
     # FINISH
     ds.close()
