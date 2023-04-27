@@ -55,3 +55,12 @@ ax.legend(loc='best',fontsize=14)
 ax.set_ylim([-200,0])
 ax.set_xlim([1e-4,1e1])
 plt.show()
+
+
+#------------------------------------
+# Calculate LwSrc flow statistics
+total_flow = flowdf.sum(axis=1)
+print('Annual Average of All Vertical Sources = {} m3/s'.format(round(total_flow.mean(),1)))
+print('Annual Range of All Vertical Sources = {} m3/s'.format(round(total_flow.max()-total_flow.min(),1)))
+print('Annual Max of All Vertical Sources = {} m3/s'.format(round(total_flow.max(),1)))
+print('Annual Min of All Vertical Sources = {} m3/s'.format(round(total_flow.min(),1)))

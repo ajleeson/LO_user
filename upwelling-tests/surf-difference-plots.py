@@ -41,8 +41,8 @@ Ldir = Lfun.Lstart()
 
 # USER OPTIONS
 
-fn = 'results/roms_his_botwwtp10.nc'
-foldername = 'surface_difference_botwwtp10'
+fn = 'results/roms_his_botwwtp-10.nc'
+foldername = 'surface_difference_botwwtp-10'
 
 #---------------------------------------------------------
 
@@ -61,11 +61,11 @@ Lfun.make_dir(outdir, clean=True)
 fs = 14
 hgt = 10
 # PLOT CODE
-vn_list = ['u','v','w','temp','zeta']
+vn_list = ['u','v','w','omega','zeta','temp']
 
 for t in range(len(ds.ocean_time)):
     print(t)
-    pfun.start_plot(fs=fs, figsize=(16,8))
+    pfun.start_plot(fs=fs, figsize=(18,8))
     fig = plt.figure()
     for i,vn in enumerate(vn_list):
         ii = i + 1
@@ -81,6 +81,17 @@ for t in range(len(ds.ocean_time)):
             vmax =  5e-6
             units = 'm/s'
             vn = r'$\Delta w$'
+        elif vn == 'omega':
+            x = ds['xi_rho'].values
+            y = ds['eta_rho'].values
+            v = ds[vn][t,-1,:,:].values
+            v0 = ds0[vn][t,-1,:,:].values
+            vdiff = v - v0
+            cmap = cm.balance
+            vmin = -1e-6
+            vmax =  1e-6
+            units = 'm3/s'
+            vn = r'$\Delta \omega$'
         elif vn == 'temp':
             x = ds['xi_rho'].values
             y = ds['eta_rho'].values
