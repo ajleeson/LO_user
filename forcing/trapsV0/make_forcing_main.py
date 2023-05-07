@@ -492,7 +492,7 @@ if enable_pointsources == True:
     gri_df = pd.read_csv(gri_fn, index_col='rname')
     if Ldir['testing']:
         gri_df = gri_df.loc[['West Point', 'Birch Bay', 'Tacoma Central', 'US Oil & Refining'],:]
-    gri_df = gri_df.drop('Birch Bay') # Remove the Birch Bay treatment plant
+    # gri_df = gri_df.drop('Birch Bay') # Remove the Birch Bay treatment plant
     
     # get list of overlapping point sources
     overlapping_wwtps = gri_df[gri_df.duplicated(['row_py','col_py'], keep=False) == True].index.values
