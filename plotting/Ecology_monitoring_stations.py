@@ -22,7 +22,7 @@ lon = df['Calculated_Longitude_Decimal_Degrees_NAD83HARN']
 
 fig = plt.figure(figsize=(6,8))
 ax = fig.add_subplot(111)
-# pfun.add_coast(ax,color='black')
+pfun.add_coast(ax,color='black')
 pfun.dar(ax)
 ax.scatter(lon,lat,s=50, edgecolors='k', color='deeppink' )
 ax.set_xlim(-123.5,-122)
