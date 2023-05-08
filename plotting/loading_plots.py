@@ -4,13 +4,12 @@ Code to plot DIN loads in Puget Sound
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import matplotlib.colors as col
+from datetime import datetime
 import pandas as pd
-import math
 import xarray as xr
 import cmocean
 from lo_tools import plotting_functions as pfun
+from lo_tools import Lfun
 
 # define grid indices to look at
 j1 = 590
@@ -28,6 +27,50 @@ def SSM2LO_name(rname):
     rname_LO = repeatrivs_df.loc[repeatrivs_df['SSM_rname'] == rname, 'LO_rname'].values[0]
 
     return rname_LO
+
+def LO2SSM_name(rname):
+    """
+    Given a river name in LiveOcean, find corresponding river name in SSM
+    """
+    repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
+    repeatrivs_df = pd.read_excel(repeatrivs_fn)
+    rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
+
+    return rname_SSM
+
+# riv fun function to get biology
+def get_bio_vec(vn, rn, yd_ind):
+    ndt = len(yd_ind)
+    yd = yd_ind.values
+    ovec = np.ones(ndt)
+    if vn == 'NO3':
+        if rn == 'fraser':
+            vv = 2 + (13/2) + (13/2)*np.cos(2*np.pi*((yd-30)/366))
+        elif rn == 'columbia':
+            vv = 5 + (35/2) + (35/2)*np.cos(2*np.pi*((yd)/366))
+        else:
+            vv = 5 * ovec
+    elif vn == 'Oxyg':
+        vv = 350 * ovec
+    elif vn in ['TAlk', 'TIC']:
+        if rn in ['columbia', 'deschutes', 'duwamish']:
+            vv = 1000 * ovec
+        else:
+            vv = 300 * ovec
+    else:
+        vv = 0 * ovec # all others filled with zeros
+    return vv
+
+# set up the time index for the record
+Ldir = Lfun.Lstart()
+dsf = Ldir['ds_fmt']
+dt0 = datetime.strptime('2020.01.01',dsf)
+dt1 = datetime.strptime('2020.12.31',dsf)
+days = (dt0, dt1)
+    
+# pandas Index objects
+dt_ind = pd.date_range(start=dt0, end=dt1)
+yd_ind = pd.Index(dt_ind.dayofyear)
 
 # Get LiveOcean grid info --------------------------------------------------
 
@@ -80,50 +123,88 @@ totload_wwtps = np.sum(avgload_wwtps['avg-daily-load(kg/d)'])
 # Prepare data for spatial summary plots
 
 # get flow, nitrate, and ammonium values
-fp_trivs = '../../LO_output/pre/traps/all_rivers/Data_historical/'
+# fp_trivs = '../../LO_output/pre/traps/all_rivers/Data_historical/'
+fp_trivs = '../../LO_output/pre/traps/tiny_rivers/Data_historical/'
+fp_LOrivs = '../../LO_output/pre/river/cas6/Data_historical/'
+fp_LObio = '../../LO_output/pre/traps/LO_rivbio/Data_historical/'
 flowdf_rivs = pd.read_pickle(fp_trivs+'CLIM_flow_1999_2017.p')    # m3/s
 no3df_rivs = pd.read_pickle(fp_trivs+'CLIM_NO3_1999_2017.p')      # mmol/m3
 nh4df_rivs = pd.read_pickle(fp_trivs+'CLIM_NH4_1999_2017.p')      # mmol/m3
+# pre-existing LO river flowrates
+flowdf_LOrivs = pd.read_pickle(fp_LOrivs+'CLIM_flow_1980_2020.p')    # m3/s
+flowdf_LOrivs = flowdf_LOrivs.reset_index(drop=True)
+# Ecology data for pre-existing LO rivers
+no3df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NO3_1999_2017.p')      # mmol/m3
+nh4df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NH4_1999_2017.p')      # mmol/m3
+# get names of all pre-existing rivers for which Ecology has data (use LO naming convention)
+LObio_names = [SSM2LO_name(riv) for riv in no3df_LOrivs_ecol.columns]
+
+# get biology data for pre-existing rivers
+no3df_LOrivs = pd.DataFrame()
+nh4df_LOrivs = pd.DataFrame()
+for rn in flowdf_LOrivs:
+    # Use ecology data if there exists any
+    if rn in LObio_names:
+        no3df_LOrivs[rn] = no3df_LOrivs_ecol[LO2SSM_name(rn)]
+        nh4df_LOrivs[rn] = nh4df_LOrivs_ecol[LO2SSM_name(rn)]
+    # Otherwise use the rivfun method to guess
+    else:
+        no3df_LOrivs[rn] = get_bio_vec('NO3', rn, yd_ind)
+        nh4df_LOrivs[rn] = get_bio_vec('NH4', rn, yd_ind)
 
 # calculate total DIN concentration in mg/L
-dindf_rivs = (no3df_rivs + nh4df_rivs)/71.4    # mg/L
+dindf_rivs = (no3df_rivs + nh4df_rivs)/71.4          # mg/L
+dindf_LOrivs = (no3df_LOrivs + nh4df_LOrivs)/71.4    # mg/L
 
 # calculate daily loading timeseries in kg/d
-dailyloaddf_rivs = 86.4*dindf_rivs*flowdf_rivs # kg/d = 86.4 * mg/L * m3/s
+dailyloaddf_rivs = 86.4*dindf_rivs*flowdf_rivs       # kg/d = 86.4 * mg/L * m3/s
+dailyloaddf_LOrivs = 86.4*dindf_LOrivs*flowdf_LOrivs # kg/d = 86.4 * mg/L * m3/s
 
 # calculate average daily load over the year (kg/d)
-avgload_rivs = dailyloaddf_rivs.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+avgload_trivs = dailyloaddf_rivs.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+avgload_LOrivs = dailyloaddf_LOrivs.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
 
 # add row and col index for plotting on LiveOcean grid (tiny rivers)
 griddf0_trivs = pd.read_csv('../../LO_data/grids/cas6/triv_info.csv')
 griddf_trivs = griddf0_trivs.set_index('rname') # use river name as index
-avgload_rivs = avgload_rivs.join(griddf_trivs['row_py']) # add row to avg load df (uses rname to index)
-avgload_rivs = avgload_rivs.join(griddf_trivs['col_py']) # do the same for cols
+avgload_trivs = avgload_trivs.join(griddf_trivs['row_py']) # add row to avg load df (uses rname to index)
+avgload_trivs = avgload_trivs.join(griddf_trivs['col_py']) # do the same for cols
 
 # add row and col index for plotting on LiveOcean grid (pre-existing rivers)
 griddf0_LOrivs = pd.read_csv('../../LO_data/grids/cas6/river_info.csv')
 griddf_LOrivs = griddf0_LOrivs.set_index('rname') # use river name as index
-# get naming conversion between Ecology and LiveOcean
+avgload_LOrivs = avgload_LOrivs.join(griddf_LOrivs['row_py']) # add row to avg load df (uses rname to index)
+avgload_LOrivs = avgload_LOrivs.join(griddf_LOrivs['col_py']) # do the same for cols
 
-# loop through and get river row and col for pre-existing LiveOcean rivers
-for index, row in avgload_rivs.iterrows():
-    # if missing row indices, then it is a pre-existing river
-    if math.isnan(row['row_py']):
-        # convert Ecology name to LO name
-        avgload_rivs.loc[index]['row_py'] = griddf_LOrivs.loc[SSM2LO_name(index)]['row_py']
-        avgload_rivs.loc[index]['col_py'] = griddf_LOrivs.loc[SSM2LO_name(index)]['col_py']
+# get average load of all rivers
+avgload_allrivs = pd.concat([avgload_trivs, avgload_LOrivs])
+# drop nans
+avgload_allrivs = avgload_allrivs.dropna()
+
+# # add row and col index for plotting on LiveOcean grid (pre-existing rivers)
+# griddf0_LOrivs = pd.read_csv('../../LO_data/grids/cas6/river_info.csv')
+# griddf_LOrivs = griddf0_LOrivs.set_index('rname') # use river name as index
+# # get naming conversion between Ecology and LiveOcean
+
+# # loop through and get river row and col for pre-existing LiveOcean rivers
+# for index, row in avgload_trivs.iterrows():
+#     # if missing row indices, then it is a pre-existing river
+#     if math.isnan(row['row_py']):
+#         # convert Ecology name to LO name
+#         avgload_trivs.loc[index]['row_py'] = griddf_LOrivs.loc[SSM2LO_name(index)]['row_py']
+#         avgload_trivs.loc[index]['col_py'] = griddf_LOrivs.loc[SSM2LO_name(index)]['col_py']
 
 # calculate total load
-totload_rivs = avgload_rivs.loc[(avgload_rivs['col_py'] >= i1) &
-                                (avgload_rivs['col_py'] <= i2) &
-                                (avgload_rivs['row_py'] >= j1) &
-                                (avgload_rivs['row_py'] <= j2),
-                                'avg-daily-load(kg/d)'].sum()
+totload_rivs = avgload_allrivs.loc[(avgload_allrivs['col_py'] >= i1) &
+                                   (avgload_allrivs['col_py'] <= i2) &
+                                   (avgload_allrivs['row_py'] >= j1) &
+                                   (avgload_allrivs['row_py'] <= j2),
+                                   'avg-daily-load(kg/d)'].sum()
 # totload_rivs = np.sum(avgload_rivs['avg-daily-load(kg/d)'])
 
 # get trivs lat and lon
-lon_riv = [X[int(col)] for col in avgload_rivs['col_py']]
-lat_riv = [Y[int(row)] for row in avgload_rivs['row_py']]
+lon_riv = [X[int(col)] for col in avgload_allrivs['col_py']]
+lat_riv = [Y[int(row)] for row in avgload_allrivs['row_py']]
 
 # Ocean -------------------------------------------------------------
 # Data from Mackas et al. (1997)
@@ -142,7 +223,7 @@ lon_SJdF = -124.4
 # sizes_rivs = [10*np.sqrt(load) for load in avgload_rivs['avg-daily-load(kg/d)']]
 # sizes_SJdF = 10*np.sqrt(avgload_SJdF)
 sizes_wwtps = [max(0.1*load,10) for load in avgload_wwtps['avg-daily-load(kg/d)']]
-sizes_rivs = [max(0.1*load,10) for load in avgload_rivs['avg-daily-load(kg/d)']]
+sizes_rivs = [max(0.1*load,10) for load in avgload_allrivs['avg-daily-load(kg/d)']]
 sizes_SJdF = 0.1*avgload_SJdF
 sizes = [sizes_wwtps,sizes_rivs]
 
@@ -184,7 +265,7 @@ for j in range(2):
         if sname == 'River' and add_ocean:
             ax.scatter(lon_SJdF,lat_SJdF,
                 color=color_SJdF, edgecolors='k', alpha=0.35, s=sizes_SJdF)
-            t = ax.text(lon_SJdF,lat_SJdF-0.8,'Ocean Load \n {:,} '.format(avgload_SJdF) +
+            t = ax.text(lon_SJdF,lat_SJdF-1.35,'Ocean Load \n {:,} '.format(avgload_SJdF) +
                         r'$kg \ d^{-1}$', #r'$2.6\times10^6 \ kg \ d^{-1}$',
                         horizontalalignment = 'center', fontsize = 16, color = 'k')
             t.set_bbox(dict(facecolor=color_SJdF, alpha=0.6, edgecolor='none', boxstyle = 'Round'))
