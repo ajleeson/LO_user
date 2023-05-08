@@ -1,6 +1,8 @@
 '''
 Calculate hydrodynamic differencing plots for:
 u_WWTP - u_noWWTP
+and creates a movie.
+See blog post for example: https://ajleeson.github.io/research_blog/2023/03/06/WWTP-Hydrodynamic-Differencing.html
 '''
 
 from matplotlib import markers
