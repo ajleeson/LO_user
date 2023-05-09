@@ -316,3 +316,10 @@ for j in range(2):
         tload.set_bbox(dict(facecolor=legcol, alpha=alpha, edgecolor='none', boxstyle = 'Round'))
 
         plt.show()
+
+
+# Print stuff for comparison with Ben
+
+print(avgload_wwtps.loc['West Point'])
+print('---------------------------')
+print(avgload_allrivs.loc['fraser'])
