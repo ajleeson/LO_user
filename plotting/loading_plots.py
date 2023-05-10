@@ -323,3 +323,5 @@ for j in range(2):
 print(avgload_wwtps.loc['West Point'])
 print('---------------------------')
 print(avgload_allrivs.loc['fraser'])
+print('---------------------------')
+print(avgload_allrivs.loc['puyallup'])
