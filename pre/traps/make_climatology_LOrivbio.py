@@ -59,7 +59,8 @@ Talk_clim_df = pd.DataFrame()
 DO_clim_df   = pd.DataFrame()
 
 # variable names
-vns = ['NO3+NO2(mg/L)','NH4(mg/L)','DIC(mmol/m3)','Alk(mmol/m3)','DO(mg/L)']
+vns = ['DO(mg/L)','NO3+NO2(mg/L)','NH4(mg/L)','DIC(mmol/m3)','Alk(mmol/m3)']
+letters = ['(a)','(b)','(c)','(d)','(e)']
 
 # create one-year date range for plotting
 yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
@@ -176,12 +177,12 @@ clim_max = pd.DataFrame()
 clim_min = pd.DataFrame()
 clim_sds = pd.DataFrame()
 # list climatology dfs
-clim_df_list = [NO3_clim_df,NH4_clim_df,TIC_clim_df,Talk_clim_df,DO_clim_df]
+clim_df_list = [DO_clim_df,NO3_clim_df,NH4_clim_df,TIC_clim_df,Talk_clim_df]
+# rename variables
+vns = ['DO(mg/L)','NO3+NO2(mmol/m3)','NH4(mmol/m3)','DIC(mmol/m3)','Alk(meq/m3)']
 for i,vn in enumerate(vns):
     scale = 1
-    if vn == 'NO3+NO2(mg/L)' or vn == 'NH4(mg/L)':
-        scale = 71.4
-    elif vn == 'DO(mg/L)':
+    if vn == 'DO(mg/L)':
         scale = 31.26
     # average values of all point sources
     clim_avgs[vn] = clim_df_list[i].mean(axis=1)/scale
@@ -217,7 +218,7 @@ ax = axes.ravel()
 for j,vn in enumerate(vns):
     i = j+1
     # label subplot
-    ax[i].set_title(vn,fontsize=14)
+    ax[i].text(0.05,0.85,letters[j]+' '+vn,transform=ax[i].transAxes,fontsize=14)
     # Plot average
     ax[i].plot(yrday,clim_avgs[vn].values, label='Average of all Sources', color='mediumpurple', linewidth=1.5)
     # Plot error shading
@@ -232,8 +233,12 @@ for j,vn in enumerate(vns):
     ax[i].tick_params(axis='both', which='major', labelsize=12)
     ax[i].tick_params(axis='x', which='major', rotation=30)
     ax[i].set_xlim([datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)])
+    ax[i].set_ylim([0,1.3*max(clim_max[vn].values)])
+    if i < 5:
+        ax[i].set_ylim([0,1.3*max(clim_max[vn].values)])
     # create legend
     if i ==5:
+        ax[i].set_ylim([0,1.3*max(clim_max['DIC(mmol/m3)'].values)])
         handles, labels = ax[5].get_legend_handles_labels()
         ax[0].legend(handles, labels, loc='center', ncol = 2,fontsize=14)
         ax[0].axis('off')
