@@ -41,14 +41,14 @@ Ldir = Lfun.Lstart()
 
 # USER OPTIONS
 
-fn = 'his_cod_V-less.nc' 
-foldername = 'section_V-less_cod_lwsrc' 
-vn = 'salt' # options: temp, u, v, w, salt, omega
+fn = 'his_2T0_40S0.nc' 
+foldername = 'section_2T0_40S0_lwsrc' 
+vn = 'temp' # options: temp, u, v, w, salt, omega
 
 #---------------------------------------------------------
 
 # START
-ds = xr.open_dataset(Ldir['LOr'] / 'lwsrc-test-results'/ 'results/'+fn)
+ds = xr.open_dataset('../../LO_roms/lwsrc-test-results/results/'+fn)
 in_dict = dict()
 in_dict['fn'] = fn
 # print(list(ds.keys()))
@@ -102,8 +102,8 @@ for t in range(len(ds.ocean_time)):
         v_sect = ds[vn][t,:,20,:]
         z_norm = ds['s_rho'].values
         cmap = cm.thermal
-        vmin = 9
-        vmax = 15
+        vmin = -5#9
+        vmax = 2#15
         units = 'C'
     elif vn == 'salt':
         x = ds['xi_rho'].values

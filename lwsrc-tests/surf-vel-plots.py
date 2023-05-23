@@ -41,11 +41,11 @@ Ldir = Lfun.Lstart()
 
 # fn = 'his_cod_lwsrc_k15.nc'
 # foldername = 'surface_k15_cod_lwsrc'
-fn = 'his_cod_V-less.nc'
-foldername = 'surface_V-less_cod_lwsrc'
+fn = 'his_withV.nc'
+foldername = 'surface_withV_lwsrc'
 
 # START
-ds = xr.open_dataset(Ldir['LOr'] / 'lwsrc-test-results'/ 'results/'+fn)
+ds = xr.open_dataset('../../LO_roms/lwsrc-test-results/results/'+fn)
 # print(list(ds.keys()))
 
 # where to save files
