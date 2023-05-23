@@ -26,10 +26,9 @@ roms_code = parent / 'LiveOcean_roms'
 
 # These are places where the ROMS history files are kept
 roms_out = parent / 'LO_roms'
-roms_out1 = parent / '../../agdat1/parker/LO_roms'  # parker's apogee files
-roms_out2 = parent / 'BLANK' # placeholder
+roms_out1 = parent / 'BLANK' # placeholder
+roms_out2 = parent / 'BLANK'
 roms_out3 = parent / 'BLANK'
-roms_out4 = parent / 'BLANK'
 
 # these are for mox and klone, other hyak mackines
 remote_user = 'BLANK'
@@ -101,6 +100,7 @@ elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
     roms_out2 = Path('/data1/parker/LiveOcean_roms/output')     # LiveOcean past I
     roms_out3 = Path('/data2/parker/LiveOcean_roms/output')     # LiveOcean past II
     roms_out4 = Path('/boildat1/parker/LO_roms')                # LO boiler
+    roms_out5 = Path('/agdat1/parker/LO_roms')                  # LO output on apogee
 
 elif (str(HOME) == '/mmfs1/home/auroral'):
     lo_env = 'al_klone'
