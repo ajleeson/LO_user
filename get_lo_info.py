@@ -26,8 +26,8 @@ roms_code = parent / 'LiveOcean_roms'
 
 # These are places where the ROMS history files are kept
 roms_out = parent / 'LO_roms'
-roms_out1 = parent / 'BLANK' # placeholder
-roms_out2 = parent / 'BLANK'
+roms_out1 = parent / '../../agdat1/parker/LO_roms'  # parker's apogee files
+roms_out2 = parent / 'BLANK' # placeholder
 roms_out3 = parent / 'BLANK'
 roms_out4 = parent / 'BLANK'
 
