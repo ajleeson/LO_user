@@ -338,6 +338,8 @@ for vn in vn_list:
             ax.set_title('Baseline', fontsize=14)
             # save dataset for later use
             bc_ds = ds
+            ax.scatter(-122.714423,48.226958)
+            ax.scatter(-122.884514,47.417880)
         elif i == 1:
             # save test condition
             c1_ds = ds
