@@ -181,19 +181,6 @@ avgload_allrivs = pd.concat([avgload_trivs, avgload_LOrivs])
 # drop nans
 avgload_allrivs = avgload_allrivs.dropna()
 
-# # add row and col index for plotting on LiveOcean grid (pre-existing rivers)
-# griddf0_LOrivs = pd.read_csv('../../LO_data/grids/cas6/river_info.csv')
-# griddf_LOrivs = griddf0_LOrivs.set_index('rname') # use river name as index
-# # get naming conversion between Ecology and LiveOcean
-
-# # loop through and get river row and col for pre-existing LiveOcean rivers
-# for index, row in avgload_trivs.iterrows():
-#     # if missing row indices, then it is a pre-existing river
-#     if math.isnan(row['row_py']):
-#         # convert Ecology name to LO name
-#         avgload_trivs.loc[index]['row_py'] = griddf_LOrivs.loc[SSM2LO_name(index)]['row_py']
-#         avgload_trivs.loc[index]['col_py'] = griddf_LOrivs.loc[SSM2LO_name(index)]['col_py']
-
 # calculate total load
 totload_rivs = avgload_allrivs.loc[(avgload_allrivs['col_py'] >= i1) &
                                    (avgload_allrivs['col_py'] <= i2) &
@@ -218,41 +205,49 @@ lon_SJdF = -124.4
 
 # PLOTTING ----------------------------------------------------
 
-# define marker sizes
-# sizes_wwtps = [10*np.sqrt(load) for load in avgload_wwtps['avg-daily-load(kg/d)']]
-# sizes_rivs = [10*np.sqrt(load) for load in avgload_rivs['avg-daily-load(kg/d)']]
-# sizes_SJdF = 10*np.sqrt(avgload_SJdF)
+# define marker sizes (minimum size is 10 so dots don't get too small)
 sizes_wwtps = [max(0.1*load,10) for load in avgload_wwtps['avg-daily-load(kg/d)']]
 sizes_rivs = [max(0.1*load,10) for load in avgload_allrivs['avg-daily-load(kg/d)']]
 sizes_SJdF = 0.1*avgload_SJdF
-sizes = [sizes_wwtps,sizes_rivs]
+sizes = [sizes_wwtps,sizes_rivs,sizes_SJdF]
 
 # pick colors
 color_wwtps = '#AEDC3C' # wwtp green
 color_rivs = '#7148BC' # river purple
 color_SJdF = '#70B0EA' # ocean blue
-colors = [color_wwtps, color_rivs]
+colors = [color_wwtps, color_rivs,color_SJdF]
 
 # define labels
-source_name = ['Point Source','River']
+source_name = ['Point Source','River','Ocean']
 
 # define total loads
-totalloads = [totload_wwtps,totload_rivs]
+totalloads = [totload_wwtps,totload_rivs,avgload_SJdF]
+
+# define percentages
+netload = totload_wwtps+totload_rivs+avgload_SJdF
+percent_wwtp = round(totload_wwtps/netload*100,1)
+percent_rivs = round(totload_rivs/netload*100,1)
+percent_ocean = round(avgload_SJdF/netload*100,1)
+percentages = [percent_wwtp,percent_rivs,percent_ocean]
 
 # define subplot number
-subplotnums = [121,122]
+subplotnums = [131,132,133]
+
+# panel labels
+letters = ['(a)','(b)','(c)']
 
 # lat and lon coords
-lats = [lat_wwtps,lat_riv]
-lons = [lon_wwtps,lon_riv]
+lats = [lat_wwtps,lat_riv,lat_SJdF]
+lons = [lon_wwtps,lon_riv,lon_SJdF]
 
 add_ocean = False
 
-for j in range(2):
-    if j == 1:
-        add_ocean = True
+for j in range(1):
+    # if j == 1:
+    #     add_ocean = True
 
-    fig = plt.figure(figsize=(15,8))
+    fig = plt.figure(figsize=(21,8))
+    plt.tight_layout()
     # loop through all of the plots we need to make
     for i,sname in enumerate(source_name):
 
@@ -261,14 +256,6 @@ for j in range(2):
         # pfun.add_coast(ax,color='black')
         ax.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
-        # plot ocean load
-        if sname == 'River' and add_ocean:
-            ax.scatter(lon_SJdF,lat_SJdF,
-                color=color_SJdF, edgecolors='k', alpha=0.35, s=sizes_SJdF)
-            t = ax.text(lon_SJdF,lat_SJdF-1.35,'Ocean Load \n {:,} '.format(avgload_SJdF) +
-                        r'$kg \ d^{-1}$', #r'$2.6\times10^6 \ kg \ d^{-1}$',
-                        horizontalalignment = 'center', fontsize = 16, color = 'k')
-            t.set_bbox(dict(facecolor=color_SJdF, alpha=0.6, edgecolor='none', boxstyle = 'Round'))
         # plot DIN sources
         ax.scatter(lons[i],lats[i],
             color=colors[i], edgecolors='k', alpha=0.5, s=sizes[i])
@@ -286,7 +273,7 @@ for j in range(2):
         # format
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
-        ax.set_title('Average {} DIN Load'.format(sname), fontsize=20)
+        ax.set_title(letters[i]+' Average {} DIN Load'.format(sname), fontsize=20)
         pfun.dar(ax)
 
         # Create legend
@@ -305,16 +292,22 @@ for j in range(2):
             plt.setp(legend.get_title(),fontsize=16)
 
         # add label of total load
-        tload = ax.text(0.8,0.87, r'$\Sigma$ ' + sname + 's: \n {:,}'.format(int(round(totalloads[i],-3))) + r'$ \ kg \ d^{-1}$',
-            horizontalalignment = 'center', fontsize = 16, color = 'k', transform=ax.transAxes)
-        if sname == 'River' and add_ocean:
-            legcol = '#D4C7EA'
-            alpha = 1
+        if sname == 'Ocean':
+            tload = ax.text(0.40,0.87, '{:,}'.format(int(round(totalloads[i],-3))) + r'$ \ kg \ d^{-1}$' + '\n(Mackas & Harrison 1997)',
+                horizontalalignment = 'center', fontsize = 16, color = 'k', transform=ax.transAxes)
         else:
-            legcol = colors[i]
-            alpha = 0.3
+            tload = ax.text(0.77,0.87, r'$\Sigma$ ' + sname + 's: \n {:,}'.format(int(round(totalloads[i],-3))) + r'$ \ kg \ d^{-1}$',
+                    horizontalalignment = 'center', fontsize = 16, color = 'k', transform=ax.transAxes)
+        legcol = colors[i]
+        alpha = 0.3
         tload.set_bbox(dict(facecolor=legcol, alpha=alpha, edgecolor='none', boxstyle = 'Round'))
 
+        # add percentages
+        ax.text(0.82,0.04,'{}%'.format(percentages[i]),fontsize=18,color='k',transform=ax.transAxes)
+
+        # reduce gap between subplots
+        plt.subplots_adjust(wspace=0.05)
+        
         plt.show()
 
 
