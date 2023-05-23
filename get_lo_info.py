@@ -29,6 +29,8 @@ roms_out = parent / 'LO_roms'
 roms_out1 = parent / 'BLANK' # placeholder
 roms_out2 = parent / 'BLANK'
 roms_out3 = parent / 'BLANK'
+roms_out4 = parent / 'BLANK'
+roms_out5 = parent / 'BLANK'
 
 # these are for mox and klone, other hyak mackines
 remote_user = 'BLANK'
