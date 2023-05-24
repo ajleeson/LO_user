@@ -317,15 +317,20 @@ for vn in vn_list:
     for i,gtagex in enumerate(gtagexes):
 
         # get data
-        fp = Ldir['roms_out'] / gtagex / ('f' + date) / ('ocean_his_'+ hr +'.nc')
+        # fp = Ldir['roms_out'] / gtagex / ('f' + date) / ('ocean_his_'+ hr +'.nc')
+        fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / 'prelimDO_2017.09.01_2017.09.15.nc'
         ds = xr.open_dataset(fp)
 
         # Plot basecase map field
         if i == 0:
             ax = fig.add_subplot(1,3,2)
-            v = ds[vn][0, slev,:,:].values * scale
+            v = ds[vn][:,slev,:,:].values * scale
+            v = np.nanmean(v,axis=0)
+            # v = avg_v[slev,:,:] * scale
             # add colorbar
-            cs = ax.pcolormesh(px,py,v, vmin=vmin, vmax=vmax, cmap=cmap)
+            # cs = ax.pcolormesh(px,py,v, vmin=vmin, vmax=vmax, cmap=cmap)
+            cs = ax.pcolormesh(ds.coords['lon_rho'],ds.coords['lat_rho'],v,
+                               vmin=vmin, vmax=vmax, cmap=cmap)
             cb_ax = fig.add_axes([.405,0.07,.215,.02])
             cbar = fig.colorbar(cs,orientation='horizontal',cax=cb_ax)
             cbar.ax.tick_params(labelsize=12)
@@ -349,28 +354,28 @@ for vn in vn_list:
             # save test condition
             c1_ds = ds
 
-    # plot the difference
-    plt.subplots_adjust(wspace=0.01)
-    ax = fig.add_subplot(1,3,3)
-    diff = (bc_ds[vn] - c1_ds[vn]) * scale
-    vmin = np.min(diff[0,slev,imin_y:imax_y,imin_x:imax_x])
-    vmax = np.max(diff[0,slev,imin_y:imax_y,imin_x:imax_x])
-    # make sure the colorbar is always centered about zero
-    cmap = cmocean.tools.crop(cmocean.cm.balance, vmin, vmax, 0)
-    # add colorbar underneath
-    cs = ax.pcolormesh(px,py,diff[0,slev,:,:], vmin=vmin, vmax=vmax, cmap=cmap)
-    cb_ax = fig.add_axes([.665,0.07,.215,.02])
-    cbar = fig.colorbar(cs,orientation='horizontal',cax=cb_ax)
-    cbar.ax.tick_params(labelsize=12)
-    cbar.outline.set_visible(False)
-    # format everything else
-    ax.set_yticklabels([])
-    ax.set_xticklabels([])
-    ax.set_title('(d) Condition minus Baseline', fontsize=14)
-    ax.set_xlim([xmin,xmax])
-    ax.set_ylim([ymin,ymax])
-    # pfun.add_coast(ax)
-    pfun.dar(ax)
+    # # plot the difference !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # plt.subplots_adjust(wspace=0.01)
+    # ax = fig.add_subplot(1,3,3)
+    # diff = (bc_ds[vn] - c1_ds[vn]) * scale
+    # vmin = np.min(diff[0,slev,imin_y:imax_y,imin_x:imax_x])
+    # vmax = np.max(diff[0,slev,imin_y:imax_y,imin_x:imax_x])
+    # # make sure the colorbar is always centered about zero
+    # cmap = cmocean.tools.crop(cmocean.cm.balance, vmin, vmax, 0)
+    # # add colorbar underneath
+    # cs = ax.pcolormesh(px,py,diff[0,slev,:,:], vmin=vmin, vmax=vmax, cmap=cmap)
+    # cb_ax = fig.add_axes([.665,0.07,.215,.02])
+    # cbar = fig.colorbar(cs,orientation='horizontal',cax=cb_ax)
+    # cbar.ax.tick_params(labelsize=12)
+    # cbar.outline.set_visible(False)
+    # # format everything else
+    # ax.set_yticklabels([])
+    # ax.set_xticklabels([])
+    # ax.set_title('(d) Condition minus Baseline', fontsize=14)
+    # ax.set_xlim([xmin,xmax])
+    # ax.set_ylim([ymin,ymax])
+    # # pfun.add_coast(ax)
+    # pfun.dar(ax)
 
     # add wwtp locations
     if WWTP_loc == True:
