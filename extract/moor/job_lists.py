@@ -187,7 +187,7 @@ def get_sta_dict(job_name):
     elif job_name == 'pennlynch':
         sta_dict = {
         # 'PennCove':  (-122.714423,48.226958),
-        'LynchCove': (-122.884514,47.417880)
+        'LynchCove': (-122.920315,47.401838)
         }
             
             
