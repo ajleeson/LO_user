@@ -15,6 +15,7 @@ import matplotlib.dates as mdates
 import numpy as np
 import xarray as xr
 from datetime import datetime, timedelta
+from matplotlib.dates import DateFormatter
 import pandas as pd
 import cmocean
 import matplotlib.pylab as plt
@@ -328,18 +329,22 @@ for vn in vn_list:
             cb_ax = fig.add_axes([.405,0.07,.215,.02])
             cbar = fig.colorbar(cs,orientation='horizontal',cax=cb_ax)
             cbar.ax.tick_params(labelsize=12)
+            cbar.outline.set_visible(False)
             # format figure
             ax.set_xlim([xmin,xmax])
             ax.set_ylim([ymin,ymax])
             ax.set_yticklabels([])
             ax.set_xticklabels([])
-            pfun.add_coast(ax)
+            # pfun.add_coast(ax)
             pfun.dar(ax)
-            ax.set_title('Baseline', fontsize=14)
+            ax.set_title('(c) Baseline', fontsize=14)
             # save dataset for later use
             bc_ds = ds
-            ax.scatter(-122.714423,48.226958)
-            ax.scatter(-122.884514,47.417880)
+            # plot location of Penn Cove and lynch Cove
+            ax.scatter(-122.714423,48.226958,facecolors='none', edgecolors='k')
+            ax.text(-123.05,48.22,'Penn Cove')
+            ax.scatter(-122.884514,47.417880,facecolors='none', edgecolors='k')
+            ax.text(-122.92,47.45,'Lynch Cove')
         elif i == 1:
             # save test condition
             c1_ds = ds
@@ -357,13 +362,14 @@ for vn in vn_list:
     cb_ax = fig.add_axes([.665,0.07,.215,.02])
     cbar = fig.colorbar(cs,orientation='horizontal',cax=cb_ax)
     cbar.ax.tick_params(labelsize=12)
+    cbar.outline.set_visible(False)
     # format everything else
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    ax.set_title('(N-Less WWTP) minus (Baseline)', fontsize=14)
+    ax.set_title('(d) Condition minus Baseline', fontsize=14)
     ax.set_xlim([xmin,xmax])
     ax.set_ylim([ymin,ymax])
-    pfun.add_coast(ax)
+    # pfun.add_coast(ax)
     pfun.dar(ax)
 
     # add wwtp locations
@@ -393,15 +399,34 @@ for vn in vn_list:
         #         ax.plot(lon_v[jj,ii], lat_v[jj,ii],marker='v',color='darkorange')
                            
     # format figure
-    plt.suptitle('Average September Bottom DO (mg/L)', x=0.64,fontsize=20)
+    plt.suptitle(r'Sep 1$^{st}$ - Sep 15$^{th}$ 2017 Average Bottom DO [mg/L]', x=0.64,fontsize=18)
 
     # Add timeseries of DO
 
     # Penn Cove
+    ds_penn_noDIN = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps3_x2b/moor/pennlynch/PennCove_2017.01.01_2017.09.15.nc')
+    DO_penn_noDIN = ds_penn_noDIN['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
+    ds_penn_base = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps2_x2b/moor/pennlynch/PennCove_2017.01.01_2017.12.31.nc')
+    DO_penn_base = ds_penn_base['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
+    time_noDIN = ds_penn_noDIN['ocean_time']
+    time_base = ds_penn_base['ocean_time']
     ax = fig.add_subplot(2,3,1)
+    ax.set_title('(a) Penn Cove DO [mg/L]',fontsize=14)
+    ax.set_ylim([0,10])
+    ax.set_xticklabels([])
+    ax.plot(time_base,DO_penn_base,linestyle='-',color='olivedrab',label='Baseline')
+    ax.plot(time_noDIN,DO_penn_noDIN,linestyle='--',color='saddlebrown',label='Condition')
+    ax.legend(loc='best')
 
     # Lynch Cove
+    ds_lynch_noDIN = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps3_x2b/moor/pennlynch/LynchCove_2017.01.01_2017.09.15.nc')
+    DO_lynch_noDIN = ds_lynch_noDIN['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
+    time = ds_penn_noDIN['ocean_time'] # update with full dataset later
     ax = fig.add_subplot(2,3,4)
+    ax.set_title('(b) Lynch Cove DO [mg/L]',fontsize=14)
+    ax.set_ylim([0,10])
+    ax.plot(time,DO_lynch_noDIN,linestyle='--',color='saddlebrown')
+    ax.xaxis.set_major_formatter(DateFormatter('%b'))
 
     # Generate plot
     plt.show()
