@@ -186,7 +186,7 @@ def get_sta_dict(job_name):
     # 2023.05.23 preliminary bottom DO in LiveOcean
     elif job_name == 'pennlynch':
         sta_dict = {
-        'PennCove':  (-122.714423,48.226958),
+        # 'PennCove':  (-122.714423,48.226958),
         'LynchCove': (-122.884514,47.417880)
         }
             
