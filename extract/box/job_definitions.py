@@ -70,6 +70,6 @@ def get_box(job, Lon, Lat):
         vn_list = 'h,pm,pn,mask_rho,salt,temp,oxygen,zeta,u,v,w,Uwind,Vwind'
     elif job == 'prelimDO':
         aa = [-123.2, -122.1, 46.95, 48.45]
-        vn_list = 'oxygen'
+        vn_list = 'h,pm,pn,mask_rho,salt,temp,oxygen'
         
     return aa, vn_list
