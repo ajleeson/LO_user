@@ -19,6 +19,7 @@ from matplotlib.dates import DateFormatter
 import pandas as pd
 import cmocean
 import matplotlib.pylab as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pinfo
 
 from lo_tools import Lfun, zfun, zrfun
@@ -259,7 +260,7 @@ elif region == 'Whidbey Basin':
 elif region == 'Puget Sound':
     xmin = -123.2
     xmax = -122.1
-    ymin = 46.95
+    ymin = 46.93
     ymax = 48.45
 
 # Get grid data
@@ -312,6 +313,7 @@ for vn in vn_list:
     fs = 10
     pfun.start_plot(fs=fs, figsize=(15,9))
     fig = plt.figure()
+    gs = fig.add_gridspec(nrows=4, ncols=3, left=0.05, right=0.48, wspace=0.05)
 
     # loop through and plot both conditions
     for i,gtagex in enumerate(gtagexes):
@@ -340,42 +342,51 @@ for vn in vn_list:
             ax.set_ylim([ymin,ymax])
             ax.set_yticklabels([])
             ax.set_xticklabels([])
+            ax.axis('off')
             # pfun.add_coast(ax)
             pfun.dar(ax)
-            ax.set_title('(c) Baseline', fontsize=14)
+            ax.set_title('(e) Baseline', fontsize=12)
             # save dataset for later use
             bc_ds = ds
+            bc = v
             # plot location of Penn Cove and lynch Cove
-            ax.scatter(-122.714423,48.226958,facecolors='none', edgecolors='k')
+            ax.scatter(-122.714423,48.226958,facecolors='none', edgecolors='turquoise', linewidth=2)
             ax.text(-123.05,48.22,'Penn Cove')
-            ax.scatter(-122.884514,47.417880,facecolors='none', edgecolors='k')
+            ax.scatter(-122.920315,47.401838,facecolors='none', edgecolors='turquoise', linewidth=2)
             ax.text(-122.92,47.45,'Lynch Cove')
         elif i == 1:
             # save test condition
+            v = ds[vn][:,slev,:,:].values * scale
+            v = np.nanmean(v,axis=0)
             c1_ds = ds
+            c1 = v
 
-    # # plot the difference !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # plt.subplots_adjust(wspace=0.01)
-    # ax = fig.add_subplot(1,3,3)
+    # plot the difference !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    plt.subplots_adjust(wspace=0.01)
+    ax = fig.add_subplot(1,3,3)
     # diff = (bc_ds[vn] - c1_ds[vn]) * scale
+    diff = c1 - bc
     # vmin = np.min(diff[0,slev,imin_y:imax_y,imin_x:imax_x])
     # vmax = np.max(diff[0,slev,imin_y:imax_y,imin_x:imax_x])
-    # # make sure the colorbar is always centered about zero
-    # cmap = cmocean.tools.crop(cmocean.cm.balance, vmin, vmax, 0)
-    # # add colorbar underneath
-    # cs = ax.pcolormesh(px,py,diff[0,slev,:,:], vmin=vmin, vmax=vmax, cmap=cmap)
-    # cb_ax = fig.add_axes([.665,0.07,.215,.02])
-    # cbar = fig.colorbar(cs,orientation='horizontal',cax=cb_ax)
-    # cbar.ax.tick_params(labelsize=12)
-    # cbar.outline.set_visible(False)
-    # # format everything else
-    # ax.set_yticklabels([])
-    # ax.set_xticklabels([])
-    # ax.set_title('(d) Condition minus Baseline', fontsize=14)
-    # ax.set_xlim([xmin,xmax])
-    # ax.set_ylim([ymin,ymax])
-    # # pfun.add_coast(ax)
-    # pfun.dar(ax)
+    vmin = np.nanmin(diff)
+    vmax = np.nanmax(diff)
+    # make sure the colorbar is always centered about zero
+    cmap = cmocean.tools.crop(cmocean.cm.balance, vmin, vmax, 0)
+    # add colorbar underneath
+    cs = ax.pcolormesh(ds.coords['lon_rho'],ds.coords['lat_rho'],diff, vmin=vmin, vmax=vmax, cmap=cmap)
+    cb_ax = fig.add_axes([.665,0.07,.215,.02])
+    cbar = fig.colorbar(cs,orientation='horizontal',cax=cb_ax)
+    cbar.ax.tick_params(labelsize=12)
+    cbar.outline.set_visible(False)
+    # format everything else
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.set_title('(f) No WWTP DIN minus Baseline', fontsize=12)
+    ax.set_xlim([xmin,xmax])
+    ax.set_ylim([ymin,ymax])
+    ax.axis('off')
+    # pfun.add_coast(ax)
+    pfun.dar(ax)
 
     # add wwtp locations
     if WWTP_loc == True:
@@ -404,7 +415,7 @@ for vn in vn_list:
         #         ax.plot(lon_v[jj,ii], lat_v[jj,ii],marker='v',color='darkorange')
                            
     # format figure
-    plt.suptitle(r'Sep 1$^{st}$ - Sep 15$^{th}$ 2017 Average Bottom DO [mg/L]', x=0.64,fontsize=18)
+    plt.suptitle(r'Sep 1$^{st}$ - Sep 15$^{th}$ 2017 Average Bottom DO [mg/L]', x=0.64,fontsize=16)
 
     # Add timeseries of DO
 
@@ -416,22 +427,48 @@ for vn in vn_list:
     time_noDIN = ds_penn_noDIN['ocean_time']
     time_base = ds_penn_base['ocean_time']
     ax = fig.add_subplot(2,3,1)
-    ax.set_title('(a) Penn Cove DO [mg/L]',fontsize=14)
-    ax.set_ylim([0,10])
+    ax.set_title('Penn Cove Bottom DO [mg/L]',fontsize=16)
+    ax.text(0.02,0.9,'(a) Baseline',fontsize=12,transform=ax.transAxes)
+    ax.set_ylim([0,12])
     ax.set_xticklabels([])
-    ax.plot(time_base,DO_penn_base,linestyle='-',color='olivedrab',label='Baseline')
-    ax.plot(time_noDIN,DO_penn_noDIN,linestyle='--',color='saddlebrown',label='Condition')
-    ax.legend(loc='best')
+    ax.set_xlim([time_base[0],time_base[-1]])
+    ax.plot(time_base,DO_penn_base,linestyle='-',color='olivedrab')#,label='Baseline')
+    # Difference
+    divider = make_axes_locatable(ax)
+    ax2 = divider.append_axes("bottom", size='60%', pad=0.1)
+    ax.figure.add_axes(ax2)
+    ax2.set_ylim([-0.06,0.09])
+    ax2.text(0.02,0.85,'(b) No WWTP DIN minus Baseline',fontsize=12,transform=ax2.transAxes)
+    penn_diff = DO_penn_noDIN-DO_penn_base[0:258]
+    cc=list(map(lambda time_noDIN: 'cornflowerblue' if time_noDIN <= 0 else 'lightcoral', penn_diff))
+    plt.bar(time_noDIN, penn_diff, color = cc)
+    ax2.set_xlim([time_base[0],time_base[-1]])
+    ax2.set_xticklabels([])
 
     # Lynch Cove
     ds_lynch_noDIN = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps3_x2b/moor/pennlynch/LynchCove_2017.01.01_2017.09.15.nc')
     DO_lynch_noDIN = ds_lynch_noDIN['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
-    time = ds_penn_noDIN['ocean_time'] # update with full dataset later
+    ds_lynch_base = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps2_x2b/moor/pennlynch/LynchCove_2017.01.01_2017.12.31.nc')
+    DO_lynch_base = ds_lynch_base['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
     ax = fig.add_subplot(2,3,4)
-    ax.set_title('(b) Lynch Cove DO [mg/L]',fontsize=14)
-    ax.set_ylim([0,10])
-    ax.plot(time,DO_lynch_noDIN,linestyle='--',color='saddlebrown')
-    ax.xaxis.set_major_formatter(DateFormatter('%b'))
+    ax.set_title('Lynch Cove Bottom DO [mg/L]',fontsize=16)
+    ax.text(0.02,0.9,'(c) Baseline',fontsize=12,transform=ax.transAxes)
+    ax.set_ylim([0,12])
+    ax.set_xticklabels([])
+    ax.set_xlim([time_base[0],time_base[-1]])
+    ax.plot(time_base,DO_lynch_base,linestyle='-',color='olivedrab')#,label='Baseline')
+    # Difference
+    divider = make_axes_locatable(ax)
+    ax2 = divider.append_axes("bottom", size='60%', pad=0.1)
+    ax.figure.add_axes(ax2)
+    ax2.set_ylim([-0.06,0.09])
+    ax2.text(0.02,0.85,'(d) No WWTP DIN minus Baseline',fontsize=12,transform=ax2.transAxes)
+    lynch_diff = DO_lynch_noDIN-DO_lynch_base[0:258]
+    cc=list(map(lambda time_noDIN: 'cornflowerblue' if time_noDIN <= 0 else 'lightcoral', lynch_diff))
+    plt.bar(time_noDIN, lynch_diff, color = cc)
+    ax2.set_xlim([time_base[0],time_base[-1]])
+    ax2.xaxis.set_major_formatter(DateFormatter('%b'))
 
     # Generate plot
+    plt.tight_layout
     plt.show()
