@@ -1,5 +1,6 @@
 """
-This is the main program for making the TIDE forcing file.
+This is the main program for making the salt and temp forcing for the IDEAL case
+that is used to test LwSrc.
 
 Test on mac in ipython:
 
@@ -28,7 +29,7 @@ import numpy as np
 import pandas as pd
 
 out_path = Path(out_dir)
-out_fn = out_path / 'salt-no-temp.nc'
+out_fn = out_path / 'salt0-temp10.nc'
 out_fn.unlink(missing_ok=True)
 
 # Make the time vector.
@@ -95,11 +96,20 @@ ds[vn] = (dims, Q_mat)
 ds[vn].attrs['long_name'] = vinfo['long_name']
 ds[vn].attrs['units'] = vinfo['units']
 
-# Add salinity, and not tempeature
+# Add salinity
 vn = 'river_salt'
 vinfo = zrfun.get_varinfo(vn, vartype='climatology')
 dims = (vinfo['time'],) + ('s_rho', 'river')
 TR_mat = np.zeros((NT, N, NWWTP))
+ds[vn] = (dims, TR_mat)
+ds[vn].attrs['long_name'] = vinfo['long_name']
+ds[vn].attrs['units'] = vinfo['units']
+
+# Add tempeature
+vn = 'river_temp'
+vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+dims = (vinfo['time'],) + ('s_rho', 'river')
+TR_mat = np.ones((NT, N, NWWTP)) * 10
 ds[vn] = (dims, TR_mat)
 ds[vn].attrs['long_name'] = vinfo['long_name']
 ds[vn].attrs['units'] = vinfo['units']
