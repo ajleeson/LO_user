@@ -111,6 +111,13 @@ elif (str(HOME) == '/mmfs1/home/auroral'):
     remote_dir0 = '/data1/auroral'
     local_user = 'aleeson'
 
+elif (str(HOME) == '/usr/lusers/auroral'):
+    lo_env = 'al_mox'
+    remote_user = 'auroral'
+    remote_machine = 'perigee.ocean.washington.edu'
+    remote_dir0 = '/data1/auroral'
+    local_user = 'aleeson'
+
 Ldir0 = dict()
 Ldir0['lo_env'] = lo_env
 Ldir0['parent'] = parent
