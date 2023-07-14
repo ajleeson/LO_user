@@ -3,7 +3,7 @@ This is the main program for making the RIVER and TRAPS forcing file, for the
 updated ROMS
 
 Test on pc in ipython:
-run make_forcing_main.py -g cas6 -r backfill -d 2021.01.01 -f TRAPS3 -test True
+run make_forcing_main.py -g cas6 -r backfill -d 2021.01.01 -f trapsV0 -test True
 
 """
 
