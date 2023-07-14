@@ -41,9 +41,9 @@ Ldir = Lfun.Lstart()
 
 # USER OPTIONS
 
-fn = 'his_2T0_40S0.nc' 
-foldername = 'section_2T0_40S0_lwsrc' 
-vn = 'temp' # options: temp, u, v, w, salt, omega
+fn = 'his_V-less_LtracerSrcFT.nc' 
+foldername = 'section_LtracerSrcFT_lwsrc_V-less' 
+vn = 'omega' # options: temp, u, v, w, salt, omega
 
 #---------------------------------------------------------
 
@@ -102,8 +102,8 @@ for t in range(len(ds.ocean_time)):
         v_sect = ds[vn][t,:,20,:]
         z_norm = ds['s_rho'].values
         cmap = cm.thermal
-        vmin = -5#9
-        vmax = 2#15
+        vmin = 9
+        vmax = 15
         units = 'C'
     elif vn == 'salt':
         x = ds['xi_rho'].values
@@ -113,7 +113,7 @@ for t in range(len(ds.ocean_time)):
         v_sect = ds[vn][t,:,20,:]
         z_norm = ds['s_rho'].values
         cmap = cm.haline
-        vmin = 28
+        vmin = 34
         vmax = 35
         units = 'g/kg'
     elif vn == 'u':
