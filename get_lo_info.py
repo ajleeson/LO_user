@@ -118,6 +118,14 @@ elif (str(HOME) == '/usr/lusers/auroral'):
     remote_dir0 = '/data1/auroral'
     local_user = 'aleeson'
 
+elif (str(HOME) == '/home/auroral') & ('apogee' in HOSTNAME):
+    lo_env = 'al_apogee'
+    roms_out1 = Path('/boildat1/parker/LiveOcean_roms/output')  # LiveOcean current
+    roms_out2 = Path('/pgdat1/parker/LiveOcean_roms/output')     # LiveOcean past I on perigee
+    roms_out3 = Path('/pgdat2/parker/LiveOcean_roms/output')     # LiveOcean past II on perigee
+    roms_out4 = Path('/boildat1/parker/LO_roms')                # LO boiler
+    roms_out5 = Path('/dat1/parker/LO_roms')                  # LO output on apogee
+
 Ldir0 = dict()
 Ldir0['lo_env'] = lo_env
 Ldir0['parent'] = parent
