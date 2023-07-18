@@ -196,6 +196,17 @@ def get_sta_dict(job_name):
         'DabobBay':  (-122.808721,47.785261),
         'PortOrchard': (-122.577043,47.690751)
         }
+
+    # 2023.07.17 orca buoy locations (from Erin's job lists)
+    elif job_name == 'orca':
+        sta_dict = {
+        'CI': (-122.7300, 47.2800),
+        'PW': (-122.3972, 47.7612),
+        'NB': (-122.6270, 47.9073),
+        'DB': (-122.8029, 47.8034),
+        'HP': (-123.1126, 47.4218),
+        'TW': (-123.0083, 47.3750)
+        }
             
             
     else:
