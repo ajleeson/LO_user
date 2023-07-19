@@ -157,7 +157,7 @@ elif len(fn_list) > 1:
     Lfun.make_dir(outdir, clean=True)
     # plot to a folder of files
     jj = 0
-    for fn in fn_list:
+    for fn in fn_list[1::]: # changed from fn_list so that we don't try to make video with hour 25 from previous day
         nouts = ('0000' + str(jj))[-4:]
         outname = 'plot_' + nouts + '.png'
         outfile = outdir / outname
