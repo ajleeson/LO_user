@@ -59,9 +59,9 @@ Talk_clim_df = pd.DataFrame()
 DO_clim_df   = pd.DataFrame()
 
 # variable names
-vns = ['DO(mmol/m3)','Flow(m3/s)','Temp(C)','NO3(mmol/m3)','NH4(mmol/m3)','TIC(mmol/m3)','Talk(meq/m3)']
-clims = [DO_clim_df, flow_clim_df, temp_clim_df, NO3_clim_df, NH4_clim_df, TIC_clim_df, Talk_clim_df]
+vns = ['DO(mg/L)','Flow(m3/s)','Temp(C)','NO3(mmol/m3)','NH4(mmol/m3)','TIC(mmol/m3)','Talk(meq/m3)']
 letters = ['(a)','(b)','(c)','(d)','(e)','(f)','(g)']
+
 
 # create one-year date range for plotting
 yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
@@ -107,25 +107,33 @@ for i,wname in enumerate(wwtpnames):
 #                            Create climatologies                               #
 #################################################################################
 
-    # Add data to climatology dataframes
-    for j,clim in enumerate(clims):
-        clim = pd.concat([clim, pd.Series(wwtp_avgs_df[vns[i]].values, name=wname)], axis = 1)
+    # Add data to climatology dataframes, and convert to units that LiveOcean expects
+    flow_clim_df = pd.concat([flow_clim_df, pd.Series(wwtp_avgs_df['Flow(m3/s)'].values, name=wname)], axis = 1)    # [m3/s]
+    temp_clim_df = pd.concat([temp_clim_df, pd.Series(wwtp_avgs_df['Temp(C)'].values, name=wname)], axis = 1)       # [C]
+    NO3_clim_df  = pd.concat([NO3_clim_df, pd.Series(wwtp_avgs_df['NO3(mmol/m3)'], name=wname)], axis = 1)          # [mmol/m3]
+    NH4_clim_df  = pd.concat([NH4_clim_df, pd.Series(wwtp_avgs_df['NH4(mmol/m3)'], name=wname)], axis = 1)          # [mmol/m3]
+    TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(wwtp_avgs_df['TIC(mmol/m3)'], name=wname)], axis = 1)          # [mmol/m3]
+    Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(wwtp_avgs_df['Talk(meq/m3)'], name=wname)], axis = 1)         # [meq/m3]
+    DO_clim_df   = pd.concat([DO_clim_df, pd.Series(wwtp_avgs_df['DO(mmol/m3)'], name=wname)], axis = 1)            # [mmol/m3]
 
 # Calculate summary statistics for all wwtps
 clim_avgs = pd.DataFrame()
 clim_max = pd.DataFrame()
 clim_min = pd.DataFrame()
 clim_sds = pd.DataFrame()
-
+# list climatology dfs
+clim_df_list = [DO_clim_df,flow_clim_df,temp_clim_df,NO3_clim_df,NH4_clim_df,TIC_clim_df,Talk_clim_df]
+# rename variables
+vns = ['DO(mmol/m3)','Flow(m3/s)','Temp(C)','NO3(mmol/m3)','NH4(mmol/m3)','TIC(mmol/m3)','Talk(meq/m3)']
 for i,vn in enumerate(vns):
     # average values of all point sources
-    clim_avgs[vn] = clims[i].mean(axis=1)
+    clim_avgs[vn] = clim_df_list[i].mean(axis=1)
     # max climatology values
-    clim_max[vn] = clims[i].max(axis=1)
+    clim_max[vn] = clim_df_list[i].max(axis=1)
     # min climatology values
-    clim_min[vn] = clims[i].min(axis=1)
+    clim_min[vn] = clim_df_list[i].min(axis=1)
     # standard deviation of all point sources
-    clim_sds[vn] = clims[i].std(axis=1)
+    clim_sds[vn] = clim_df_list[i].std(axis=1)
 
 #################################################################################
 #                           Plot summary statistics                             #

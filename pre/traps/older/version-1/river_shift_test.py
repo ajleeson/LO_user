@@ -18,8 +18,11 @@ import os
 import datetime
 import matplotlib.dates as mdates
 
-# Suppress warnings
-pd.options.mode.chained_assignment = None  # default='warn'
+# location to save file
+clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'tiny_rivers' /'Data_historical'
+
+# # Suppress warnings
+# pd.options.mode.chained_assignment = None  # default='warn'
 
 # define year range to create climatologies
 year0 = 1999
@@ -46,9 +49,9 @@ riv_names_df = riv_singles_df['Name'].str.replace(' - 1', '')
 rivnames = riv_names_df.values
 rivids = riv_singles_df['ID'].values
 
-# Union River -------------------------------------------------
-rivnames = rivnames[90:91]
-rivids = rivids[90:91]
+# # Union River -------------------------------------------------
+# rivnames = rivnames[90:91]
+# rivids = rivids[90:91]
 
 # # Skokomish River -------------------------------------------------
 # rivnames = rivnames[87:88]
@@ -154,4 +157,10 @@ for i,rname in enumerate(rivnames):
         ax[1].set_ylabel(vn)
         ax[1].set_xlabel('Julian Day')
         fig.suptitle('{} Flow'.format(rname))
-        plt.show()
+        # plt.show()
+
+        # Save figure
+        figname = rname + '.png'
+        save_path = clim_dir / 'river_shift_test' / figname
+        fig.savefig(save_path)
+        plt.close('all')
