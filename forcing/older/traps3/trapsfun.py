@@ -584,13 +584,10 @@ def traps_placement(source_type):
             x = latlon_df._get_value(source,'Lon')
             y = latlon_df._get_value(source,'Lat')
             # get nearest coastal gridcell
-            [row,col,idir,isign,uv,ringnum] = get_nearest_coastal_cell_riv(sname,x,y,X,Y,mask_rho)
+            [row,col,ringnum] = get_nearest_coastal_cell_wwtp(sname,x,y,X,Y,mask_rho)
             # save coordinates to rowcol_df
             rowcol_df.loc[sname, 'row_py'] = row 
             rowcol_df.loc[sname, 'col_py'] = col
-            rowcol_df.loc[sname, 'idir']   = idir
-            rowcol_df.loc[sname, 'isign']  = isign
-            rowcol_df.loc[sname, 'uv']     = uv
             snames = snames + [sname]
             # save ringnum for tracking. ringnum = zero means the source didn't move
             ringnums = ringnums + [ringnum]
@@ -608,7 +605,7 @@ def traps_placement(source_type):
     rowcol_df = rowcol_df.dropna()
     rowcol_df.to_csv(out_rfn)
 
-    plotting = False
+    plotting = True
 
     if plotting == True:
         # PLOTTING FOR TESTING ------------------------------------------------------------------------
@@ -665,7 +662,7 @@ def traps_placement(source_type):
                 
                 if uv == 'u' and isign == 1:
                     # River source on W side of rho cell
-                    # ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
+                    ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
                     if first_label:
                         ax.scatter(lon[jj,ii+1], lat[jj,ii+1], color='#7148BC', marker='o',
                          edgecolor = 'k', s = 40, label='Tiny River', alpha=0.7)
@@ -677,21 +674,21 @@ def traps_placement(source_type):
                     ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii+1]],[SSMrivll_df['Lat'][i], lat[jj,ii+1]],color='hotpink', linewidth=0.5)
                 if uv == 'u' and isign == -1:
                     # River source on E side of rho cell
-                    # ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
+                    ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
                     ax.scatter(lon[jj,ii], lat[jj,ii],color='#7148BC', marker='o',
                      edgecolor = 'k', s = 40, alpha=0.7)
                     # plot tracks
                     ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii]],[SSMrivll_df['Lat'][i], lat[jj,ii]],color='hotpink', linewidth=0.5)
                 if uv == 'v' and isign == 1:
                     # River source on S side of rho cell
-                    # ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
+                    ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
                     ax.scatter(lon[jj+1,ii], lat[jj+1,ii],color='#7148BC', marker='o',
                      edgecolor = 'k', s = 40, alpha=0.7)
                     # plot tracks
                     ax.plot([SSMrivll_df['Lon'][i], lon[jj+1,ii]],[SSMrivll_df['Lat'][i], lat[jj+1,ii]],color='hotpink', linewidth=0.5)
                 if uv == 'v' and isign == -1:
                     # River source on N side of rho cell
-                    # ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
+                    ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
                     ax.scatter(lon[jj,ii], lat[jj,ii],color='#7148BC', marker='o', 
                     edgecolor = 'k', s = 40, alpha=0.7)
                     # plot tracks

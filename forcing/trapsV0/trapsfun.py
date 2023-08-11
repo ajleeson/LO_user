@@ -772,22 +772,22 @@ def traps_placement(source_type):
                     else:
                         ax0.scatter(lon[jj,ii+1], lat[jj,ii+1], color='k', marker='o',s = 10)
                     for axis in [ax1,ax2]:
-                        ax2.plot(lon_u[jj,ii], lat_u[jj,ii],marker='>',color='firebrick')
+                        axis.plot(lon_u[jj,ii], lat_u[jj,ii],marker='>',color='firebrick')
                 if uv == 'u' and isign == -1:
                     # River source on E side of rho cell
                     ax0.scatter(lon[jj,ii], lat[jj,ii+1], color='k', marker='o',s = 10)
                     for axis in [ax1,ax2]:
-                            axis.plot(lon_u[jj,ii], lat_u[jj,ii],marker='<',color='firebrick')
+                        axis.plot(lon_u[jj,ii], lat_u[jj,ii],marker='<',color='firebrick')
                 if uv == 'v' and isign == 1:
                     # River source on S side of rho cell
                     ax0.scatter(lon[jj+1,ii], lat[jj+1,ii], color='k', marker='o',s = 10)
                     for axis in [ax1,ax2]:
-                          axis.plot(lon_v[jj,ii], lat_v[jj,ii],marker='^',color='royalblue')  
+                        axis.plot(lon_v[jj,ii], lat_v[jj,ii],marker='^',color='royalblue')  
                 if uv == 'v' and isign == -1:
                     # River source on N side of rho cell
                     ax0.scatter(lon[jj,ii], lat[jj,ii], color='k', marker='o',s = 10)
                     for axis in [ax1,ax2]:
-                            axis.plot(lon_v[jj,ii], lat_v[jj,ii],marker='v',color='royalblue')
+                        axis.plot(lon_v[jj,ii], lat_v[jj,ii],marker='v',color='royalblue')
 
         # -----------------------------------------------------
 
@@ -883,6 +883,7 @@ def traps_placement(source_type):
         # save figure
         out_fig = Ldir['grid'] / fig_fn
         plt.savefig(out_fig)
+        plt.show()
 
     return
 
