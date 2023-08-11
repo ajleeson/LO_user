@@ -1,11 +1,11 @@
 """
 This script compiles all of Ecology's excel
-loading data into two xarray files:
+loading data into two netCDF files:
 one for point sources
 one for rivers
 
 In theory, this script only needs to be run once.
-Then, the xarray files can be referenced to generate climatologies.
+Then, the netCDF files can be referenced to generate climatologies.
 
 Takes about 5 minutes to run on my local machine.
 
@@ -50,6 +50,76 @@ def monthly2daily(df):
     daily_df.reset_index(inplace=True)
     return daily_df
 
+def start_ds(date,source,numdates,Nsources,source_type):
+    '''
+    Initialize dataset to story Ecology's loading data
+    '''
+    ds = xr.Dataset(data_vars=dict(ID=(['source'], np.ones((Nsources,), dtype=int)),
+        lon=(['source'], np.ones((Nsources,))),
+        lat=(['source'], np.ones((Nsources,))),
+        name=(['source'], ['placeholder placeholder placeholder']*Nsources),
+        flow=(['source', 'date'], np.zeros((Nsources, numdates))),
+        temp=(['source', 'date'], np.zeros((Nsources, numdates))),
+        NO3=(['source', 'date'], np.zeros((Nsources, numdates))),
+        NH4=(['source', 'date'], np.zeros((Nsources, numdates))),
+        TIC=(['source', 'date'], np.zeros((Nsources, numdates))),
+        Talk=(['source', 'date'], np.zeros((Nsources, numdates))),
+        DO=(['source', 'date'], np.zeros((Nsources, numdates))),),
+    coords=dict(source=source, date=date,),
+    attrs=dict(description='Ecology data for '+source_type),)
+    
+    return ds
+
+def add_metadata(ds):
+    '''
+    Create metadata for dataset of Ecology loading data
+    '''
+    ds['ID'].attrs['long_name'] = 'source ID used in Salish Sea Model'
+    ds['lon'].attrs['long_name'] = 'point source longitude'
+    ds['lat'].attrs['long_name'] = 'point source latitude'
+    ds['flow'].attrs['long_name'] = 'discharge rate'
+    ds['flow'].attrs['units'] = 'm3/s'
+    ds['temp'].attrs['long_name'] = 'discharge temperature'
+    ds['temp'].attrs['units'] = 'C'
+    ds['NO3'].attrs['long_name'] = 'nitrate+nitrite concentration'
+    ds['NO3'].attrs['units'] = 'mmol/m3'
+    ds['NH4'].attrs['long_name'] = 'ammonium concentration'
+    ds['NH4'].attrs['units'] = 'mmol/m3'
+    ds['TIC'].attrs['long_name'] = 'total inorganic carbon'
+    ds['TIC'].attrs['units'] = 'mmol/m3'
+    ds['Talk'].attrs['long_name'] = 'total alkalinity'
+    ds['Talk'].attrs['units'] = 'meq/m3'
+    ds['DO'].attrs['long_name'] = 'dissolved oxygen concentration'
+    ds['DO'].attrs['units'] = 'mmol/m3'
+    return ds
+
+def add_data(ds, source_ID, source_name, latlon_df, ecologydata_df):
+    '''
+    Add Ecology's data to datasets, and convert to units that LO uses
+    '''
+    # Add source ID and name
+    ds['ID'][i] = source_ID
+    ds['name'][i] = source_name
+
+    # Add source lat/lon
+    # NOTE: we take the mean here because in SSM, large rivers are spread across two grid cell
+    #       meaning that they have two lat/lon coordinates. We average to consolidate into one
+    #       lat/lon coordinate. For rivers that are already in a single grid cell, the average of
+    #       itself is itself.
+    ds['lat'][i] = np.mean(latlon_df.loc[latlon_df['ID'] == source_ID, 'Lat'].values)
+    ds['lon'][i] = np.mean(latlon_df.loc[latlon_df['ID'] == source_ID, 'Lon'].values)
+    
+    # Add physics and biology data to dataset
+    ds.flow[i,:] = ecologydata_df['Flow(m3/s)']
+    ds.temp[i,:] = ecologydata_df['Temp(C)']
+    ds.NO3[i,:]  = ecologydata_df['NO3+NO2(mg/L)'] * 71.4 # convert to mmol/m3
+    ds.NH4[i,:]  = ecologydata_df['NH4(mg/L)']     * 71.4 # convert to mmol/m3
+    ds.TIC[i,:]  = ecologydata_df['DIC(mmol/m3)']
+    ds.Talk[i,:] = ecologydata_df['Alk(mmol/m3)']
+    ds.DO[i,:]   = ecologydata_df['DO(mg/L)']      * 31.26 # convert to mmol/m3
+
+    return ds
+
 #################################################################################
 #                              Get path to data                                 #
 #################################################################################
@@ -68,51 +138,23 @@ NTRIV = np.shape(riv_fns)[0]
 trapsll_fn = Ldir['data'] / 'traps' / 'SSM_source_info.xlsx'
 latlon_df = pd.read_excel(trapsll_fn,usecols='D,E,F,G,N,O')
 
+# Start with one point source to get date information
+# note that need to use river data because river data is daily, wwtp is only monthly
+riv_fp = str(riv_dir)  + '/' + riv_fns[0]
+df_example = pd.read_excel(riv_fp, skiprows=[0])
+numdates = len(df_example['Date'])
+
 #################################################################################
 #                         Create point source dataset                           #
 #################################################################################
 
-# Start with one point source to get date information
-# note that need to use river data because river data is monthly, wwtp is only monthly
-riv_fp = str(riv_dir)  + '/' + riv_fns[0]
-wwtp_df_example = pd.read_excel(riv_fp, skiprows=[0])
-numdates = len(wwtp_df_example['Date'])
-
 # Start Dataset (with empty data)
-date = wwtp_df_example['Date']
+date = df_example['Date']
 source = np.arange(1,NWWTP+1)
-pointsource_ds = xr.Dataset(data_vars=dict(ID=(['source'], np.ones((NWWTP,), dtype=int)),
-        lon=(['source'], np.ones((NWWTP,))),
-        lat=(['source'], np.ones((NWWTP,))),
-        name=(['source'], ['placeholder placeholder']*NWWTP),
-        flow=(['source', 'date'], np.zeros((NWWTP, numdates))),
-        temp=(['source', 'date'], np.zeros((NWWTP, numdates))),
-        NO3=(['source', 'date'], np.zeros((NWWTP, numdates))),
-        NH4=(['source', 'date'], np.zeros((NWWTP, numdates))),
-        TIC=(['source', 'date'], np.zeros((NWWTP, numdates))),
-        Talk=(['source', 'date'], np.zeros((NWWTP, numdates))),
-        DO=(['source', 'date'], np.zeros((NWWTP, numdates))),),
-    coords=dict(source=source, date=date,),
-    attrs=dict(description='Ecology data for point sources.'),)
+pointsource_ds = start_ds(date,source,numdates,NWWTP,'point sources')
 
 # Add dataset metadata
-pointsource_ds['ID'].attrs['long_name'] = 'source ID used in Salish Sea Model'
-pointsource_ds['lon'].attrs['long_name'] = 'point source longitude'
-pointsource_ds['lat'].attrs['long_name'] = 'point source latitude'
-pointsource_ds['flow'].attrs['long_name'] = 'discharge rate'
-pointsource_ds['flow'].attrs['units'] = 'm3/s'
-pointsource_ds['temp'].attrs['long_name'] = 'discharge temperature'
-pointsource_ds['temp'].attrs['units'] = 'C'
-pointsource_ds['NO3'].attrs['long_name'] = 'nitrate+nitrite concentration'
-pointsource_ds['NO3'].attrs['units'] = 'mmol/m3'
-pointsource_ds['NH4'].attrs['long_name'] = 'ammonium concentration'
-pointsource_ds['NH4'].attrs['units'] = 'mmol/m3'
-pointsource_ds['TIC'].attrs['long_name'] = 'total inorganic carbon'
-pointsource_ds['TIC'].attrs['units'] = 'mmol/m3'
-pointsource_ds['Talk'].attrs['long_name'] = 'total alkalinity'
-pointsource_ds['Talk'].attrs['units'] = 'meq/m3'
-pointsource_ds['DO'].attrs['long_name'] = 'dissolved oxygen concentration'
-pointsource_ds['DO'].attrs['units'] = 'mmol/m3'
+pointsource_ds = add_metadata(pointsource_ds)
 
 print('Looping through point source files...')
 
@@ -123,7 +165,7 @@ for i,fn in enumerate(wwtp_fns):
     source_ID = int(fn.split('_', 1)[0])
     source_name_xlsx = fn.split('_', 1)[1]
     source_name = source_name_xlsx.split('.', 1)[0]
-    print('{}/99: {}'.format(i+1,source_name))
+    print('{}/{}: {}'.format(i+1,NWWTP,source_name))
 
     # load data as a dataframe
     wwtp_fp = str(wwtp_dir)  + '/' + fn
@@ -144,22 +186,8 @@ for i,fn in enumerate(wwtp_fns):
     # point source data is monthly. Convert to daily
     wwtp_df = monthly2daily(wwtp_monthly_df)
 
-    # Add source ID and name
-    pointsource_ds['ID'][i] = source_ID
-    pointsource_ds['name'][i] = source_name
-
-    # Add source lat/lon
-    pointsource_ds['lat'][i] = latlon_df.loc[latlon_df['ID'] == source_ID, 'Lat'].values[0]
-    pointsource_ds['lon'][i] = latlon_df.loc[latlon_df['ID'] == source_ID, 'Lon'].values[0]
-    
-    # Add physics and biology data to dataset
-    pointsource_ds.flow[i,:] = wwtp_df['Flow(m3/s)']
-    pointsource_ds.temp[i,:] = wwtp_df['Temp(C)']
-    pointsource_ds.NO3[i,:]  = wwtp_df['NO3+NO2(mg/L)'] * 71.4 # convert to mmol/m3
-    pointsource_ds.NH4[i,:]  = wwtp_df['NH4(mg/L)']     * 71.4 # convert to mmol/m3
-    pointsource_ds.TIC[i,:]  = wwtp_df['DIC(mmol/m3)']
-    pointsource_ds.Talk[i,:] = wwtp_df['Alk(mmol/m3)']
-    pointsource_ds.DO[i,:]   = wwtp_df['DO(mg/L)']      * 31.26 # convert to mmol/m3
+    # Add Ecology data to dataset
+    pointsource_ds = add_data(pointsource_ds, source_ID, source_name, latlon_df, wwtp_df)
 
 # save dataset as .nc file in LO_data
 out_fn = '../../../LO_data/traps/all_point_source_data.nc'
@@ -171,46 +199,13 @@ print('Point sources complete --------------------------------------------\n')
 #                       Create nonpoint source dataset                          #
 #################################################################################
 
-# Start with one nonpoint source to get date information
-riv_fp = str(riv_dir)  + '/' + riv_fns[0]
-riv_df_example = pd.read_excel(riv_fp, skiprows=[0])
-numdates = len(riv_df_example['Date'])
-
 # Start Dataset (with empty data)
-date = riv_df_example['Date']
+date = df_example['Date']
 source = np.arange(1,NTRIV+1)
-nonpointsource_ds = xr.Dataset(data_vars=dict(ID=(['source'], np.ones((NTRIV,), dtype=int)),
-        lon=(['source'], np.ones((NTRIV,))),
-        lat=(['source'], np.ones((NTRIV,))),
-        name=(['source'], ['placeholder placeholder']*NTRIV),
-        flow=(['source', 'date'], np.zeros((NTRIV, numdates))),
-        temp=(['source', 'date'], np.zeros((NTRIV, numdates))),
-        NO3=(['source', 'date'], np.zeros((NTRIV, numdates))),
-        NH4=(['source', 'date'], np.zeros((NTRIV, numdates))),
-        TIC=(['source', 'date'], np.zeros((NTRIV, numdates))),
-        Talk=(['source', 'date'], np.zeros((NTRIV, numdates))),
-        DO=(['source', 'date'], np.zeros((NTRIV, numdates))),),
-    coords=dict(source=source, date=date,),
-    attrs=dict(description='Ecology data for nonpoint sources.'),)
+nonpointsource_ds = start_ds(date,source,numdates,NTRIV,'nonpoint sources')
 
 # Add dataset metadata
-nonpointsource_ds['ID'].attrs['long_name'] = 'source ID used in Salish Sea Model'
-nonpointsource_ds['lon'].attrs['long_name'] = 'point source longitude'
-nonpointsource_ds['lat'].attrs['long_name'] = 'point source latitude'
-nonpointsource_ds['flow'].attrs['long_name'] = 'discharge rate'
-nonpointsource_ds['flow'].attrs['units'] = 'm3/s'
-nonpointsource_ds['temp'].attrs['long_name'] = 'discharge temperature'
-nonpointsource_ds['temp'].attrs['units'] = 'C'
-nonpointsource_ds['NO3'].attrs['long_name'] = 'nitrate+nitrite concentration'
-nonpointsource_ds['NO3'].attrs['units'] = 'mmol/m3'
-nonpointsource_ds['NH4'].attrs['long_name'] = 'ammonium concentration'
-nonpointsource_ds['NH4'].attrs['units'] = 'mmol/m3'
-nonpointsource_ds['TIC'].attrs['long_name'] = 'total inorganic carbon'
-nonpointsource_ds['TIC'].attrs['units'] = 'mmol/m3'
-nonpointsource_ds['Talk'].attrs['long_name'] = 'total alkalinity'
-nonpointsource_ds['Talk'].attrs['units'] = 'meq/m3'
-nonpointsource_ds['DO'].attrs['long_name'] = 'dissolved oxygen concentration'
-nonpointsource_ds['DO'].attrs['units'] = 'mmol/m3'
+nonpointsource_ds = add_metadata(nonpointsource_ds)
 
 print('Looping through nonpoint source files...')
 
@@ -221,7 +216,7 @@ for i,fn in enumerate(riv_fns):
     source_ID = int(fn.split('_', 1)[0])
     source_name_xlsx = fn.split('_', 1)[1]
     source_name = source_name_xlsx.split('.', 1)[0]
-    print('{}/161: {}'.format(i+1,source_name))
+    print('{}/{}: {}'.format(i+1,NTRIV,source_name))
 
     # load data as a dataframe
     riv_fp = str(riv_dir)  + '/' + fn
@@ -239,27 +234,8 @@ for i,fn in enumerate(riv_fns):
                             'Diatoms', 'Dinoflag', 'Chl', 'DIC(mmol/m3)',
                             'Alk(mmol/m3)'], axis=1, inplace=False)
 
-
-    # Add source ID and name
-    nonpointsource_ds['ID'][i] = source_ID
-    nonpointsource_ds['name'][i] = source_name
-
-    # Add source lat/lon
-    # NOTE: we take the mean here because in SSM, large rivers are spread across two grid cell
-    #       meaning that they have two lat/lon coordinates. We average to consolidate into one
-    #       lat/lon coordinate. For rivers that are already in a single grid cell, the average of
-    #       itself is itself.
-    nonpointsource_ds['lat'][i] = np.mean(latlon_df.loc[latlon_df['ID'] == source_ID, 'Lat'].values)
-    nonpointsource_ds['lon'][i] = np.mean(latlon_df.loc[latlon_df['ID'] == source_ID, 'Lat'].values)
-    
-    # Add physics and biology data to dataset
-    nonpointsource_ds.flow[i,:] = riv_df['Flow(m3/s)']
-    nonpointsource_ds.temp[i,:] = riv_df['Temp(C)']
-    nonpointsource_ds.NO3[i,:]  = riv_df['NO3+NO2(mg/L)'] * 71.4 # convert to mmol/m3
-    nonpointsource_ds.NH4[i,:]  = riv_df['NH4(mg/L)']     * 71.4 # convert to mmol/m3
-    nonpointsource_ds.TIC[i,:]  = riv_df['DIC(mmol/m3)']
-    nonpointsource_ds.Talk[i,:] = riv_df['Alk(mmol/m3)']
-    nonpointsource_ds.DO[i,:]   = riv_df['DO(mg/L)']      * 31.26 # convert to mmol/m3
+    # Add Ecology data to dataset
+    nonpointsource_ds = add_data(nonpointsource_ds, source_ID, source_name, latlon_df, riv_df)
 
 # save dataset as .nc file in LO_data
 out_fn = '../../../LO_data/traps/all_nonpoint_source_data.nc'
