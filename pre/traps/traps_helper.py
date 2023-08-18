@@ -1,12 +1,52 @@
 """
-helper functions for traps placement
+helper functions for traps
 """
 import numpy as np
-from lo_tools import forcing_argfun2 as ffun
+import pandas as pd
 from lo_tools import zfun
 
+#################################################################################
+#                          Make climatology helpers                             #
+#################################################################################
 
-Ldir = ffun.intro() # this handles all the argument passing
+def ds_to_avgdf(source_name,ecology_data_ds):
+    '''
+    Converts a dataset of Ecology's data (read from .nc file)
+    into a dataframe for a single source. 
+    Also outputs dataframe of the average year,
+    and dataframe of the standard deviation over a year.
+    '''
+    d = {'Date': ecology_data_ds.date.values,
+         'Flow(m3/s)':  ecology_data_ds.flow[ecology_data_ds.name==source_name,:].values[0],
+         'Temp(C)':     ecology_data_ds.temp[ecology_data_ds.name==source_name,:].values[0],
+         'NO3(mmol/m3)':ecology_data_ds.NO3[ecology_data_ds.name==source_name,:].values[0],
+         'NH4(mmol/m3)':ecology_data_ds.NH4[ecology_data_ds.name==source_name,:].values[0],
+         'TIC(mmol/m3)':ecology_data_ds.TIC[ecology_data_ds.name==source_name,:].values[0],
+         'Talk(meq/m3)': ecology_data_ds.Talk[ecology_data_ds.name==source_name,:].values[0],
+         'DO(mmol/m3)': ecology_data_ds.DO[ecology_data_ds.name==source_name,:].values[0]}
+    df = pd.DataFrame(data=d)
+    # replace all zeros with nans, so zeros don't bias data
+    df = df.replace(0, np.nan)
+    # add day of year column
+    df['day_of_year'] = df.apply(lambda row: row.Date.dayofyear, axis = 1)
+    # add year column
+    df['year'] = pd.DatetimeIndex(df['Date']).year
+
+    # calculate averages
+    # (compress 1999-2017 timeseries to single year, with an average for each day)
+    avgs_df = df.groupby('day_of_year').mean().reset_index()
+    # calculate standard deviation
+    sds_df = df.groupby('day_of_year').std(ddof=0).reset_index()
+
+    # replace all nans with zeros, so I'm no longer injecting nans
+    avgs_df = avgs_df.replace(np.nan,0)
+    sds_df = sds_df.replace(np.nan,0)
+
+    return df, avgs_df, sds_df
+
+#################################################################################
+#                          TRAPS placement helpers                              #
+#################################################################################
 
 def in_domain(x, y, X, Y):
     '''

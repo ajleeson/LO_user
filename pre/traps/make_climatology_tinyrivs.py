@@ -7,9 +7,10 @@ LO_data/traps/all_nonpoint_source_data.nc
 
 To run, from ipython:
 run make_climatology_tinyrivs.py
-"""
 
-plotting = False
+To create individual climatology figures, run from ipython with:
+run make_climatology_tinyrivs.py -test True
+"""
 
 #################################################################################
 #                              Import packages                                  #
@@ -22,22 +23,26 @@ import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+import argparse
 import datetime
 import matplotlib.dates as mdates
 import datetime
+import traps_helper
     
 
 #################################################################################
 #                     Get data and set up dataframes                            #
 #################################################################################
 
-# define year range to create climatologies
-year0 = 1999
-year1 = 2017
+# read arguments
+parser = argparse.ArgumentParser()
+# -test True will output plots
+parser.add_argument('-test', '--testing', default=False, type=Lfun.boolean_string)
+args = parser.parse_args()
 
 # location to save file
 clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'tiny_rivers' /'Data_historical'
+Lfun.make_dir(clim_dir)
 
 # get flow and loading data
 triv_fn = Ldir['data'] / 'traps' / 'all_nonpoint_source_data.nc'
@@ -76,16 +81,16 @@ trivnames_realisticBGC = [river for river in trivnames
                           and river not in weird_DO_and_NH4]
 
 # initialize dataframes for all trivs
+DO_clim_df   = pd.DataFrame()
 flow_clim_df = pd.DataFrame()
 temp_clim_df = pd.DataFrame()
 NO3_clim_df  = pd.DataFrame()
 NH4_clim_df  = pd.DataFrame()
 TIC_clim_df  = pd.DataFrame()
 Talk_clim_df = pd.DataFrame()
-DO_clim_df   = pd.DataFrame()
 
 # variable names
-vns = ['DO(mg/L)','Flow(m3/s)','Temp(C)','NO3(mmol/m3)',
+vns = ['DO(mmol/m3)','Flow(m3/s)','Temp(C)','NO3(mmol/m3)',
        'NH4(mmol/m3)','TIC(mmol/m3)','Talk(meq/m3)']
 letters = ['(a)','(b)','(c)','(d)','(e)','(f)','(g)']
 
@@ -116,34 +121,8 @@ print('Calculating climatologies...')
 # loop through all nonpoint sources
 for i,rname in enumerate(trivnames):
 
-    # turn dataset information for this triv into a dataframe
-    # so it's easier to manipulate
-    d = {'Date': ecology_data_ds.date.values,
-         'Flow(m3/s)':  ecology_data_ds.flow[ecology_data_ds.name==rname,:].values[0],
-         'Temp(C)':     ecology_data_ds.temp[ecology_data_ds.name==rname,:].values[0],
-         'NO3(mmol/m3)':ecology_data_ds.NO3[ecology_data_ds.name==rname,:].values[0],
-         'NH4(mmol/m3)':ecology_data_ds.NH4[ecology_data_ds.name==rname,:].values[0],
-         'TIC(mmol/m3)':ecology_data_ds.TIC[ecology_data_ds.name==rname,:].values[0],
-         'Talk(meq/m3)': ecology_data_ds.Talk[ecology_data_ds.name==rname,:].values[0],
-         'DO(mmol/m3)': ecology_data_ds.DO[ecology_data_ds.name==rname,:].values[0]}
-    triv_df = pd.DataFrame(data=d)
-    # replace all zeros with nans, so zeros don't bias data
-    triv_df = triv_df.replace(0, np.nan)
-
-    # add day of year column
-    triv_df['day_of_year'] = triv_df.apply(lambda row: row.Date.dayofyear, axis = 1)
-    # add year column
-    triv_df['year'] = pd.DatetimeIndex(triv_df['Date']).year
-
-    # calculate averages
-    # (compress 1999-2017 timeseries to single year, with an average for each day)
-    triv_avgs_df = triv_df.groupby('day_of_year').mean().reset_index()
-    # calculate standard deviation
-    triv_sds_df = triv_df.groupby('day_of_year').std(ddof=0).reset_index()
-
-    # replace all nans with zeros, so I'm no longer injecting nans
-    triv_avgs_df = triv_avgs_df.replace(np.nan,0)
-    triv_sds_df = triv_sds_df.replace(np.nan,0)
+    # turn dataset information for this wwtp into a dataframe
+    triv_df, triv_avgs_df, triv_sds_df = traps_helper.ds_to_avgdf(rname,ecology_data_ds)
 
 #################################################################################
 #                            Create climatologies                               #
@@ -157,52 +136,50 @@ for i,rname in enumerate(trivnames):
     nans[:] = np.nan
     # don't add biogeochem for weird rivers with unrealistic values (pad with nans)
     if rname in weird_biogeochem:
-        NO3_clim_df  = pd.concat([NO3_clim_df, pd.Series(nans, name=rname)], axis = 1)
-        NH4_clim_df  = pd.concat([NH4_clim_df, pd.Series(nans, name=rname)], axis = 1)
-        TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(nans, name=rname)], axis = 1)
+        NO3_clim_df  = pd.concat([NO3_clim_df,  pd.Series(nans, name=rname)], axis = 1)
+        NH4_clim_df  = pd.concat([NH4_clim_df,  pd.Series(nans, name=rname)], axis = 1)
+        TIC_clim_df  = pd.concat([TIC_clim_df,  pd.Series(nans, name=rname)], axis = 1)
         Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(nans, name=rname)], axis = 1)
-        DO_clim_df   = pd.concat([DO_clim_df, pd.Series(nans, name=rname)], axis = 1)
+        DO_clim_df   = pd.concat([DO_clim_df,   pd.Series(nans, name=rname)], axis = 1)
     elif rname in weird_DO:
-        DO_clim_df   = pd.concat([DO_clim_df, pd.Series(nans, name=rname)], axis = 1)
-        NO3_clim_df  = pd.concat([NO3_clim_df, pd.Series(triv_avgs_df['NO3(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
-        NH4_clim_df  = pd.concat([NH4_clim_df, pd.Series(triv_avgs_df['NH4(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
-        TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(triv_avgs_df['TIC(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
-        Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(triv_avgs_df['Talk(meq/m3)'], name=rname)], axis = 1)         # [meq/m3]
+        DO_clim_df   = pd.concat([DO_clim_df,   pd.Series(nans, name=rname)], axis = 1)
+        NO3_clim_df  = pd.concat([NO3_clim_df,  pd.Series(triv_avgs_df['NO3(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
+        NH4_clim_df  = pd.concat([NH4_clim_df,  pd.Series(triv_avgs_df['NH4(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
+        TIC_clim_df  = pd.concat([TIC_clim_df,  pd.Series(triv_avgs_df['TIC(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
+        Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(triv_avgs_df['Talk(meq/m3)'], name=rname)], axis = 1) # [meq/m3]
     elif rname in weird_DO_and_NH4:
-        NH4_clim_df  = pd.concat([NH4_clim_df, pd.Series(nans, name=rname)], axis = 1)
-        DO_clim_df   = pd.concat([DO_clim_df, pd.Series(nans, name=rname)], axis = 1)
-        NO3_clim_df  = pd.concat([NO3_clim_df, pd.Series(triv_avgs_df['NO3(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
-        TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(triv_avgs_df['TIC(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
-        Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(triv_avgs_df['Talk(meq/m3)'], name=rname)], axis = 1)         # [meq/m3]
+        NH4_clim_df  = pd.concat([NH4_clim_df,  pd.Series(nans, name=rname)], axis = 1)
+        DO_clim_df   = pd.concat([DO_clim_df,   pd.Series(nans, name=rname)], axis = 1)
+        NO3_clim_df  = pd.concat([NO3_clim_df,  pd.Series(triv_avgs_df['NO3(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
+        TIC_clim_df  = pd.concat([TIC_clim_df,  pd.Series(triv_avgs_df['TIC(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
+        Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(triv_avgs_df['Talk(meq/m3)'], name=rname)], axis = 1) # [meq/m3]
     # add biogeochem for all normal rivers
     else:
-        NO3_clim_df  = pd.concat([NO3_clim_df, pd.Series(triv_avgs_df['NO3(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
-        NH4_clim_df  = pd.concat([NH4_clim_df, pd.Series(triv_avgs_df['NH4(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
-        TIC_clim_df  = pd.concat([TIC_clim_df, pd.Series(triv_avgs_df['TIC(mmol/m3)'], name=rname)], axis = 1)          # [mmol/m3]
-        Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(triv_avgs_df['Talk(meq/m3)'], name=rname)], axis = 1)         # [meq/m3]
-        DO_clim_df   = pd.concat([DO_clim_df, pd.Series(triv_avgs_df['DO(mmol/m3)'], name=rname)], axis = 1)            # [mmol/m3]
+        NO3_clim_df  = pd.concat([NO3_clim_df,  pd.Series(triv_avgs_df['NO3(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
+        NH4_clim_df  = pd.concat([NH4_clim_df,  pd.Series(triv_avgs_df['NH4(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
+        TIC_clim_df  = pd.concat([TIC_clim_df,  pd.Series(triv_avgs_df['TIC(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
+        Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(triv_avgs_df['Talk(meq/m3)'], name=rname)], axis = 1) # [meq/m3]
+        DO_clim_df   = pd.concat([DO_clim_df,   pd.Series(triv_avgs_df['DO(mmol/m3)'],  name=rname)], axis = 1) # [mmol/m3]
 
 # Calculate summary statistics for all trivs
 clim_avgs = pd.DataFrame()
 clim_max = pd.DataFrame()
 clim_min = pd.DataFrame()
 clim_sds = pd.DataFrame()
-# list climatology dfs
-clim_df_list = [DO_clim_df,flow_clim_df,temp_clim_df,
-                NO3_clim_df,NH4_clim_df,TIC_clim_df,Talk_clim_df]
-# rename variables
-vns = ['DO(mmol/m3)','Flow(m3/s)','Temp(C)','NO3(mmol/m3)',
-       'NH4(mmol/m3)','TIC(mmol/m3)','Talk(meq/m3)']
+
+# climatology dfs
+clims = [DO_clim_df, flow_clim_df, temp_clim_df, NO3_clim_df,
+         NH4_clim_df, TIC_clim_df, Talk_clim_df]
+
 for i,vn in enumerate(vns):
     # average values of all nonpoint sources
-    clim_avgs[vn] = clim_df_list[i].mean(axis=1)
+    clim_avgs[vn] = clims[i].mean(axis=1)
     # max climatology values
-    clim_max[vn] = clim_df_list[i].max(axis=1)
+    clim_max[vn] = clims[i].max(axis=1)
     # min climatology values
-    clim_min[vn] = clim_df_list[i].min(axis=1)
+    clim_min[vn] = clims[i].min(axis=1)
     # standard deviation of all nonpoint sources
-    clim_sds[vn] = clim_df_list[i].std(axis=1)
-
+    clim_sds[vn] = clims[i].std(axis=1)
 
 #################################################################################
 #                           Plot summary statistics                             #
@@ -222,25 +199,34 @@ for j,vn in enumerate(vns):
         scale = 1
         var = vn
 
+    # get average values, standard deviation, min and max
+    avgs =     clim_avgs[vn].values * scale
+    sds =      clim_sds[vn].values  * scale
+    maxvals =  clim_max[vn].values  * scale
+    minvals =  clim_min[vn].values  * scale
+
     # label subplot
     ax[i].text(0.05,0.85,letters[j]+' '+var,transform=ax[i].transAxes,fontsize=14)
     # Plot average
-    ax[i].plot(yrday,clim_avgs[vn].values*scale, label='Average of all Sources', color='mediumpurple', linewidth=1.5)
+    ax[i].plot(yrday,avgs, label='Average of all Sources',
+               color='mediumpurple', linewidth=1.5)
     # Plot error shading
-    upper_bound = [min(clim_avgs[vn].values[ii]+clim_sds[vn].values[ii],clim_max[vn].values[ii])*scale for ii in range(366)] # don't go higher than max value
-    lower_bound = [max(clim_avgs[vn].values[ii]-clim_sds[vn].values[ii],clim_min[vn].values[ii])*scale for ii in range(366)] # don't go lower than min value
-    ax[i].fill_between(yrday,upper_bound,lower_bound,label='One SD',color='mediumpurple',alpha=0.2,edgecolor='none')
+    upper_bound = [min(avgs[ii]+sds[ii],maxvals[ii]) for ii in range(366)] # don't go higher than max value
+    lower_bound = [max(avgs[ii]-sds[ii],minvals[ii]) for ii in range(366)] # don't go lower than min value
+    ax[i].fill_between(yrday,upper_bound,lower_bound,label='One SD',
+                       color='mediumpurple',alpha=0.2,edgecolor='none')
     # Plot max
-    ax[i].plot(yrday,clim_max[vn].values*scale, label='Max Value', color='firebrick', linestyle='--', linewidth=1)
+    ax[i].plot(yrday,maxvals, label='Max Value',
+               color='firebrick', linestyle='--', linewidth=1)
     # Plot min
-    ax[i].plot(yrday,clim_min[vn].values*scale, label='Min Value', color='cornflowerblue', linestyle='--', linewidth=1)
+    ax[i].plot(yrday,minvals, label='Min Value',
+               color='cornflowerblue', linestyle='--', linewidth=1)
     # fontsize of tick labels
     ax[i].tick_params(axis='both', which='major', labelsize=12)
     ax[i].tick_params(axis='x', which='major', rotation=30)
     ax[i].set_xlim([datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)])
-    ax[i].set_ylim([0,1.3*max(clim_max[vn].values)])
     if i < 7:
-        ax[i].set_ylim([0,1.3*max(clim_max[vn].values)*scale])
+        ax[i].set_ylim([0,1.3*max(maxvals)])
     # create legend
     if i ==7:
         ax[i].set_ylim([0,1.3*max(clim_max['TIC(mmol/m3)'].values)])
@@ -257,8 +243,6 @@ plt.suptitle('Tiny River Climatology Summary (n={})'.format(len(trivnames_realis
 figname = 'tiny_river_summary.png'
 save_path = clim_dir / figname
 fig.savefig(save_path)
-# plt.close('all')
-# plt.show()
 
 #################################################################################
 # Create climatology for rivers w/ weird biogeochem (using avg of other rivers) #
@@ -281,69 +265,59 @@ for rname in weird_DO_and_NH4:
     NH4_clim_df[rname]  = clim_avgs['NH4(mmol/m3)']     # [mmol/m3]
     DO_clim_df[rname]   = clim_avgs['DO(mmol/m3)']      # [mmol/m3]
 
+print('Climatologies done\n')
+
 #################################################################################
-#                          Plot all river climatologies                         #
+#                Plot all individual tiny river climatologies                   #
 #################################################################################
 
-if plotting == True:
-    print('Climatologies done\n')
+if args.testing == True:
     print('Plotting...')
+
+    # generate directory to save files
+    fig_dir = clim_dir / 'climatology_plots'
+    Lfun.make_dir(fig_dir)
 
     for i,rname in enumerate(trivnames):
 
         print('{}/{}: {}'.format(i+1,len(trivnames),rname))
 
-        # turn dataset information for this triv into a dataframe
-        # so it's easier to manipulate
-        d = {'Date': ecology_data_ds.date.values,
-            'Flow(m3/s)':  ecology_data_ds.flow[ecology_data_ds.name==rname,:].values[0],
-            'Temp(C)':     ecology_data_ds.temp[ecology_data_ds.name==rname,:].values[0],
-            'NO3(mmol/m3)':ecology_data_ds.NO3[ecology_data_ds.name==rname,:].values[0],
-            'NH4(mmol/m3)':ecology_data_ds.NH4[ecology_data_ds.name==rname,:].values[0],
-            'TIC(mmol/m3)':ecology_data_ds.TIC[ecology_data_ds.name==rname,:].values[0],
-            'Talk(meq/m3)': ecology_data_ds.Talk[ecology_data_ds.name==rname,:].values[0],
-            'DO(mmol/m3)': ecology_data_ds.DO[ecology_data_ds.name==rname,:].values[0]}
-        triv_df = pd.DataFrame(data=d)
-        # replace all zeros with nans, so zeros don't bias data
-        triv_df = triv_df.replace(0, np.nan)
+        # turn dataset information for this wwtp into a dataframe
+        triv_df, triv_avgs_df, triv_sds_df = traps_helper.ds_to_avgdf(rname,ecology_data_ds)
 
-        # add day of year column
-        triv_df['day_of_year'] = triv_df.apply(lambda row: row.Date.dayofyear, axis = 1)
-        # add year column
-        triv_df['year'] = pd.DatetimeIndex(triv_df['Date']).year
-
-        # Plotting
+        # Plot climatologies for each source
         fig, axes = plt.subplots(4,2, figsize=(16, 9), sharex=True)
         ax = axes.ravel()
-        for j,var in enumerate(vns):
+        for j,vn in enumerate(vns):
 
             # convert DO from mmol/m3 to mg/L for plotting
-            if var == 'DO(mmol/m3)':
+            if vn == 'DO(mmol/m3)':
                 scale = 1/31.26 
-                vn = 'DO(mg/L)'
+                var = 'DO(mg/L)'
             else:
                 scale = 1
-                vn = var
+                var = vn
 
             i = j+1
             # label subplot
-            ax[i].set_title(vn,fontsize=14)
+            ax[i].set_title(var,fontsize=14)
             # Plot individual years
             for yr in range(1999,2017):
                 triv_yr_df = triv_df.loc[triv_df['year'] == yr]
-                values_to_plot = triv_yr_df[var].values*scale
+                values_to_plot = triv_yr_df[vn].values*scale
                 values_to_plot = values_to_plot.tolist()
                 # skip leap years
                 if np.mod(yr,4) != 0:
                     # pad Feb 29th with nan
                     values_to_plot = values_to_plot[0:60] + [np.nan] + values_to_plot[60::]
                 if yr == 2017:
-                    yrday_17 = pd.date_range(start ='1/1/2020', end ='8/02/2020', freq ='D') # don't have full 2017 dataset
+                    yrday_17 = pd.date_range(start ='1/1/2020',
+                                            end ='8/02/2020', freq ='D') # don't have full 2017 dataset
                     ax[i].plot(yrday_17,values_to_plot,alpha=0.5, label=yr, linewidth=1)
                 else:
                     ax[i].plot(yrday,values_to_plot,alpha=0.5, label=yr, linewidth=1)
             # Plot climatology
-            ax[i].plot(yrday,clim_df_list[j][rname].values*scale, label='climatology', color='black', linewidth=1.5)
+            ax[i].plot(yrday,clims[j][rname].values*scale, label='climatology', color='black', linewidth=1.5)
             # fontsize of tick labels
             ax[i].tick_params(axis='both', which='major', labelsize=12)
             ax[i].tick_params(axis='x', which='major', rotation=30)
@@ -365,39 +339,22 @@ if plotting == True:
         fig.savefig(save_path)
         plt.close('all')
 
+    print('Done')
 
 #################################################################################
 #                             Save climatologies                                #
 #################################################################################
 
+pickle_names = ['DO', 'flow', 'temp', 'NO3', 'NH4', 'TIC', 'Talk']
+
 # check for missing values:
-if pd.isnull(flow_clim_df).sum().sum() != 0:
-    print('Warning, there are missing flow values!')
-if pd.isnull(temp_clim_df).sum().sum() != 0:
-    print('Warning, there are missing temperature values!')
-if pd.isnull(NO3_clim_df).sum().sum() != 0:
-    print('Warning, there are missing nitrate values!')
-if pd.isnull(NH4_clim_df).sum().sum() != 0:
-    print('Warning, there are missing ammonium values!')
-if pd.isnull(TIC_clim_df).sum().sum() != 0:
-    print('Warning, there are missing TIC values!')
-if pd.isnull(Talk_clim_df).sum().sum() != 0:
-    print('Warning, there are missing alkalinity values!')
-if pd.isnull(DO_clim_df).sum().sum() != 0:
-    print('Warning, there are missing oxygen values!')
+for i,clim in enumerate(clims):
+    if pd.isnull(clim).sum().sum() != 0:
+        print('Warning, there are missing '+pickle_names[i]+' values!')
 
 # save results
-flow_clim_df.to_pickle(clim_dir / ('CLIM_flow_' + str(year0) + '_' + str(year1) + '.p'))
-temp_clim_df.to_pickle(clim_dir / ('CLIM_temp_' + str(year0) + '_' + str(year1) + '.p'))
-NO3_clim_df.to_pickle(clim_dir / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p'))
-NH4_clim_df.to_pickle(clim_dir / ('CLIM_NH4_' + str(year0) + '_' + str(year1) + '.p'))
-TIC_clim_df.to_pickle(clim_dir / ('CLIM_TIC_' + str(year0) + '_' + str(year1) + '.p'))
-Talk_clim_df.to_pickle(clim_dir / ('CLIM_Talk_' + str(year0) + '_' + str(year1) + '.p'))
-DO_clim_df.to_pickle(clim_dir / ('CLIM_DO_' + str(year0) + '_' + str(year1) + '.p'))
-
-print('Done')
-
-# # Print statements for testing
-# for i,clim in enumerate(clim_df_list):
-#     print(vns[i]+'=================================================')
-#     print(clim)
+for i,clim in enumerate(clims):
+    clim.to_pickle(clim_dir / ('CLIM_' + pickle_names[i] + '.p'))
+    # # test printing
+    # print(vns[i]+'=================================================')
+    # print(clim)
