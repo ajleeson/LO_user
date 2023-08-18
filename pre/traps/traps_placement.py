@@ -7,10 +7,11 @@ river direction.
 Option to plot source location as well
 
 To run (from ipython):
-# run traps_placement.py -g cas7 -r backfill -s continuation -d 2021.01.01 -f TRAPSV0 -test True
-"""
+run traps_placement.py -g cas7
 
-plotting = True
+To look at plots, run:
+run traps_placement.py -g cas7 -test True
+"""
 
 #################################################################################
 #                              Import packages                                  #
@@ -22,17 +23,36 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import cmocean
-from lo_tools import forcing_argfun2 as ffun
+import argparse
+import sys
 from lo_tools import plotting_functions as pfun
 import traps_helper
-
-Ldir = ffun.intro() # this handles all the argument passing
+from lo_tools import Lfun
 
 #################################################################################
-#                               Place TRAPS on grid                             #
+#                              Argument parsing                                 #
 #################################################################################
 
-def traps_placement(source_type):
+# read arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('-g', '--gridname', type=str) 
+# -test True will output plots
+parser.add_argument('-test', '--testing', default=False, type=Lfun.boolean_string)
+args = parser.parse_args()
+
+# make sure grid name was provided
+argsd = args.__dict__
+if argsd['gridname'] == None:
+    print('*** Missing required argument to forcing_argfun.intro(): gridname')
+    sys.exit()
+
+Ldir = Lfun.Lstart(gridname=args.gridname)
+
+#################################################################################
+#                     Function to place TRAPS on grid                           #
+#################################################################################
+
+def traps_placement(source_type,Ldir):
     '''
     Function that looks at all of the rivers and marine point sources 
     in SSM, and identified where to place these tiny rivers and point sources (TRAPS)
@@ -129,7 +149,7 @@ def traps_placement(source_type):
 #                                 Initialize plot                               #
 #################################################################################
 
-    if plotting == True:
+    if args.testing == True:
 
         plon, plat = pfun.get_plon_plat(lon,lat)
 
@@ -339,5 +359,5 @@ def traps_placement(source_type):
 #################################################################################
 
 # Run placement algorithm
-traps_placement('riv')
-traps_placement('wwtp')
+traps_placement('riv',Ldir)
+traps_placement('wwtp',Ldir)
