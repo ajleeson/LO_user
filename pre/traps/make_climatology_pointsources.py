@@ -7,9 +7,10 @@ LO_data/traps/all_point_source_data.nc
 
 To run, from ipython:
 run make_climatology_pointsources.py
-"""
 
-plotting = False
+To create individual climatology figures, run from ipython with:
+run make_climatology_pointsources.py -test True
+"""
 
 #################################################################################
 #                              Import packages                                  #
@@ -22,22 +23,26 @@ import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+import argparse
 import datetime
 import matplotlib.dates as mdates
 import datetime
+import traps_helper
     
 
 #################################################################################
 #                     Get data and set up dataframes                            #
 #################################################################################
 
-# define year range to create climatologies
-year0 = 1999
-year1 = 2017
+# read arguments
+parser = argparse.ArgumentParser()
+# -test True will output plots
+parser.add_argument('-test', '--testing', default=False, type=Lfun.boolean_string)
+args = parser.parse_args()
 
 # location to save file
 clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources' /'Data_historical'
+Lfun.make_dir(clim_dir)
 
 # get flow and loading data
 wwtp_fn = Ldir['data'] / 'traps' / 'all_point_source_data.nc'
@@ -50,17 +55,19 @@ wwtpnames = ecology_data_ds['name'].values
 # wwtpnames = wwtpnames[28:30]
 
 # initialize dataframes for all wwtps
+DO_clim_df   = pd.DataFrame()
 flow_clim_df = pd.DataFrame()
 temp_clim_df = pd.DataFrame()
 NO3_clim_df  = pd.DataFrame()
 NH4_clim_df  = pd.DataFrame()
 TIC_clim_df  = pd.DataFrame()
 Talk_clim_df = pd.DataFrame()
-DO_clim_df   = pd.DataFrame()
 
 # variable names
-vns = ['DO(mmol/m3)','Flow(m3/s)','Temp(C)','NO3(mmol/m3)','NH4(mmol/m3)','TIC(mmol/m3)','Talk(meq/m3)']
-clims = [DO_clim_df, flow_clim_df, temp_clim_df, NO3_clim_df, NH4_clim_df, TIC_clim_df, Talk_clim_df]
+vns = ['DO(mmol/m3)','Flow(m3/s)','Temp(C)','NO3(mmol/m3)',
+       'NH4(mmol/m3)','TIC(mmol/m3)','Talk(meq/m3)']
+clims = [DO_clim_df, flow_clim_df, temp_clim_df, NO3_clim_df,
+         NH4_clim_df, TIC_clim_df, Talk_clim_df]
 letters = ['(a)','(b)','(c)','(d)','(e)','(f)','(g)']
 
 # create one-year date range for plotting
@@ -76,40 +83,16 @@ print('Calculating climatologies...')
 for i,wname in enumerate(wwtpnames):
 
     # turn dataset information for this wwtp into a dataframe
-    # so it's easier to manipulate
-    d = {'Date': ecology_data_ds.date.values,
-         'Flow(m3/s)':  ecology_data_ds.flow[ecology_data_ds.name==wname,:].values[0],
-         'Temp(C)':     ecology_data_ds.temp[ecology_data_ds.name==wname,:].values[0],
-         'NO3(mmol/m3)':ecology_data_ds.NO3[ecology_data_ds.name==wname,:].values[0],
-         'NH4(mmol/m3)':ecology_data_ds.NH4[ecology_data_ds.name==wname,:].values[0],
-         'TIC(mmol/m3)':ecology_data_ds.TIC[ecology_data_ds.name==wname,:].values[0],
-         'Talk(meq/m3)': ecology_data_ds.Talk[ecology_data_ds.name==wname,:].values[0],
-         'DO(mmol/m3)': ecology_data_ds.DO[ecology_data_ds.name==wname,:].values[0]}
-    wwtp_df = pd.DataFrame(data=d)
-    # replace all zeros with nans, so zeros don't bias data
-    wwtp_df = wwtp_df.replace(0, np.nan)
-
-    # add day of year column
-    wwtp_df['day_of_year'] = wwtp_df.apply(lambda row: row.Date.dayofyear, axis = 1)
-    # add year column
-    wwtp_df['year'] = pd.DatetimeIndex(wwtp_df['Date']).year
-
-    # calculate averages (compress 1999-2017 timeseries to single year, with an average for each day)
-    wwtp_avgs_df = wwtp_df.groupby('day_of_year').mean().reset_index()
-    # calculate standard deviation
-    wwtp_sds_df = wwtp_df.groupby('day_of_year').std(ddof=0).reset_index()
-
-    # replace all nans with zeros, so I'm no longer injecting nans
-    wwtp_avgs_df = wwtp_avgs_df.replace(np.nan,0)
-    wwtp_sds_df = wwtp_sds_df.replace(np.nan,0)
+    wwtp_df, wwtp_avgs_df, wwtp_sds_df = traps_helper.ds_to_avgdf(wname,ecology_data_ds)
 
 #################################################################################
 #                            Create climatologies                               #
 #################################################################################
 
     # Add data to climatology dataframes
-    for j,clim in enumerate(clims):
-        clim = pd.concat([clim, pd.Series(wwtp_avgs_df[vns[i]].values, name=wname)], axis = 1)
+    for j,vn in enumerate(vns):
+        clims[j] = pd.concat([clims[j],pd.Series(wwtp_avgs_df[vn].values, name=wname)],
+                         axis = 1)
 
 # Calculate summary statistics for all wwtps
 clim_avgs = pd.DataFrame()
@@ -145,25 +128,34 @@ for j,vn in enumerate(vns):
         scale = 1
         var = vn
 
+    # get average values, standard deviation, min and max
+    avgs =     clim_avgs[vn].values * scale
+    sds =      clim_sds[vn].values  * scale
+    maxvals =  clim_max[vn].values  * scale
+    minvals =  clim_min[vn].values  * scale
+
     # label subplot
     ax[i].text(0.05,0.85,letters[j]+' '+var,transform=ax[i].transAxes,fontsize=14)
     # Plot average
-    ax[i].plot(yrday,clim_avgs[vn].values, label='Average of all Sources', color='mediumpurple', linewidth=1.5)
+    ax[i].plot(yrday,avgs, label='Average of all Sources',
+               color='mediumpurple', linewidth=1.5)
     # Plot error shading
-    upper_bound = [min(clim_avgs[vn].values[ii]+clim_sds[vn].values[ii],clim_max[vn].values[ii]) for ii in range(366)] # don't go higher than max value
-    lower_bound = [max(clim_avgs[vn].values[ii]-clim_sds[vn].values[ii],clim_min[vn].values[ii]) for ii in range(366)] # don't go lower than min value
-    ax[i].fill_between(yrday,upper_bound,lower_bound,label='One SD',color='mediumpurple',alpha=0.2,edgecolor='none')
+    upper_bound = [min(avgs[ii]+sds[ii],maxvals[ii]) for ii in range(366)] # don't go higher than max value
+    lower_bound = [max(avgs[ii]-sds[ii],minvals[ii]) for ii in range(366)] # don't go lower than min value
+    ax[i].fill_between(yrday,upper_bound,lower_bound,label='One SD',
+                       color='mediumpurple',alpha=0.2,edgecolor='none')
     # Plot max
-    ax[i].plot(yrday,clim_max[vn].values, label='Max Value', color='firebrick', linestyle='--', linewidth=1)
+    ax[i].plot(yrday,maxvals, label='Max Value',
+               color='firebrick', linestyle='--', linewidth=1)
     # Plot min
-    ax[i].plot(yrday,clim_min[vn].values, label='Min Value', color='cornflowerblue', linestyle='--', linewidth=1)
+    ax[i].plot(yrday,minvals, label='Min Value',
+               color='cornflowerblue', linestyle='--', linewidth=1)
     # fontsize of tick labels
     ax[i].tick_params(axis='both', which='major', labelsize=12)
     ax[i].tick_params(axis='x', which='major', rotation=30)
     ax[i].set_xlim([datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)])
-    ax[i].set_ylim([0,1.3*max(clim_max[vn].values)])
     if i < 7:
-        ax[i].set_ylim([0,1.3*max(clim_max[vn].values)])
+        ax[i].set_ylim([0,1.3*max(maxvals)])
     # create legend
     if i ==7:
         ax[i].set_ylim([0,1.3*max(clim_max['TIC(mmol/m3)'].values)])
@@ -180,124 +172,97 @@ plt.suptitle('Point Source Climatology Summary (n={})'.format(len(wwtpnames)),fo
 figname = 'point_source_summary.png'
 save_path = clim_dir / figname
 fig.savefig(save_path)
-# plt.close('all')
-# plt.show()
+
+print('Climatologies done\n')
 
 #################################################################################
-#                          Plot all river climatologies                         #
+#              Plot all individual point source climatologies                   #
 #################################################################################
 
-if plotting == True:
-    print('Climatologies done\n')
+if args.testing == True:
     print('Plotting...')
+
+    # generate directory to save files
+    fig_dir = clim_dir / 'climatology_plots'
+    Lfun.make_dir(fig_dir)
 
     for i,wname in enumerate(wwtpnames):
 
         print('{}/{}: {}'.format(i+1,len(wwtpnames),wname))
 
         # turn dataset information for this wwtp into a dataframe
-        # so it's easier to manipulate
-        d = {'Date': ecology_data_ds.date.values,
-            'Flow(m3/s)':  ecology_data_ds.flow[ecology_data_ds.name==wname,:].values[0],
-            'Temp(C)':     ecology_data_ds.temp[ecology_data_ds.name==wname,:].values[0],
-            'NO3(mmol/m3)':ecology_data_ds.NO3[ecology_data_ds.name==wname,:].values[0],
-            'NH4(mmol/m3)':ecology_data_ds.NH4[ecology_data_ds.name==wname,:].values[0],
-            'TIC(mmol/m3)':ecology_data_ds.TIC[ecology_data_ds.name==wname,:].values[0],
-            'Talk(meq/m3)': ecology_data_ds.Talk[ecology_data_ds.name==wname,:].values[0],
-            'DO(mmol/m3)': ecology_data_ds.DO[ecology_data_ds.name==wname,:].values[0]}
-        wwtp_df = pd.DataFrame(data=d)
-        # replace all zeros with nans, so zeros don't bias data
-        wwtp_df = wwtp_df.replace(0, np.nan)
+        wwtp_df, wwtp_avgs_df, wwtp_sds_df = traps_helper.ds_to_avgdf(wname,ecology_data_ds)
 
-        # add day of year column
-        wwtp_df['day_of_year'] = wwtp_df.apply(lambda row: row.Date.dayofyear, axis = 1)
-        # add year column
-        wwtp_df['year'] = pd.DatetimeIndex(wwtp_df['Date']).year
+        # Plot climatologies for each source
+        fig, axes = plt.subplots(4,2, figsize=(16, 9), sharex=True)
+        ax = axes.ravel()
+        for j,vn in enumerate(vns):
 
-    # Plot and save averages for each source
-    fig, axes = plt.subplots(4,2, figsize=(16, 9), sharex=True)
-    ax = axes.ravel()
-    for j,var in enumerate(vns):
-
-        # convert DO from mmol/m3 to mg/L for plotting
-        if var == 'DO(mg/L)':
-            scale = 1/31.26 
-            vn = 'DO(mmol/m3)'
-        else:
-            scale = 1
-            vn = var
-
-        i = j+1
-        # label subplot
-        ax[i].set_title(var,fontsize=14)
-        # Plot individual years
-        for yr in range(1999,2017):
-            wwtp_yr_df = wwtp_df.loc[wwtp_df['year'] == yr]
-            values_to_plot = wwtp_yr_df[vn].values*scale
-            values_to_plot = values_to_plot.tolist()
-            # skip leap years
-            if np.mod(yr,4) != 0:
-                # pad Feb 29th with nan
-                values_to_plot = values_to_plot[0:60] + [np.nan] + values_to_plot[60::]
-            if yr == 2017:
-                yrday_17 = pd.date_range(start ='1/1/2020', end ='8/02/2020', freq ='D') # don't have full 2017 dataset
-                ax[i].plot(yrday_17,values_to_plot,alpha=0.5, label=yr, linewidth=1)
+            # convert DO from mmol/m3 to mg/L for plotting
+            if vn == 'DO(mmol/m3)':
+                scale = 1/31.26 
+                var = 'DO(mg/L)'
             else:
-                ax[i].plot(yrday,values_to_plot,alpha=0.5, label=yr, linewidth=1)
-        # Plot average
-        ax[i].plot(yrday,wwtp_avgs_df[vn].values*scale, label='average', color='black', linewidth=1.5)
-        # fontsize of tick labels
-        ax[i].tick_params(axis='both', which='major', labelsize=12)
-        ax[i].tick_params(axis='x', which='major', rotation=30)
-        ax[i].set_xlim([datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)])
-        # create legend
-        if i ==7:
-            handles, labels = ax[7].get_legend_handles_labels()
-            ax[0].legend(handles, labels, loc='center', ncol = 4,fontsize=14)
-            ax[0].axis('off')
-        # Define the date format
-        if i >= 6:
-            date_form = mdates.DateFormatter("%b")
-            ax[i].xaxis.set_major_formatter(date_form)
-    # plot title is name of source
-    plt.suptitle(wname,fontsize=18)
-    # Save figure
-    figname = wname + '.png'
-    save_path = clim_dir / 'climatology_plots' / figname
-    fig.savefig(save_path)
-    # plt.close('all')
+                scale = 1
+                var = vn
 
+            i = j+1
+            # label subplot
+            ax[i].set_title(var,fontsize=14)
+            # Plot individual years
+            for yr in range(1999,2017):
+                wwtp_yr_df = wwtp_df.loc[wwtp_df['year'] == yr]
+                values_to_plot = wwtp_yr_df[vn].values*scale
+                values_to_plot = values_to_plot.tolist()
+                # skip leap years
+                if np.mod(yr,4) != 0:
+                    # pad Feb 29th with nan
+                    values_to_plot = values_to_plot[0:60] + [np.nan] + values_to_plot[60::]
+                if yr == 2017:
+                    yrday_17 = pd.date_range(start ='1/1/2020',
+                                            end ='8/02/2020', freq ='D') # don't have full 2017 dataset
+                    ax[i].plot(yrday_17,values_to_plot,alpha=0.5, label=yr, linewidth=1)
+                else:
+                    ax[i].plot(yrday,values_to_plot,alpha=0.5, label=yr, linewidth=1)
+            # Plot average
+            ax[i].plot(yrday,wwtp_avgs_df[vn].values*scale, label='average', color='black', linewidth=1.5)
+            # fontsize of tick labels
+            ax[i].tick_params(axis='both', which='major', labelsize=12)
+            ax[i].tick_params(axis='x', which='major', rotation=30)
+            ax[i].set_xlim([datetime.date(2020, 1, 1), datetime.date(2020, 12, 31)])
+            # create legend
+            if i ==7:
+                handles, labels = ax[7].get_legend_handles_labels()
+                ax[0].legend(handles, labels, loc='center', ncol = 4,fontsize=14)
+                ax[0].axis('off')
+            # Define the date format
+            if i >= 6:
+                date_form = mdates.DateFormatter("%b")
+                ax[i].xaxis.set_major_formatter(date_form)
+        # plot title is name of source
+        plt.suptitle(wname,fontsize=18)
+        # Save figure
+        figname = wname + '.png'
+        save_path = clim_dir / 'climatology_plots' / figname
+        fig.savefig(save_path)
+        plt.close('all')
+
+    print('Done')
+    
 #################################################################################
 #                             Save climatologies                                #
 #################################################################################
 
+pickle_names = ['DO', 'flow', 'temp', 'NO3', 'NH4', 'TIC', 'Talk']
+
 # check for missing values:
-if pd.isnull(flow_clim_df).sum().sum() != 0:
-    print('Warning, there are missing flow values!')
-if pd.isnull(temp_clim_df).sum().sum() != 0:
-    print('Warning, there are missing temperature values!')
-if pd.isnull(NO3_clim_df).sum().sum() != 0:
-    print('Warning, there are missing nitrate values!')
-if pd.isnull(NH4_clim_df).sum().sum() != 0:
-    print('Warning, there are missing ammonium values!')
-if pd.isnull(TIC_clim_df).sum().sum() != 0:
-    print('Warning, there are missing TIC values!')
-if pd.isnull(Talk_clim_df).sum().sum() != 0:
-    print('Warning, there are missing alkalinity values!')
-if pd.isnull(DO_clim_df).sum().sum() != 0:
-    print('Warning, there are missing oxygen values!')
+for i,clim in enumerate(clims):
+    if pd.isnull(clim).sum().sum() != 0:
+        print('Warning, there are missing '+pickle_names[i]+' values!')
 
 # save results
-flow_clim_df.to_pickle(clim_dir / ('CLIM_flow_' + str(year0) + '_' + str(year1) + '.p'))
-temp_clim_df.to_pickle(clim_dir / ('CLIM_temp_' + str(year0) + '_' + str(year1) + '.p'))
-NO3_clim_df.to_pickle(clim_dir / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p'))
-NH4_clim_df.to_pickle(clim_dir / ('CLIM_NH4_' + str(year0) + '_' + str(year1) + '.p'))
-TIC_clim_df.to_pickle(clim_dir / ('CLIM_TIC_' + str(year0) + '_' + str(year1) + '.p'))
-Talk_clim_df.to_pickle(clim_dir / ('CLIM_Talk_' + str(year0) + '_' + str(year1) + '.p'))
-DO_clim_df.to_pickle(clim_dir / ('CLIM_DO_' + str(year0) + '_' + str(year1) + '.p'))
-
-
-# # Print statements for testing
-# for i,clim in enumerate(clim_df_list):
-#     print(vns[i]+'=================================================')
-#     print(clim)
+for i,clim in enumerate(clims):
+    clim.to_pickle(clim_dir / ('CLIM_' + pickle_names[i] + '.p'))
+    # # test printing
+    # print(vns[i]+'=================================================')
+    # print(clim)
