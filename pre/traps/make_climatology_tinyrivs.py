@@ -10,6 +10,9 @@ run make_climatology_tinyrivs.py
 
 To create individual climatology figures, run from ipython with:
 run make_climatology_tinyrivs.py -test True
+
+Note that running with -test True adds
+several minutes to run time.
 """
 
 #################################################################################
@@ -71,7 +74,8 @@ weird_biogeochem = ['Neil Creek', 'Seymour Inlet', 'Holberg',
                     'Toba Inlet', 'Homathco River ', 'Comox',
                     'Campbell River', 'Tsitika River', 'Nimpkish River',
                     'Tahsis', 'Alberni Inlet', 'Knight Inlet',
-                    'Willamette R', 'Klinaklini River']
+                    'Willamette R', 'Klinaklini River',
+                    'North East Vancouver Island']
 weird_DO = ['Victoria_SJdF']
 weird_DO_and_NH4 = ['Vancouver Isl C']
 # get list of rivers with more realistic biogeochem
@@ -97,13 +101,21 @@ letters = ['(a)','(b)','(c)','(d)','(e)','(f)','(g)']
 # create one-year date range for plotting
 yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
 
+# # plotting code, to be removed in final version -----------------------------------
+# plt.close('all')
+# fig,ax = plt.subplots(figsize=(10,4))
+# ax.plot(ecology_data_ds.date.values,
+#          ecology_data_ds.flow[ecology_data_ds.name == 'Lynch Cove'].values[0],
+#          color='black',label='raw')
+# # ----------------------------------------------------------------------------------
+
 # Replace 2013/2014 data with nans (so we don't bias climatologies)
 # Do this for rivers in which those data were accidentally shifted by 3 months
 shifted = ['Kitsap NE', 'Kitsap_Hood', 'Lynch Cove',
            'NW Hood', 'Port Gamble', 'Tahuya']
 keys = ['flow', 'temp', 'NO3', 'NH4', 'TIC', 'Talk', 'DO']
 # create a mask for the years 2013 and 2014
-mask_2013_2014 = (ecology_data_ds['date.year'] >= 2013) & (ecology_data_ds['date.year'] <= 2014)
+mask_2013_2014 = (ecology_data_ds['date'] > np.datetime64('2012-07-31')) & (ecology_data_ds['date.year'] < 2015)
 # replace the 2013/2014 flow data with nan for the shifted years
 for riv in shifted:
     # get river index
@@ -111,6 +123,20 @@ for riv in shifted:
     # replace 2013 and 2014 flow data with nans
     for key in keys:
         ecology_data_ds[key].loc[dict(source=riv_index, date=mask_2013_2014)] = np.nan
+
+# # plotting code, to be removed in final version -----------------------------------
+# ax.plot(ecology_data_ds.date.values,
+#          ecology_data_ds.flow[ecology_data_ds.name == 'Lynch Cove'].values[0],
+#          linestyle=':',color='deeppink',label='cropped')
+# ax.grid(True)
+# ax.xaxis.set_major_locator(mdates.YearLocator(base=1))
+# ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+# plt.xticks(rotation=45)
+# ax.set_xlim([ecology_data_ds.date.values[0],ecology_data_ds.date.values[-1]])
+# plt.legend(loc='upper right')
+# plt.title('Union River Hydrograph [m3/s]')
+# plt.show()
+# # ----------------------------------------------------------------------------------
 
 #################################################################################
 #                          Calculate climatologies                              #
