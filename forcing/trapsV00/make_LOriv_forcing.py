@@ -1,7 +1,14 @@
+"""
+Helper script called by make_forcing_main
+to generate forcing for pre-existing LO rivers 
+"""
 
-from datetime import datetime, timedelta
-from lo_tools import forcing_argfun2 as ffun
+#################################################################################
+#                              Import packages                                  #
+#################################################################################
+
 import sys
+import os
 import xarray as xr
 from lo_tools import Lfun, zrfun
 import numpy as np
@@ -9,7 +16,17 @@ import pandas as pd
 import rivfun
 import trapsfun
 
+#################################################################################
+#                   Initialize function and empty dataset                       #
+#################################################################################
+
 def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
+    # Start Dataset
+    LOriv_ds = xr.Dataset()
+
+#################################################################################
+#                                Get data                                       #
+#################################################################################
 
     # Load a dataframe with info for rivers to get
     if Ldir['gridname'] == 'cas7':
@@ -18,6 +35,7 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
         print('You need to specify a gridname for this ctag.')
         sys.exit()
 
+    # define directory for pre-existing LO river climatology
     ri_dir = Ldir['LOo'] / 'pre' / 'river1' / ctag
     ri_df_fn = ri_dir / 'river_info.p'
     ri_df = pd.read_pickle(ri_df_fn)
@@ -27,27 +45,26 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
     Ldir['Cflow_fn'] = ri_dir / 'Data_historical' / ('CLIM_flow.p')
     Ldir['Ctemp_fn'] = ri_dir / 'Data_historical' / ('CLIM_temp.p')
 
-    # get biologeochem data for rivers for which Ecology has data
+    # define directory for pre-existing LO river bio climatology
     LObio_dir = Ldir['LOo'] / 'pre' / 'traps' / 'LO_rivbio'
     traps_type = 'LOriv'
 
-    # climatological data files
-    year0 = 1999
-    year1 = 2017
-    # climatological data
-    Ldir['CDO_LOriv_fn']   = LObio_dir / 'Data_historical' / ('CLIM_DO_' + str(year0) + '_' + str(year1) + '.p')
-    Ldir['CNH4_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_NH4_' + str(year0) + '_' + str(year1) + '.p')
-    Ldir['CNO3_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p')
-    Ldir['CTalk_LOriv_fn'] = LObio_dir / 'Data_historical' / ('CLIM_Talk_' + str(year0) + '_' + str(year1) + '.p')
-    Ldir['CTIC_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_TIC_' + str(year0) + '_' + str(year1) + '.p')
+    # get climatological data
+    clim_fns = ['CDO_LOriv_fn', 'CNH4_LOriv_fn', 'CNO3_LOriv_fn',
+                'CTalk_LOriv_fn', 'CTIC_LOriv_fn']
+    clim_vns = ['DO', 'NH4', 'NO3', 'Talk', 'TIC']
+    for i, clim_fn in enumerate(clim_fns):
+        Ldir[clim_fn] = LObio_dir / 'Data_historical' / ('CLIM_'+clim_vns[i]+'.p')
 
     # get names of rivers for which Ecology has biogeochem data
-    # these are the names the LiveOcean calls them. Later, they will be converted to the name Ecology/SSM uses
+    # these are the names the LiveOcean calls them.
+    # Later, they will be converted to the name Ecology/SSM uses
     repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
     repeatrivs_df = pd.read_excel(repeatrivs_fn)
     LObio_names_all = list(repeatrivs_df.loc[repeatrivs_df['in_both'] == 1, 'LO_rname'])
     # remove the weird rivers
-    weird_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R', 'Columbia R', 'Comox']
+    weird_rivers = ['Alberni Inlet', 'Chehalis R',
+                    'Gold River', 'Willapa R', 'Columbia R', 'Comox']
     # These are the names that LO uses
     LObio_names = [rname for rname in LObio_names_all if trapsfun.LO2SSM_name(rname) not in weird_rivers]
 
@@ -56,6 +73,12 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
     gri_df = pd.read_csv(gri_fn, index_col='rname')
     if Ldir['testing']:
         gri_df = gri_df.loc[['columbia', 'skagit'],:]
+
+#################################################################################
+#                       Prepare dataset for data                                #
+#################################################################################
+
+    # get number of pre-existing LO rivers
     NRIV = len(gri_df)
 
     # associate rivers with ones that have temperature climatology data
@@ -65,9 +88,6 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
     qt_df_dict = rivfun.get_qt(gri_df, ri_df, dt_ind, yd_ind, Ldir, dt1, days)
     # get the biology for LO pre-existing rivers for which Ecology has data
     LObio_df_dict = trapsfun.get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type)
-
-    # Start Dataset
-    LOriv_ds = xr.Dataset()
 
     # Add time coordinate
     LOriv_ds['river_time'] = (('river_time',), ot_vec)
@@ -82,6 +102,10 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
     LOriv_ds['river_name'] = (('river',), list(gri_df.index))
     LOriv_ds['river_name'].attrs['long_name'] = 'river name'
 
+#################################################################################
+#  Add vertical distribution of sources. All rivers discharge uniformly in z    #
+#################################################################################
+
     # Add Vshape
     vn = 'river_Vshape'
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
@@ -92,70 +116,85 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
     LOriv_ds[vn] = (dims, Vshape)
     LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
 
+#################################################################################
+#            Add indices of sources. Rivers located on u- or v-grid             #
+#################################################################################
+
     # Add position and direction
     for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
         vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+        # get river direction (idir)
         if vn == 'river_direction':
             LOriv_ds[vn] = (('river',), gri_df.idir.to_numpy())
+        # Add X-position (column index on v-grid)
         elif vn == 'river_Xposition':
             X_vec = np.nan * np.ones(NRIV)
-            ii = 0
-            for rn in gri_df.index:
+            for ii,rn in enumerate(gri_df.index):
                 if gri_df.loc[rn, 'idir'] == 0:
                     X_vec[ii] = gri_df.loc[rn, 'col_py'] + 1
                 elif gri_df.loc[rn, 'idir'] == 1:
                     X_vec[ii] = gri_df.loc[rn, 'col_py']
-                ii += 1
             LOriv_ds[vn] = (('river',), X_vec)
+        # Add E-position (row index on u-grid)
         elif vn == 'river_Eposition':
             E_vec = np.nan * np.ones(NRIV)
-            ii = 0
-            for rn in gri_df.index:
+            for ii,rn in enumerate(gri_df.index):
                 if gri_df.loc[rn, 'idir'] == 0:
                     E_vec[ii] = gri_df.loc[rn, 'row_py']
                 elif gri_df.loc[rn, 'idir'] == 1:
                     E_vec[ii] = gri_df.loc[rn, 'row_py'] + 1
-                ii += 1
             LOriv_ds[vn] = (('river',), E_vec)
         LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
-            
+
+#################################################################################
+#                               Add source flowrate                             #
+#################################################################################
 
     # Add transport
     vn = 'river_transport'
     vinfo = zrfun.get_varinfo(vn, vartype='climatology')
     dims = (vinfo['time'],) + ('river',)
     Q_mat = np.zeros((NT, NRIV))
-    rr = 0
-    for rn in gri_df.index:
+    for rr,rn in enumerate(gri_df.index):
         qt_df = qt_df_dict[rn]
         flow = qt_df['final'].values
         Q_mat[:,rr] = flow * gri_df.loc[rn, 'isign']
-        rr += 1
+    # add metadata
     LOriv_ds[vn] = (dims, Q_mat)
     LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
     LOriv_ds[vn].attrs['units'] = vinfo['units']
+
+#################################################################################
+#                         Add source salinity and temp                          #
+#################################################################################
 
     # Add salinity and temperature
     for vn in ['river_salt', 'river_temp']:
         vinfo = zrfun.get_varinfo(vn, vartype='climatology')
         dims = (vinfo['time'],) + ('s_rho', 'river')
+        # salinity is always zero
         if vn == 'river_salt':
             TS_mat = np.zeros((NT, N, NRIV))
+        # get temperature
         elif vn == 'river_temp':
             TS_mat = np.nan * np.zeros((NT, N, NRIV))
-            rr = 0
-            for rn in gri_df.index:
+            for rr,rn in enumerate(gri_df.index):
                 qt_df = qt_df_dict[rn]
                 for nn in range(N):
                     TS_mat[:, nn, rr] = qt_df['temperature'].values
-                rr += 1
+        # check for nans
         if np.isnan(TS_mat).any():
-            print('Error from riv00: nans in river_temp!')
+            print('Error from pre-existing LO rivers: nans in river_temp!')
             sys.exit()
+        # add metadata
         LOriv_ds[vn] = (dims, TS_mat)
         LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
         LOriv_ds[vn].attrs['units'] = vinfo['units']
-        
+
+#################################################################################
+#                            Add source biology                                 #
+#################################################################################
+   
     # Add biology (see the lineup near the end of fennel_var.h)
     bvn_list = ['NO3', 'NH4', 'Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo',
             'TIC', 'TAlk', 'LDeC', 'SDeC', 'Oxyg']
@@ -164,8 +203,7 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
         vinfo = zrfun.get_varinfo(vn)
         dims = (vinfo['time'],) + ('s_rho', 'river')
         B_mat = np.nan * np.zeros((NT, N, NRIV))
-        rr = 0
-        for rn in gri_df.index:
+        for rr,rn in enumerate(gri_df.index):
             # Add biogeochem climatology for rivers for which Ecology have data
             if rn in LObio_names and bvn in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
                 # get corresponding Ecology/SSM river name
@@ -178,12 +216,17 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
                 bvals = rivfun.get_bio_vec(bvn, rn, yd_ind)
             for nn in range(N):
                 B_mat[:, nn, rr] = bvals
-            rr += 1
+        # check for nans
         if np.isnan(B_mat).any():
-            print('Error from riv00: nans in B_mat for ' + vn)
+            print('Error from pre-existing LO rivers: nans in B_mat for ' + vn)
             sys.exit()
+        # add metadata
         LOriv_ds[vn] = (dims, B_mat)
         LOriv_ds[vn].attrs['long_name'] = vinfo['long_name']
         LOriv_ds[vn].attrs['units'] = vinfo['units']
-    
+
+#################################################################################
+#          Return LOriv forcing dataset in the form that ROMS expects           #
+#################################################################################
+
     return LOriv_ds, NRIV
