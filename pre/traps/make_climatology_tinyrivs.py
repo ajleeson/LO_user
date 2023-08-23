@@ -58,7 +58,7 @@ trivnames_all = ecology_data_ds['name'].values
 # read overlapping rivers
 repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
 repeatrivs_df = pd.read_excel(repeatrivs_fn)
-SSM_repeats = repeatrivs_df['SSM_rname'].values
+SSM_repeats = repeatrivs_df['SSM_rname'].tolist()
 # remove nans
 SSM_repeats = [x for x in SSM_repeats if str(x) != 'nan']
 # remove repeat river names from list of river names
@@ -71,7 +71,7 @@ trivnames = [river for river in trivnames_all if river not in SSM_repeats]
 weird_biogeochem = ['Neil Creek', 'Seymour Inlet', 'Holberg',
                     'North East Vancouver Is', 'Owikeno Lake',
                     'Salmon River', 'Brooks Peninsula', 'Clayoquot',
-                    'Toba Inlet', 'Homathco River ', 'Comox',
+                    'Toba Inlet', 'Homathco River ',
                     'Campbell River', 'Tsitika River', 'Nimpkish River',
                     'Tahsis', 'Alberni Inlet', 'Knight Inlet',
                     'Willamette R', 'Klinaklini River',
