@@ -276,9 +276,9 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
 
         # Rename rivers that share name with WWTP. This code appends ' R' at the end of the river name
         duplicates = ['Port Angeles', 'Port Townsend', 'Birch Bay', 'Port Gamble', 'Gig Harbor']
-        print(gri_df_no_ovrlp.index)
+        # print(gri_df_no_ovrlp.index)
         gri_df_no_ovrlp.index = np.where(gri_df_no_ovrlp.index.isin(duplicates), gri_df_no_ovrlp.index + ' R', gri_df_no_ovrlp.index)
-        print(gri_df_no_ovrlp.index) 
+        # print(gri_df_no_ovrlp.index) 
 
         # Add river names
         triv_ds['river_name'] = (('river',), list(gri_df_no_ovrlp.index))
