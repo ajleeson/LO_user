@@ -26,6 +26,9 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
     wwtp_ds = xr.Dataset()
     NWWTP = 0
 
+    # get year list
+    years = [fulldate.year for fulldate in dt_ind]
+
 #################################################################################
 #                                Get data                                       #
 #################################################################################
@@ -53,7 +56,8 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
         gwi_df = pd.read_csv(gwi_fn, index_col='rname')
         # if testing, only look at a few sources
         if Ldir['testing']:
-            gwi_df = gwi_df.loc[['West Point', 'Birch Bay', 'Tacoma Central', 'US Oil & Refining'],:]
+            gwi_df = gwi_df.loc[['West Point', 'Birch Bay', 'Lake Stevens 001',
+                                 'Lake Stevens 002', 'Tacoma Central', 'US Oil & Refining'],:]
         
 #################################################################################
 #       Combine name of sources that are located at the same grid cell          #
@@ -61,6 +65,8 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
 
         # get list of overlapping point sources
         overlapping_wwtps = gwi_df[gwi_df.duplicated(['row_py','col_py'], keep=False) == True].index.values
+        # Remove Lake Stevens 001 and 002 (since they are never active at the same time)
+        overlapping_wwtps = [wwtp for wwtp in overlapping_wwtps if wwtp not in ['Lake Stevens 001', 'Lake Stevens 002']]
         # consolidate overlapping point sources
         combined_names = trapsfun.combine_adjacent(overlapping_wwtps)
         gri_df_no_ovrlp = pd.DataFrame(columns=gwi_df.columns) 
@@ -70,7 +76,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
             # look for point sources that are in the list of duplicates
             if psname in overlapping_wwtps: 
                 # get index in the list of duplicates
-                name_index = np.where(overlapping_wwtps == psname)[0][0] 
+                name_index = np.where(overlapping_wwtps == psname)[0] 
                 # even index means first occurence of duplicate
                 if name_index%2 == 0: 
                     # combine names of duplicates
@@ -169,8 +175,19 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
             else:
                 qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
                 flow = qtbio_wwtp_df['flow'].values
-            Q_mat[:,rr] = flow
+            # set flowrate to zero for years that WWTP was closed
+            opendates = np.ones(NT)
+            for i,year in enumerate(years):
+                if ((rn == 'Brightwater'     and year <  2012)  # Brightwater opened at end of 2011
+                or (rn == 'Kimberly_Clark'   and year >= 2005)  # Kimberly_Clark closed at end of 2004
+                or (rn == 'Lake Stevens 001' and year >= 2012)  # Lake Stevens 001 closed at beginning of 2012
+                or (rn == 'Lake Stevens 002' and year <  2012)  # Lake Stevens 002 opened at beginning of 2012
+                or (rn == 'Oak Harbor RBC'   and year >= 2011)  # Oak Harbor RBC closed at end of 2010
+                or (rn == 'OF100'            and year <  2005)):# OF100 opened at end of 2004
+                    opendates[i] = 0
+            Q_mat[:,rr] = flow * opendates
         # add metadata
+        print(Q_mat)
         wwtp_ds[vn] = (dims, Q_mat)
         wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
         wwtp_ds[vn].attrs['units'] = vinfo['units']

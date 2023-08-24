@@ -1,32 +1,56 @@
 """
-This is the main program for making the RIVER and TRAPS forcing file, for the
-updated ROMS
+This is the main program for making the RIVER and TRAPS
+forcing file for the updated ROMS
+
+By default, point sources and tiny rivers are enabled. 
+To turn them off, add the arguments:
+-trivs False
+-wwtps False
 
 Test on pc in ipython:
 run make_forcing_main.py -g cas7 -r backfill -d 2017.01.01 -f trapsV00 -test True
-
 """
+
+#################################################################################
+#                              Import packages                                  #
+#################################################################################
 
 from datetime import datetime, timedelta
 from lo_tools import forcing_argfun2 as ffun
 import xarray as xr
 from lo_tools import Lfun, zrfun
 import numpy as np
+import argparse
 import pandas as pd
+from importlib import reload
 import rivfun
 import make_LOriv_forcing as LOriv
 import make_triv_forcing as triv
 import make_wwtp_forcing as wwtp
 
+reload(LOriv)
+reload(triv)
+reload(wwtp)
+
+#################################################################################
+#                     Swith to enable/disable TRAPS                             #
+#################################################################################
+
+# LOGICAL SWITCH TO ENABLE OR DISABLE TINY RIVERS OR WWTPS
+enable_trivs = True
+enable_wwtps = True
+
+#################################################################################
+#                              Argument parsing                                 #
+#################################################################################
+
 Ldir = ffun.intro() # this handles all the argument passing
 result_dict = dict()
 result_dict['start_dt'] = datetime.now()
 
-# ENABLE OR DISABLE TINY RIVERS AND/OR POINT SOURCES
-enable_tinyrivers = True
-enable_pointsources = True
-
-# ****************** CASE-SPECIFIC CODE *****************
+#################################################################################
+#                    Get required data to generate forcing                      #
+#################################################################################
 
 date_string = Ldir['date_string']
 out_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / ('f' + date_string) / Ldir['frc']
@@ -59,36 +83,35 @@ N = S['N']
 grid_fn = Ldir['grid'] / 'grid.nc'
 G = zrfun.get_basic_info(grid_fn, only_G=True)
 
-###############################################################################################
+#################################################################################
+#                   Run helper scripts to generate forcing                      #
+#################################################################################
 
 # generate forcing for tiny rivers
 LOriv_ds, NRIV = LOriv.make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir)
 
 # generate forcing for tiny rivers
-triv_ds, NTRIV = triv.make_forcing(N,NT,NRIV,dt_ind,yd_ind,ot_vec,Ldir,enable_tinyrivers)
+triv_ds, NTRIV = triv.make_forcing(N,NT,NRIV,dt_ind,yd_ind,ot_vec,Ldir,enable_trivs)
 
 # generate forcing for marine point sources
-wwtp_ds, NWWTP = wwtp.make_forcing(N,NT,NRIV,NTRIV,dt_ind,yd_ind,ot_vec,Ldir,enable_pointsources)
+wwtp_ds, NWWTP = wwtp.make_forcing(N,NT,NRIV,NTRIV,dt_ind,yd_ind,ot_vec,Ldir,enable_wwtps)
 
-###########################################################################################
+#################################################################################
+#                   Combine forcing outputs and save results                    #
+#################################################################################
 
 # combine all forcing datasets
 all_ds = xr.merge([LOriv_ds,triv_ds, wwtp_ds])
-print(all_ds.river_name)
 
 # Save to NetCDF
 all_ds.to_netcdf(out_fn)
 all_ds.close()
-
-# -------------------------------------------------------
 
 # test for success
 if out_fn.is_file():
     result_dict['result'] = 'success' # success or fail
 else:
     result_dict['result'] = 'fail'
-
-# *******************************************************
 
 result_dict['end_dt'] = datetime.now()
 ffun.finale(Ldir, result_dict)
