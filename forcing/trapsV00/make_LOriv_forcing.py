@@ -46,7 +46,7 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
     Ldir['Ctemp_fn'] = ri_dir / 'Data_historical' / ('CLIM_temp.p')
 
     # define directory for pre-existing LO river bio climatology
-    LObio_dir = Ldir['LOo'] / 'pre' / 'traps' / 'LO_rivbio'
+    LObio_dir = Ldir['LOo'] / 'pre' / 'traps' / 'LO_rivbio' / ctag
     traps_type = 'LOriv'
 
     # get climatological data
@@ -211,6 +211,11 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
                 # get the biogeochem values from climatology
                 bio_LOriv_df = LObio_df_dict[rn_SSM]
                 bvals = bio_LOriv_df[bvn].values
+                # use ammonium values from Susan Allen for Fraser
+                # https://agupubs.onlinelibrary.wiley.com/action/downloadSupplement?
+                # doi=10.1029%2F2019JC015766&file=jgrc24099-sup-0001-Text_SI-S01.pdf
+                if rn == 'fraser' and bvn == 'NH4':
+                    bvals = 4.43 * np.ones(NT) # uM = mmol/m3
             # If Ecology doesn't have data, use default LO bio
             else:
                 bvals = rivfun.get_bio_vec(bvn, rn, yd_ind)

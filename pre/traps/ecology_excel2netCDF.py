@@ -7,7 +7,7 @@ one for rivers
 In theory, this script only needs to be run once.
 Then, the netCDF files can be referenced to generate climatologies.
 
-Takes about 5 minutes to run on my local machine.
+Takes about 5-8 minutes to run on my local machine.
 
 To run from ipython:
 run ecology_excel2xarray.py
