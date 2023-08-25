@@ -12,7 +12,7 @@ To create individual climatology figures, run from ipython with:
 run make_climatology_tinyrivs.py -test True
 
 Note that running with -test True adds
-several minutes to run time.
+several minutes to run time. (~ 6 min)
 """
 
 #################################################################################
@@ -41,10 +41,13 @@ import traps_helper
 parser = argparse.ArgumentParser()
 # -test True will output plots
 parser.add_argument('-test', '--testing', default=False, type=Lfun.boolean_string)
+# add ctag
+parser.add_argument('-ctag', type=str, default='lo_base')
 args = parser.parse_args()
+ctag = args.ctag
 
 # location to save file
-clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'tiny_rivers' /'Data_historical'
+clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'tiny_rivers' / ctag / 'Data_historical'
 Lfun.make_dir(clim_dir)
 
 # get flow and loading data

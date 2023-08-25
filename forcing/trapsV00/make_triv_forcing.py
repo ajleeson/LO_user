@@ -32,8 +32,15 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
     # only get data if WWTPs are enabled
     if enable == True:
 
+        # Get ctag
+        if Ldir['gridname'] == 'cas7':
+            ctag = 'lo_base'
+        else:
+            print('You need to specify a gridname for this ctag.')
+            sys.exit()
+
         # define directory for tiny river climatology
-        triv_dir = Ldir['LOo'] / 'pre' / 'traps' / 'tiny_rivers'
+        triv_dir = Ldir['LOo'] / 'pre' / 'traps' / 'tiny_rivers' / ctag
         traps_type = 'triv'
 
         # get climatological data

@@ -16,14 +16,22 @@ Ldir = Lfun.Lstart()
 import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import argparse
     
 
 #################################################################################
 #                     Get data and set up dataframes                            #
 #################################################################################
 
+# read arguments
+parser = argparse.ArgumentParser()
+# add ctag
+parser.add_argument('-ctag', type=str, default='lo_base')
+args = parser.parse_args()
+ctag = args.ctag
+
 # location to save file
-clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources' /'Data_historical'
+clim_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources' / ctag / 'Data_historical'
 Lfun.make_dir(clim_dir)
 
 # get flow and loading data
@@ -41,7 +49,7 @@ wwtpnames = ecology_data_ds['name'].values
 print('Plotting...')
 
 # generate directory to save files
-fig_dir = clim_dir / 'wwtp_flow_timeseries'
+fig_dir = clim_dir / 'wwtp_timeseries'
 Lfun.make_dir(fig_dir)
 
 for i,wname in enumerate(wwtpnames):

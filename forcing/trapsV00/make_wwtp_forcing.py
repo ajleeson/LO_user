@@ -36,8 +36,20 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
     # only get data if WWTPs are enabled
     if enable == True:
 
+        # Get ctag
+        if Ldir['gridname'] == 'cas7':
+            ctag = 'lo_base'
+        else:
+            print('You need to specify a gridname for this ctag.')
+            sys.exit()
+
+        # Read WWTP open/close dates
+        open_close_fn = Ldir['data'] / 'traps' / 'wwtp_open_close_dates.xlsx'
+        open_close_df = pd.read_excel(open_close_fn)
+        open_closed_wwtps = open_close_df['name'].tolist()
+
         # define directory for point_source climatology
-        wwtp_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources'
+        wwtp_dir = Ldir['LOo'] / 'pre' / 'traps' / 'point_sources' /ctag
         traps_type = 'wwtp'  
 
         # get climatological data
@@ -177,17 +189,22 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
                 flow = qtbio_wwtp_df['flow'].values
             # set flowrate to zero for years that WWTP was closed
             opendates = np.ones(NT)
-            for i,year in enumerate(years):
-                if ((rn == 'Brightwater'     and year <  2012)  # Brightwater opened at end of 2011
-                or (rn == 'Kimberly_Clark'   and year >= 2005)  # Kimberly_Clark closed at end of 2004
-                or (rn == 'Lake Stevens 001' and year >= 2012)  # Lake Stevens 001 closed at beginning of 2012
-                or (rn == 'Lake Stevens 002' and year <  2012)  # Lake Stevens 002 opened at beginning of 2012
-                or (rn == 'Oak Harbor RBC'   and year >= 2011)  # Oak Harbor RBC closed at end of 2010
-                or (rn == 'OF100'            and year <  2005)):# OF100 opened at end of 2004
-                    opendates[i] = 0
+            if rn in open_closed_wwtps:
+                # check wheter WWTP opened or closed
+                open_or_close = open_close_df.loc[open_close_df['name'] == rn, 'open/close'].item()
+                change_year = open_close_df.loc[open_close_df['name'] == rn, 'year first opened/closed'].item()
+                # loop through forcing years
+                for i,year in enumerate(years):
+                    # If WWTP opened on given year, set values to zero before that year
+                    if open_or_close == 'open' and year < change_year:
+                        opendates[i] = 0
+                    # If WWTP closed on a given year, set values to zero for that year and year afterwards
+                    elif open_or_close == 'close' and year >= change_year:
+                        opendates[i] = 0
+            # update flowrate with open/close date information
             Q_mat[:,rr] = flow * opendates
         # add metadata
-        print(Q_mat)
+        # print(Q_mat)
         wwtp_ds[vn] = (dims, Q_mat)
         wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
         wwtp_ds[vn].attrs['units'] = vinfo['units']
