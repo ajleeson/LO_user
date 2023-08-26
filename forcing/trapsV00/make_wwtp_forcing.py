@@ -88,7 +88,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
             # look for point sources that are in the list of duplicates
             if psname in overlapping_wwtps: 
                 # get index in the list of duplicates
-                name_index = np.where(overlapping_wwtps == psname)[0] 
+                name_index = overlapping_wwtps.index(psname)
                 # even index means first occurence of duplicate
                 if name_index%2 == 0: 
                     # combine names of duplicates
@@ -309,5 +309,4 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
 #################################################################################
 #          Return WWTP forcing dataset in the form that ROMS expects            #
 #################################################################################
-
     return wwtp_ds, NWWTP
