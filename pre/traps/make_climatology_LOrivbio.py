@@ -11,6 +11,9 @@ run make_climatology_LOrivbio.py
 To create individual climatology figures, run from ipython with:
 run make_climatology_LOrivbio.py -test True
 
+Figures saved in:
+LO_output/pre/traps/LO_rivbio/[ctag]/Data_historical/climatology_plots
+
 Note that running with -test True adds
 about a minute to run time. 
 """
