@@ -243,5 +243,5 @@ nonpointsource_ds.to_netcdf(out_fn)
 nonpointsource_ds.close()
 print('Nonpoint sources complete ---------------------------------------')
 
-print(pointsource_ds)
-print(nonpointsource_ds)
+# print(pointsource_ds)
+# print(nonpointsource_ds)
