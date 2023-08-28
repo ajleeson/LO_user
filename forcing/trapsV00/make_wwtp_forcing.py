@@ -68,6 +68,8 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
         gwi_df = pd.read_csv(gwi_fn, index_col='rname')
         # if testing, only look at a few sources
         if Ldir['testing']:
+            # gwi_df = gwi_df.loc[['Brightwater', 'Kimberly_Clark', 'Lake Stevens 001',
+            #                      'Lake Stevens 002', 'Oak Harbor RBC', 'OF100'],:]
             gwi_df = gwi_df.loc[['West Point', 'Birch Bay', 'Lake Stevens 001',
                                  'Lake Stevens 002', 'Tacoma Central', 'US Oil & Refining'],:]
         
@@ -75,9 +77,9 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
 #       Combine name of sources that are located at the same grid cell          #
 #################################################################################
 
-        # get list of overlapping point sources
+        # get list of overlapping point sources (i.e. wwtps mapped to same grid cell)
         overlapping_wwtps = gwi_df[gwi_df.duplicated(['row_py','col_py'], keep=False) == True].index.values
-        # Remove Lake Stevens 001 and 002 (since they are never active at the same time)
+        # Remove Lake Stevens 001 and 002 from overlapping list (since they are never active at the same time)
         overlapping_wwtps = [wwtp for wwtp in overlapping_wwtps if wwtp not in ['Lake Stevens 001', 'Lake Stevens 002']]
         # consolidate overlapping point sources
         combined_names = trapsfun.combine_adjacent(overlapping_wwtps)
@@ -187,7 +189,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
             else:
                 qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
                 flow = qtbio_wwtp_df['flow'].values
-            # set flowrate to zero for years that WWTP was closed
+            # set flowrate to zero for years that WWTP was closed!
             opendates = np.ones(NT)
             if rn in open_closed_wwtps:
                 # check wheter WWTP opened or closed
@@ -204,7 +206,6 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
             # update flowrate with open/close date information
             Q_mat[:,rr] = flow * opendates
         # add metadata
-        # print(Q_mat)
         wwtp_ds[vn] = (dims, Q_mat)
         wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
         wwtp_ds[vn].attrs['units'] = vinfo['units']
@@ -309,4 +310,5 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
 #################################################################################
 #          Return WWTP forcing dataset in the form that ROMS expects            #
 #################################################################################
+
     return wwtp_ds, NWWTP

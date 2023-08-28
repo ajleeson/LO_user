@@ -29,7 +29,7 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
 #                                Get data                                       #
 #################################################################################
 
-    # only get data if WWTPs are enabled
+    # only get data if tiny rivers are enabled
     if enable == True:
 
         # Get ctag
@@ -55,7 +55,7 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
         if not os.path.isfile(gtri_fn):
             print('***Missing triv_info.csv file. Please run traps_placement')
             sys.exit()
-        # then get the list of point sources and indices for this grid
+        # then get the list of tiny rivers and indices for this grid
         gtri_df = pd.read_csv(gtri_fn, index_col='rname')
         # if testing, only look at a few sources
         if Ldir['testing']:
@@ -65,7 +65,7 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
 #       Combine name of sources that are located at the same grid cell          #
 #################################################################################
 
-        # get list of overlapping rivers
+        # get list of overlapping rivers (i.e. rivers mapped to same grid cell)
         overlapping_trivs = gtri_df[gtri_df.duplicated(['row_py','col_py'], keep=False) == True].index.values
         # consolidate overlapping rivers
         combined_names = trapsfun.combine_adjacent(overlapping_trivs)
@@ -83,7 +83,8 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
                     newname = combined_names[int(name_index/2)] 
                     # add combined source to dataframe
                     gri_df_no_ovrlp.loc[newname] = gtri_df.loc[trname]
-                # Note: second duplicate will be dropped (so idir, isign, and uv will come from the first duplicate)
+                # Note: second duplicate will be dropped
+                # (so idir, isign, and uv will come from the first duplicate)
             else:
                 # if not a duplicate, then just copy over original info
                 gri_df_no_ovrlp.loc[trname] = gtri_df.loc[trname]
@@ -106,6 +107,7 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
         # Add river coordinate
         triv_ds['river'] = (('river',), np.arange(NRIV+1,NRIV+NTRIV+1))
         triv_ds['river'].attrs['long_name'] = 'tiny river runoff identification number'
+
 #################################################################################
 #  Add vertical distribution of sources. All rivers discharge uniformly in z    #
 #################################################################################
@@ -130,7 +132,7 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
             # get river direction (idir)
             if vn == 'river_direction':
                 triv_ds[vn] = (('river',), gri_df_no_ovrlp.idir.to_numpy())
-            # Add X-position (column index on v-grid)
+            # Add X-position (column index on u-grid)
             elif vn == 'river_Xposition':
                 X_vec = np.nan * np.ones(NTRIV)
                 for ii,rn in enumerate(gri_df_no_ovrlp.index):
@@ -139,7 +141,7 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
                     elif gri_df_no_ovrlp.loc[rn, 'idir'] == 1:
                         X_vec[ii] = gri_df_no_ovrlp.loc[rn, 'col_py']
                 triv_ds[vn] = (('river',), X_vec)
-            # Add E-position (row index on u-grid)
+            # Add E-position (row index on v-grid)
             elif vn == 'river_Eposition':
                 E_vec = np.nan * np.ones(NTRIV)
                 for ii,rn in enumerate(gri_df_no_ovrlp.index):
@@ -283,9 +285,8 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable):
 
         # Rename rivers that share name with WWTP. This code appends ' R' at the end of the river name
         duplicates = ['Port Angeles', 'Port Townsend', 'Birch Bay', 'Port Gamble', 'Gig Harbor']
-        # print(gri_df_no_ovrlp.index)
-        gri_df_no_ovrlp.index = np.where(gri_df_no_ovrlp.index.isin(duplicates), gri_df_no_ovrlp.index + ' R', gri_df_no_ovrlp.index)
-        # print(gri_df_no_ovrlp.index) 
+        gri_df_no_ovrlp.index = np.where(gri_df_no_ovrlp.index.isin(duplicates),
+                                         gri_df_no_ovrlp.index + ' R', gri_df_no_ovrlp.index)
 
         # Add river names
         triv_ds['river_name'] = (('river',), list(gri_df_no_ovrlp.index))

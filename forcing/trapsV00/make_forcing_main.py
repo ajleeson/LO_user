@@ -3,9 +3,7 @@ This is the main program for making the RIVER and TRAPS
 forcing file for the updated ROMS
 
 By default, point sources and tiny rivers are enabled. 
-To turn them off, add the arguments:
--trivs False
--wwtps False
+To turn them off, set lines 38 and 39 to be = False
 
 Test on pc in ipython:
 run make_forcing_main.py -g cas7 -r backfill -d 2017.01.01 -f trapsV00 -test True
@@ -20,7 +18,6 @@ from lo_tools import forcing_argfun2 as ffun
 import xarray as xr
 from lo_tools import Lfun, zrfun
 import numpy as np
-import argparse
 import pandas as pd
 from importlib import reload
 import rivfun
@@ -56,7 +53,6 @@ date_string = Ldir['date_string']
 out_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / ('f' + date_string) / Ldir['frc']
 
 if Ldir['testing']:
-    from importlib import reload
     reload(zrfun)
     reload(rivfun)
 
@@ -87,7 +83,7 @@ G = zrfun.get_basic_info(grid_fn, only_G=True)
 #                   Run helper scripts to generate forcing                      #
 #################################################################################
 
-# generate forcing for tiny rivers
+# generate forcing for pre-existing LO rivers
 LOriv_ds, NRIV = LOriv.make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir)
 
 # generate forcing for tiny rivers
@@ -109,7 +105,7 @@ all_ds.close()
 
 # test for success
 if out_fn.is_file():
-    result_dict['result'] = 'success' # success or fail
+    result_dict['result'] = 'success'
 else:
     result_dict['result'] = 'fail'
 

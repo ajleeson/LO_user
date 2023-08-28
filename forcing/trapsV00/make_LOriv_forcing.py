@@ -63,8 +63,8 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir):
     repeatrivs_df = pd.read_excel(repeatrivs_fn)
     LObio_names_all = list(repeatrivs_df.loc[repeatrivs_df['in_both'] == 1, 'LO_rname'])
     # remove the weird rivers
-    weird_rivers = ['Alberni Inlet', 'Chehalis R',
-                    'Gold River', 'Willapa R', 'Columbia R', 'Comox']
+    weird_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River',
+                    'Willapa R', 'Columbia R', 'Comox']
     # These are the names that LO uses
     LObio_names = [rname for rname in LObio_names_all if trapsfun.LO2SSM_name(rname) not in weird_rivers]
 
