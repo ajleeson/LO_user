@@ -11,6 +11,9 @@ run make_climatology_tinyrivs.py
 To create individual climatology figures, run from ipython with:
 run make_climatology_tinyrivs.py -test True
 
+Figures saved in:
+LO_output/pre/traps/tiny_rivers/[ctag]/Data_historical/climatology_plots
+
 Note that running with -test True adds
 several minutes to run time. (~ 6 min)
 """
@@ -72,9 +75,8 @@ trivnames = [river for river in trivnames_all if river not in SSM_repeats]
 
 # separate rivers with weird biogeochem
 weird_biogeochem = ['Neil Creek', 'Seymour Inlet', 'Holberg',
-                    'North East Vancouver Is', 'Owikeno Lake',
-                    'Salmon River', 'Brooks Peninsula', 'Clayoquot',
-                    'Toba Inlet', 'Homathco River ',
+                    'Owikeno Lake', 'Salmon River', 'Brooks Peninsula',
+                    'Clayoquot', 'Toba Inlet', 'Homathco River ',
                     'Campbell River', 'Tsitika River', 'Nimpkish River',
                     'Tahsis', 'Alberni Inlet', 'Knight Inlet',
                     'Willamette R', 'Klinaklini River',
@@ -83,7 +85,7 @@ weird_DO = ['Victoria_SJdF']
 weird_DO_and_NH4 = ['Vancouver Isl C']
 # get list of rivers with more realistic biogeochem
 trivnames_realisticBGC = [river for river in trivnames
-                          if river not in weird_biogeochem
+                          if  river not in weird_biogeochem
                           and river not in weird_DO
                           and river not in weird_DO_and_NH4]
 
@@ -104,42 +106,20 @@ letters = ['(a)','(b)','(c)','(d)','(e)','(f)','(g)']
 # create one-year date range for plotting
 yrday = pd.date_range(start ='1/1/2020', end ='12/31/2020', freq ='D')
 
-# # plotting code, to be removed in final version -----------------------------------
-# plt.close('all')
-# fig,ax = plt.subplots(figsize=(10,4))
-# ax.plot(ecology_data_ds.date.values,
-#          ecology_data_ds.flow[ecology_data_ds.name == 'Lynch Cove'].values[0],
-#          color='black',label='raw')
-# # ----------------------------------------------------------------------------------
-
-# Replace 2013/2014 data with nans (so we don't bias climatologies)
+# Replace 2012-2014 data with nans (so we don't bias climatologies)
 # Do this for rivers in which those data were accidentally shifted by 3 months
 shifted = ['Kitsap NE', 'Kitsap_Hood', 'Lynch Cove',
            'NW Hood', 'Port Gamble', 'Tahuya']
 keys = ['flow', 'temp', 'NO3', 'NH4', 'TIC', 'Talk', 'DO']
-# create a mask for the years 2013 and 2014
-mask_2013_2014 = (ecology_data_ds['date'] > np.datetime64('2012-07-31')) & (ecology_data_ds['date.year'] < 2015)
-# replace the 2013/2014 flow data with nan for the shifted years
+# create a mask for the years 2012-2014
+mask_2012_2014 = (ecology_data_ds['date'] > np.datetime64('2012-07-31')) & (ecology_data_ds['date.year'] < 2015)
+# replace the 2012-2014 flow data with nan for the shifted years
 for riv in shifted:
     # get river index
     riv_index = int(ecology_data_ds.where(ecology_data_ds['name'] == riv, drop=True)['source'])
-    # replace 2013 and 2014 flow data with nans
+    # replace 2012-2014 flow data with nans
     for key in keys:
-        ecology_data_ds[key].loc[dict(source=riv_index, date=mask_2013_2014)] = np.nan
-
-# # plotting code, to be removed in final version -----------------------------------
-# ax.plot(ecology_data_ds.date.values,
-#          ecology_data_ds.flow[ecology_data_ds.name == 'Lynch Cove'].values[0],
-#          linestyle=':',color='deeppink',label='cropped')
-# ax.grid(True)
-# ax.xaxis.set_major_locator(mdates.YearLocator(base=1))
-# ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-# plt.xticks(rotation=45)
-# ax.set_xlim([ecology_data_ds.date.values[0],ecology_data_ds.date.values[-1]])
-# plt.legend(loc='upper right')
-# plt.title('Union River Hydrograph [m3/s]')
-# plt.show()
-# # ----------------------------------------------------------------------------------
+        ecology_data_ds[key].loc[dict(source=riv_index, date=mask_2012_2014)] = np.nan
 
 #################################################################################
 #                          Calculate climatologies                              #
@@ -158,8 +138,8 @@ for i,rname in enumerate(trivnames):
 #################################################################################
 
     # Add data to climatology dataframes
-    flow_clim_df = pd.concat([flow_clim_df, pd.Series(triv_avgs_df['Flow(m3/s)'].values, name=rname)], axis = 1)    # [m3/s]
-    temp_clim_df = pd.concat([temp_clim_df, pd.Series(triv_avgs_df['Temp(C)'].values, name=rname)], axis = 1)       # [C]
+    flow_clim_df = pd.concat([flow_clim_df, pd.Series(triv_avgs_df['Flow(m3/s)'].values, name=rname)], axis = 1)# [m3/s]
+    temp_clim_df = pd.concat([temp_clim_df, pd.Series(triv_avgs_df['Temp(C)'].values, name=rname)], axis = 1)   # [C]
     # create list of nans
     nans = np.empty((366,))
     nans[:] = np.nan
@@ -177,8 +157,8 @@ for i,rname in enumerate(trivnames):
         TIC_clim_df  = pd.concat([TIC_clim_df,  pd.Series(triv_avgs_df['TIC(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
         Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(triv_avgs_df['Talk(meq/m3)'], name=rname)], axis = 1) # [meq/m3]
     elif rname in weird_DO_and_NH4:
-        NH4_clim_df  = pd.concat([NH4_clim_df,  pd.Series(nans, name=rname)], axis = 1)
         DO_clim_df   = pd.concat([DO_clim_df,   pd.Series(nans, name=rname)], axis = 1)
+        NH4_clim_df  = pd.concat([NH4_clim_df,  pd.Series(nans, name=rname)], axis = 1)
         NO3_clim_df  = pd.concat([NO3_clim_df,  pd.Series(triv_avgs_df['NO3(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
         TIC_clim_df  = pd.concat([TIC_clim_df,  pd.Series(triv_avgs_df['TIC(mmol/m3)'], name=rname)], axis = 1) # [mmol/m3]
         Talk_clim_df = pd.concat([Talk_clim_df, pd.Series(triv_avgs_df['Talk(meq/m3)'], name=rname)], axis = 1) # [meq/m3]
@@ -276,6 +256,9 @@ fig.savefig(save_path)
 #################################################################################
 # Create climatology for rivers w/ weird biogeochem (using avg of other rivers) #
 #################################################################################
+
+# TODO: add average climatology based on watershed,
+# so we don't bias rivers in urban and remote environments
 
 # fill weird river biogeochemisty values with average values
 for rname in weird_biogeochem:

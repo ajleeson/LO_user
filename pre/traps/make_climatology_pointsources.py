@@ -11,6 +11,9 @@ run make_climatology_pointsources.py
 To create individual climatology figures, run from ipython with:
 run make_climatology_pointsources.py -test True
 
+Figures saved in:
+LO_output/pre/traps/point_sources/[ctag]/Data_historical/climatology_plots
+
 Note that running with -test True adds
 several minutes to run time. (~ 3 min)
 """

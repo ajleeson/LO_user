@@ -22,7 +22,7 @@ def ds_to_avgdf(source_name,ecology_data_ds):
          'NO3(mmol/m3)':ecology_data_ds.NO3[ecology_data_ds.name==source_name,:].values[0],
          'NH4(mmol/m3)':ecology_data_ds.NH4[ecology_data_ds.name==source_name,:].values[0],
          'TIC(mmol/m3)':ecology_data_ds.TIC[ecology_data_ds.name==source_name,:].values[0],
-         'Talk(meq/m3)': ecology_data_ds.Talk[ecology_data_ds.name==source_name,:].values[0],
+         'Talk(meq/m3)':ecology_data_ds.Talk[ecology_data_ds.name==source_name,:].values[0],
          'DO(mmol/m3)': ecology_data_ds.DO[ecology_data_ds.name==source_name,:].values[0]}
     df = pd.DataFrame(data=d)
     # replace all zeros with nans, so zeros don't bias data
