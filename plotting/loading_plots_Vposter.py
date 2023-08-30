@@ -75,7 +75,7 @@ yd_ind = pd.Index(dt_ind.dayofyear)
 # Get LiveOcean grid info --------------------------------------------------
 
 # get the grid data
-ds = xr.open_dataset('../../LO_data/grids/cas6/grid.nc')
+ds = xr.open_dataset('../../LO_data/grids/cas7/grid.nc')
 z = -ds.h.values
 mask_rho = np.transpose(ds.mask_rho.values)
 lon = ds.lon_rho.values
@@ -92,10 +92,10 @@ zm[np.transpose(mask_rho) != 0] = -1
 # Prepare data for spatial summary plots
 
 # get flow, nitrate, and ammonium values
-fp_wwtps = '../../LO_output/pre/traps/point_sources/Data_historical/'
-flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow_1999_2017.p')    # m3/s
-no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3_1999_2017.p')      # mmol/m3
-nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4_1999_2017.p')      # mmol/m3
+fp_wwtps = '../../LO_output/pre/traps/point_sources/lo_base/Data_historical/'
+flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
 
 # calculate total DIN concentration in mg/L
 dindf_wwtps = (no3df_wwtps + nh4df_wwtps)/71.4    # mg/L
@@ -107,7 +107,7 @@ dailyloaddf_wwtps = 86.4*dindf_wwtps*flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
 avgload_wwtps = dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
 
 # add row and col index for plotting on LiveOcean grid
-griddf0_wwtps = pd.read_csv('../../LO_data/grids/cas6/wwtp_info.csv')
+griddf0_wwtps = pd.read_csv('../../LO_data/grids/cas7/wwtp_info.csv')
 griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
 avgload_wwtps = avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
 avgload_wwtps = avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
@@ -124,18 +124,18 @@ totload_wwtps = np.sum(avgload_wwtps['avg-daily-load(kg/d)'])
 
 # get flow, nitrate, and ammonium values
 # fp_trivs = '../../LO_output/pre/traps/all_rivers/Data_historical/'
-fp_trivs = '../../LO_output/pre/traps/tiny_rivers/Data_historical/'
-fp_LOrivs = '../../LO_output/pre/river/cas6/Data_historical/'
-fp_LObio = '../../LO_output/pre/traps/LO_rivbio/Data_historical/'
-flowdf_rivs = pd.read_pickle(fp_trivs+'CLIM_flow_1999_2017.p')    # m3/s
-no3df_rivs = pd.read_pickle(fp_trivs+'CLIM_NO3_1999_2017.p')      # mmol/m3
-nh4df_rivs = pd.read_pickle(fp_trivs+'CLIM_NH4_1999_2017.p')      # mmol/m3
+fp_trivs = '../../LO_output/pre/traps/tiny_rivers/lo_base/Data_historical/'
+fp_LOrivs = '../../LO_output/pre/river1/lo_base/Data_historical/'
+fp_LObio = '../../LO_output/pre/traps/LO_rivbio/lo_base/Data_historical/'
+flowdf_rivs = pd.read_pickle(fp_trivs+'CLIM_flow.p')    # m3/s
+no3df_rivs = pd.read_pickle(fp_trivs+'CLIM_NO3.p')      # mmol/m3
+nh4df_rivs = pd.read_pickle(fp_trivs+'CLIM_NH4.p')      # mmol/m3
 # pre-existing LO river flowrates
-flowdf_LOrivs = pd.read_pickle(fp_LOrivs+'CLIM_flow_1980_2020.p')    # m3/s
+flowdf_LOrivs = pd.read_pickle(fp_LOrivs+'CLIM_flow.p')    # m3/s
 flowdf_LOrivs = flowdf_LOrivs.reset_index(drop=True)
 # Ecology data for pre-existing LO rivers
-no3df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NO3_1999_2017.p')      # mmol/m3
-nh4df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NH4_1999_2017.p')      # mmol/m3
+no3df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NO3.p')      # mmol/m3
+nh4df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NH4.p')      # mmol/m3
 # get names of all pre-existing rivers for which Ecology has data (use LO naming convention)
 LObio_names = [SSM2LO_name(riv) for riv in no3df_LOrivs_ecol.columns]
 
@@ -165,13 +165,13 @@ avgload_trivs = dailyloaddf_rivs.mean(axis=0).to_frame(name='avg-daily-load(kg/d
 avgload_LOrivs = dailyloaddf_LOrivs.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
 
 # add row and col index for plotting on LiveOcean grid (tiny rivers)
-griddf0_trivs = pd.read_csv('../../LO_data/grids/cas6/triv_info.csv')
+griddf0_trivs = pd.read_csv('../../LO_data/grids/cas7/triv_info.csv')
 griddf_trivs = griddf0_trivs.set_index('rname') # use river name as index
 avgload_trivs = avgload_trivs.join(griddf_trivs['row_py']) # add row to avg load df (uses rname to index)
 avgload_trivs = avgload_trivs.join(griddf_trivs['col_py']) # do the same for cols
 
 # add row and col index for plotting on LiveOcean grid (pre-existing rivers)
-griddf0_LOrivs = pd.read_csv('../../LO_data/grids/cas6/river_info.csv')
+griddf0_LOrivs = pd.read_csv('../../LO_data/grids/cas7/river_info.csv')
 griddf_LOrivs = griddf0_LOrivs.set_index('rname') # use river name as index
 avgload_LOrivs = avgload_LOrivs.join(griddf_LOrivs['row_py']) # add row to avg load df (uses rname to index)
 avgload_LOrivs = avgload_LOrivs.join(griddf_LOrivs['col_py']) # do the same for cols
@@ -214,7 +214,7 @@ sizes = [sizes_wwtps,sizes_rivs,sizes_SJdF]
 # pick colors
 color_wwtps = '#AEDC3C' # wwtp green
 color_rivs = '#7148BC' # river purple
-color_SJdF = '#70B0EA' # ocean blue
+color_SJdF = 'coral'#'#70B0EA' # ocean blue
 colors = [color_wwtps, color_rivs,color_SJdF]
 
 # define labels
