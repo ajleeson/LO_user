@@ -207,8 +207,7 @@ while mdt <= dt1:
 # (this is a bit titchy because of NetCDF 3 limitations on strings, forcing them
 # to be arrays of characters)
 mds = mds_list[0]
-fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
-# fn = Path('/home').absolute() / 'aleeson' / 'LO_output' / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
+fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
 ds = xr.open_dataset(fn)
 rn = ds['river_name'].values
 NR = rn.shape[0]
@@ -225,8 +224,7 @@ for tt,mds in enumerate(mds_list):
     this_dt = datetime.strptime(mds, Lfun.ds_fmt)
     if this_dt.day == 1 and this_dt.month == 1:
         print(' Year = %d' % (this_dt.year))
-    # fn = Path('/home').absolute() / 'aleeson' / 'LO_output' / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
-    fn = Path('/data1').absolute() / 'auroral' / 'LO_output' / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
+    fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
     ds = xr.open_dataset(fn)
     # The river transport is given at noon of a number of days surrounding the forcing date.
     # Here we find the index of the time for the day "mds".
@@ -334,7 +332,7 @@ for source_type in source_types:
 
         # add plot title
         if j == 0:
-            plt.suptitle(source_type + ' inputs to ROMS',fontsize=18)
+            plt.suptitle(source_type + ' inputs to ROMS ('+dstr0 +'-'+dstr1+')',fontsize=18)
 
     # Save figure
     save_path = out_dir / plot_name
