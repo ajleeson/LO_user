@@ -12,6 +12,7 @@ from scipy.spatial import cKDTree
 import seawater
 import subprocess
 import requests
+from pathlib import Path
 
 import Ofun_CTD
 from lo_tools import Lfun, zfun, zrfun
@@ -202,7 +203,8 @@ def get_hnc_short_list(this_dt, Ldir):
     elif this_dt >= datetime(2018,12,7):
         hy_list = hy_list[ihy_split:]
     # create a list of daily HYCOM NetCDF files in the archive
-    hy_in_dir = Ldir['data'] / 'hycom'
+    # hy_in_dir = Ldir['data'] / 'hycom'
+    hy_in_dir = Path('/data1/parker/LO_data/hycom')
     hnc_list = []
     for hy in hy_list:
         in_dir = hy_in_dir / hy
