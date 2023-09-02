@@ -1,5 +1,8 @@
 """
 Code to test TRAPS forcing in river.nc file
+
+From ipython:
+run test_traps_forcing.py -gridname cas7 -frc trapsV00 -dstr0 2017.01.01 -dstr1 2017.12.31
 """
 
 #################################################################################
