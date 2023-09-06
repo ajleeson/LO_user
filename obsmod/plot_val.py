@@ -27,13 +27,14 @@ alk_cons = False
 # RESULT: This gives significantly better results for TA!
 
 year = '2017'
-in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+in_dir = Ldir['LOo'] / 'obsmod'
 
 plt.close('all')
 
 #gtx = 'cas6_v0_live'
 #gtx = 'cas6_traps2_x2b'
-gtx = 'cas2k_v0_x2b'
+# gtx = 'cas2k_v0_x2b'
+gtx = 'cas7_trapsV00_meV00'
 otype = 'bottle'
 # source = 'nceiSalish'
 source = 'all'
@@ -47,7 +48,7 @@ in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
 df0_dict = pickle.load(open(in_fn, 'rb'))
 
 # where to put output figures
-out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_val_plots'
+out_dir = Ldir['parent'] / 'LO_output' / 'obsmod_val_plots'
 Lfun.make_dir(out_dir)
 
 if nitri:
