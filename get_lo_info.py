@@ -102,7 +102,7 @@ elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
     roms_out2 = Path('/data1/parker/LiveOcean_roms/output')     # LiveOcean past I
     roms_out3 = Path('/data2/parker/LiveOcean_roms/output')     # LiveOcean past II
     roms_out4 = Path('/boildat1/parker/LO_roms')                # LO boiler
-    roms_out5 = Path('/agdat1/parker/LO_roms')                  # LO output on apogee
+    roms_out5 = Path('/data1/auroral/LO_roms')                  # my output on perigee
 
 elif (str(HOME) == '/mmfs1/home/auroral'):
     lo_env = 'al_klone'
