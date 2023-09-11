@@ -86,5 +86,4 @@ def get_his_fn_from_dt(Ldir, dt):
     else:
         Lroms = Ldir['roms_out']
     fn = Lroms / Ldir['gtagex'] / ('f' + date_string) / ('ocean_his_' + his_num + '.nc')
-    print(fn)
     return fn
