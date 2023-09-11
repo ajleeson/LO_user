@@ -19,7 +19,7 @@ Ldir = Lfun.Lstart()
 testing = True
 
 year = '2017'
-in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+in_dir = Ldir['parent'] / 'LO_output' / 'obsmod'
 
 plt.close('all')
 
