@@ -214,7 +214,7 @@ sizes = [sizes_wwtps,sizes_rivs,sizes_SJdF]
 # pick colors
 color_wwtps = '#AEDC3C' # wwtp green
 color_rivs = '#7148BC' # river purple
-color_SJdF = 'coral'#'#70B0EA' # ocean blue
+color_SJdF = '#70B0EA' # ocean blue
 colors = [color_wwtps, color_rivs,color_SJdF]
 
 # define labels
@@ -248,6 +248,7 @@ for j in range(1):
 
     fig = plt.figure(figsize=(21,8))
     plt.tight_layout()
+    
     # loop through all of the plots we need to make
     for i,sname in enumerate(source_name):
 
@@ -311,10 +312,10 @@ for j in range(1):
         plt.show()
 
 
-# Print stuff for comparison with Ben
+# # Print stuff for comparison with Ben
 
-print(avgload_wwtps.loc['West Point'])
-print('---------------------------')
-print(avgload_allrivs.loc['fraser'])
-print('---------------------------')
-print(avgload_allrivs.loc['puyallup'])
+# print(avgload_wwtps.loc['West Point'])
+# print('---------------------------')
+# print(avgload_allrivs.loc['fraser'])
+# print('---------------------------')
+# print(avgload_allrivs.loc['puyallup'])
