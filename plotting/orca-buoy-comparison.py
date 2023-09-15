@@ -3,7 +3,7 @@ Plots a comparison of bottom DO for two identical grids with different oxygen va
 
 This is a custom function for a particular experiment, but code can be adapted for other use cases in the future.
 
-From the terminal: python money_plot.py
+From the terminal: python orca-buoy-comparison.py
 
 """
 
@@ -108,15 +108,15 @@ titles = ['TW - Twanoh','PW - Point Wells','NB - North Buoy', 'HP - Hoodsport', 
 for i,orca in enumerate(orca_nc):
     # create subplot
     ax = fig.add_subplot(3,4,fig_no[i])
-    # Add baseline and create timevector
-    ds_baseline = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps3_x2b/moor/orca/'+orca+'_2017.01.01_2017.12.31.nc')
+    # Add GRC case and create timevector
+    ds_baseline = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps2_x2b/moor/orca/'+orca+'_2017.01.01_2017.12.31.nc')
     DO_baseline = ds_baseline['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
     year_time = ds_baseline['ocean_time']
-    ax.plot(year_time,DO_baseline,linestyle='-',color='mediumturquoise',linewidth=2, label='Baseline [no WW discharge]')
-    # Add with WWTP DIN case
-    ds_WWTPDIN = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps2_x2b/moor/orca/'+orca+'_2017.01.01_2017.12.31.nc')
+    ax.plot(year_time,DO_baseline,linestyle='-',color='mediumturquoise',linewidth=2, label='GRC results (traps2_x2b)')
+    # Add model evaluation results
+    ds_WWTPDIN = xr.open_dataset('/home/aleeson/LO_output/extract/cas7_trapsV00_meV00/moor/orca/'+orca+'_2017.01.01_2017.08.15.nc')
     DO_WWTPDIN = ds_WWTPDIN['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
-    ax.plot(year_time,DO_WWTPDIN,linestyle='--',color='k',linewidth=1,label='With WW discharge')
+    ax.plot(year_time[0:227],DO_WWTPDIN,linestyle='--',color='k',linewidth=1,label='New results (trapsV00_meV00)')
     # add title
     ax.set_title(titles[i] + ' Bottom DO [mg/L]',fontsize=16)
     # format y labels
@@ -148,7 +148,8 @@ for i,orca in enumerate(orca_nc):
     if i == 0:
         ax.legend(loc='upper right',fontsize=12)
     # add water depth
-    ax.text(year_time[15],0.5,'depth = {} m'.format(round(-1*np.mean(ds_baseline['z_rho'][:,0].values),1)),fontsize=12)
+    ax.text(year_time[15],1.2,'buoy depth = {} m'.format(round(ds_orca.depth.values[-1],1)),fontsize=12)
+    ax.text(year_time[15],0.5,'model depth = {} m'.format(round(-1*np.mean(ds_baseline['z_rho'][:,0].values),1)),fontsize=12)
 
 
 # Generate plot
