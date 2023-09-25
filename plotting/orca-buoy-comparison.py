@@ -42,8 +42,8 @@ Gr = gfun.gstart()
 Ldir = Lfun.Lstart()
 
 # Get grid data
-G = zrfun.get_basic_info('/home/aleeson/LO_data/grids/cas6/grid.nc', only_G=True)
-grid_ds = xr.open_dataset('/home/aleeson/LO_data/grids/cas6/grid.nc')
+G = zrfun.get_basic_info('/home/aleeson/LO_data/grids/cas7/grid.nc', only_G=True)
+grid_ds = xr.open_dataset('/home/aleeson/LO_data/grids/cas7/grid.nc')
 z = -grid_ds.h.values
 mask_rho = np.transpose(grid_ds.mask_rho.values)
 lon = grid_ds.lon_rho.values
@@ -91,7 +91,7 @@ ax.text(lon0,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=14)
 buoy_names = ['CI','PW','NB','DB','HP','TW']
 buoy_lon = [-122.7300,-122.3972,-122.6270,-122.8029,-123.1126,-123.0083]
 buoy_lat = [47.2800,47.7612,47.9073,47.8034,47.4218,47.3750]
-ax.scatter(buoy_lon,buoy_lat,s=100,color='deeppink')
+ax.scatter(buoy_lon,buoy_lat,s=100,color='violet',edgecolors='k')
 for i,name in enumerate(buoy_names):
     ax.text(buoy_lon[i]-0.04,buoy_lat[i]+0.02,name,fontsize='16',fontweight='bold',color='black')
 
@@ -108,15 +108,20 @@ titles = ['TW - Twanoh','PW - Point Wells','NB - North Buoy', 'HP - Hoodsport', 
 for i,orca in enumerate(orca_nc):
     # create subplot
     ax = fig.add_subplot(3,4,fig_no[i])
+    
     # Add GRC case and create timevector
     ds_baseline = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps2_x2b/moor/orca/'+orca+'_2017.01.01_2017.12.31.nc')
     DO_baseline = ds_baseline['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
     year_time = ds_baseline['ocean_time']
-    ax.plot(year_time,DO_baseline,linestyle='-',color='mediumturquoise',linewidth=2, label='GRC results (traps2_x2b)')
+
+    # Add prior model evaluation results
+    ds_WWTPDIN0 = xr.open_dataset('/home/aleeson/LO_output/extract/cas7_trapsV00_meV00_AugVFCinis/moor/orca/'+orca+'_2017.01.01_2017.08.15.nc')
+    DO_WWTPDIN0 = ds_WWTPDIN0['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
+    
     # Add model evaluation results
-    ds_WWTPDIN = xr.open_dataset('/home/aleeson/LO_output/extract/cas7_trapsV00_meV00/moor/orca/'+orca+'_2017.01.01_2017.08.15.nc')
+    ds_WWTPDIN = xr.open_dataset('/home/aleeson/LO_output/extract/cas7_trapsV00_meV00/moor/orca/'+orca+'_2017.01.01_2017.08.06.nc')
     DO_WWTPDIN = ds_WWTPDIN['oxygen'][:,0]*pinfo.fac_dict['oxygen'] # bottom DO
-    ax.plot(year_time[0:227],DO_WWTPDIN,linestyle='--',color='k',linewidth=1,label='New results (trapsV00_meV00)')
+    
     # add title
     ax.set_title(titles[i] + ' Bottom DO [mg/L]',fontsize=16)
     # format y labels
@@ -143,7 +148,13 @@ for i,orca in enumerate(orca_nc):
     ds_orca = xr.open_dataset('/home/aleeson/LO_data/obs/ORCA/LO_orca_moor/datasets/'+orca+'_ds.nc')
     orca_time = ds_orca.time.values
     orca_do = ds_orca.oxy.values[:,-1]
-    ax.plot(orca_time,orca_do,'o',color='darkmagenta',markersize=6,alpha=0.3,label='Observations*')
+    ax.plot(orca_time,orca_do,'o',color='gray',markersize=6,alpha=0.3,label='Observations*')
+
+    # model output
+    ax.plot(year_time,DO_baseline,linestyle='-',color='mediumturquoise',linewidth=2, label='GRC results (traps2_x2b)')
+    ax.plot(year_time[0:227],DO_WWTPDIN0,linestyle='-',color='k',linewidth=0.5,label='Prior results (trapsV00_meV00-VFC ICs)')
+    ax.plot(year_time[0:218],DO_WWTPDIN,linestyle='--',color='k',linewidth=1,label='New results (trapsV00_meV00-old ICs)')
+
     # add legend
     if i == 0:
         ax.legend(loc='upper right',fontsize=12)
