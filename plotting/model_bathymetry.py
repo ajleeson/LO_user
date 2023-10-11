@@ -9,12 +9,17 @@ import xarray as xr
 import cmocean
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
+Ldir = Lfun.Lstart()
 
 # define grid indices to look at
 j1 = 570
 j2 = 1200
 i1 = 250
 i2 = 652
+
+# where to put output figures
+out_dir = Ldir['LOo'] / 'AL_custom_plots'
+Lfun.make_dir(out_dir)
 
 # Get LiveOcean grid info --------------------------------------------------
 
@@ -59,6 +64,10 @@ for border in ['top','right','bottom','left']:
 # Set axis limits
 ax0.set_xlim(X[i1],-122)#X[i2]) # Salish Sea
 ax0.set_ylim(Y[j1],Y[j2]) # Salish Sea
+
+print('Lon={},{}'.format(X[i1],-122))
+print('Lat={},{}'.format(Y[j1],Y[j2]))
+
 plt.xticks(rotation=30, color='gray')
 plt.yticks(color='gray')
 # add title
@@ -112,4 +121,4 @@ ax1.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=5)
 ax1.text((lon0+lon1)/2,lat0+0.015,'{} km'.format(x_dist_km),color='k',fontsize=12,
          horizontalalignment='center')
 
-plt.savefig('model_bathy.png')\
+plt.savefig(out_dir / ('model_bathy.png'))

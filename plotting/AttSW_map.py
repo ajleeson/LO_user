@@ -9,6 +9,7 @@ import xarray as xr
 import cmocean
 from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
+Ldir = Lfun.Lstart()
 
 lat_LB1 = 47.02
 lat_UB1 = 50.29
@@ -18,6 +19,10 @@ lon_LB2 = -125.31
 lon_UB2 = lon_LB1
 lat_LB2 = 49.13
 lat_UB2 = 51.02
+
+# where to put output figures
+out_dir = Ldir['LOo'] / 'AL_custom_plots'
+Lfun.make_dir(out_dir)
 
 # Get LiveOcean grid info --------------------------------------------------
 
@@ -66,8 +71,7 @@ ax.text(0.80,0.75,'AttSW =\n' + r'0.15 m$^{-1}$',transform=ax.transAxes,size=16,
 # ax.text(X[420],Y[680],'Main Basin\ntest point')
 # ax.text(X[250],Y[1150],'North SoG\ntest point')
 
-plt.savefig('AttSW_map.png',transparent=True)
-plt.close('all')
+plt.savefig(out_dir / ('AttSW_map.png'))
 
 # print('longitude: {}'.format(X[300]))
 # print('latitude: {}'.format(Y[1130]))

@@ -41,6 +41,10 @@ Gr = gfun.gstart()
 
 Ldir = Lfun.Lstart()
 
+# where to put output figures
+out_dir = Ldir['LOo'] / 'AL_custom_plots'
+Lfun.make_dir(out_dir)
+
 # ----------------------------------------------------------------------
 
 # Provide information about models to compare
@@ -142,10 +146,10 @@ if WWTP_loc == True:
     # Prepare data for spatial summary plots
 
     # get flow, nitrate, and ammonium values
-    fp_wwtps = '../../LO_output/pre/traps/point_sources/Data_historical/'
-    flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow_1999_2017.p')    # m3/s
-    no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3_1999_2017.p')      # mmol/m3
-    nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4_1999_2017.p')      # mmol/m3
+    fp_wwtps = '../../LO_output/pre/traps/point_sources/lo_base/Data_historical/'
+    flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
 
     # calculate total DIN concentration in mg/L
     dindf_wwtps = (no3df_wwtps + nh4df_wwtps)/71.4    # mg/L
@@ -165,78 +169,9 @@ if WWTP_loc == True:
     # get point source lat and lon
     lon_wwtps = [X[int(col)] for col in avgload_wwtps['col_py']]
     lat_wwtps = [Y[int(row)] for row in avgload_wwtps['row_py']]
-
-    # Rivers -------------------------------------------------------------
-    # Prepare data for spatial summary plots
-
-    # get flow, nitrate, and ammonium values
-    # fp_trivs = '../../LO_output/pre/traps/all_rivers/Data_historical/'
-    fp_trivs = '../../LO_output/pre/traps/tiny_rivers/Data_historical/'
-    fp_LOrivs = '../../LO_output/pre/river/cas6/Data_historical/'
-    fp_LObio = '../../LO_output/pre/traps/LO_rivbio/Data_historical/'
-    flowdf_rivs = pd.read_pickle(fp_trivs+'CLIM_flow_1999_2017.p')    # m3/s
-    no3df_rivs = pd.read_pickle(fp_trivs+'CLIM_NO3_1999_2017.p')      # mmol/m3
-    nh4df_rivs = pd.read_pickle(fp_trivs+'CLIM_NH4_1999_2017.p')      # mmol/m3
-    # pre-existing LO river flowrates
-    flowdf_LOrivs = pd.read_pickle(fp_LOrivs+'CLIM_flow_1980_2020.p')    # m3/s
-    flowdf_LOrivs = flowdf_LOrivs.reset_index(drop=True)
-    # Ecology data for pre-existing LO rivers
-    no3df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NO3_1999_2017.p')      # mmol/m3
-    nh4df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NH4_1999_2017.p')      # mmol/m3
-    # get names of all pre-existing rivers for which Ecology has data (use LO naming convention)
-    LObio_names = [SSM2LO_name(riv) for riv in no3df_LOrivs_ecol.columns]
-
-    # get biology data for pre-existing rivers
-    no3df_LOrivs = pd.DataFrame()
-    nh4df_LOrivs = pd.DataFrame()
-    for rn in flowdf_LOrivs:
-        # Use ecology data if there exists any
-        if rn in LObio_names:
-            no3df_LOrivs[rn] = no3df_LOrivs_ecol[LO2SSM_name(rn)]
-            nh4df_LOrivs[rn] = nh4df_LOrivs_ecol[LO2SSM_name(rn)]
-        # Otherwise use the rivfun method to guess
-        else:
-            no3df_LOrivs[rn] = get_bio_vec('NO3', rn, yd_ind)
-            nh4df_LOrivs[rn] = get_bio_vec('NH4', rn, yd_ind)
-
-    # calculate total DIN concentration in mg/L
-    dindf_rivs = (no3df_rivs + nh4df_rivs)/71.4          # mg/L
-    dindf_LOrivs = (no3df_LOrivs + nh4df_LOrivs)/71.4    # mg/L
-
-    # calculate daily loading timeseries in kg/d
-    dailyloaddf_rivs = 86.4*dindf_rivs*flowdf_rivs       # kg/d = 86.4 * mg/L * m3/s
-    dailyloaddf_LOrivs = 86.4*dindf_LOrivs*flowdf_LOrivs # kg/d = 86.4 * mg/L * m3/s
-
-    # calculate average daily load over the year (kg/d)
-    avgload_trivs = dailyloaddf_rivs.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
-    avgload_LOrivs = dailyloaddf_LOrivs.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
-
-    # add row and col index for plotting on LiveOcean grid (tiny rivers)
-    griddf0_trivs = pd.read_csv('../../LO_data/grids/cas6/triv_info.csv')
-    griddf_trivs = griddf0_trivs.set_index('rname') # use river name as index
-    avgload_trivs = avgload_trivs.join(griddf_trivs['row_py']) # add row to avg load df (uses rname to index)
-    avgload_trivs = avgload_trivs.join(griddf_trivs['col_py']) # do the same for cols
-
-    # add row and col index for plotting on LiveOcean grid (pre-existing rivers)
-    griddf0_LOrivs = pd.read_csv('../../LO_data/grids/cas6/river_info.csv')
-    griddf_LOrivs = griddf0_LOrivs.set_index('rname') # use river name as index
-    avgload_LOrivs = avgload_LOrivs.join(griddf_LOrivs['row_py']) # add row to avg load df (uses rname to index)
-    avgload_LOrivs = avgload_LOrivs.join(griddf_LOrivs['col_py']) # do the same for cols
-
-    # get average load of all rivers
-    avgload_allrivs = pd.concat([avgload_trivs, avgload_LOrivs])
-    # drop nans
-    avgload_allrivs = avgload_allrivs.dropna()
-
-    # get trivs lat and lon
-    lon_riv = [X[int(col)] for col in avgload_allrivs['col_py']]
-    lat_riv = [Y[int(row)] for row in avgload_allrivs['row_py']]
-
-    # PLOTTING ----------------------------------------------------
-
+    
     # define marker sizes (minimum size is 10 so dots don't get too small)
     sizes_wwtps = [max(0.3*load,30) for load in avgload_wwtps['avg-daily-load(kg/d)']]
-    sizes_rivs = [max(0.3*load,30) for load in avgload_allrivs['avg-daily-load(kg/d)']]
 
 ##########################################################
 
@@ -627,5 +562,5 @@ for vn in vn_list:
 
     # Generate plot
     plt.tight_layout
-    plt.savefig('money_plot.png')
+    plt.savefig(out_dir / ('money_plot.png'))
     # plt.show()
