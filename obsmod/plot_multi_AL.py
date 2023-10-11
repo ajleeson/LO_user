@@ -13,15 +13,66 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 from lo_tools import plotting_functions as pfun
+from matplotlib.patches import Rectangle
+import xarray as xr
+import cmocean
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
 testing = False
 
+# define fontsizes
+fs_header = 15
+fs_label = 14
+
 year = '2017'
 in_dir = Ldir['parent'] / 'LO_output' / 'obsmod'
 
+# # Full grid only
+# lat_low = 42
+# lat_high = 52
+# lon_low = -130
+# lon_high = -122
+
+# # Puget Sound only
+# lat_low = 46.9
+# lat_high = 48.45
+# lon_low = -123.3
+# lon_high = -122.1
+
+# Hood Canal only
+lat_low = 47.3
+lat_high = 47.9
+lon_low = -123.3
+lon_high = -122.6
+
+# # Strait of Georgia only
+# lat_low = 48.97
+# lat_high = 50.16
+# lon_low = -124.9
+# lon_high = -123.1
+
+# # Salish Sea
+# lat_low = 46.9
+# lat_high = 50.16
+# lon_low = -124.5
+# lon_high = -122.1
+
 plt.close('all')
+
+# get the grid data
+ds = xr.open_dataset('../../LO_data/grids/cas6/grid.nc')
+z = -ds.h.values
+mask_rho = np.transpose(ds.mask_rho.values)
+lon = ds.lon_rho.values
+lat = ds.lat_rho.values
+X = lon[0,:] # grid cell X values
+Y = lat[:,0] # grid cell Y values
+plon, plat = pfun.get_plon_plat(lon,lat)
+# make a version of z with nans where masked
+zm = z.copy()
+zm[np.transpose(mask_rho) == 0] = np.nan
+zm[np.transpose(mask_rho) != 0] = -1
 
 # specify input (created by process_multi_bottle.py and process_multi_ctd.py)
 for otype in ['bottle']:#, 'ctd']:
@@ -130,14 +181,16 @@ for otype in ['bottle']:#, 'ctd']:
                 # Plotting
 
                 fs = 12
-                pfun.start_plot(figsize=(20,12), fs=fs)
+                pfun.start_plot(figsize=(17,12), fs=fs)
 
-                gtx_list = ['cas6_traps2_x2b','cas7_trapsV00_meV00_AugVFCinis','cas7_trapsV00_meV00']
-                c_dict = dict(zip(gtx_list,['r','b','g']))
-                t_dict = dict(zip(gtx_list,[.05,.15,0.25])) # vertical position of stats text
+                gtx_list = ['cas6_traps2_x2b','cas7_trapsV00_meV00']#['cas6_traps2_x2b','cas7_trapsV00_meV00_AugVFCinis','cas7_trapsV00_meV00']
+                label_list = ['Current LiveOcean','Updated Model']#['Current LiveOcean','Prior Run (TRAPS+newICs)','New Run (TRAPS+oldICs)']
+                c_dict = dict(zip(gtx_list,['navy','mediumorchid']))#['navy','olivedrab','orchid']))
+                t_dict = dict(zip(gtx_list,[.15,.05]))#,0.25])) # vertical position of stats text
 
                 alpha = 0.3
                 fig = plt.figure()
+                plt.subplots_adjust(wspace=0, hspace=0)
 
                 if otype == 'bottle':
                     vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)',
@@ -147,9 +200,9 @@ for otype in ['bottle']:#, 'ctd']:
                     vn_list = ['SA','CT','DO (uM)','Chl (mg m-3)']
                     jj_list = [1,2,4,5] # indices for the data plots
 
-                lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,600),
+                lim_dict = {'SA':(12,36),'CT':(0,24),'DO (uM)':(0,600),
                     'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
-                    'DIC (uM)':(1500,2500),'TA (uM)':(1500,2500),'Chl (mg m-3)':(0,20)}
+                    'DIC (uM)':(1500,2500),'TA (uM)':(1500,2500),'Chl (mg m-3)':(0,24)}
 
                 for ii in range(len(vn_list)):
                     jj = jj_list[ii]
@@ -158,54 +211,81 @@ for otype in ['bottle']:#, 'ctd']:
                     elif otype == 'ctd':
                         ax = fig.add_subplot(2,3,jj)
                     vn = vn_list[ii]
-                    x = df_dict['obs'][vn].to_numpy()
+                    # x = df_dict['obs'][vn].to_numpy()
+                    obs_df = df_dict['obs']
+                    x = obs_df.loc[(obs_df['lat']>lat_low) & (obs_df['lat']<lat_high) &
+                                    (obs_df['lon']>lon_low) & (obs_df['lon']<lon_high), vn].to_numpy()
                     for gtx in gtx_list:
-                        y = df_dict[gtx][vn].to_numpy()
+                        # y = df_dict[gtx][vn].to_numpy()
+                        gtx_df = df_dict[gtx]
+                        y = gtx_df.loc[(gtx_df['lat']>lat_low) & (gtx_df['lat']<lat_high) &
+                                        (gtx_df['lon']>lon_low) & (gtx_df['lon']<lon_high), vn].to_numpy()
                         ax.plot(x,y,marker='.',ls='',color=c_dict[gtx], alpha=alpha)
         
                         if (not np.isnan(x).all()) and (not np.isnan(y).all()) and (len(x) > 0) and (len(y) > 0):
                             bias = np.nanmean(y-x)
                             rmse = np.sqrt(np.nanmean((y-x)**2))
-                            ax.text(.95,t_dict[gtx],'bias=%0.1f, rmse=%0.1f' % (bias,rmse),c=c_dict[gtx],
+                            ax.text(.9,t_dict[gtx],'bias=%0.1f, rmse=%0.1f' % (bias,rmse),c=c_dict[gtx],
                                 transform=ax.transAxes, ha='right', fontweight='bold', bbox=pfun.bbox,
-                                fontsize=fs-1,style='italic')
+                                fontsize=fs_label,style='italic')
 
                     if otype == 'bottle':
                         if jj in [9,10,11]:
-                            ax.set_xlabel('Observed')
+                            ax.set_xlabel('Observed', fontsize = fs_header)
                         if jj in [1,5,9]:
-                            ax.set_ylabel('Modeled')
+                            ax.set_ylabel('Modeled', fontsize = fs_header)
                     elif otype == 'ctd':
                         if jj in [4,5]:
-                            ax.set_xlabel('Observed')
+                            ax.set_xlabel('Observed', fontsize = fs_header)
                         if jj in [1,4]:
-                            ax.set_ylabel('Modeled')
+                            ax.set_ylabel('Modeled', fontsize = fs_header)
+                    plt.xticks(fontsize=fs_label)
+                    plt.yticks(fontsize=fs_label)
         
                     # add labels to identify the model runs with the colors
                     if jj == 1:
                         yy = 0
                         for gtx in c_dict.keys():
-                            ax.text(.05, .7 + 0.1*yy, gtx, c=c_dict[gtx], transform=ax.transAxes,
-                                fontweight='bold', ha='left')
+                            ax.text(.05, .85 - 0.08*yy, label_list[yy], c=c_dict[gtx], transform=ax.transAxes,
+                                fontweight='bold', ha='left', fontsize = fs_label)
                             yy += 1
             
-                    ax.text(.05,.9,vn,transform=ax.transAxes, fontweight='bold')
+                    if vn == 'SA':
+                        var = 'Salinity'
+                    elif vn =='CT':
+                        var = 'Cons. Temp'
+                    else:
+                        var = vn
+                    ax.text(.05,.93,var,transform=ax.transAxes, fontweight='bold', fontsize = fs_header)
                     ax.axis([lim_dict[vn][0], lim_dict[vn][1], lim_dict[vn][0], lim_dict[vn][1]])
-                    ax.plot([lim_dict[vn][0], lim_dict[vn][1]], [lim_dict[vn][0], lim_dict[vn][1]],'-g')
-                    ax.grid(True)
+                    ax.plot([lim_dict[vn][0], lim_dict[vn][1]], [lim_dict[vn][0], lim_dict[vn][1]],'-k')
+                    ax.grid(True,color='w',linewidth=2)
+
+                    # format figure
+                    # ax.set_box_aspect(1)
+                    plt.gca().set_aspect('equal', adjustable='box')
+                    ax.set_facecolor('#EEEEEE')
+                    for border in ['top','right','bottom','left']:
+                        ax.spines[border].set_visible(False)
     
                 # station map
                 if otype == 'bottle':
                     ax = fig.add_subplot(1,4,4)
                 elif otype == 'ctd':
                     ax = fig.add_subplot(1,3,3)
-                df_dict['obs'].plot(x='lon',y='lat',style='.g',legend=False, ax=ax)
-                pfun.add_coast(ax)
-                ax.axis([-130,-122,42,52])
+                df_dict['obs'].plot(x='lon',y='lat',style='.k',legend=False, ax=ax)
+                ax.add_patch(Rectangle((lon_low, lat_low), lon_high-lon_low,lat_high-lat_low, facecolor='#EEEEEE'))
+                plt.pcolormesh(plon, plat, zm, vmin=-10, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+                pfun.add_coast(ax, color='gray')
+                ax.axis([lon_low,lon_high,lat_low,lat_high])
                 pfun.dar(ax)
                 ax.set_xlabel('')
                 ax.set_ylabel('')
-                ax.text(.05,0,f_str,va='bottom',transform=ax.transAxes,fontweight='bold')
+                ax.text(.05,0,f_str,va='bottom',transform=ax.transAxes,fontweight='bold', fontsize = fs_label)
+                for border in ['top','right','bottom','left']:
+                        ax.spines[border].set_visible(False)
+                plt.xticks(fontsize=fs_label)
+                plt.yticks(fontsize=fs_label)
 
                 fig.tight_layout()
                 
@@ -216,6 +296,6 @@ for otype in ['bottle']:#, 'ctd']:
                     plt.show()
                 else:
                     plt.savefig(out_dir / (ff_str + '.png'))
-                    plt.close('all')
+                    # plt.close('all')
 
     
