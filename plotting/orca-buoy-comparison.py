@@ -41,6 +41,10 @@ Gr = gfun.gstart()
 
 Ldir = Lfun.Lstart()
 
+# where to put output figures
+out_dir = Ldir['LOo'] / 'AL_custom_plots'
+Lfun.make_dir(out_dir)
+
 # Get grid data
 G = zrfun.get_basic_info('/home/aleeson/LO_data/grids/cas7/grid.nc', only_G=True)
 grid_ds = xr.open_dataset('/home/aleeson/LO_data/grids/cas7/grid.nc')
@@ -167,4 +171,4 @@ for i,orca in enumerate(orca_nc):
 plt.suptitle('LiveOcean and ORCA buoy bottom DO comparison',fontweight='bold',fontsize=20)
 plt.tight_layout
 plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.90, wspace=0.05, hspace=0.3)
-plt.savefig('orca_buoy_plot.png')
+plt.savefig(out_dir / ('orca_buoy_plot_OG.png'))

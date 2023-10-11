@@ -10,12 +10,17 @@ import xarray as xr
 import cmocean
 from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
+Ldir = Lfun.Lstart()
 
 # define grid indices to look at
 j1 = 590
 j2 = 1170
 i1 = 220
 i2 = 652
+
+# where to put output figures
+out_dir = Ldir['LOo'] / 'AL_custom_plots'
+Lfun.make_dir(out_dir)
 
 # helper function to convert Ecology name to LO name
 def SSM2LO_name(rname):
@@ -92,10 +97,10 @@ zm[np.transpose(mask_rho) != 0] = -1
 # Prepare data for spatial summary plots
 
 # get flow, nitrate, and ammonium values
-fp_wwtps = '../../LO_output/pre/traps/point_sources/Data_historical/'
-flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow_1999_2017.p')    # m3/s
-no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3_1999_2017.p')      # mmol/m3
-nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4_1999_2017.p')      # mmol/m3
+fp_wwtps = '../../LO_output/pre/traps/point_sources/lo_base/Data_historical/'
+flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
 
 # calculate total DIN concentration in mg/L
 dindf_wwtps = (no3df_wwtps + nh4df_wwtps)/71.4    # mg/L
@@ -124,18 +129,18 @@ totload_wwtps = np.sum(avgload_wwtps['avg-daily-load(kg/d)'])
 
 # get flow, nitrate, and ammonium values
 # fp_trivs = '../../LO_output/pre/traps/all_rivers/Data_historical/'
-fp_trivs = '../../LO_output/pre/traps/tiny_rivers/Data_historical/'
-fp_LOrivs = '../../LO_output/pre/river/cas6/Data_historical/'
-fp_LObio = '../../LO_output/pre/traps/LO_rivbio/Data_historical/'
-flowdf_rivs = pd.read_pickle(fp_trivs+'CLIM_flow_1999_2017.p')    # m3/s
-no3df_rivs = pd.read_pickle(fp_trivs+'CLIM_NO3_1999_2017.p')      # mmol/m3
-nh4df_rivs = pd.read_pickle(fp_trivs+'CLIM_NH4_1999_2017.p')      # mmol/m3
+fp_trivs = '../../LO_output/pre/traps/tiny_rivers/lo_base/Data_historical/'
+fp_LOrivs = '../../LO_output/pre/river1/lo_base/Data_historical/'
+fp_LObio = '../../LO_output/pre/traps/LO_rivbio/lo_base/Data_historical/'
+flowdf_rivs = pd.read_pickle(fp_trivs+'CLIM_flow.p')    # m3/s
+no3df_rivs = pd.read_pickle(fp_trivs+'CLIM_NO3.p')      # mmol/m3
+nh4df_rivs = pd.read_pickle(fp_trivs+'CLIM_NH4.p')      # mmol/m3
 # pre-existing LO river flowrates
-flowdf_LOrivs = pd.read_pickle(fp_LOrivs+'CLIM_flow_1980_2020.p')    # m3/s
+flowdf_LOrivs = pd.read_pickle(fp_LOrivs+'CLIM_flow.p')    # m3/s
 flowdf_LOrivs = flowdf_LOrivs.reset_index(drop=True)
 # Ecology data for pre-existing LO rivers
-no3df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NO3_1999_2017.p')      # mmol/m3
-nh4df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NH4_1999_2017.p')      # mmol/m3
+no3df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NO3.p')      # mmol/m3
+nh4df_LOrivs_ecol = pd.read_pickle(fp_LObio+'CLIM_NH4.p')      # mmol/m3
 # get names of all pre-existing rivers for which Ecology has data (use LO naming convention)
 LObio_names = [SSM2LO_name(riv) for riv in no3df_LOrivs_ecol.columns]
 
@@ -308,7 +313,7 @@ for j in range(1):
         # reduce gap between subplots
         plt.subplots_adjust(wspace=0.05)
         
-        plt.show()
+        plt.savefig(out_dir / ('loading_plot.png'))
 
 
 # Print stuff for comparison with Ben
