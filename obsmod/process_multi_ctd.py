@@ -12,6 +12,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import gsw
 import pickle
+from pathlib import Path
 
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
@@ -22,11 +23,11 @@ source_list = ['ecology', 'dfo1']
 otype = 'ctd'
 year = '2017'
 
-out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+out_dir = Ldir['parent'] / 'LO_output' / 'obsmod'
 Lfun.make_dir(out_dir)
 out_fn = out_dir / ('multi_' + otype + '_' + year + '.p')
 
-gtx_list = ['cas6_v0_live', 'cas6_traps2_x2b', 'cas2k_v0_x2b']
+gtx_list = ['cas6_traps2_x2b','cas7_trapsV00_meV00_AugVFCinis','cas7_trapsV00_meV00']
 
 # initialize a dict of empty DataFrames that we will concatenate on
 df_dict = {}
@@ -34,13 +35,16 @@ df_dict['obs'] = pd.DataFrame()
 for gtx in gtx_list:
     df_dict[gtx] = pd.DataFrame()
 
+# path to Parker's observational data on perigee
+obs_dir = Path('/data1/parker/LO_output/obs')
+
 cid0 = 0
 for source in source_list:
     print('\n'+source)
     
     # load observations
-    info_fn = Ldir['LOo'] / 'obs' / source / otype / ('info_' + year + '.p')
-    obs_fn = Ldir['LOo'] / 'obs' / source / otype / (year + '.p')
+    info_fn = obs_dir / source / otype / ('info_' + year + '.p')
+    obs_fn = obs_dir / source / otype / (year + '.p')
     info_df = pd.read_pickle(info_fn)
     obs_df = pd.read_pickle(obs_fn)
     obs_df['source'] = source

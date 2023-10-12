@@ -16,7 +16,7 @@ year = '2017'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # choices
-sta_name = 'HCB007'
+sta_name = 'HCB003'
 vn = 'DO (uM)'
 #vn = 'SA'
 """
@@ -55,8 +55,8 @@ for gtx in df_dict.keys():
     
 # plotting
 plt.close('all')
-#pfun.start_plot(figsize=(20,12))
-pfun.start_plot(figsize=(12,8))
+pfun.start_plot(figsize=(20,12))
+#pfun.start_plot(figsize=(12,8))
 fig = plt.figure()
 
 cid_list = df_dict['obs'].cid.unique()
