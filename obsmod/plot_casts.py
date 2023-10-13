@@ -13,7 +13,7 @@ from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
 year = '2017'
-in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+in_dir = Ldir['parent'] / 'LO_output' / 'obsmod'
 
 # choices
 sta_name = 'HCB003'
