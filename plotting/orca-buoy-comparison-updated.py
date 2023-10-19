@@ -50,10 +50,20 @@ fs_label = 15
 fs_header = 15
 fs_title = 18
 
+
+##################################################################
+##                          User inputs                         ##
+################################################################## 
+
+
 # variable
 vn = 'oxygen' # salt, NO3, oxygen
-layer = 'bottom'
+layer = 'bottom' # bottom, surface
 
+
+##################################################################
+##                         Get grid data                        ##
+################################################################## 
 
 # Get correct variable information
 if vn == 'oxygen':
@@ -64,7 +74,7 @@ if vn == 'oxygen':
     var = 'DO'
 elif vn == 'salt':
     orca_vn = 'sal'
-    lim0 = 28
+    lim0 = 25
     lim1 = 32
     title = 'salinity'
     var = 'salt'
@@ -77,12 +87,12 @@ elif vn == 'NO3':
 
 # get correct surface/bottom layer
 if layer =='bottom':
-    model_layer = 0
-    orca_layer = -1
+    # model_layer = 0
+    # orca_layer = -5
     layer_name = 'Bottom'
 elif layer =='surface':
-    model_layer = -1
-    orca_layer = 0
+    # model_layer = -1
+    # orca_layer = 0
     layer_name = 'Surface'
 
 # Get grid data
@@ -105,7 +115,10 @@ fs = 10
 pfun.start_plot(fs=fs, figsize=(18,11))
 fig = plt.figure()
 
-# Create bathymetry plot --------------------------------------------------------------
+##################################################################
+##         Create bathymetry plot with station locations        ##
+##################################################################
+
 ax = fig.add_subplot(1,2,1)
 newcmap = cmocean.tools.crop_by_percent(cmocean.cm.deep_r, 10, which='max', N=None)
 # newcmap = cmocean.cm.deep_r
@@ -136,55 +149,53 @@ ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=5)
 ax.text((lon0+lon1)/2,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=fs_label,
         horizontalalignment='center')
 # plot buoy locations
-buoy_names = ['CI','PW','HP','TW'] #['CI','PW','NB','DB','HP','TW']
-buoy_lon = [-122.7300,-122.3972,-123.1126,-123.0083] #[-122.7300,-122.3972,-122.6270,-122.8029,-123.1126,-123.0083]
-buoy_lat = [47.2800,47.7612,47.4218,47.3750]#[47.2800,47.7612,47.9073,47.8034,47.4218,47.3750]
+buoy_names = ['CI','PW','NB','HP','TW'] #['CI','PW','NB','DB','HP','TW']
+buoy_lon = [-122.7300,-122.3972,-122.6270,-123.1126,-123.0083] #[-122.7300,-122.3972,-122.6270,-122.8029,-123.1126,-123.0083]
+buoy_lat = [47.2800,47.7612,47.9073,47.4218,47.3750]#[47.2800,47.7612,47.9073,47.8034,47.4218,47.3750]
 ax.scatter(buoy_lon,buoy_lat,s=100,color='violet',edgecolors='k')
 for i,name in enumerate(buoy_names):
     # ax.text(buoy_lon[i]-0.04,buoy_lat[i]+0.02,name,fontsize='16',fontweight='bold',color='black')
     txt = ax.text(buoy_lon[i]-0.04,buoy_lat[i]+0.02,name,fontsize=fs_title,fontweight='bold',color='black')
     txt.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w')])
 
-# Loop through and add Orca Buoy data and model output ----------------------------------------
+##################################################################
+## Loop through orca stations and add observations/model output ##
+##################################################################
 
 # get orca data
-orca_nc = ['PW','CI','HP','TW']#['TW','PW','NB','HP','DB','CI']
+orca_nc = ['NB','PW','CI','HP','TW']#['TW','PW','NB','HP','DB','CI']
 # fig numbers
-fig_no = [2,4,6,8]#[3,4,7,8,11,12]
+fig_no = [2,4,6,8,10]#[3,4,7,8,11,12]
 # label
-labels = ['(a) ','(b) ','(c) ','(d) ']
+labels = ['(a) ','(b) ','(c) ','(d) ','(e) ']
 # titles
-titles = ['PW - Point Wells', 'CI - Carr Inlet', 'HP - Hoodsport', 'TW - Twanoh']#['TW - Twanoh','PW - Point Wells','NB - North Buoy', 'HP - Hoodsport', 'DB - Dabob Bay', 'CI - Carr Inlet']
+titles = ['NB - North Buoy', 'PW - Point Wells', 'CI - Carr Inlet', 'HP - Hoodsport', 'TW - Twanoh']#['TW - Twanoh','PW - Point Wells','NB - North Buoy', 'HP - Hoodsport', 'DB - Dabob Bay', 'CI - Carr Inlet']
 
 # loop through all of the stations
 for i,orca in enumerate(orca_nc):
     # create subplot
-    ax = fig.add_subplot(4,2,fig_no[i])#fig.add_subplot(3,4,fig_no[i])
+    ax = fig.add_subplot(5,2,fig_no[i])#fig.add_subplot(3,4,fig_no[i])
     
-    # Add GRC case and create timevector
-    ds_baseline = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps2_x2b/moor/orca/'+orca+'_2017.01.01_2017.12.31.nc')
-    DO_baseline = ds_baseline[vn][:,model_layer]*pinfo.fac_dict[vn] # bottom DO
-    year_time = ds_baseline['ocean_time']
-
-    # # Add prior model evaluation results
-    # ds_WWTPDIN0 = xr.open_dataset('/home/aleeson/LO_output/extract/cas7_trapsV00_meV00_AugVFCinis/moor/orca/'+orca+'_2017.01.01_2017.08.15.nc')
-    # DO_WWTPDIN0 = ds_WWTPDIN0[vn][:,model_layer]*pinfo.fac_dict[vn] # bottom DO
+    # Add current LiveOcean case and create timevector
+    ds_cas6traps2x2b = xr.open_dataset('/home/aleeson/LO_output/extract/cas6_traps2_x2b/moor/orca/'+orca+'_2017.01.01_2017.12.31.nc')
+    # DO_cas6trapsx2b = ds_cas6traps2x2b[vn][:,model_layer]*pinfo.fac_dict[vn] # bottom DO
+    year_time = ds_cas6traps2x2b['ocean_time']
     
-    # Add model evaluation results
-    ds_WWTPDIN = xr.open_dataset('/home/aleeson/LO_output/extract/cas7_trapsV00_meV00/moor/orca/'+orca+'_2017.01.01_2017.12.31.nc')
-    DO_WWTPDIN = ds_WWTPDIN[vn][:,model_layer]*pinfo.fac_dict[vn] # bottom DO
+    # Add new model evaluation results
+    ds_cas7trapsV00meV00 = xr.open_dataset('/home/aleeson/LO_output/extract/cas7_trapsV00_meV00/moor/orca/'+orca+'_2017.01.01_2017.12.31.nc')
+    # DO_cas7trapsV00meV00 = ds_cas7trapsV00meV00[vn][:,model_layer]*pinfo.fac_dict[vn] # bottom DO
     
     # add title
-    ax.set_title(labels[i] + titles[i],fontsize=fs_header,fontweight='bold')
+    ax.text(0.7,0.83,labels[i] + titles[i],transform=ax.transAxes,fontsize=fs_header,fontweight='bold')
     # format y labels
     ax.set_ylim([lim0,lim1])
     plt.yticks(fontsize=fs_label)
-    ax.set_ylabel(layer_name + ' ' + title, fontsize=fs_label)
+    ax.set_ylabel(title, fontsize=fs_label)
     # format x labels
     ax.set_xlim([year_time[0] - np.timedelta64(1,'D'),year_time[-1]])
     ax.xaxis.set_major_locator(MonthLocator())
     ax.grid(True,color='w',linewidth=2)
-    if i == 3:
+    if i == 4:
         plt.tick_params(axis='x',rotation=30)
         ax.xaxis.set_major_formatter(DateFormatter('%b'))
         plt.xticks(fontsize=fs_label)
@@ -194,28 +205,55 @@ for i,orca in enumerate(orca_nc):
     ax.set_facecolor('#EEEEEE')
     for border in ['top','right','bottom','left']:
         ax.spines[border].set_visible(False)
-    # add observations
-    ds_orca = xr.open_dataset('/home/aleeson/LO_data/obs/ORCA/LO_orca_moor/datasets/'+orca+'_ds.nc')
-    orca_time = ds_orca.time.values
-    orca_do = ds_orca[orca_vn].values[:,orca_layer]
-    ax.plot(orca_time,orca_do,'o',color='mediumorchid',markersize=8,alpha=0.3,label='Observations*')
 
-    # model output
-    ax.plot(year_time,DO_baseline,linestyle='-',color='darkturquoise',linewidth=4, label='Current LiveOcean')
-    # ax.plot(year_time[0:227],DO_WWTPDIN0,linestyle='-',color='k',linewidth=0.5,label='Prior results (trapsV00_meV00-VFC ICs)')
-    ax.plot(year_time,DO_WWTPDIN,linestyle='-',color='k',linewidth=2,label='Updated model')
+    # add observations
+    ds_orca = xr.open_dataset('/home/aleeson/LO_data/obs/ORCA/orca_profiles/datasets/'+orca+'_ds.nc')
+    orca_time = ds_orca.time.values
+    # orca_do = ds_orca[orca_vn].values[orca_layer,:]
+
+    # get depth at station (for all time)
+    depthindseries=ds_orca[orca_vn].notnull().sum(dim='z')
+    # get mean depth at that station
+    depthindmean=depthindseries.where(depthindseries!=0).mean()
+    # get the 20% depth value (e.g. if depth = 100, ind20 = 20)
+    ind20=int(np.round(depthindmean.values/5))
+    # get the mean depth as an integer
+    depthind=int(np.round(depthindmean))
+
+    # slice data based on depth
+    if layer == 'bottom':
+        # orca data easier to crop
+        oxybot_orca = ds_orca[orca_vn].isel(z=slice(depthind-ind20,depthind)).mean(dim='z')
+        # cropping LO data is a little more complicated 
+            # set values outside of depth range to nan
+        ds_cas6traps2x2b_sliced = ds_cas6traps2x2b.where((ds_cas6traps2x2b.z_rho < -1*(depthind-ind20)))
+        ds_cas7trapsV00meV00_sliced = ds_cas7trapsV00meV00.where((ds_cas7trapsV00meV00.z_rho < -1*(depthind-ind20)))
+            # get the mean within this depth range, and convert to mg/L
+        DO_cas6trapsx2b = ds_cas6traps2x2b_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
+        DO_cas7trapsV00meV00 = ds_cas7trapsV00meV00_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
+
+    elif layer == 'surface':
+        oxybot_orca = ds_orca[orca_vn].isel(z=slice(0,ind20)).mean(dim='z')
+        # cropping LO data is a little more complicated 
+            # set values outside of depth range to nan
+        ds_cas6traps2x2b_sliced = ds_cas6traps2x2b.where((ds_cas6traps2x2b.z_rho > -1*ind20))
+        ds_cas7trapsV00meV00_sliced = ds_cas7trapsV00meV00.where((ds_cas7trapsV00meV00.z_rho > -1*ind20))
+            # get the mean within this depth range, and convert to mg/L
+        DO_cas6trapsx2b = ds_cas6traps2x2b_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
+        DO_cas7trapsV00meV00 = ds_cas7trapsV00meV00_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
+
+    # plot everything
+    ax.plot(orca_time,oxybot_orca,'o',color='mediumorchid',markersize=8,alpha=0.3,label='Observations*')
+    ax.plot(year_time,DO_cas6trapsx2b,linestyle='-',color='darkturquoise',linewidth=4, label='Current LiveOcean')
+    ax.plot(year_time,DO_cas7trapsV00meV00,linestyle='-',color='k',linewidth=2,label='Updated model')
 
     # add legend
     if i == 0:
-        ax.legend(loc='best',fontsize=fs_label,ncol=3)
-    # add water depth
-    ax.text(year_time[15],2.4, r'$z_{buoy}$' +' = {} m'.format(round(ds_orca.depth.values[orca_layer],1)),fontsize=fs_label)
-    ax.text(year_time[15],0.6, r'$z_{model}$' +' = {} m'.format(round(-1*np.mean(ds_baseline['z_rho'][:,model_layer].values),1)),fontsize=fs_label)
-
+        ax.legend(loc='lower center',fontsize=fs_label,ncol=3)
 
 # Generate plot
 plt.subplots_adjust(wspace=0, hspace=0)
-plt.suptitle('LiveOcean and ORCA buoy ' + layer_name + ' ' + var + ' comparison',fontweight='bold',fontsize=20)
+plt.suptitle('LiveOcean and ORCA buoy ' + var + ' comparison (' + layer_name +' 20%)',fontweight='bold',fontsize=20)
 plt.tight_layout
-plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.90, wspace=0.05, hspace=0.3)
+plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.90, wspace=0.05, hspace=0.2)
 plt.savefig(out_dir / ('orca_buoy_plot_updated.png'))
