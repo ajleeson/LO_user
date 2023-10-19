@@ -763,7 +763,7 @@ def P_debug_birchbay(in_dict):
     
     # START
     fs = 10
-    pfun.start_plot(fs=fs, figsize=(8*len(vn_list),10))
+    pfun.start_plot(fs=fs, figsize=(8*len(vn_list),9))
     plt.tight_layout()
     fig = plt.figure()
     print(in_dict['fn'])
@@ -797,30 +797,33 @@ def P_debug_birchbay(in_dict):
         cs = ax.pcolormesh(px, py, v, cmap=cmap, vmin=vmin, vmax=vmax)
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
-        ax.set(xlim=(-122.9, -122.7), ylim=(48.85, 48.95))
+        ax.set(xlim=(-122.85, -122.75), ylim=(48.875, 48.925))
         ax.set_xticks([])
         ax.set_yticks([])
 
         # plot location of wwtp
-        ax.scatter(-122.8030401205365,48.8975820886066, s=180, marker='^',
-                    color='#AEDC3C', edgecolors='k', label='Birch Bay WWTP')
+        ax.scatter(-122.8030401205365,48.8975820886066, s=275, marker='^',
+                    color='none', edgecolors='k', linewidth = 2, label='Birch Bay WWTP')
         # ax.scatter(-122.81650575795068,48.8975820886066, s=80, marker='D',
         #             color='limegreen', edgecolors='chartreuse', label='Shifted Birch Bay WWTP Location')
-        ax.legend(loc='upper left', fontsize = 16)
         # add colorbar
         cbar = plt.colorbar(cs,ax=ax, location='bottom')
-        cbar.ax.tick_params(labelsize=16, rotation=30)
+        cbar.ax.tick_params(labelsize=20, rotation=45)
 
         pfun.dar(ax)
         if ii == 1:
-            pfun.add_info(ax, in_dict['fn'], his_num=True)
+            pfun.add_info(ax, in_dict['fn'], his_num=False, fs = 20)
+            ax.legend(loc='upper left', fontsize = 24)
         vmax, vjmax, vimax, vmin, vjmin, vimin = pfun.maxmin(v)
         ax.plot(x[vjmax,vimax], y[vjmax,vimax],'*y', mec='k', markersize=15)
         ax.plot(x[vjmin,vimin], y[vjmin,vimin],'oy', mec='k', markersize=10)
-        ax.tick_params(axis='both', which='major', labelsize=14)
+        ax.tick_params(axis='both', which='major', labelsize=20)
         # plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-        ax.set_title(('%s ((*)max=%0.1f, (o)min=%0.1f)' % (vn, vmax, vmin)), fontsize = 20)
+        # ax.set_title(('%s ((*)max=%0.1f, (o)min=%0.1f)' % (vn, vmax, vmin)), fontsize = 20)
+        ax.set_title(('%s (m/s)' % (vn)), fontsize = 24, fontweight = 'bold')
         ii += 1
+
+        plt.subplots_adjust(left=0.05, bottom=0.1, right=0.95, top=0.90, wspace=0.05, hspace=0.05)
         
 
     # FINISH
