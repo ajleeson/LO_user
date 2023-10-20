@@ -20,8 +20,8 @@ in_dir = Ldir['parent'] / 'LO_output' / 'obsmod'
 
 # choices
 sta_name = 'HCB004'
-# vn = 'DO (uM)'
-vn = 'SA'
+vn = 'DO (uM)'
+# vn = 'SA'
 # vn = 'CT'
 # vn = 'Chl (mg m-3)'
 
@@ -54,12 +54,12 @@ lim_dict = {'SA':(15,36),'CT':(0,20),'DO (uM)':(0,500),
     'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
     'DIC (uM)':(1500,2500),'TA (uM)':(1500,2500),'Chl (mg m-3)':(0,20)}
 
-c_list = ['darkturquoise','k']
+c_list = ['k']#['darkturquoise','k']
 c_dict = {'obs':'mediumorchid'}
 ii = 0
 for gtx in df_dict.keys():
     print(gtx)
-    if gtx == 'obs' or gtx == 'cas7_trapsV00_meV00_AugVFCinis':
+    if gtx == 'obs' or gtx == 'cas7_trapsV00_meV00_AugVFCinis' or gtx == 'cas6_traps2_x2b':
         pass
     else:
         c_dict[gtx] = c_list[ii]
@@ -143,11 +143,11 @@ plt.subplots_adjust(wspace=0, hspace=0.1)
 labels = ['(a) January', '(b) February', '(c) March', '(d) April', '(e) May', '(f) June',
           '(g) July', '(h) August', '(i) September', '(j) October', '(k) November', '(l) December']
 
-runnames = ['Observations','Current LiveOcean', 'Updated Model']
+runnames = ['Observations','Updated Model']#['Observations','Current LiveOcean', 'Updated Model']
 
 # styles = ['-','-','--']
 
-widths = ['3','3','1']
+widths = ['3','1']#['3','3','1']
 
 zbot = 0
 ax_dict = dict()
@@ -157,7 +157,7 @@ for i,cid in enumerate(cid_list):
     ax = fig.add_subplot(2,6,ii)
     j = 0
     for gtx in df_dict.keys():
-        if gtx == 'cas7_trapsV00_meV00_AugVFCinis':
+        if gtx == 'cas7_trapsV00_meV00_AugVFCinis' or gtx == 'cas6_traps2_x2b':
             pass
         else: 
             x = df_dict[gtx].loc[df_dict[gtx].cid==cid,vn].to_numpy()
@@ -175,6 +175,7 @@ for i,cid in enumerate(cid_list):
         ax.set_ylabel('Z [m]')
     if ii < 7:
         ax.set_xticklabels([])
+    plt.tick_params(axis='x',rotation=30)
     
     
 for ii in ax_dict.keys():
