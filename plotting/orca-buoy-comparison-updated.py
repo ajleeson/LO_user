@@ -207,7 +207,7 @@ for i,orca in enumerate(orca_nc):
         ax.spines[border].set_visible(False)
 
     # add observations
-    ds_orca = xr.open_dataset('/home/aleeson/LO_data/obs/ORCA/orca_profiles/datasets/'+orca+'_ds.nc')
+    ds_orca = xr.open_dataset('/home/aleeson/LO_data/obs/ORCA/orca_profiles/datasets/'+orca+'_ds_daily.nc')
     orca_time = ds_orca.time.values
     # orca_do = ds_orca[orca_vn].values[orca_layer,:]
 
@@ -252,7 +252,6 @@ for i,orca in enumerate(orca_nc):
         ax.legend(loc='lower center',fontsize=fs_label,ncol=3)
 
 # Generate plot
-plt.subplots_adjust(wspace=0, hspace=0)
 plt.suptitle('LiveOcean and ORCA buoy ' + var + ' comparison (' + layer_name +' 20%)',fontweight='bold',fontsize=20)
 plt.tight_layout
 plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.90, wspace=0.05, hspace=0.2)
