@@ -152,7 +152,7 @@ if len(fn_list) == 1:
     whichplot(in_dict)
     
 elif len(fn_list) > 1:
-    fn_list = fn_list[0:19]
+    fn_list = fn_list[0:20]
     # prepare a directory for results
     outdir = outdir0 / (Ldir['list_type'] + '_' + Ldir['plot_type'] + '_' + Ldir['gtagex'])
     Lfun.make_dir(outdir, clean=True)
