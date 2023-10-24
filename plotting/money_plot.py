@@ -448,9 +448,22 @@ for vn in vn_list:
     ax.plot(time_base,DO_lynch_base,linestyle='-',color='mediumturquoise',linewidth=6, label='Baseline [no WW discharge]')
     ax.plot(time_withDIN,DO_lynch_withDIN,linestyle='--',color='k',linewidth=3,label='With WW discharge')
     # Add orca buoy data
-    ds_orca = xr.open_dataset('/home/aleeson/LO_data/obs/ORCA/LO_orca_moor/datasets/TW_ds.nc')
+    ds_orca = xr.open_dataset('/home/aleeson/LO_data/obs/ORCA/orca_profiles/datasets/TW_ds.nc')
     orca_time = ds_orca.time.values
-    orca_do = ds_orca.oxy.values[:,-1]
+
+    # get depth at station (for all time)
+    depthindseries=ds_orca['oxy'].notnull().sum(dim='z')
+    # get mean depth at that station
+    depthindmean=depthindseries.where(depthindseries!=0).mean()
+    # get the 20% depth value (e.g. if depth = 100, ind20 = 20)
+    ind20=int(np.round(depthindmean.values/5))
+    # get the mean depth as an integer
+    depthind=int(np.round(depthindmean))
+    # get bottom 20% DO from orca
+    orca_do = ds_orca['oxy'].isel(z=slice(depthind-ind20,depthind)).mean(dim='z')
+
+    # orca_do = ds_orca.oxy.values[0,:]
+
     ax.plot(orca_time,orca_do,'o',color='darkmagenta',markersize=10,alpha=0.5,label='Observations*')
     ax.legend(loc='upper right',fontsize=24)
     ax.set_facecolor('#EEEEEE')
