@@ -152,7 +152,7 @@ if len(fn_list) == 1:
     whichplot(in_dict)
     
 elif len(fn_list) > 1:
-    fn_list = fn_list[0:20]
+    # fn_list = fn_list[0:20] # I previously used this line to shorted hourly movie to only 20 hours, due to blow up
     # prepare a directory for results
     outdir = outdir0 / (Ldir['list_type'] + '_' + Ldir['plot_type'] + '_' + Ldir['gtagex'])
     Lfun.make_dir(outdir, clean=True)
@@ -172,7 +172,7 @@ elif len(fn_list) > 1:
         jj += 1
     # and make a movie
     if Ldir['make_movie']:
-        cmd_list = ['ffmpeg','-r','3','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
+        cmd_list = ['ffmpeg','-r','4','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
             '-pix_fmt', 'yuv420p', '-crf', '21', str(outdir)+'/movie.mp4']
         proc = Po(cmd_list, stdout=Pi, stderr=Pi)
         stdout, stderr = proc.communicate()
