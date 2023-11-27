@@ -54,7 +54,9 @@ for source in source_list:
     else:
         cid_list = list(info_df.index)
         
-    vn_list = ['CT', 'SA','DO (uM)','Chl (mg m-3)']
+    vn_list = ['CT', 'SA','Chl (mg m-3)',
+           'DO (uM)', 'NO3 (uM)', 'NO2 (uM)', 'NH4 (uM)', 'TA (uM)',
+           'DIC (uM)']
     
     mod_dir_dict = {}
     for gtx in gtx_list:
