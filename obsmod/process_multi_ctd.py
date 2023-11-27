@@ -112,10 +112,16 @@ for source in source_list:
                 
                 mod_df.loc[mod_df.cid==cid, 'SA'] = SA
                 mod_df.loc[mod_df.cid==cid, 'CT'] = CT
-                mod_df.loc[mod_df.cid==cid, 'DO (uM)'] = ds.oxygen[iz_list].values
+                if npzd in ['new', 'old']:
+                    mod_df.loc[mod_df.cid==cid, 'NO3 (uM)'] = ds.NO3[iz_list].values
+                    mod_df.loc[mod_df.cid==cid, 'DO (uM)'] = ds.oxygen[iz_list].values
+                    mod_df.loc[mod_df.cid==cid, 'DIC (uM)'] = ds.TIC[iz_list].values
+                    mod_df.loc[mod_df.cid==cid, 'TA (uM)'] = ds.alkalinity[iz_list].values
                 if npzd == 'new':
+                    mod_df.loc[mod_df.cid==cid, 'NH4 (uM)'] = ds.NH4[iz_list].values
                     mod_df.loc[mod_df.cid==cid, 'Chl (mg m-3)'] = ds.chlorophyll[iz_list].values
                 if npzd == 'old':
+                    mod_df.loc[mod_df.cid==cid, 'NH4 (uM)'] = np.nan
                     mod_df.loc[mod_df.cid==cid, 'Chl (mg m-3)'] = 2.5*ds.phytoplankton[iz_list].values
                 
             
