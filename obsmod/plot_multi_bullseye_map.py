@@ -26,7 +26,7 @@ testing = False
 #############################
 
 month = 'Dec'
-vn = 'DO (uM)' #'DIN (uM)'
+vn = 'NO3 (uM)' #'DO (uM)' 'DIN (uM)'
 
 #############################
 
@@ -97,7 +97,7 @@ if source == 'all':
 
 # Plotting
 
-if vn == 'DIN (uM)':
+if vn == 'DIN (uM)' or vn == 'NO3 (uM)':
     vmin = -25
     vmax = 25
 elif vn == 'DO (uM)':
