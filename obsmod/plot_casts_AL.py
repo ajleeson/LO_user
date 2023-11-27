@@ -135,7 +135,7 @@ plt.show()
 ################################################################ 
 
 # pfun.start_plot(figsize=(20,12))
-pfun.start_plot(figsize=(15,5))
+pfun.start_plot(figsize=(15,8))
 fig = plt.figure()
 
 plt.subplots_adjust(wspace=0, hspace=0.1)
