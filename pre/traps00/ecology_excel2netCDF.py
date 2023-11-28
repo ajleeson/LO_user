@@ -125,17 +125,17 @@ def add_data(ds, source_ID, source_name, latlon_df, ecologydata_df):
 #################################################################################
 
 # location of historical data to process
-wwtp_dir = Ldir['data'] / 'traps' / 'point_sources'
+wwtp_dir = Ldir['data'] / Ldir['traps_name'] / 'point_sources'
 wwtp_fns = os.listdir(wwtp_dir)
 NWWTP = np.shape(wwtp_fns)[0]
 
 # location of historical data to process
-riv_dir = Ldir['data'] / 'traps' / 'nonpoint_sources'
+riv_dir = Ldir['data'] / Ldir['traps_name'] / 'nonpoint_sources'
 riv_fns = os.listdir(riv_dir)
 NTRIV = np.shape(riv_fns)[0]
 
 # SSM metadata with lat/lon coordinates
-trapsll_fn = Ldir['data'] / 'traps' / 'SSM_source_info.xlsx'
+trapsll_fn = Ldir['data'] / Ldir['traps_name'] / 'SSM_source_info.xlsx'
 latlon_df = pd.read_excel(trapsll_fn,usecols='D,E,F,G,N,O')
 
 # Start with one point source to get date information
@@ -238,7 +238,7 @@ for i,fn in enumerate(riv_fns):
     nonpointsource_ds = add_data(nonpointsource_ds, source_ID, source_name, latlon_df, riv_df)
 
 # save dataset as .nc file in LO_data
-out_fn = '../../../LO_data/traps/all_nonpoint_source_data.nc'
+out_fn = '../../../LO_data/' + Ldir['traps_name'] + '/all_nonpoint_source_data.nc'
 nonpointsource_ds.to_netcdf(out_fn)
 nonpointsource_ds.close()
 print('Nonpoint sources complete ---------------------------------------')
