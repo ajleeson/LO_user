@@ -1,9 +1,8 @@
 """
-Plots a comparison of bottom DO for two identical grids with different oxygen value.
+Plots a comparison of bottom 20% of DO between orca buoy and model output.
 
-This is a custom function for a particular experiment, but code can be adapted for other use cases in the future.
-
-From the terminal: python orca-buoy-comparison.py
+Lots of filepaths are hardcoded. I should clean this someday.
+Saves figure in LO_output/AL_custom_plots/orca_buoy_plot_updated.png
 
 """
 
@@ -57,8 +56,8 @@ fs_title = 18
 
 
 # variable
-vn = 'NO3' # salt, NO3, oxygen
-layer = 'surface' # bottom, surface
+vn = 'oxygen' # salt, NO3, oxygen
+layer = 'bottom' # bottom, surface
 
 
 ##################################################################
@@ -208,52 +207,52 @@ for i,orca in enumerate(orca_nc):
 
     # add observations
     ds_orca = xr.open_dataset('/home/aleeson/LO_data/obs/ORCA/orca_profiles/datasets/'+orca+'_ds.nc')#+orca+'_ds_daily.nc')
-    print(np.nanmean(ds_orca.nitrate.values))
-#     orca_time = ds_orca.time.values
-#     # orca_do = ds_orca[orca_vn].values[orca_layer,:]
+    # print(np.nanmean(ds_orca.nitrate.values))
+    orca_time = ds_orca.time.values
+    # orca_do = ds_orca[orca_vn].values[orca_layer,:]
 
-#     # get depth at station (for all time)
-#     depthindseries=ds_orca[orca_vn].notnull().sum(dim='z')
-#     # get mean depth at that station
-#     depthindmean=depthindseries.where(depthindseries!=0).mean()
-#     # get the 20% depth value (e.g. if depth = 100, ind20 = 20)
-#     ind20=int(np.round(depthindmean.values/5))
-#     # get the mean depth as an integer
-#     depthind=int(np.round(depthindmean))
+    # get depth at station (for all time)
+    depthindseries=ds_orca[orca_vn].notnull().sum(dim='z')
+    # get mean depth at that station
+    depthindmean=depthindseries.where(depthindseries!=0).mean()
+    # get the 20% depth value (e.g. if depth = 100, ind20 = 20)
+    ind20=int(np.round(depthindmean.values/5))
+    # get the mean depth as an integer
+    depthind=int(np.round(depthindmean))
 
-#     # slice data based on depth
-#     if layer == 'bottom':
-#         # orca data easier to crop
-#         oxybot_orca = ds_orca[orca_vn].isel(z=slice(depthind-ind20,depthind)).mean(dim='z')
-#         # cropping LO data is a little more complicated 
-#             # set values outside of depth range to nan
-#         ds_cas6traps2x2b_sliced = ds_cas6traps2x2b.where((ds_cas6traps2x2b.z_rho < -1*(depthind-ind20)))
-#         ds_cas7trapsV00meV00_sliced = ds_cas7trapsV00meV00.where((ds_cas7trapsV00meV00.z_rho < -1*(depthind-ind20)))
-#             # get the mean within this depth range, and convert to mg/L
-#         DO_cas6trapsx2b = ds_cas6traps2x2b_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
-#         DO_cas7trapsV00meV00 = ds_cas7trapsV00meV00_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
+    # slice data based on depth
+    if layer == 'bottom':
+        # orca data easier to crop
+        oxybot_orca = ds_orca[orca_vn].isel(z=slice(depthind-ind20,depthind)).mean(dim='z')
+        # cropping LO data is a little more complicated 
+            # set values outside of depth range to nan
+        ds_cas6traps2x2b_sliced = ds_cas6traps2x2b.where((ds_cas6traps2x2b.z_rho < -1*(depthind-ind20)))
+        ds_cas7trapsV00meV00_sliced = ds_cas7trapsV00meV00.where((ds_cas7trapsV00meV00.z_rho < -1*(depthind-ind20)))
+            # get the mean within this depth range, and convert to mg/L
+        DO_cas6trapsx2b = ds_cas6traps2x2b_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
+        DO_cas7trapsV00meV00 = ds_cas7trapsV00meV00_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
 
-#     elif layer == 'surface':
-#         oxybot_orca = ds_orca[orca_vn].isel(z=slice(0,ind20)).mean(dim='z')
-#         # cropping LO data is a little more complicated 
-#             # set values outside of depth range to nan
-#         ds_cas6traps2x2b_sliced = ds_cas6traps2x2b.where((ds_cas6traps2x2b.z_rho > -1*ind20))
-#         ds_cas7trapsV00meV00_sliced = ds_cas7trapsV00meV00.where((ds_cas7trapsV00meV00.z_rho > -1*ind20))
-#             # get the mean within this depth range, and convert to mg/L
-#         DO_cas6trapsx2b = ds_cas6traps2x2b_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
-#         DO_cas7trapsV00meV00 = ds_cas7trapsV00meV00_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
+    elif layer == 'surface':
+        oxybot_orca = ds_orca[orca_vn].isel(z=slice(0,ind20)).mean(dim='z')
+        # cropping LO data is a little more complicated 
+            # set values outside of depth range to nan
+        ds_cas6traps2x2b_sliced = ds_cas6traps2x2b.where((ds_cas6traps2x2b.z_rho > -1*ind20))
+        ds_cas7trapsV00meV00_sliced = ds_cas7trapsV00meV00.where((ds_cas7trapsV00meV00.z_rho > -1*ind20))
+            # get the mean within this depth range, and convert to mg/L
+        DO_cas6trapsx2b = ds_cas6traps2x2b_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
+        DO_cas7trapsV00meV00 = ds_cas7trapsV00meV00_sliced[vn].mean(dim='s_rho')*pinfo.fac_dict[vn]
 
-#     # plot everything
-#     ax.plot(orca_time,oxybot_orca,'o',color='mediumorchid',markersize=8,alpha=0.3,label='Observations*')
-#     ax.plot(year_time,DO_cas6trapsx2b,linestyle='-',color='darkturquoise',linewidth=4, label='Current LiveOcean')
-#     ax.plot(year_time,DO_cas7trapsV00meV00,linestyle='-',color='k',linewidth=2,label='Updated model')
+    # plot everything
+    ax.plot(orca_time,oxybot_orca,'o',color='mediumorchid',markersize=8,alpha=0.3,label='Observations')
+    # ax.plot(year_time,DO_cas6trapsx2b,linestyle='-',color='darkturquoise',linewidth=4, label='Current LiveOcean')
+    ax.plot(year_time,DO_cas7trapsV00meV00,linestyle='-',color='k',linewidth=2,label='Model')
 
-#     # add legend
-#     if i == 0:
-#         ax.legend(loc='lower center',fontsize=fs_label,ncol=3)
+    # add legend
+    if i == 0:
+        ax.legend(loc='lower center',fontsize=fs_label,ncol=3)
 
-# # Generate plot
-# plt.suptitle('LiveOcean and ORCA buoy ' + var + ' comparison (' + layer_name +' 20%)',fontweight='bold',fontsize=20)
-# plt.tight_layout
-# plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.90, wspace=0.05, hspace=0.2)
-# plt.savefig(out_dir / ('orca_buoy_plot_updated.png'))
+# Generate plot
+plt.suptitle('LiveOcean and ORCA buoy ' + var + ' comparison (' + layer_name +' 20%)',fontweight='bold',fontsize=20)
+plt.tight_layout
+plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.90, wspace=0.05, hspace=0.2)
+plt.savefig(out_dir / ('orca_buoy_plot_updated.png'))
