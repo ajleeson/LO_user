@@ -59,9 +59,9 @@ out_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / ('f' + date_string) / Ldi
 # get correct version of traps climatology output
 trapsP = Ldir['trapsP']
 
-# get correct version of Ecology data (based on what is saved in LO_output/pre/trapsP##)
-this_dir = Path(__file__).absolute().parent.parent.parent
-with open(this_dir / 'pre' / trapsP / 'traps_data_ver.csv','r') as f:
+# get correct version of Ecology data (based on what is saved in LO/pre/trapsP##)
+this_dir = Path(__file__).absolute().parent.parent.parent.parent
+with open(this_dir / 'LO' / 'pre' / trapsP / 'traps_data_ver.csv','r') as f:
     for ver in f:
         trapsD = ver
 
