@@ -272,6 +272,8 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
                     qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
                     bvals = qtbio_wwtp_df[var].values
                 for nn in range(N):
+                    if var in ['NO3','NH4']:
+                        bvals = [0*bval for bval in bvals] # make wwtp effluent have zero nitrogen
                     B_mat[:, nn, rr] = bvals
             # check for nans
             if np.isnan(TS_mat).any():
