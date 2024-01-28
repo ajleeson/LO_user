@@ -49,7 +49,7 @@ Ldir = Lfun.Lstart()
 ################################################################### 
 
 vns = ['DIN','u','v'] # u, v, w, DIN
-date = '2013.01.11'
+date = '2013.04.14'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
@@ -225,9 +225,9 @@ for vn in vns:
         ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
                 horizontalalignment='center', fontsize=15)
         
-        # # add WWTP locations
-        # ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
-        #         facecolors='none',edgecolors='k')
+        # add WWTP locations
+        ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
+                facecolors='none',edgecolors='k')
 
     # Generate plot
     plt.tight_layout
