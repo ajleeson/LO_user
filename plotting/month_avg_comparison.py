@@ -42,27 +42,34 @@ Gr = gfun.gstart()
 
 Ldir = Lfun.Lstart()
 
-# where to put output figures
-out_dir = Ldir['LOo'] / 'AL_custom_plots'
-Lfun.make_dir(out_dir)
+##############################################################
+##                       USER INPUTS                        ##
+##############################################################
 
-# ----------------------------------------------------------------------
+month = 'July' #July, August, September
+
+year = '2013'
+
+# Variables to compare
+vn_list = ['oxygen','NO3','NH4','phytoplankton']
 
 # Provide information about models to compare
 # basecase (N-less run)
-bc_gtagex = 'cas6_traps3_x2b'
-# test condition (long hindcast)
-c1_gtagex = 'cas6_traps2_x2b'
-gtagexes = [bc_gtagex, c1_gtagex]
+noN_gtagex = 'cas7_t0noN_x4b'
+# long hindcast
+hindcast_gtagex = 'cas7_t0_x4b'
+gtagexes = [noN_gtagex, hindcast_gtagex]
 
-#'Puget Sound','Whidbey Basin','North King County','Lynch Cove'
+#'Puget Sound'
 region = 'Puget Sound'
-
-# Variables to compare
-vn_list = ['oxygen']#['NO3','phytoplankton','oxygen']
 
 # Show WWTP locations?
 WWTP_loc = True
+
+###########################################################
+# where to put output figures
+out_dir = Ldir['LOo'] / 'AL_custom_plots' / (hindcast_gtagex + '_MINUS_' + noN_gtagex)
+Lfun.make_dir(out_dir)
 
 ##########################################################
 # helper funcions
@@ -75,7 +82,6 @@ def SSM2LO_name(rname):
     repeatrivs_fn = '../../LO_data/trapsD00/LiveOcean_SSM_rivers.xlsx'
     repeatrivs_df = pd.read_excel(repeatrivs_fn)
     rname_LO = repeatrivs_df.loc[repeatrivs_df['SSM_rname'] == rname, 'LO_rname'].values[0]
-
     return rname_LO
 
 def LO2SSM_name(rname):
@@ -85,31 +91,30 @@ def LO2SSM_name(rname):
     repeatrivs_fn = Ldir['data'] / 'trapsD00' / 'LiveOcean_SSM_rivers.xlsx'
     repeatrivs_df = pd.read_excel(repeatrivs_fn)
     rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
-
     return rname_SSM
 
-# riv fun function to get biology
-def get_bio_vec(vn, rn, yd_ind):
-    ndt = len(yd_ind)
-    yd = yd_ind.values
-    ovec = np.ones(ndt)
-    if vn == 'NO3':
-        if rn == 'fraser':
-            vv = 2 + (13/2) + (13/2)*np.cos(2*np.pi*((yd-30)/366))
-        elif rn == 'columbia':
-            vv = 5 + (35/2) + (35/2)*np.cos(2*np.pi*((yd)/366))
-        else:
-            vv = 5 * ovec
-    elif vn == 'Oxyg':
-        vv = 350 * ovec
-    elif vn in ['TAlk', 'TIC']:
-        if rn in ['columbia', 'deschutes', 'duwamish']:
-            vv = 1000 * ovec
-        else:
-            vv = 300 * ovec
-    else:
-        vv = 0 * ovec # all others filled with zeros
-    return vv
+# # riv fun function to get biology
+# def get_bio_vec(vn, rn, yd_ind):
+#     ndt = len(yd_ind)
+#     yd = yd_ind.values
+#     ovec = np.ones(ndt)
+#     if vn == 'NO3':
+#         if rn == 'fraser':
+#             vv = 2 + (13/2) + (13/2)*np.cos(2*np.pi*((yd-30)/366))
+#         elif rn == 'columbia':
+#             vv = 5 + (35/2) + (35/2)*np.cos(2*np.pi*((yd)/366))
+#         else:
+#             vv = 5 * ovec
+#     elif vn == 'Oxyg':
+#         vv = 350 * ovec
+#     elif vn in ['TAlk', 'TIC']:
+#         if rn in ['columbia', 'deschutes', 'duwamish']:
+#             vv = 1000 * ovec
+#         else:
+#             vv = 300 * ovec
+#     else:
+#         vv = 0 * ovec # all others filled with zeros
+#     return vv
 
 ##########################################################
 if WWTP_loc == True:
@@ -173,28 +178,8 @@ if WWTP_loc == True:
 
 ##########################################################
 
-def find_nearest(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return idx
-
 # get plotting limits based on region
-if region == 'North King County':
-    xmin = -122.6
-    xmax = -122.3
-    ymin = 47.55
-    ymax = 47.75
-elif region == 'Lynch Cove':
-    xmin = -123.2
-    xmax = -122.8
-    ymin = 47.3
-    ymax = 47.5
-elif region == 'Whidbey Basin':
-    xmin = -122.8
-    xmax = -122.1
-    ymin = 48
-    ymax = 48.4
-elif region == 'Puget Sound':
+if region == 'Puget Sound':
     xmin = -123.2
     xmax = -122.1
     ymin = 46.93
@@ -210,48 +195,59 @@ lat_u = grid_ds.lat_u.values
 lon_v = grid_ds.lon_v.values
 lat_v = grid_ds.lat_v.values
 
+# get month
+if month == 'July':
+    day0 = '07.01'
+    day1 = '07.31'
+elif month == 'August':
+    day0 = '08.01'
+    day1 = '08.31'
+elif month == 'September':
+    day0 = '09.01'
+    day1 = '09.30'
+
 # Loop through variable to compare
 for vn in vn_list:
     if vn == 'NO3':
         slev = -1
-        stext = 'Surface'
+        stext = 'surface'
         vmin = 0
-        vmax = 44
+        vmax = 30
         cmap = cmocean.cm.matter
     elif vn == 'NH4':
         slev = -1
-        stext = 'Surface'
+        stext = 'surface'
         vmin = 0
         vmax = 5
         cmap = cmocean.cm.matter
     elif vn == 'phytoplankton':
         slev = -1
-        stext = 'Surface'
+        stext = 'surface'
         vmin = 0
-        vmax = 10
+        vmax = 30
         cmap = cmocean.cm.algae
     elif vn == 'oxygen':
         slev = 0
-        stext = 'Bottom'
+        stext = 'bottom'
         vmin = 0
         vmax = 10
-        cmap = cmocean.cm.oxy
+        cmap = cmocean.cm.thermal#cmocean.cm.oxy
 
-    # scale variable
+    # scale variable & get units
     scale =  pinfo.fac_dict[vn]
+    units = pinfo.units_dict[vn]
 
     # Initialize figure
     fs = 10
     pfun.start_plot(fs=fs, figsize=(36,27))
     fig = plt.figure()
-    # gs = fig.add_gridspec(nrows=4, ncols=3, left=0.05, right=0.48, wspace=0.05)
     gs = fig.add_gridspec(nrows=1, ncols=2, left=0.05, right=0.95, wspace=0.05, hspace=0.05)
 
     # loop through and plot both conditions
     for i,gtagex in enumerate(gtagexes):
 
         # get data
-        fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / 'prelimDO_2017.08.01_2017.08.31.nc'
+        fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsound_'+year+'.'+day0+'_'+year+'.'+day1+'.nc')
         ds = xr.open_dataset(fp)
 
         # Get coordinates for pcolormesh
@@ -275,7 +271,7 @@ for vn in vn_list:
             ax.axis('off')
             # pfun.add_coast(ax)
             pfun.dar(ax)
-            ax.set_title('(a) N-less run', fontsize=36)
+            ax.set_title('(a) N-less run', fontsize=38)
             # save dataset for later use
             bc_ds = ds
             bc = v
@@ -318,7 +314,7 @@ for vn in vn_list:
     # format everything else
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    ax.set_title('(b) Anomaly (Hindcast minus N-less run)', fontsize=36)
+    ax.set_title('(b) Anomaly: hindcast minus N-less run', fontsize=38)
     ax.set_xlim([xmin,xmax])
     ax.set_ylim([ymin,ymax])
     ax.axis('off')
@@ -340,10 +336,10 @@ for vn in vn_list:
 
                            
     # Add colormap title
-    plt.suptitle('August 2017 Average Bottom DO [mg/L]',
-                 fontsize=44, fontweight='bold')#, x=0.64, y=0.94)
+    plt.suptitle(month + ' ' + year + ' average ' + stext + ' ' + vn + ' ' + units,
+                 fontsize=44, fontweight='bold', y=0.95)
 
     # Generate plot
     plt.tight_layout
-    plt.savefig(out_dir / (stext+'_'+vn+'_month_avg_diff.png'))
+    plt.savefig(out_dir / (stext+'_'+vn+'_'+year+'_'+month+'_avg_diff.png'))
     # plt.show()
