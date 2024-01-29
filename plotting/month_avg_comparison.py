@@ -208,138 +208,140 @@ elif month == 'September':
 
 # Loop through variable to compare
 for vn in vn_list:
-    if vn == 'NO3':
-        slev = -1
-        stext = 'surface'
-        vmin = 0
-        vmax = 30
-        cmap = cmocean.cm.matter
-    elif vn == 'NH4':
-        slev = -1
-        stext = 'surface'
-        vmin = 0
-        vmax = 5
-        cmap = cmocean.cm.matter
-    elif vn == 'phytoplankton':
-        slev = -1
-        stext = 'surface'
-        vmin = 0
-        vmax = 30
-        cmap = cmocean.cm.algae
-    elif vn == 'oxygen':
-        slev = 0
-        stext = 'bottom'
-        vmin = 0
-        vmax = 10
-        cmap = cmocean.cm.thermal#cmocean.cm.oxy
 
-    # scale variable & get units
-    scale =  pinfo.fac_dict[vn]
-    units = pinfo.units_dict[vn]
+    # make plots for both surface and bottom water
+    for stext in ['surface','bottom']:
 
-    # Initialize figure
-    fs = 10
-    pfun.start_plot(fs=fs, figsize=(36,27))
-    fig = plt.figure()
-    gs = fig.add_gridspec(nrows=1, ncols=2, left=0.05, right=0.95, wspace=0.05, hspace=0.05)
+        if stext == 'surface':
+            slev = -1
+        elif stext == 'bottom':
+            slev = 0
 
-    # loop through and plot both conditions
-    for i,gtagex in enumerate(gtagexes):
+        # set axes range for different state variables
+        if vn == 'NO3':
+            vmin = 0
+            vmax = 40
+            cmap = cmocean.cm.matter
+        elif vn == 'NH4':
+            vmin = 0
+            vmax = 6
+            cmap = cmocean.cm.matter
+        elif vn == 'phytoplankton':
+            vmin = 0
+            vmax = 30
+            cmap = cmocean.cm.algae
+        elif vn == 'oxygen':
+            vmin = 0
+            vmax = 10
+            cmap = cmocean.cm.thermal#cmocean.cm.oxy
 
-        # get data
-        fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsound_'+year+'.'+day0+'_'+year+'.'+day1+'.nc')
-        ds = xr.open_dataset(fp)
+        # scale variable & get units
+        scale =  pinfo.fac_dict[vn]
+        units = pinfo.units_dict[vn]
 
-        # Get coordinates for pcolormesh
-        px, py = pfun.get_plon_plat(ds.coords['lon_rho'].values,ds.coords['lat_rho'].values)
+        # Initialize figure
+        fs = 10
+        pfun.start_plot(fs=fs, figsize=(36,27))
+        fig = plt.figure()
+        gs = fig.add_gridspec(nrows=1, ncols=2, left=0.05, right=0.95, wspace=0.05, hspace=0.05)
 
-        # Plot basecase map field
-        if i == 0:
-            ax = fig.add_subplot(1,2,1)
-            v = ds[vn][:,slev,:,:].values * scale
-            v = np.nanmean(v,axis=0)
-            cs = ax.pcolormesh(px,py,v, vmin=vmin, vmax=vmax, cmap=cmap)
-            # add colorbar
-            cbar = fig.colorbar(cs, location='left')
-            cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
-            cbar.outline.set_visible(False)
-            # format figure
-            ax.set_xlim([xmin,xmax])
-            ax.set_ylim([ymin,ymax])
-            ax.set_yticklabels([])
-            ax.set_xticklabels([])
-            ax.axis('off')
-            # pfun.add_coast(ax)
-            pfun.dar(ax)
-            ax.set_title('(a) N-less run', fontsize=38)
-            # save dataset for later use
-            bc_ds = ds
-            bc = v
+        # loop through and plot both conditions
+        for i,gtagex in enumerate(gtagexes):
 
-            # add 10 km bar
-            lat0 = 46.94
-            lon0 = -123.05
-            lat1 = lat0
-            lon1 = -122.91825
-            distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
-            x_dist_km = round(distances_m[0]/1000)
-            ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
-            ax.text(lon0,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=28)
+            # get data
+            fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsound_'+year+'.'+day0+'_'+year+'.'+day1+'.nc')
+            ds = xr.open_dataset(fp)
 
-            # add puget sound map
-            inset_map = plt.imread('puget_sound.png')
-            imagebox = OffsetImage(inset_map)#, zoom = 0.15)
-            ab = AnnotationBbox(imagebox, (-122.3, 47.05), frameon = False)
-            ax.add_artist(ab)
+            # Get coordinates for pcolormesh
+            px, py = pfun.get_plon_plat(ds.coords['lon_rho'].values,ds.coords['lat_rho'].values)
 
-        elif i == 1:
-            # save test condition
-            v = ds[vn][:,slev,:,:].values * scale
-            v = np.nanmean(v,axis=0)
-            c1_ds = ds
-            c1 = v
+            # Plot basecase map field
+            if i == 0:
+                ax = fig.add_subplot(1,2,1)
+                v = ds[vn][:,slev,:,:].values * scale
+                v = np.nanmean(v,axis=0)
+                cs = ax.pcolormesh(px,py,v, vmin=vmin, vmax=vmax, cmap=cmap)
+                # add colorbar
+                cbar = fig.colorbar(cs, location='left')
+                cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+                cbar.outline.set_visible(False)
+                # format figure
+                ax.set_xlim([xmin,xmax])
+                ax.set_ylim([ymin,ymax])
+                ax.set_yticklabels([])
+                ax.set_xticklabels([])
+                ax.axis('off')
+                # pfun.add_coast(ax)
+                pfun.dar(ax)
+                ax.set_title('(a) N-less run', fontsize=38)
+                # save dataset for later use
+                bc_ds = ds
+                bc = v
 
-    # plot the pcolormesh difference 
-    plt.subplots_adjust(wspace=0.01)
-    ax = fig.add_subplot(1,2,2)
-    diff = (c1 - bc)
-    vmin = np.nanmin(diff)
-    vmax = np.nanmax(diff)
-    # make sure the colorbar is always centered about zero
-    cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
-    cs = ax.pcolormesh(px,py,diff, vmin=vmin, vmax=vmax, cmap=cmap)
-    cbar = fig.colorbar(cs, location='right')
-    cbar.ax.tick_params(labelsize=32)
-    cbar.outline.set_visible(False)
-    # format everything else
-    ax.set_yticklabels([])
-    ax.set_xticklabels([])
-    ax.set_title('(b) Anomaly: hindcast minus N-less run', fontsize=38)
-    ax.set_xlim([xmin,xmax])
-    ax.set_ylim([ymin,ymax])
-    ax.axis('off')
-    # pfun.add_coast(ax)
-    pfun.dar(ax)
+                # add 10 km bar
+                lat0 = 46.94
+                lon0 = -123.05
+                lat1 = lat0
+                lon1 = -122.91825
+                distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
+                x_dist_km = round(distances_m[0]/1000)
+                ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
+                ax.text(lon0,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=28)
 
-    # add wwtp locations
-    if WWTP_loc == True:
-        ax.scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
-        leg_szs = [100, 1000, 10000]
-        szs = [0.3*(leg_sz) for leg_sz in leg_szs]
-        l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=3)
-        l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=3)
-        l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=3)
-        labels = ['< 100', '1,000', '10,000']
-        legend = ax.legend([l0, l1, l2], labels, fontsize = 24, markerfirst=False,
-            title='WWTP N loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
-        plt.setp(legend.get_title(),fontsize=28)
+                # add puget sound map
+                inset_map = plt.imread('puget_sound.png')
+                imagebox = OffsetImage(inset_map)#, zoom = 0.15)
+                ab = AnnotationBbox(imagebox, (-122.3, 47.05), frameon = False)
+                ax.add_artist(ab)
 
-                           
-    # Add colormap title
-    plt.suptitle(month + ' ' + year + ' average ' + stext + ' ' + vn + ' ' + units,
-                 fontsize=44, fontweight='bold', y=0.95)
+            elif i == 1:
+                # save test condition
+                v = ds[vn][:,slev,:,:].values * scale
+                v = np.nanmean(v,axis=0)
+                c1_ds = ds
+                c1 = v
 
-    # Generate plot
-    plt.tight_layout
-    plt.savefig(out_dir / (stext+'_'+vn+'_'+year+'_'+month+'_avg_diff.png'))
-    # plt.show()
+        # plot the pcolormesh difference 
+        plt.subplots_adjust(wspace=0.01)
+        ax = fig.add_subplot(1,2,2)
+        diff = (c1 - bc)
+        vmin = np.nanmin(diff)
+        vmax = np.nanmax(diff)
+        # make sure the colorbar is always centered about zero
+        cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
+        cs = ax.pcolormesh(px,py,diff, vmin=vmin, vmax=vmax, cmap=cmap)
+        cbar = fig.colorbar(cs, location='right')
+        cbar.ax.tick_params(labelsize=32)
+        cbar.outline.set_visible(False)
+        # format everything else
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+        ax.set_title('(b) Anomaly: hindcast minus N-less run', fontsize=38)
+        ax.set_xlim([xmin,xmax])
+        ax.set_ylim([ymin,ymax])
+        ax.axis('off')
+        # pfun.add_coast(ax)
+        pfun.dar(ax)
+
+        # add wwtp locations
+        if WWTP_loc == True:
+            ax.scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
+            leg_szs = [100, 1000, 10000]
+            szs = [0.3*(leg_sz) for leg_sz in leg_szs]
+            l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=3)
+            l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=3)
+            l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=3)
+            labels = ['< 100', '1,000', '10,000']
+            legend = ax.legend([l0, l1, l2], labels, fontsize = 24, markerfirst=False,
+                title='WWTP N loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
+            plt.setp(legend.get_title(),fontsize=28)
+
+                            
+        # Add colormap title
+        plt.suptitle(month + ' ' + year + ' average ' + stext + ' ' + vn + ' ' + units,
+                    fontsize=44, fontweight='bold', y=0.95)
+
+        # Generate plot
+        plt.tight_layout
+        plt.savefig(out_dir / (stext+'_'+vn+'_'+year+'_'+month+'_avg_diff.png'))
+        # plt.show()
