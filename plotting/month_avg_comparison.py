@@ -51,7 +51,7 @@ month = 'July' #July, August, September
 year = '2013'
 
 # Variables to compare
-vn_list = ['oxygen','NO3','NH4','phytoplankton','u','v']
+vn_list = ['oxygen','NO3','NH4','phytoplankton','SdetritusN','LdetritusN']
 
 # Provide information about models to compare
 # basecase (N-less run)
@@ -254,15 +254,15 @@ for vn in vn_list:
 
             # Get coordinates for pcolormesh
             # get lat and lon
-            if vn == 'u':
-                lons = ds.coords['lon_u'].values
-                lats = ds.coords['lat_u'].values
-            elif vn == 'v':
-                lons = ds.coords['lon_v'].values
-                lats = ds.coords['lat_v'].values
-            else:
-                lons = ds.coords['lon_rho'].values
-                lats = ds.coords['lat_rho'].values
+            # if vn == 'u':
+            #     lons = ds.coords['lon_u'].values
+            #     lats = ds.coords['lat_u'].values
+            # elif vn == 'v':
+            #     lons = ds.coords['lon_v'].values
+            #     lats = ds.coords['lat_v'].values
+            # else:
+            lons = ds.coords['lon_rho'].values
+            lats = ds.coords['lat_rho'].values
             px, py = pfun.get_plon_plat(lons,lats)
 
             # Plot basecase map field
