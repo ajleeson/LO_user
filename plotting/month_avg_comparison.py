@@ -46,7 +46,7 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-month = 'July' #July, August, September
+month = 'August' #July, August
 
 year = '2013'
 
@@ -68,7 +68,7 @@ WWTP_loc = True
 
 ###########################################################
 # where to put output figures
-out_dir = Ldir['LOo'] / 'AL_custom_plots' / (hindcast_gtagex + '_MINUS_' + noN_gtagex)
+out_dir = Ldir['LOo'] / 'AL_custom_plots' / (hindcast_gtagex + '_MINUS_' + noN_gtagex) / (year + month)
 Lfun.make_dir(out_dir)
 
 ##########################################################
@@ -234,6 +234,14 @@ for vn in vn_list:
             vmin = 0
             vmax = 10
             cmap = cmocean.cm.thermal#cmocean.cm.oxy
+        elif vn == 'SdetritusN':
+            vmin = 0
+            vmax = 5
+            cmap = cmocean.cm.matter
+        elif vn == 'LdetritusN':
+            vmin = 0
+            vmax = 0.1
+            cmap = cmocean.cm.matter
 
         # scale variable & get units
         scale =  pinfo.fac_dict[vn]
@@ -315,11 +323,19 @@ for vn in vn_list:
         plt.subplots_adjust(wspace=0.01)
         ax = fig.add_subplot(1,2,2)
         diff = (c1 - bc)
-        vmin = np.nanmin(diff)
-        vmax = np.nanmax(diff)
+        mindiff = np.nanmin(diff)
+        maxdiff = np.nanmax(diff)
+        # make sure colorbar axis contains zero
+        if mindiff > 0 and maxdiff > 0:
+            mindiff = maxdiff*-1.01
+        if mindiff < 0 and maxdiff < 0:
+            maxdiff = mindiff*-1.01
+        # don't let colorbar axis scale get too large
+        if maxdiff > vmax:
+            maxdiff = vmax
         # make sure the colorbar is always centered about zero
-        cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
-        cs = ax.pcolormesh(px,py,diff, vmin=vmin, vmax=vmax, cmap=cmap)
+        cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
+        cs = ax.pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
         cbar = fig.colorbar(cs, location='right')
         cbar.ax.tick_params(labelsize=32)
         cbar.outline.set_visible(False)
@@ -353,5 +369,5 @@ for vn in vn_list:
 
         # Generate plot
         plt.tight_layout
-        plt.savefig(out_dir / (stext+'_'+vn+'_'+year+'_'+month+'_avg_diff.png'))
+        plt.savefig(out_dir / (vn+'_'+stext+'_avg_diff.png'))
         # plt.show()
