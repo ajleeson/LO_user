@@ -132,8 +132,8 @@ for vn in vns:
         vmax =  5
     elif vn == 'u' or vn == 'v':
         vn_name = vn
-        vmin = -0.1
-        vmax =  0.1
+        vmin = -0.01
+        vmax =  0.01
     else:
         print('vmin and vmax not provided for '+ vn)
 
@@ -189,7 +189,7 @@ for vn in vns:
     stexts = [stext_surf,stext_bott]
     values = [surf_diff,bott_diff]
 
-    newcmap = cmocean.cm.balance
+    newcmap = cmocean.cm.balance_r
 
     # loop through all of the plots we need to make
     for i,stext in enumerate(stexts):
