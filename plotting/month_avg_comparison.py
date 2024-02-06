@@ -93,29 +93,6 @@ def LO2SSM_name(rname):
     rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
     return rname_SSM
 
-# # riv fun function to get biology
-# def get_bio_vec(vn, rn, yd_ind):
-#     ndt = len(yd_ind)
-#     yd = yd_ind.values
-#     ovec = np.ones(ndt)
-#     if vn == 'NO3':
-#         if rn == 'fraser':
-#             vv = 2 + (13/2) + (13/2)*np.cos(2*np.pi*((yd-30)/366))
-#         elif rn == 'columbia':
-#             vv = 5 + (35/2) + (35/2)*np.cos(2*np.pi*((yd)/366))
-#         else:
-#             vv = 5 * ovec
-#     elif vn == 'Oxyg':
-#         vv = 350 * ovec
-#     elif vn in ['TAlk', 'TIC']:
-#         if rn in ['columbia', 'deschutes', 'duwamish']:
-#             vv = 1000 * ovec
-#         else:
-#             vv = 300 * ovec
-#     else:
-#         vv = 0 * ovec # all others filled with zeros
-#     return vv
-
 ##########################################################
 if WWTP_loc == True:
     # set up the time index for the record
@@ -185,15 +162,15 @@ if region == 'Puget Sound':
     ymin = 46.93
     ymax = 48.45
 
-# Get grid data
-G = zrfun.get_basic_info('/home/aleeson/LO_data/grids/cas6/grid.nc', only_G=True)
-grid_ds = xr.open_dataset('/home/aleeson/LO_data/grids/cas6/grid.nc')
-lon = grid_ds.lon_rho.values
-lat = grid_ds.lat_rho.values
-lon_u = grid_ds.lon_u.values
-lat_u = grid_ds.lat_u.values
-lon_v = grid_ds.lon_v.values
-lat_v = grid_ds.lat_v.values
+# # Get grid data
+# G = zrfun.get_basic_info('/home/aleeson/LO_data/grids/cas6/grid.nc', only_G=True)
+# grid_ds = xr.open_dataset('/home/aleeson/LO_data/grids/cas6/grid.nc')
+# lon = grid_ds.lon_rho.values
+# lat = grid_ds.lat_rho.values
+# lon_u = grid_ds.lon_u.values
+# lat_u = grid_ds.lat_u.values
+# lon_v = grid_ds.lon_v.values
+# lat_v = grid_ds.lat_v.values
 
 # get month
 if month == 'July':
