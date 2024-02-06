@@ -7,6 +7,7 @@ The second panel shows the difference between the basecase and the test conditio
 # import things
 from subprocess import Popen as Po
 from subprocess import PIPE as Pi
+from datetime import datetime
 import numpy as np
 import xarray as xr
 from matplotlib.offsetbox import (OffsetImage, AnnotationBbox)
