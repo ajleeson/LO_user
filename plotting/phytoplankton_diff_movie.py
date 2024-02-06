@@ -87,9 +87,9 @@ try:
 except KeyError:
     HOSTNAME = 'BLANK'
 
-# if running script from perigee, get output for hindcast from apogee
+# if running script from perigee, get output for hindcast from Parker's apogee
 if (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
-    Ldir_hindcast['roms_out'] = Path('/dat1/parker/LO_roms')
+    Ldir_hindcast['roms_out'] = Path('/agdat1/parker/LO_roms')
 
 # get list of history files to plot
 fn_list_hindcast   = Lfun.get_fn_list(list_type, Ldir_hindcast,
