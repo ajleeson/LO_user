@@ -62,8 +62,8 @@ year = '2013'
 noN_gtagex = 'cas7_t0noN_x4b'
 # long hindcast
 hindcast_gtagex = 'cas7_t0_x4b'
-# the order matters here! So be careful! It should be hindcast, then no N
-gtagexes = [hindcast_gtagex, noN_gtagex]
+# the order matters here! So be careful! It should be N-less run, then hindcast
+gtagexes = [noN_gtagex, hindcast_gtagex]
 
 # Variables for plotting
 vn = 'phytoplankton'
@@ -253,12 +253,12 @@ for his_file_ind,fn_hindcast in enumerate(fn_list_hindcast):
 
     slev = -1
 
-    for i,gtagex in enumerate(gtagexes):
+    for gtagex in gtagexes:
     # Plot basecase map field
-        if i == 0:
+        if gtagex == 'cas7_t0noN_x4b':
             ax = fig.add_subplot(1,2,1)
-            v = ds_hindcast[vn][0,slev,:,:].values * scale
-            cs = ax.pcolormesh(px,py,v, vmin=vmin, vmax=vmax, cmap=cmap)
+            v_noN = ds_noN[vn][0,slev,:,:].values * scale
+            cs = ax.pcolormesh(px,py,v_noN, vmin=vmin, vmax=vmax, cmap=cmap)
             # add colorbar
             cbar = fig.colorbar(cs, location='left')
             cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
@@ -272,9 +272,6 @@ for his_file_ind,fn_hindcast in enumerate(fn_list_hindcast):
             # pfun.add_coast(ax)
             pfun.dar(ax)
             ax.set_title('(a) N-less run', fontsize=38)
-            # save dataset for later use
-            bc_ds = ds_hindcast
-            bc = v
 
             # add 10 km bar
             lat0 = 46.94
@@ -292,16 +289,16 @@ for his_file_ind,fn_hindcast in enumerate(fn_list_hindcast):
             ab = AnnotationBbox(imagebox, (-122.3, 47.05), frameon = False)
             ax.add_artist(ab)
 
-        elif i == 1:
+        elif gtagex == 'cas7_t0_x4b':
             # save test condition
-            v = ds_noN[vn][0,slev,:,:].values * scale # we can take time = 0, because there is a snapshot of time (length of 1 in time dimension)
-            c1_ds = ds_noN
-            c1 = v
+            v_hindcast = ds_hindcast[vn][0,slev,:,:].values * scale
+            # we can take time = 0, because there is a snapshot of time (length of 1 in time dimension)
 
     # plot the pcolormesh difference 
     plt.subplots_adjust(wspace=0.01)
     ax = fig.add_subplot(1,2,2)
-    diff = (c1 - bc)
+    # hindcast minus N-less run
+    diff = (v_hindcast - v_noN)
 
     # fixed min and max difference so axis don't change frame to frame
     mindiff = -15
