@@ -62,7 +62,8 @@ year = '2013'
 noN_gtagex = 'cas7_t0noN_x4b'
 # long hindcast
 hindcast_gtagex = 'cas7_t0_x4b'
-gtagexes = [noN_gtagex, hindcast_gtagex]
+# the order matters here! So be careful! It should be hindcast, then no N
+gtagexes = [hindcast_gtagex, noN_gtagex]
 
 # Variables for plotting
 vn = 'phytoplankton'
@@ -72,6 +73,9 @@ region = 'Puget Sound'
 
 # Show WWTP locations?
 WWTP_loc = True
+
+# d0 = '2013.03.01'
+# d1 = '2013.03.01'
 
 d0 = '2013.01.01'
 d1 = '2013.12.31'
@@ -300,8 +304,8 @@ for his_file_ind,fn_hindcast in enumerate(fn_list_hindcast):
     diff = (c1 - bc)
 
     # fixed min and max difference so axis don't change frame to frame
-    mindiff = -5
-    maxdiff = 7
+    mindiff = -15
+    maxdiff = 8
 
     # make sure the colorbar is always centered about zero
     cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
