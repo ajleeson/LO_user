@@ -209,7 +209,7 @@ def get_sta_dict(job_name):
         }
 
     # 2024.02.05 exploring influence of WWTP nutrients in Puget Sound
-    elif job_name == 'orca':
+    elif job_name == 'noWWTPNtest':
         sta_dict = {
         'main_basin': (-122.445051, 47.615672),
         'holmes_harbor': (-122.528470, 48.055797),
