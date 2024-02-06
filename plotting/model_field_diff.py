@@ -48,15 +48,15 @@ Ldir = Lfun.Lstart()
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['DIN','u','v'] # u, v, w, DIN
-date = '2013.04.14'
+vns = ['u']#['DIN','u','v'] # u, v, w, DIN
+date = '2013.01.01'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
 
 gtagex_longhindcast = 'cas7_t0_x4b'
-gtagex_noN = 'cas7_t0noN_x4b'
+gtagex_noN = 'cas7_t0noN_x4b_perf10'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
@@ -225,9 +225,9 @@ for vn in vns:
         ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
                 horizontalalignment='center', fontsize=15)
         
-        # add WWTP locations
-        ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
-                facecolors='none',edgecolors='k')
+        # # add WWTP locations
+        # ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
+        #         facecolors='none',edgecolors='k')
 
     # Generate plot
     plt.tight_layout
