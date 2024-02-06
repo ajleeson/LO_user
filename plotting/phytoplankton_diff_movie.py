@@ -298,8 +298,8 @@ for his_file_ind,fn_hindcast in enumerate(fn_list_hindcast):
     diff = (c1 - bc)
 
     # fixed min and max difference so axis don't change frame to frame
-    mindiff = -1
-    maxdiff = 6
+    mindiff = -5
+    maxdiff = 7
 
     # make sure the colorbar is always centered about zero
     cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
