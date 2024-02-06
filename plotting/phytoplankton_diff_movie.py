@@ -364,7 +364,7 @@ for his_file_ind,fn_hindcast in enumerate(fn_list_hindcast):
 
 # make movie
 if len(fn_list_hindcast) > 1:
-    cmd_list = ['ffmpeg','-r','8','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
+    cmd_list = ['ffmpeg','-r','2','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
         '-pix_fmt', 'yuv420p', '-crf', '25', str(outdir)+'/movie.mp4']
     proc = Po(cmd_list, stdout=Pi, stderr=Pi)
     stdout, stderr = proc.communicate()
