@@ -2,6 +2,8 @@
 Movie comparing surface phytoplankton between two runs
 The first panel shows the basecase surface phytoplankton
 The second panel shows the difference between the basecase and the test condition
+
+Video/figure saved in LO_output/AL_custom_plots/cas7_t0_x4b_MINUS_cas7_t0noN_x4b/surface_video
 '''
 
 # import things
