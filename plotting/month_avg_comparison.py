@@ -268,7 +268,7 @@ for vn in vn_list:
                 ax.axis('off')
                 # pfun.add_coast(ax)
                 pfun.dar(ax)
-                ax.set_title('(a) N-less run', fontsize=38)
+                ax.set_title('(a) No loading', fontsize=38)
                 # save dataset for later use
                 bc_ds = ds
                 bc = v
@@ -319,7 +319,7 @@ for vn in vn_list:
         # format everything else
         ax.set_yticklabels([])
         ax.set_xticklabels([])
-        ax.set_title('(b) Anomaly: hindcast minus N-less run', fontsize=38)
+        ax.set_title('(b) With-loading minus no-loading', fontsize=38)
         ax.set_xlim([xmin,xmax])
         ax.set_ylim([ymin,ymax])
         ax.axis('off')
