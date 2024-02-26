@@ -118,6 +118,10 @@ for i,station in enumerate(sta_dict.keys()):
                     cmap = pinfo.cmap_dict[vn]
                 # get dataset
                 val = ds[vn].transpose() * scale
+                # autoscale nutrient colorbar
+                if vn == 'NO3' or vn == 'NH4':
+                    vmin = 0.9*np.nanmin(val)
+                    vmax = 1.1*np.nanmax(val)
 
             elif gtagex == 'cas7_t0_x4b':
                 title = 'Anthropogenic minus Natural'

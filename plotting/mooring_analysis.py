@@ -159,16 +159,16 @@ for i,station in enumerate(sta_dict.keys()):
         # save datasets for later, and add titles
         if gtagex == 'cas7_t0noN_x4b':
             ds_noN = ds
-            title = 'No-loading'
+            title = 'Natural'
         elif gtagex == 'cas7_t0_x4b':
             ds_hindcast = ds
-            title = 'With-loading'
+            title = 'Anthropogenic'
 
         # add subtitles for each panel
         axN[j].text(0.02, 0.8, letters[j]+title, fontweight='bold',
             verticalalignment='bottom', horizontalalignment='left',
             transform=axN[j].transAxes, fontsize=12)
-        axN[2].text(0.02, 0.8, '(c) With-loading minus No-loading', fontweight='bold',
+        axN[2].text(0.02, 0.8, '(c) Anthropogenic - Natural', fontweight='bold',
             verticalalignment='bottom', horizontalalignment='left',
             transform=axN[2].transAxes, fontsize=12)
 
@@ -320,8 +320,10 @@ for i,station in enumerate(sta_dict.keys()):
     # ax.plot(dates_local, TmolNH4_noN, color='mediumorchid',linewidth=0.6,label='NH4 N-less')
     # ax.plot(dates_local, TmolNH4_hindcast, color='mediumorchid',linewidth=2,alpha=0.6,label='NH4 with-N')
     # DIN
-    ax.plot(dates_local, TmolDIN_noN, color='darkcyan',linewidth=0.6,label='No-loading')
-    ax.plot(dates_local, TmolDIN_hindcast, color='darkcyan',linewidth=2.5,alpha=0.4,label='With-loading')
+    # ax.plot(dates_local, TmolDIN_noN, color='darkcyan',linewidth=0.6,label='No-loading')
+    # ax.plot(dates_local, TmolDIN_hindcast, color='darkcyan',linewidth=2,alpha=0.6,label='With-loading')
+    ax.plot(dates_local, TmolDIN_noN, linestyle='-',color='darkturquoise',linewidth=4,label='Natural')
+    ax.plot(dates_local, TmolDIN_hindcast, linestyle='--',color='k',linewidth=1.5, label='Anthropogenic')
     # format subplot
     ax.set_xlim([dates_local[0],dates_local[-1]])
     ax.grid(True,color='w',linewidth=2)
@@ -331,7 +333,7 @@ for i,station in enumerate(sta_dict.keys()):
     ax.set_ylim([0,1.2*max(TmolDIN_hindcast)])
     for border in ['top','right','bottom','left']:
         ax.spines[border].set_visible(False)
-    ax.legend(loc='lower left')
+    ax.legend(loc='lower right')
     ax.text(0.02, 0.8, '(a) Depth-integrated DIN [kg]', fontweight='bold',
             verticalalignment='bottom', horizontalalignment='left',
             transform=ax.transAxes, fontsize=12)
@@ -343,7 +345,19 @@ for i,station in enumerate(sta_dict.keys()):
     # # NH4
     # ax.plot(dates_local, TmolNH4_hindcast-TmolNH4_noN, color='mediumorchid',linewidth=2,label='NH4')
     # DIN
-    ax.plot(dates_local, TmolDIN_hindcast-TmolDIN_noN, color='darkcyan',linewidth=2,label='DIN')
+    # ax.plot(dates_local, TmolDIN_hindcast-TmolDIN_noN, color='darkcyan',linewidth=2,label='DIN')
+    ax.plot(dates_local, TmolDIN_hindcast-TmolDIN_noN, color='mediumorchid',linewidth=4,alpha=0.5,label='Difference')
+
+    # calculate moving average of difference:
+    difference = TmolDIN_hindcast-TmolDIN_noN
+    window_width = 30 # 30 days ~ month
+    # calculate integral of difference at every timestep (and adds zero to beginning of vector)
+    cumsum_vec = np.cumsum(np.insert(difference, 0, 0)) 
+    # calculate difference between cumsum (integral) at points window_width apart. Then divide by window width. This is the average.
+    ma_vec = (cumsum_vec[window_width:] - cumsum_vec[:-window_width]) / window_width
+    ax.plot(dates_local[15:-14], ma_vec, color='darkmagenta',linewidth=2,label='30-day moving avg.')
+    ax.legend(loc='lower right')
+
     # format subplot
     ax.set_xlim([dates_local[0],dates_local[-1]])
     ax.grid(True,color='w',linewidth=2)
@@ -352,7 +366,7 @@ for i,station in enumerate(sta_dict.keys()):
     for border in ['top','right','bottom','left']:
         ax.spines[border].set_visible(False)
     # ax.legend(loc='lower left')
-    ax.text(0.02, 0.8, '(b) With-loading minus No-loading', fontweight='bold',
+    ax.text(0.02, 0.8, '(b) Anthropogenic - Natural', fontweight='bold',
             verticalalignment='bottom', horizontalalignment='left',
             transform=ax.transAxes, fontsize=12)
 
