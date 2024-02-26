@@ -210,7 +210,7 @@ for vn in vn_list:
         elif vn == 'oxygen':
             vmin = 0
             vmax = 10
-            cmap = cmocean.cm.thermal#cmocean.cm.oxy
+            cmap = cmocean.cm.oxy #cmocean.cm.thermal#cmocean.cm.oxy
         elif vn == 'SdetritusN':
             vmin = 0
             vmax = 5
@@ -268,7 +268,7 @@ for vn in vn_list:
                 ax.axis('off')
                 # pfun.add_coast(ax)
                 pfun.dar(ax)
-                ax.set_title('(a) No loading', fontsize=38)
+                ax.set_title('(a) Natural', fontsize=38)
                 # save dataset for later use
                 bc_ds = ds
                 bc = v
@@ -319,7 +319,7 @@ for vn in vn_list:
         # format everything else
         ax.set_yticklabels([])
         ax.set_xticklabels([])
-        ax.set_title('(b) With-loading minus no-loading', fontsize=38)
+        ax.set_title('(b) Anthropogenic - Natural', fontsize=38)
         ax.set_xlim([xmin,xmax])
         ax.set_ylim([ymin,ymax])
         ax.axis('off')
