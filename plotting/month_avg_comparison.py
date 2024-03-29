@@ -4,7 +4,7 @@ Plots a comparison of bottom DO for two identical grids with different oxygen va
 This is a custom function for a particular experiment,
 but code can be adapted for other use cases in the future.
 
-From the terminal: python money_plot.py
+From the terminal: python month_avg_comparison.py
 
 """
 
@@ -51,7 +51,7 @@ month = 'August' #July, August
 year = '2013'
 
 # Variables to compare
-vn_list = ['oxygen','NO3','NH4','phytoplankton','SdetritusN','LdetritusN']
+vn_list = ['oxygen'] #['oxygen','NO3','NH4','phytoplankton','SdetritusN','LdetritusN']
 
 # Provide information about models to compare
 # basecase (N-less run)
@@ -210,7 +210,7 @@ for vn in vn_list:
         elif vn == 'oxygen':
             vmin = 0
             vmax = 10
-            cmap = cmocean.cm.oxy #cmocean.cm.thermal#cmocean.cm.oxy
+            cmap = plt.cm.get_cmap('rainbow_r', 10) #cmocean.cm.thermal #cmocean.cm.thermal#cmocean.cm.oxy
         elif vn == 'SdetritusN':
             vmin = 0
             vmax = 5
