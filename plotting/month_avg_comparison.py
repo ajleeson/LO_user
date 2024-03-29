@@ -109,7 +109,7 @@ if WWTP_loc == True:
     # Get LiveOcean grid info --------------------------------------------------
 
     # get the grid data
-    ds = xr.open_dataset('../../LO_data/grids/cas6/grid.nc')
+    ds = xr.open_dataset('../../LO_data/grids/cas7/grid.nc')
     z = -ds.h.values
     mask_rho = np.transpose(ds.mask_rho.values)
     lon = ds.lon_rho.values
