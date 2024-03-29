@@ -58,6 +58,9 @@ except KeyError:
 # print('** from get_lo_info.py **')
 # print('HOME = ' + str(HOME))
 # print('HOSTNAME = ' + HOSTNAME)
+    
+if str(HOME) == '/Users/aleeson':
+    lo_env = 'al_mac'
 
 if str(HOME) == '/home/aleeson':
     lo_env = 'al_pc'
