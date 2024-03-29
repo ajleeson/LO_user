@@ -62,7 +62,7 @@ except KeyError:
 if str(HOME) == '/Users/aleeson':
     lo_env = 'al_mac'
 
-if str(HOME) == '/home/aleeson':
+elif str(HOME) == '/home/aleeson':
     lo_env = 'al_pc'
     which_matlab = '/Applications/MATLAB_R2020a.app/bin/matlab'
     roms_out2 = parent / 'LiveOcean_roms' / 'output'    # LiveOcean past I
