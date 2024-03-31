@@ -33,12 +33,16 @@ year = '2013' # for making a date label
 
 # gtagexes = gtagexes[0:1]
 
-vn_list = ['rho', 'NO3', 'NH4', 'oxygen', 'phytoplankton']
+vn_list = ['rho', 'NO3', 'NH4', 'phytoplankton','zooplankton', 'SdetritusN', 'LdetritusN', 'oxygen']
+rows = len(vn_list)
 
 # figure settings
 fs = 14 # figure font size
 ls = 12 # label size
 ts = 16 # title size
+
+# look at full year or only spring bloom?
+spring_bloom_only = True
 
 ##########################################################
 ##              Get stations and gtagexes               ##
@@ -54,6 +58,12 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 
 # Get mooring stations:
 sta_dict = job_lists.get_sta_dict(jobname)
+
+###########################################################
+# where to put output figures
+out_dir = Ldir['LOo'] / 'AL_custom_plots' / 'depth_v_time_property'
+Lfun.make_dir(out_dir)
+
 
 ##########################################################
 ##                      Plotting                        ##
@@ -71,7 +81,7 @@ for i,station in enumerate(sta_dict.keys()):
     lat = sta_dict[station][1]
 
     # Initialize Figure
-    fig, ax = plt.subplots(5,2,figsize = (18,9), sharex = True, sharey = True)
+    fig, ax = plt.subplots(rows,2,figsize = (18,rows*2), sharex = True, sharey = True)
     fig.suptitle(station, fontsize = ts)
     
     # loop through different state variables
@@ -107,7 +117,7 @@ for i,station in enumerate(sta_dict.keys()):
                     units = ' $(kg\ m^{-3})$'
                     vmin = 1015
                     vmax = 1025
-                    cmap = 'jet'
+                    cmap = 'gist_stern'
                 else:
                     # get scale and units
                     scale =  pinfo.fac_dict[vn]
@@ -116,6 +126,7 @@ for i,station in enumerate(sta_dict.keys()):
                     vmin = vlims[0]
                     vmax = vlims[1]
                     cmap = pinfo.cmap_dict[vn]
+                    # cmap = 'rainbow_r'
                 # get dataset
                 val = ds[vn].transpose() * scale
                 # autoscale nutrient colorbar
@@ -155,8 +166,11 @@ for i,station in enumerate(sta_dict.keys()):
                 # caculatate difference between runs
                 ds_withLoading = ds_withLoading.assign(t0_minus_t0noN=(ds_withLoading[vn]-ds[vn]))
                 val = ds_withLoading['t0_minus_t0noN'].transpose() * scale
+                
                 # get min and max for plotting
-                factor = 3
+                # (we use the average min/max value in time multiplied by a scale because using
+                # the straight min/max values obscures small differences-- since min/max are large)
+                factor = 4#3
                 vmin = np.nanmin(val.values,axis=0)
                 vmin = factor*np.nanmean(vmin)
                 vmax = np.nanmax(val.values,axis=0)
@@ -171,6 +185,12 @@ for i,station in enumerate(sta_dict.keys()):
                     vmax = 0.1
                 cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
 
+            # need white text to see some of the labels on natural run (first column)
+            if (vn == 'NH4' or vn == 'zooplankton' or vn == 'SdetritusN' or vn == 'LdetritusN') and col == 0:
+                font_color = 'white'
+            else:
+                font_color = 'black'
+
             # create time vector
             dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
             dates_local = [pfun.get_dt_local(x) for x in dates]
@@ -183,13 +203,13 @@ for i,station in enumerate(sta_dict.keys()):
                 ax[j,col].set_ylabel('z (m)', fontsize = fs)
             ax[j,col].text(0.05, 0.05, vn + units, fontweight='bold',
                     verticalalignment='bottom', horizontalalignment='left',
-                    transform=ax[j,col].transAxes, fontsize=ls)
+                    transform=ax[j,col].transAxes, fontsize=ls, color = font_color)
             ax[j,col].tick_params(axis='both', which='major', labelsize=ls)
             ax[j,col].set_ylim((z_min,z_max))
             ax[j,col].grid(True,color='k',linewidth=1,linestyle=':',axis='x')
 
             # add bottom axis
-            if j == 4:
+            if j == rows-1:
                 ax[j,col].set_xlabel('2013', fontsize = fs)
                 ax[j,col].tick_params(axis='both', which='major', labelsize=ls)
                 ax[j,col].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
@@ -206,6 +226,11 @@ for i,station in enumerate(sta_dict.keys()):
                     verticalalignment='bottom', horizontalalignment='right',
                     transform=ax[0,1].transAxes, fontsize=fs)
 
+            # Look at onset of spring bloom (march 1 - may 1)
+            if spring_bloom_only:
+                ax[j,col].set_xlim(dates_local[59],dates_local[121])
+                ax[rows-1,col].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
+
     plt.tight_layout
     plt.subplots_adjust(left=0.05, right=0.95, top=0.90, wspace=0.02)
-    plt.show()
+    plt.savefig(out_dir / (station + '(' + str(round(lon,2)) + ',' + str(round(lat,2)) + ').png'))
