@@ -214,6 +214,7 @@ def get_sta_dict(job_name):
         'main_basin': (-122.445051, 47.615672),
         'holmes_harbor': (-122.528470, 48.055797),
         'hood_canal': (-122.813348, 47.667696), 
+        'admiralty_sill': (-122.700874, 48.138784)
         }
             
             
