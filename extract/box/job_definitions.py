@@ -76,7 +76,7 @@ def get_box(job, Lon, Lat):
         vn_list =  ('h,pm,pn,mask_rho,salt,temp,zeta,NO3,NH4,phytoplankton,'
                 + 'zooplankton,SdetritusN,LdetritusN,oxygen')
     elif job == 'pugetsoundDO':
-        aa = [-123.29, -121.1, 46.95, 48.93]
+        aa = [-123.29, -122.0, 46.95, 48.93]
         vn_list =  ('h,pm,pn,mask_rho,salt,temp,zeta,NO3,NH4,phytoplankton,'
                 + 'zooplankton,SdetritusN,LdetritusN,oxygen')
         
