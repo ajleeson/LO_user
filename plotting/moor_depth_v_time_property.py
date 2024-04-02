@@ -42,7 +42,7 @@ ls = 12 # label size
 ts = 16 # title size
 
 # look at full year or only spring bloom?
-spring_bloom_only = True
+spring_bloom_only  = False
 
 ##########################################################
 ##              Get stations and gtagexes               ##
@@ -186,7 +186,8 @@ for i,station in enumerate(sta_dict.keys()):
                 cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
 
             # need white text to see some of the labels on natural run (first column)
-            if (vn == 'NH4' or vn == 'zooplankton' or vn == 'SdetritusN' or vn == 'LdetritusN') and col == 0:
+            if (vn == 'NH4' or vn == 'zooplankton' or vn == 'SdetritusN'
+                or vn == 'LdetritusN' or vn == 'phytoplankton') and col == 0:
                 font_color = 'white'
             else:
                 font_color = 'black'
