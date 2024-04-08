@@ -226,7 +226,7 @@ for vn in vn_list:
 
         # Initialize figure
         fs = 10
-        pfun.start_plot(fs=fs, figsize=(36,27))
+        pfun.start_plot(fs=fs, figsize=(25,25))
         fig = plt.figure()
         gs = fig.add_gridspec(nrows=1, ncols=2, left=0.05, right=0.95, wspace=0.05, hspace=0.05)
 
