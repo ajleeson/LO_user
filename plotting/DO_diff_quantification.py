@@ -51,7 +51,9 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-DO_thresh = 6 # mg/L DO threshold
+DO_thresh = 2 # mg/L DO threshold
+remove_straits = True
+
 
 year = '2013'
 
@@ -166,24 +168,30 @@ ds_natural = xr.open_dataset(fp_natural)
 fp_anthropogenic = Ldir['LOo'] / 'extract' / anthropogenic_gtagex / 'box' / 'pugetsoundDO_2013.01.01_2013.12.31.nc'
 ds_anthropogenic = xr.open_dataset(fp_anthropogenic)
 
-# set values in strait of juan de fuca and strait of georgia are nan (so they don't interfere with analysis)
-lat_threshold = 48.14
-lon_threshold = -122.76
-# Create a mask for latitudes and longitudes that meet the condition
-mask_natural = (ds_natural['lat_rho'] > lat_threshold) & (ds_natural['lon_rho'] < lon_threshold)
-mask_anthropogenic = (ds_anthropogenic['lat_rho'] > lat_threshold) & (ds_anthropogenic['lon_rho'] < lon_threshold)
-# Expand mask dimensions to match 'oxygen' dimensions
-expanded_mask_natural = mask_natural.expand_dims(ocean_time=len(ds_natural['oxygen']), s_rho=len(ds_natural['s_rho']))
-expanded_mask_anthropogenic = mask_anthropogenic.expand_dims(ocean_time=len(ds_anthropogenic['oxygen']), s_rho=len(ds_anthropogenic['s_rho']))
-# Apply the mask to the 'oxygen' variable
-ds_natural['oxygen'] = xr.where(expanded_mask_natural, np.nan, ds_natural['oxygen'])
-ds_anthropogenic['oxygen'] = xr.where(expanded_mask_anthropogenic, np.nan, ds_anthropogenic['oxygen'])
+if remove_straits:
+    # set values in strait of juan de fuca and strait of georgia are nan (so they don't interfere with analysis)
+    lat_threshold = 48.14
+    lon_threshold = -122.76
+    # Create a mask for latitudes and longitudes that meet the condition
+    mask_natural = (ds_natural['lat_rho'] > lat_threshold) & (ds_natural['lon_rho'] < lon_threshold)
+    mask_anthropogenic = (ds_anthropogenic['lat_rho'] > lat_threshold) & (ds_anthropogenic['lon_rho'] < lon_threshold)
+    # Expand mask dimensions to match 'oxygen' dimensions
+    expanded_mask_natural = mask_natural.expand_dims(ocean_time=len(ds_natural['oxygen']), s_rho=len(ds_natural['s_rho']))
+    expanded_mask_anthropogenic = mask_anthropogenic.expand_dims(ocean_time=len(ds_anthropogenic['oxygen']), s_rho=len(ds_anthropogenic['s_rho']))
+    # Apply the mask to the 'oxygen' variable
+    ds_natural['oxygen'] = xr.where(expanded_mask_natural, np.nan, ds_natural['oxygen'])
+    ds_anthropogenic['oxygen'] = xr.where(expanded_mask_anthropogenic, np.nan, ds_anthropogenic['oxygen'])
 
 # get bottom DO  (in mg/L)
 DO_bot_natural = pinfo.fac_dict[vn] * ds_natural[vn][:,0,:,:].values # s_rho = 0 for bottom
 DO_bot_anthropogenic = pinfo.fac_dict[vn] * ds_anthropogenic[vn][:,0,:,:].values # s_rho = 0 for bottom
 
-# Get boolean array. True if DO < 2 mg/L, otherwise, nan
+# get depth
+depths = -1 * ds_natural['h'].values
+# duplicate depths for all times
+depths = np.repeat(depths[np.newaxis, :, :], 365, axis=0)
+
+# Get boolean array. True if DO < threshold mg/L, otherwise, nan
 DO_bot_lt2_natural = np.where(DO_bot_natural < DO_thresh, 1, np.nan)
 DO_bot_lt2_anthropogenic = np.where(DO_bot_anthropogenic < DO_thresh, 1, np.nan)
 
@@ -305,7 +313,7 @@ print('Hypoxic time series done...')
 
 
 # #############################################################
-# ##              CHANGE IN DO VS. NATURAL DO                ## (with histograms)
+# ##              CHANGE IN DO VS. NATURAL DO                ## (scatter with 1D histograms)
 # #############################################################
 
 # # initialize figure
@@ -388,7 +396,7 @@ print('Hypoxic time series done...')
 # print('Done.')
 
 #############################################################
-##              CHANGE IN DO VS. NATURAL DO                ## (density colormap)
+##              CHANGE IN DO VS. NATURAL DO                ## (2D histogram)
 #############################################################
 
 # initialize figure
@@ -435,7 +443,7 @@ ax.grid(visible=True, color='w')
 # ax.set_axisbelow(True)
 # add labels
 ax.set_ylabel('Anthropogenic - Natural [mg/L]')
-plt.suptitle(r'$\Delta$ DO vs. Natural DO (Bottom)' + '\n for all cells/days in Puget Sound where DO < {} mg/L'.format(DO_thresh))
+plt.suptitle(r'$\Delta$ DO vs. Natural DO (Bottom)' + '\n for all cells and days in Puget Sound where DO < {} mg/L'.format(DO_thresh))
 # format figure color
 ax.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
@@ -445,5 +453,59 @@ for border in ['top','right','bottom','left']:
 plt.savefig(out_dir / 'Delta_DO_vs_natural_DO_lt_{}'.format(DO_thresh))
 
 print('Delta DO scatter done...')
+
+print('Done.')
+
+#############################################################
+##             BOTTOM DEPTH VS. NATURAL DO                 ## (2D histogram)
+#############################################################
+
+# initialize figure
+plt.close('all)')
+pfun.start_plot(figsize=(10,8))
+fig,ax = plt.subplots(1,1)
+
+# get points with DO < threshold, and get difference between model runs
+DO_bot_lt6_natural = np.where(DO_bot_natural < DO_thresh, DO_bot_natural, np.nan)
+DO_bot_lt6_anthropogenic = np.where(DO_bot_anthropogenic < DO_thresh, DO_bot_anthropogenic, np.nan)
+# compress spatial and time dimensions
+all_bot_DO_natural = np.reshape(DO_bot_lt6_natural,(28490805))
+all_bot_DO_anthropogenic = np.reshape(DO_bot_lt6_anthropogenic,(28490805))
+all_depths = np.reshape(depths,(28490805))
+
+# rename variables so its easier to manipulate
+x = all_bot_DO_natural
+y = all_depths
+# get rid of nans in dataset
+bad_indices = np.isnan(x) | np.isnan(y)
+good_indices = ~bad_indices
+good_x = x[good_indices]
+good_y = y[good_indices]
+# plot 2d histogram to get colored scatter by point density
+cs = ax.hist2d(good_x, good_y, bins = [100,100], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
+cbar = fig.colorbar(cs[3])
+cbar.ax.set_ylabel('Count')
+cbar.outline.set_visible(False)
+
+# format figure
+ax.set_xlabel('Natural DO [mg/L]')
+# format grid and labels
+ax.set_xlim([0,DO_thresh])
+# ax.set_ylim([-0.8,0.4])
+ax.grid(visible=True, color='w')
+# put grid behind points and histogram
+# ax.set_axisbelow(True)
+# add labels
+ax.set_ylabel('Depth [m]')
+plt.suptitle(r'Depth vs. Natural DO (Bottom)' + '\n for all cells and days in Puget Sound where DO < {} mg/L'.format(DO_thresh))
+# format figure color
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+
+plt.savefig(out_dir / 'Depth_vs_natural_DO_lt_{}'.format(DO_thresh))
+
+print('Depth scatter done...')
 
 print('Done.')
