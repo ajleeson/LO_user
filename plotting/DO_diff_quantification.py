@@ -52,7 +52,7 @@ Ldir = Lfun.Lstart()
 ##############################################################
 
 DO_thresh = 2 # mg/L DO threshold
-remove_straits = True
+remove_straits = False
 
 
 year = '2013'
@@ -395,117 +395,280 @@ print('Hypoxic time series done...')
 
 # print('Done.')
 
-#############################################################
-##              CHANGE IN DO VS. NATURAL DO                ## (2D histogram)
-#############################################################
+# #############################################################
+# ##              CHANGE IN DO VS. NATURAL DO                ## (2D histogram)
+# #############################################################
 
-# initialize figure
-plt.close('all)')
-pfun.start_plot(figsize=(10,8))
-fig,ax = plt.subplots(1,1)
+# # initialize figure
+# plt.close('all)')
+# pfun.start_plot(figsize=(10,8))
+# fig,ax = plt.subplots(1,1)
 
-# get points with DO < threshold, and get difference between model runs
-DO_bot_lt6_natural = np.where(DO_bot_natural < DO_thresh, DO_bot_natural, np.nan)
-DO_bot_lt6_anthropogenic = np.where(DO_bot_anthropogenic < DO_thresh, DO_bot_anthropogenic, np.nan)
-# compress spatial and time dimensions
-all_bot_DO_natural = np.reshape(DO_bot_lt6_natural,(28490805))
-all_bot_DO_anthropogenic = np.reshape(DO_bot_lt6_anthropogenic,(28490805))
-all_bot_DO_diff = all_bot_DO_anthropogenic - all_bot_DO_natural
+# # get points with DO < threshold, and get difference between model runs
+# DO_bot_lt6_natural = np.where(DO_bot_natural < DO_thresh, DO_bot_natural, np.nan)
+# DO_bot_lt6_anthropogenic = np.where(DO_bot_anthropogenic < DO_thresh, DO_bot_anthropogenic, np.nan)
+# # compress spatial and time dimensions
+# all_bot_DO_natural = np.reshape(DO_bot_lt6_natural,(28490805))
+# all_bot_DO_anthropogenic = np.reshape(DO_bot_lt6_anthropogenic,(28490805))
+# all_bot_DO_diff = all_bot_DO_anthropogenic - all_bot_DO_natural
 
-# rename variables so its easier to manipulate
-x = all_bot_DO_natural
-y = all_bot_DO_diff
-# get rid of nans in dataset
-bad_indices = np.isnan(x) | np.isnan(y)
-good_indices = ~bad_indices
-good_x = x[good_indices]
-good_y = y[good_indices]
-# plot 2d histogram to get colored scatter by point density
-cs = ax.hist2d(good_x, good_y, bins = [100,100], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-cbar = fig.colorbar(cs[3])
-cbar.ax.set_ylabel('Count')
-cbar.outline.set_visible(False)
+# # rename variables so its easier to manipulate
+# x = all_bot_DO_natural
+# y = all_bot_DO_diff
+# # get rid of nans in dataset
+# bad_indices = np.isnan(x) | np.isnan(y)
+# good_indices = ~bad_indices
+# good_x = x[good_indices]
+# good_y = y[good_indices]
+# # plot 2d histogram to get colored scatter by point density
+# cs = ax.hist2d(good_x, good_y, bins = [100,100], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
+# cbar = fig.colorbar(cs[3])
+# cbar.ax.set_ylabel('Count')
+# cbar.outline.set_visible(False)
 
-# add y = -1 line
-ax.fill_between([0,0.8],[0,-0.8], -0.8, color='white')
+# # add y = -1 line
+# ax.fill_between([0,0.8],[0,-0.8], -0.8, color='white')
 
-# add text
-ax.text(0.12, 0.1, 'slope = -1', horizontalalignment='left',
-     verticalalignment='center', transform=ax.transAxes, fontsize=12)
+# # add text
+# ax.text(0.12, 0.1, 'slope = -1', horizontalalignment='left',
+#      verticalalignment='center', transform=ax.transAxes, fontsize=12)
 
-# format figure
-ax.set_xlabel('Natural DO [mg/L]')
-# format grid and labels
-ax.set_xlim([0,DO_thresh])
-ax.set_ylim([-0.8,0.4])
-ax.grid(visible=True, color='w')
-# put grid behind points and histogram
-# ax.set_axisbelow(True)
-# add labels
-ax.set_ylabel('Anthropogenic - Natural [mg/L]')
-plt.suptitle(r'$\Delta$ DO vs. Natural DO (Bottom)' + '\n for all cells and days in Puget Sound where DO < {} mg/L'.format(DO_thresh))
-# format figure color
-ax.set_facecolor('#EEEEEE')
-for border in ['top','right','bottom','left']:
-    ax.spines[border].set_visible(False)
-
-
-plt.savefig(out_dir / 'Delta_DO_vs_natural_DO_lt_{}'.format(DO_thresh))
-
-print('Delta DO scatter done...')
-
-print('Done.')
-
-#############################################################
-##             BOTTOM DEPTH VS. NATURAL DO                 ## (2D histogram)
-#############################################################
-
-# initialize figure
-plt.close('all)')
-pfun.start_plot(figsize=(10,8))
-fig,ax = plt.subplots(1,1)
-
-# get points with DO < threshold, and get difference between model runs
-DO_bot_lt6_natural = np.where(DO_bot_natural < DO_thresh, DO_bot_natural, np.nan)
-DO_bot_lt6_anthropogenic = np.where(DO_bot_anthropogenic < DO_thresh, DO_bot_anthropogenic, np.nan)
-# compress spatial and time dimensions
-all_bot_DO_natural = np.reshape(DO_bot_lt6_natural,(28490805))
-all_bot_DO_anthropogenic = np.reshape(DO_bot_lt6_anthropogenic,(28490805))
-all_depths = np.reshape(depths,(28490805))
-
-# rename variables so its easier to manipulate
-x = all_bot_DO_natural
-y = all_depths
-# get rid of nans in dataset
-bad_indices = np.isnan(x) | np.isnan(y)
-good_indices = ~bad_indices
-good_x = x[good_indices]
-good_y = y[good_indices]
-# plot 2d histogram to get colored scatter by point density
-cs = ax.hist2d(good_x, good_y, bins = [100,100], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-cbar = fig.colorbar(cs[3])
-cbar.ax.set_ylabel('Count')
-cbar.outline.set_visible(False)
-
-# format figure
-ax.set_xlabel('Natural DO [mg/L]')
-# format grid and labels
-ax.set_xlim([0,DO_thresh])
+# # format figure
+# ax.set_xlabel('Natural DO [mg/L]')
+# # format grid and labels
+# ax.set_xlim([0,DO_thresh])
 # ax.set_ylim([-0.8,0.4])
-ax.grid(visible=True, color='w')
-# put grid behind points and histogram
-# ax.set_axisbelow(True)
-# add labels
-ax.set_ylabel('Depth [m]')
-plt.suptitle(r'Depth vs. Natural DO (Bottom)' + '\n for all cells and days in Puget Sound where DO < {} mg/L'.format(DO_thresh))
-# format figure color
-ax.set_facecolor('#EEEEEE')
-for border in ['top','right','bottom','left']:
-    ax.spines[border].set_visible(False)
+# ax.grid(visible=True, color='w')
+# # put grid behind points and histogram
+# # ax.set_axisbelow(True)
+# # add labels
+# ax.set_ylabel('Anthropogenic - Natural [mg/L]')
+# plt.suptitle(r'$\Delta$ DO vs. Natural DO (Bottom)' + '\n for all cells and days in Puget Sound where DO < {} mg/L'.format(DO_thresh))
+# # format figure color
+# ax.set_facecolor('#EEEEEE')
+# for border in ['top','right','bottom','left']:
+#     ax.spines[border].set_visible(False)
 
 
-plt.savefig(out_dir / 'Depth_vs_natural_DO_lt_{}'.format(DO_thresh))
+# plt.savefig(out_dir / 'Delta_DO_vs_natural_DO_lt_{}'.format(DO_thresh))
 
-print('Depth scatter done...')
+# print('Delta DO scatter done...')
 
-print('Done.')
+# print('Done.')
+
+# #############################################################
+# ##             BOTTOM DEPTH VS. NATURAL DO                 ## (2D histogram)
+# #############################################################
+
+# # initialize figure
+# plt.close('all)')
+# pfun.start_plot(figsize=(10,8))
+# fig,ax = plt.subplots(1,1)
+
+# # get points with DO < threshold, and get difference between model runs
+# DO_bot_lt6_natural = np.where(DO_bot_natural < DO_thresh, DO_bot_natural, np.nan)
+# DO_bot_lt6_anthropogenic = np.where(DO_bot_anthropogenic < DO_thresh, DO_bot_anthropogenic, np.nan)
+# # compress spatial and time dimensions
+# all_bot_DO_natural = np.reshape(DO_bot_lt6_natural,(28490805))
+# all_bot_DO_anthropogenic = np.reshape(DO_bot_lt6_anthropogenic,(28490805))
+# all_depths = np.reshape(depths,(28490805))
+
+# # rename variables so its easier to manipulate
+# x = all_bot_DO_natural
+# y = all_depths
+# # get rid of nans in dataset
+# bad_indices = np.isnan(x) | np.isnan(y)
+# good_indices = ~bad_indices
+# good_x = x[good_indices]
+# good_y = y[good_indices]
+# # plot 2d histogram to get colored scatter by point density
+# cs = ax.hist2d(good_x, good_y, bins = [100,100], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
+# cbar = fig.colorbar(cs[3])
+# cbar.ax.set_ylabel('Count')
+# cbar.outline.set_visible(False)
+
+# # format figure
+# ax.set_xlabel('Natural DO [mg/L]')
+# # format grid and labels
+# ax.set_xlim([0,DO_thresh])
+# # ax.set_ylim([-0.8,0.4])
+# ax.grid(visible=True, color='w')
+# # put grid behind points and histogram
+# # ax.set_axisbelow(True)
+# # add labels
+# ax.set_ylabel('Depth [m]')
+# plt.suptitle(r'Depth vs. Natural DO (Bottom)' + '\n for all cells and days in Puget Sound where DO < {} mg/L'.format(DO_thresh))
+# # format figure color
+# ax.set_facecolor('#EEEEEE')
+# for border in ['top','right','bottom','left']:
+#     ax.spines[border].set_visible(False)
+
+
+# plt.savefig(out_dir / 'Depth_vs_natural_DO_lt_{}'.format(DO_thresh))
+
+# print('Depth scatter done...')
+
+# print('Done.')
+
+#############################################################
+##                HYPOXIA AND DEPTH  MAPS                  ## 
+#############################################################
+
+# # get bottom DO  (in mg/L)
+# DO_bot_natural = pinfo.fac_dict[vn] * ds_natural[vn][:,0,:,:].values # s_rho = 0 for bottom
+# DO_bot_anthropogenic = pinfo.fac_dict[vn] * ds_anthropogenic[vn][:,0,:,:].values # s_rho = 0 for bottom
+
+# # get depth
+# depths = -1 * ds_natural['h'].values
+# # duplicate depths for all times
+# depths = np.repeat(depths[np.newaxis, :, :], 365, axis=0)
+
+# Get boolean array. True if DO < 2 mg/L, otherwise, nan
+DO_bot_hyp_natural = np.where(DO_bot_natural < 2, 1, np.nan)
+DO_bot_hyp_anthropogenic = np.where(DO_bot_anthropogenic < 2, 1, np.nan)
+# compress time dimension, so we get true values if gridcell sees hypoxia at least once in the year
+DO_bot_hyp_natural = np.nansum(DO_bot_hyp_natural,axis=0)
+DO_bot_hyp_anthropogenic = np.nansum(DO_bot_hyp_anthropogenic,axis=0)
+# convert zeros to nans, and make any positive value = 1
+DO_bot_hyp_natural[DO_bot_hyp_natural==0] = np.nan
+DO_bot_hyp_natural[DO_bot_hyp_natural > 0] = 1
+DO_bot_hyp_anthropogenic[DO_bot_hyp_anthropogenic==0] = np.nan
+DO_bot_hyp_anthropogenic[DO_bot_hyp_anthropogenic > 0] = 1
+# DO_bot_hyp_natural and DO_bot_hyp_anthropogenic are now arrays in space that are nan if there is no hypoxia,
+# and 1 if the bottom grid cell experiences hypoxia at least one time during the year
+
+# print('==============================================')
+# print(DO_bot_natural.shape)#[200,320:260,100])
+# print('natural above, anthropogenic below')
+# print(DO_bot_anthropogenic.shape)#[200,320:360,100])
+# print('==============================================')
+
+# Now lets get boolean array for depth. True if -10 m  > depth > -50 m, otherwsie, nan
+depths = -1 * ds_natural['h'].values
+shallow_depths = (depths > -50) & (depths < -10)
+# set true and false to one and nan
+shallow_depths = np.where(shallow_depths == False, np.nan, 1)
+
+# Now lets get boolean array for depth. True if depth > -10 m, otherwsie, nan
+shallowest_depths = (depths >= -10) & (depths < -4) # need to remove the -4 depth mask
+# set true and false to one and nan
+shallowest_depths = np.where(shallowest_depths == False, np.nan, 1)
+
+# Get locations where depths are shallow (10 - 50 m deep), and the bottom becomes hypoxia (5)
+lt_50_hypoxic_natural = (DO_bot_hyp_natural == 1) & (shallow_depths == 1)
+lt_50_hypoxic_anthropogenic = (DO_bot_hyp_anthropogenic == 1) & (shallow_depths == 1)
+# set true and false to one and nan
+lt_50_hypoxic_natural = np.where(lt_50_hypoxic_natural == False, np.nan, 5)
+lt_50_hypoxic_anthropogenic = np.where(lt_50_hypoxic_anthropogenic == False, np.nan, 5)
+
+# Get locations where depths are shallow (10 - 50 m deep), and bottomd does NOT get hypoxic (4)
+lt_50_natural = (DO_bot_hyp_natural != 1) & (shallow_depths == 1)
+lt_50_anthropogenic = (DO_bot_hyp_anthropogenic != 1) & (shallow_depths == 1)
+# set true and false to one and nan
+lt_50_natural = np.where(lt_50_natural == False, np.nan, 4)
+lt_50_anthropogenic = np.where(lt_50_anthropogenic == False, np.nan, 4)
+
+# Get locations where depths are surface-shallow, and the bottom becomes hypoxia (3)
+surface_hypoxic_natural = (DO_bot_hyp_natural == 1) & (shallowest_depths == 1)
+surface_hypoxic_anthropogenic = (DO_bot_hyp_anthropogenic == 1) & (shallowest_depths == 1)
+# set true and false to one and nan
+surface_hypoxic_natural = np.where(surface_hypoxic_natural == False, np.nan, 3)
+surface_hypoxic_anthropogenic = np.where(surface_hypoxic_anthropogenic == False, np.nan, 3)
+
+# Get locations where depths are surface-shallow, and bottomd does NOT get hypoxic (2)
+surface_natural = (DO_bot_hyp_natural != 1) & (shallowest_depths == 1)
+surface_anthropogenic = (DO_bot_hyp_anthropogenic != 1) & (shallowest_depths == 1)
+# set true and false to one and nan
+surface_natural = np.where(surface_natural == False, np.nan, 2)
+surface_anthropogenic = np.where(surface_anthropogenic == False, np.nan, 2)
+
+# Get locations where depths are deep, and bottom does get hypoxic (1)
+deep_hypoxic_natural = (DO_bot_hyp_natural == 1) & (shallow_depths != 1) & (shallowest_depths != 1)
+deep_hypoxic_anthropogenic = (DO_bot_hyp_anthropogenic == 1) & (shallow_depths != 1) & (shallowest_depths != 1)
+# set true and false to one and nan
+deep_hypoxic_natural = np.where(deep_hypoxic_natural == False, np.nan, 1)
+deep_hypoxic_anthropogenic = np.where(deep_hypoxic_anthropogenic == False, np.nan, 1)
+
+# sum up all of the categorical values, and set zero to nan
+depth_hypoxia_category_natural = np.nansum(np.dstack((lt_50_hypoxic_natural,lt_50_natural,surface_hypoxic_natural,
+                                                      deep_hypoxic_natural,surface_natural,)),2)
+depth_hypoxia_category_natural[depth_hypoxia_category_natural==0] = np.nan
+depth_hypoxia_category_anthropogenic = np.nansum(np.dstack((lt_50_hypoxic_anthropogenic,lt_50_anthropogenic,surface_hypoxic_anthropogenic,
+                                                            deep_hypoxic_anthropogenic,surface_anthropogenic)),2)
+depth_hypoxia_category_anthropogenic[depth_hypoxia_category_anthropogenic==0] = np.nan
+
+cmap = plt.cm.get_cmap('rainbow', 5)
+
+# get plotting limits of box extraction
+xmin = -123.29
+xmax = -122.1
+ymin = 46.95
+ymax = 48.93
+
+# get lat/lon
+lons = ds_natural.coords['lon_rho'].values
+lats = ds_natural.coords['lat_rho'].values
+px, py = pfun.get_plon_plat(lons,lats)
+
+# initialize figure
+plt.close('all')
+pfun.start_plot(figsize=(32,27))
+fig = plt.figure()
+gs = fig.add_gridspec(nrows=1, ncols=2, left=0.05, right=0.95, wspace=0.05, hspace=0.05)
+
+# plot natural run
+ax = fig.add_subplot(1,2,1)
+cs = ax.pcolormesh(px,py,depth_hypoxia_category_natural, cmap=cmap)
+# # add colorbar
+# cbar = fig.colorbar(cs, location='left')
+# cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+# cbar.outline.set_visible(False)
+
+# format figure
+ax.set_xlim([xmin,xmax])
+ax.set_ylim([ymin,ymax])
+ax.set_yticklabels([])
+ax.set_xticklabels([])
+# ax.axis('off')
+pfun.add_coast(ax)
+pfun.dar(ax)
+ax.set_title('(a) Natural', fontsize=38)
+
+# plot anthropogenic minus natural run
+ax = fig.add_subplot(1,2,2)
+cs = ax.pcolormesh(px,py,depth_hypoxia_category_anthropogenic, cmap = cmap)
+# add colorbar
+cbar = fig.colorbar(cs, location='right')
+cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+cbar.outline.set_visible(False)
+# label colorbar
+yticks = np.linspace(*cbar.ax.get_ylim(), cmap.N+1)[:-1]
+yticks += (yticks[1] - yticks[0]) / 2
+cbar.set_ticks(yticks, labels=['z > 50m\nhypoxic',
+                               'z < 10m\nNOT hypoxic',
+                               'z < 10m\nhypoxic',
+                               '10m < z < 50 m\nNOT hypoxic',
+                               '10m < z < 50 m\nhypoxic'])
+cbar.ax.tick_params(length=0)          # remove tick lines
+# format figure
+ax.set_xlim([xmin,xmax])
+ax.set_ylim([ymin,ymax])
+ax.set_yticklabels([])
+ax.set_xticklabels([])
+# ax.axis('off')
+pfun.add_coast(ax)
+pfun.dar(ax)
+ax.set_title('(b) Anthropogenic', fontsize=38)
+
+plt.tight_layout
+plt.subplots_adjust(left=0.05, bottom=0.05, right=0.85, top=0.85, wspace=0, hspace=0.2)
+
+# Add title
+plt.suptitle('Co-occurence of shallow depths and bottom hypoxia (< 2 mg/L)\n' + 
+             '[bottom hypoxia = True if DO < 2 mg/L for at least one day of the year]',
+            fontsize=44, fontweight='bold', y=0.97)
+
+# save figure
+plt.savefig(out_dir / 'hypoxia_and_depth')
+
+print('hypoxia depth map done...')
