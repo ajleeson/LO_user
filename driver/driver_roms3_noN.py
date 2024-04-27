@@ -52,7 +52,7 @@ import random
 import string
 
 # add the path by hand so that it will run on klone or mox (outside of loenv)
-pth = Path(__file__).absolute().parent.parent / 'LO' / 'lo_tools' / 'lo_tools'
+pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'lo_tools' / 'lo_tools'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
 from lo_tools import Lfun
