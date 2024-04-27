@@ -118,6 +118,7 @@ elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
 
 elif (str(HOME) == '/mmfs1/home/auroral'):
     lo_env = 'al_klone'
+    other_forcing = Path('/agdat1/parker/LO_output/forcing')    # Parker's forcing for cas7_t0_x4b on apogee
     remote_user = 'auroral'
     remote_machine = 'perigee.ocean.washington.edu'
     remote_dir0 = '/data1/auroral'
