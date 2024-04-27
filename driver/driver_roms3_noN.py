@@ -55,6 +55,7 @@ import string
 pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'lo_tools' / 'lo_tools'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
+print(pth)
 from lo_tools import Lfun
 
 parser = argparse.ArgumentParser()
