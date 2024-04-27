@@ -174,12 +174,13 @@ while dt <= dt1:
     sys.stdout.flush()
     
     # Set various paths.
-    # forcing for traps (look from user's perigee directory)
-    force_dir_traps = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / f_string
-    # forcing for ocn,tide,atm (look in Parker's output folder on apogee, but with starting point in perigee)
-    force_dir_other = Ldir['other_forcing'] / Ldir['gridname'] / f_string
-    # print(force_dir_traps)
-    # print(force_dir_other)
+    force_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / f_string
+    # # forcing for traps (look from user's perigee directory)
+    # force_dir_traps = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / f_string
+    # # forcing for ocn,tide,atm (look in Parker's output folder on apogee, but with starting point in perigee)
+    # force_dir_other = Ldir['other_forcing'] / Ldir['gridname'] / f_string
+    # # print(force_dir_traps)
+    # # print(force_dir_other)
     roms_out_dir = Ldir['roms_out'] / Ldir['gtagex'] / f_string
     log_file = roms_out_dir / 'log.txt'
     
@@ -196,8 +197,9 @@ while dt <= dt1:
     
     print(str(roms_out_dir)) # always print this
     if args.verbose:
-        print(' - force_dir_traps:    ' + str(force_dir_traps))
-        print(' - force_dir_other:    ' + str(force_dir_other))
+        print(' - force_dir:    ' + str(force_dir))
+        # print(' - force_dir_traps:    ' + str(force_dir_traps))
+        # print(' - force_dir_other:    ' + str(force_dir_other))
         print(' - dot_in_dir:   ' + str(dot_in_dir))
         print(' - log_file:     ' + str(log_file))
         print(' - roms_ex_dir:  ' + str(roms_ex_dir))
@@ -218,8 +220,9 @@ while dt <= dt1:
             tt0 = time()
             # Name the place where the forcing files will be copied from
             remote_dir = remote_user + '@' + remote_machine + ':' + remote_dir0
-            Lfun.make_dir(force_dir_traps, clean=True)
-            Lfun.make_dir(force_dir_other, clean=True)
+            Lfun.make_dir(force_dir, clean=True)
+            # Lfun.make_dir(force_dir_traps, clean=True)
+            # Lfun.make_dir(force_dir_other, clean=True)
             # Copy the forcing files, one folder at a time.
             for force in force_dict.keys():
                 if force == 'open':
@@ -235,11 +238,11 @@ while dt <= dt1:
                     if force_choice == 'trapsF01':
                         cmd_list = ['scp','-r',
                             remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + F_string + '/' + force_choice,
-                            str(force_dir_traps)]
+                            str(force_dir)]
                     # or look in Parker's apogee folder for atm, ocn, and tide forcing
                     else:
                         cmd_list = ['scp','-r', 'auroral@perigee.ocean.washington.edu:/agdat1/parker/LO_output/forcing/' +
-                            Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir_other)]
+                            Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir)]
                     # print(cmd_list)
                     # print("------------------------------------------------")
                     proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
