@@ -14,6 +14,9 @@ their own GitHub repo.
 import os
 from pathlib import Path
 
+# don't always look for other forcing
+other_frc = False
+
 # defaults that should work on all machines
 parent = Path(__file__).absolute().parent.parent
 LO = parent / 'LO'
@@ -61,6 +64,7 @@ except KeyError:
     
 if str(HOME) == '/Users/aleeson':
     lo_env = 'al_mac'
+    other_frc = True
 
 elif str(HOME) == '/home/aleeson':
     lo_env = 'al_pc'
@@ -108,6 +112,7 @@ elif (str(HOME) == '/mmfs1/home/pmacc'):
 
 elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
     lo_env = 'al_perigee'
+    other_frc = True
     roms_out1 = Path('/boildat1/parker/LiveOcean_roms/output')  # LiveOcean current
     roms_out2 = Path('/data1/parker/LiveOcean_roms/output')     # LiveOcean past I
     roms_out3 = Path('/data2/parker/LiveOcean_roms/output')     # LiveOcean past II
@@ -158,7 +163,8 @@ Ldir0['remote_dir0'] = remote_dir0
 Ldir0['local_user'] = local_user
 
 # add filepath for pre-existing hindcast forcing
-other_forcing = Path('/agdat1/parker/LO_output/forcing')    # Parker's forcing for cas7_t0_x4b on apogee
-Ldir0['other_forcing'] = other_forcing
+if other_frc:
+    other_forcing = Path('/agdat1/parker/LO_output/forcing')    # Parker's forcing for cas7_t0_x4b on apogee
+    Ldir0['other_forcing'] = other_forcing
 
 
