@@ -61,7 +61,6 @@ except KeyError:
     
 if str(HOME) == '/Users/aleeson':
     lo_env = 'al_mac'
-    other_forcing = Path('/agdat1/parker/LO_output/forcing')    # Parker's forcing for cas7_t0_x4b on apogee
 
 elif str(HOME) == '/home/aleeson':
     lo_env = 'al_pc'
@@ -109,7 +108,6 @@ elif (str(HOME) == '/mmfs1/home/pmacc'):
 
 elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
     lo_env = 'al_perigee'
-    other_forcing = Path('/agdat1/parker/LO_output/forcing')    # Parker's forcing for cas7_t0_x4b on apogee
     roms_out1 = Path('/boildat1/parker/LiveOcean_roms/output')  # LiveOcean current
     roms_out2 = Path('/data1/parker/LiveOcean_roms/output')     # LiveOcean past I
     roms_out3 = Path('/data2/parker/LiveOcean_roms/output')     # LiveOcean past II
@@ -118,7 +116,6 @@ elif (str(HOME) == '/home/auroral') & ('perigee' in HOSTNAME):
 
 elif (str(HOME) == '/mmfs1/home/auroral'):
     lo_env = 'al_klone'
-    # other_forcing = Path('/agdat1/parker/LO_output/forcing')    # Parker's forcing for cas7_t0_x4b on apogee
     remote_user = 'auroral'
     remote_machine = 'perigee.ocean.washington.edu'
     remote_dir0 = '/data1/auroral'
@@ -160,7 +157,8 @@ Ldir0['remote_machine'] = remote_machine
 Ldir0['remote_dir0'] = remote_dir0
 Ldir0['local_user'] = local_user
 
-if other_forcing != None:
-    Ldir0['other_forcing'] = other_forcing
+# add filepath for pre-existing hindcast forcing
+other_forcing = Path('/agdat1/parker/LO_output/forcing')    # Parker's forcing for cas7_t0_x4b on apogee
+Ldir0['other_forcing'] = other_forcing
 
 
