@@ -57,7 +57,8 @@ if str(pth) not in sys.path:
     sys.path.append(str(pth))
     print('path appended')
 print(pth)
-from lo_tools import Lfun
+# from lo_tools import Lfun
+import Lfun
 
 parser = argparse.ArgumentParser()
 # arguments without defaults are required
