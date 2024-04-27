@@ -1,5 +1,5 @@
 LANG=en-US.UTF-8
-LOd="/gscratch/macc/auroral/LO/driver"
+LOd="/gscratch/macc/auroral/LO_user/driver"
 
 00 12 * * * crontab <<< $(crontab -l)
 
