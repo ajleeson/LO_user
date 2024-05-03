@@ -48,23 +48,23 @@ Ldir = Lfun.Lstart()
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['u']#['DIN','u','v'] # u, v, w, DIN
-date = '2013.01.01'
+vns = ['DIN','u','v'] # u, v, w, DIN
+date = '2014.01.09'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
 
 gtagex_longhindcast = 'cas7_t0_x4b'
-gtagex_noN = 'cas7_t0noN_x4b_perf10'
+gtagex_noN = 'cas7_t0noN_x4b'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
 Lfun.make_dir(out_dir)
 
 # Get grid data
-G = zrfun.get_basic_info('/home/aleeson/LO_data/grids/cas7/grid.nc', only_G=True)
-grid_ds = xr.open_dataset('/home/aleeson/LO_data/grids/cas7/grid.nc')
+G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
+grid_ds = xr.open_dataset(Ldir['data'] / 'grids/cas7/grid.nc')
 lon = grid_ds.lon_rho.values
 lat = grid_ds.lat_rho.values
 lon_u = grid_ds.lon_u.values
@@ -73,7 +73,7 @@ lon_v = grid_ds.lon_v.values
 lat_v = grid_ds.lat_v.values
 
 # get WWTP locations
-wwtp_ind_df = pd.read_csv('/home/aleeson/LO_data/grids/cas7/wwtp_info.csv', index_col='rname')
+wwtp_ind_df = pd.read_csv(Ldir['data'] / 'grids/cas7/wwtp_info.csv', index_col='rname')
 wwtp_col = [int(col) for col in wwtp_ind_df['col_py']]
 wwtp_row = [int(row) for row in wwtp_ind_df['row_py']]
 wwtp_lon = [lon[0,i] for i in wwtp_col]
@@ -211,7 +211,7 @@ for vn in vns:
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
         ax.set_title(vn + ' difference at ' + stext + pinfo.units_dict[vn_name], fontsize=16)
-        fig.suptitle('Baseline (hindcast) Minus N-less Run\n' + date + ' ocean_his_0025',
+        fig.suptitle('Anthropogenic - Natural\n' + date + ' ocean_his_0025',
                     fontsize=18, fontweight='bold')
 
         # add 10 km bar
@@ -232,4 +232,4 @@ for vn in vns:
     # Generate plot
     plt.tight_layout
     plt.subplots_adjust(wspace=0.05)
-    plt.savefig(out_dir / (vn+'_diff.png'))
+    plt.savefig(out_dir / (date+'_'+vn+'_diff.png'))
