@@ -79,12 +79,5 @@ except:
     # sometimes there is no river_info file
     pass
 
-try:
-    shutil.copyfile(Gr['gdir'] / 'roms_wwtp_info.csv', out_dir / 'wwtp_info.csv')
-except:
-    # sometimes there is no wwtp_info file
-    pass
-
-
 # Make the nudging to climatology file
 gfu.make_nudgcoef(dch, out_dir, N, NR, NC)

@@ -17,11 +17,9 @@ else:
 
 # get info from LO_user/pgrid/gfun_user.py
 gridname = gfun_user.gridname
-base_gridname = gfun_user.base_gridname
-base_tag = gfun_user.base_tag
 
 # remake Ldir
-Ldir = Lfun.Lstart(gridname=base_gridname, tag=base_tag)
+Ldir = Lfun.Lstart()
 
 def gstart(gridname=gridname):
     """
@@ -30,23 +28,19 @@ def gstart(gridname=gridname):
     """
     pgdir = Ldir['LOo'] / 'pgrid'
     gdir = pgdir / gridname # where grid.nc will end up
-    ri_dir = Ldir['LOo'] / 'pre' / 'river' / Ldir['gtag']
-    wwtp_dir = Ldir['LOu'] / 'wwtps' / gridname
-    Gr ={'gridname': gridname,'pgdir': pgdir, 'gdir': gdir,'ri_dir': ri_dir, 'wwtp_dir': wwtp_dir}
+    ri_dir0 = Ldir['LOo'] / 'pre' / 'river1'
+    Gr ={'gridname': gridname,'pgdir': pgdir, 'gdir': gdir, 'ri_dir0': ri_dir0}
     return Gr
 
 def default_choices():
     # Default choices (can override in each case)
     dch = dict()
 
-    # Decide if the grid will allow wetting and drying.
-    # We do this first because it affects several subsequent choices
-    # dch['wet_dry'] = wet_dry
-    # deprecated 2021.11.15
-
     # GRID CREATION
     # Set analytical to true when we define the bathymetry analytically.
     dch['analytical'] = False
+    # This flag True trims a column or row to make them an even number
+    dch['trim_grid'] = True
     
     # z_offset is an adjustment to zero of the bathymetry to account for
     # the fact that mean sea level is somewhat higher than NAVD88.
@@ -57,14 +51,18 @@ def default_choices():
     t_dir = Ldir['data'] / 'topo'
     dch['t_dir'] = Ldir['data'] / 'topo'
     # list of topo files: coarsest to finest
-    dch['t_list'] = [t_dir / 'srtm15' / 'topo15.nc',
-              t_dir / 'cascadia' / 'cascadia_gridded.nc',
-             t_dir / 'psdem' / 'PS_183m.nc',
-             t_dir / 'ttp_patch' / 'TTP_Regional_27m_patch.nc']
+    dch['t_list'] = ['srtm15plus', 'cascadia','psdem','ttp_patch',]
+    # dch['t_list'] = [t_dir / 'srtm15' / 'topo15.nc',
+    #           t_dir / 'cascadia' / 'cascadia_gridded.nc',
+    #          t_dir / 'psdem' / 'PS_183m.nc',
+    #          t_dir / 'ttp_patch' / 'TTP_Regional_27m_patch.nc']
  
     # MASKING
     # list of existing masks to work from
-    dch['maskfiles'] = []
+    dch['maskfile_list_to_interpolate'] = [] # list of Path objects
+    # or a grid file from which to just copy the mask (which must
+    # of course be the right size)
+    dch['maskfile_to_copy'] = None # a Path object
     # set z position of INITIAL dividing line (positive up)
     dch['z_land'] = 0
     # Set unmask_coast to True to unmask all cells crossed by the coastline.
@@ -72,6 +70,16 @@ def default_choices():
     # Set remove_islands to True to automatically remove isolated patches of
     # land or ocean.
     dch['remove_islands'] = True
+    
+    # RIVERS
+    # ctag for river info, using the new LO/pre/river1 system
+    dch['ctag'] = 'hc_al'
+    # Sometimes for nests we mask out a partial basin, and this allows us to also
+    # exclude its rivers.  The downside is that you need to know what those rivers
+    # are in advance.  If you want to do this you should run carve_rivers.py and
+    # decide what to exclude, and then start again, before putting a lot of
+    # time in to edit_mask.py.
+    dch['excluded_rivers'] = []
 
     # SMOOTHING
     dch['use_min_depth'] = True
@@ -84,14 +92,6 @@ def default_choices():
     dch['nudging_edges'] = ['north', 'south', 'east', 'west']
     dch['nudging_days'] = (3.0, 60.0)
     
-    # RIVERS
-    # Sometimes for nests we mask out a partial basin, and this allows us to also
-    # exclude its rivers.  The downside is that you need to know what those rivers
-    # are in advance.  It you want to do this you might run carve_rivers.py and
-    # decide what to exclude, and then start again, before putting a lot of
-    # time in to edit_mask.py.
-    dch['excluded_rivers'] = []
-        
     return dch
 
 def select_file(Gr):
@@ -105,11 +105,10 @@ def increment_filename(fn, tag):
     Creates an updated filename (Path object), increasing the number
     for the specified tag.
     """
-    if tag not in ['_m', '_r', '_d', '_s', '_x']:
+    if tag not in ['_m', '_r', '_s', '_x']:
         print('Error in increment_filename: unrecognized tag.')
         return
     fns = fn.name
-    print('fns = {}' .format(fns))
     # create the new file name
     gni = fns.find(tag)
     new_num = ('00' + str(int(fns[gni+2: gni+4]) + 1))[-2:]
