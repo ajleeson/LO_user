@@ -8,6 +8,7 @@ parser.add_argument('-g', '--gridname', default='',
 args = parser.parse_args()
 
 import cmocean
+from lo_tools import zfun,Lfun
 
 import gfun
 if len(args.gridname) > 0:
@@ -28,6 +29,10 @@ if testing:
     from importlib import reload
     reload(gfun)
     reload(gfp)
+
+Ldir = Lfun.Lstart()
+out_dir = Ldir['LOo'] / 'analytical_grids'
+Lfun.make_dir(out_dir)
 
 # select grid file
 in_fn = gfun.select_file(Gr)
@@ -60,26 +65,31 @@ zm[mask_rho == 0] = 0#np.nan
 
 # PLOTTING
 plt.close('all')
-pfun.start_plot(figsize=(12,12))
+pfun.start_plot(figsize=(24,24))
 
 # zoom in
-# latmin = round(0.5*np.shape(plat)[1]) - round(0.3*np.shape(plat)[1])
-# latmax = round(0.5*np.shape(plat)[1]) + round(0.15*np.shape(plat)[1])
-# lonmin = round(0.5*np.shape(plon)[0]) - round(0.15*np.shape(plon)[0])
-# lonmax = round(0.5*np.shape(plon)[0]) + round(0.35*np.shape(plon)[0])
+# latmin = round(0.5*np.shape(plat)[1]) - round(0.4*np.shape(plat)[1])
+# latmax = round(0.5*np.shape(plat)[1]) + round(0.4*np.shape(plat)[1])
+# lonmin = round(0.5*np.shape(plon)[0]) - round(0.5*np.shape(plon)[0])
+# lonmax = round(0.5*np.shape(plon)[0]) + round(0.4*np.shape(plon)[0])
 latmin = round(0.5*np.shape(plat)[1]) - round(0.5*np.shape(plat)[1])
 latmax = round(0.5*np.shape(plat)[1]) + round(0.5*np.shape(plat)[1])
 lonmin = round(0.5*np.shape(plon)[0]) - round(0.5*np.shape(plon)[0])
 lonmax = round(0.5*np.shape(plon)[0]) + round(0.5*np.shape(plon)[0])
 
+x, y = zfun.ll2xy(lon, lat, -122.6, 48)
+
 # bathymetry
-fig = plt.figure(figsize=(8,8))
-ax = fig.add_subplot(111, projection='3d')
-cs = ax.plot_surface(plon[lonmin:lonmax,latmin:latmax], plat[lonmin:lonmax,latmin:latmax], zm[lonmin:lonmax,latmin:latmax],
- rstride=1, cstride=1, edgecolor='none', alpha = 1, cmap=cmocean.cm.deep_r)
-cset = ax.contourf(plon[lonmin:lonmax,latmin:latmax], plat[lonmin:lonmax,latmin:latmax], zm[lonmin:lonmax,latmin:latmax],
- zdir='z', offset=np.min(zm[lonmin:lonmax,latmin:latmax]), cmap=cmocean.cm.deep_r)
-fig.colorbar(cs, ax=ax)
+fig = plt.figure(figsize=(8,15))
+ax = fig.add_subplot(2,1,1, projection='3d')
+cs = ax.plot_surface(lon, lat, zm, rstride=1, cstride=1,
+                    edgecolor='none', alpha = 1, cmap=cmocean.cm.deep_r)
+cset = ax.contourf(lon, lat, zm, zdir='z', offset=np.min(zm), cmap=cmocean.cm.deep_r)
+# cs = ax.plot_surface(lon[lonmin:lonmax,latmin:latmax], lat[lonmin:lonmax,latmin:latmax], zm[lonmin:lonmax,latmin:latmax],
+#  rstride=1, cstride=1, edgecolor='none', alpha = 1, cmap=cmocean.cm.deep_r)
+# cset = ax.contourf(lon[lonmin:lonmax,latmin:latmax], lat[lonmin:lonmax,latmin:latmax], zm[lonmin:lonmax,latmin:latmax],
+#  zdir='z', offset=np.min(zm[lonmin:lonmax,latmin:latmax]), cmap=cmocean.cm.deep_r)
+# fig.colorbar(cs, ax=ax)
 if dch['analytical'] == True:
     pass
 else:
@@ -87,7 +97,7 @@ else:
 #pfun.dar(ax)
 #ax.axis(ax_lims)
 #ax.axis([-1,1,44, 47])
-ax.set_title(in_fn.name)
+# ax.set_title(in_fn.name)
 # make the panes transparent
 ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
 ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
@@ -99,9 +109,19 @@ ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
 # label axis
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
-ax.set_zlabel('Depth (m)')
+ax.set_zlabel('Depth [m]')
+# ax.view_init(elev=30, azim=20)
+ax.view_init(elev=40, azim=45)
 #ax.text(.05, .95, Gr['gridname'], transform=ax.transAxes)
 #ax.text(.95, .05, str(mask_rho.shape), ha='right', transform=ax.transAxes)
+
+# plot cross-section
+ax = fig.add_subplot(6,1,4)
+ax.plot(y[:,0]/1000,zm[:,95])
+ax.set_xlabel('distance from mouth [km]')
+ax.set_ylabel('depth [m]')
+# ax.set_xlim([47,48.5])
+
 if do_riv:
     # gfp.add_river_tracks(Gr, ds, ax)
     print('Skip plotting river tracks')
@@ -127,5 +147,5 @@ if False:
     ax.text(.05, .95, Gr['gridname'], transform=ax.transAxes)
         
 ds.close()
-
-plt.show()
+plt.savefig(out_dir / '{}_3d.png'.format(Gr['gridname']))
+# plt.show()
