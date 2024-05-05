@@ -6,43 +6,22 @@ This script searches for yearly box extractions in LO_output, for the
 region "pugetsoundDO"
 
 It also crops out data from the Straits, so as to not bias the results
-in Puget Sound.
+in Puget Sound. (optional using flag remove_straits)
+
+.nc files are saved in LO_output/pugetsound_DO/data
 
 """
 
 # import things
-from subprocess import Popen as Po
-from subprocess import PIPE as Pi
-from matplotlib.markers import MarkerStyle
-import matplotlib.dates as mdates
-from matplotlib.gridspec import GridSpec
 import numpy as np
 import xarray as xr
-from datetime import datetime, timedelta
-from matplotlib.dates import DateFormatter
-import matplotlib as mpl
-from matplotlib.dates import MonthLocator
-from matplotlib import cm
-from matplotlib.offsetbox import (OffsetImage, AnnotationBbox)
-import matplotlib.image as image
-import pandas as pd
-import cmocean
-import matplotlib.pylab as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib.patheffects as PathEffects
-from matplotlib.colors import Normalize 
-from scipy.interpolate import interpn
 import pinfo
-
-from lo_tools import Lfun, zfun, zrfun
-from lo_tools import plotting_functions as pfun
 
 import sys
 from pathlib import Path
 pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
-import gfun_utility as gfu
 import gfun
 
 Gr = gfun.gstart()
@@ -53,13 +32,9 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-DO_thresh = 2 # mg/L DO threshold
-remove_straits = True
+remove_straits = False
 
 years = ['2014','2015','2016','2017','2018','2019']
-
-# Variables to extract
-vn = 'oxygen'
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
