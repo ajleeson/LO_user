@@ -56,7 +56,7 @@ Ldir = Lfun.Lstart()
 DO_thresh = 2 # mg/L DO threshold
 remove_straits = True
 
-years = ['2013'] # ['2014','2015','2016','2017','2018','2019']
+years = ['2014','2015','2016','2017','2018','2019']
 
 # Variables to extract
 vn = 'oxygen'
