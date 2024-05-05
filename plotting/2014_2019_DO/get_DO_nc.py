@@ -16,6 +16,7 @@ in Puget Sound. (optional using flag remove_straits)
 import numpy as np
 import xarray as xr
 import pinfo
+from lo_tools import Lfun
 
 import sys
 from pathlib import Path
