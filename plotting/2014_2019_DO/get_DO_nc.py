@@ -172,7 +172,7 @@ for year in years:
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     # concentration of DO minima
-    ds['slev_min'] = xr.DataArray(DO_min,
+    ds['DO_min'] = xr.DataArray(DO_min,
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
