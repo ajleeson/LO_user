@@ -32,7 +32,7 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-remove_straits = True
+remove_straits = False
 
 years = ['2013','2014','2015','2016','2017','2018','2019']
 
