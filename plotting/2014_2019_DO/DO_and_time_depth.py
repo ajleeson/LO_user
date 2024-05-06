@@ -1,5 +1,10 @@
 """
-Analyzes 2013 run for relationship between watercolumn depth and hypoxia
+Make 2D histograms of:
+    minima depth vs. DO
+    minima s-level vs. DO
+    minima s-level vs. yearday
+    minima depth vs. yearday
+    DO minima concentration vs. yearday
 
 """
 
@@ -169,6 +174,8 @@ for year in years:
 ##                DEPTH VS. DO CONCENTRATION               ## (2D histogram)
 #############################################################
 
+print('    2D histogram: minima depth vs. DO')
+
 # create dataframe of depth of DO minima (reshpaed to 1D array)
 # initialize empty dataframe
 depth_min_df = pd.DataFrame()
@@ -195,19 +202,16 @@ for year in years:
 
 # initialize figure
 plt.close('all')
-pfun.start_plot(figsize=(12,20))
+pfun.start_plot(figsize=(12,9))
 if len(years) <= 6:
-    fig,axes = plt.subplots(4,3)
+    fig,axes = plt.subplots(2,3)
     ax = axes.ravel()
 else:
     print('Too many years...need to update code')
     exit()
 
 # plot each year
-for i,year in enumerate(years):
-
-    # start subplots in the bottom half of figure
-    j = i + 6
+for j,year in enumerate(years):
 
     # rename variables so its easier to manipulate
     x = DO_min_df[year]
@@ -221,449 +225,357 @@ for i,year in enumerate(years):
     # plot 2d histogram for each year
     cs = ax[j].hist2d(good_x, good_y, bins = [100,100],
                       norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-    cbar = fig.colorbar(cs[3])
-    cbar.ax.set_ylabel('Count')
-    cbar.outline.set_visible(False)
 
     # format figure
     ax[j].set_title(year)
+    ax[j].grid(visible=True, color='w')
+    # format background color
+    ax[j].set_facecolor('#EEEEEE')
+    for border in ['top','right','bottom','left']:
+        ax[j].spines[border].set_visible(False)
+    # add y-labels
+    if j in [0,3]:
+        ax[j].set_ylabel('Depth [m]')
+    else:
+        ax[j].set_yticklabels([]) 
+    # add x-labels
+    if j in [3,4,5]:
+        ax[j].set_xlabel('DO [mg/L]')
+        ax[j].tick_params(axis='x', labelrotation=30)
+    else:
+        ax[j].set_xticklabels([]) 
+    if j in [2,5]:
+        # add colorbar
+        if j == 2:
+            cbar = fig.colorbar(cs[3], ax=[ax[0],ax[1],ax[2]],
+                                anchor=(1.2,0.5), location='right')
+        else:
+            cbar = fig.colorbar(cs[3], ax=[ax[3],ax[4],ax[5]],
+                                anchor=(1.2,0.5), location='right')
+        cbar.ax.set_ylabel('Count')
+        cbar.outline.set_visible(False)
+
 
 # save figure
 plt.tight_layout
-# plt.subplots_adjust(left=0.05, right=0.95, top=0.80, wspace=0.02)
-plt.suptitle(r'2D Histogram: Depth vs. DO Minima in Water Column' + '\n for all cells and days in Puget Sound')
+plt.subplots_adjust(left=0.1, right=0.9, top=0.85, wspace=0.04)
+plt.suptitle(r'2D Histogram: Depth vs. DO Minima in Water Column' +
+             '\n for all cells and days in Puget Sound with DO < {} mg/L'.format(DO_thresh))
 plt.savefig(out_dir / ('depthVSminDO_'+straits+'_DOthresh'+str(DO_thresh)+'.png'))
 plt.close('all')
-
-# # calculate difference between two histograms
-# # natural
-# plt.figure(1)
-# h, xedges, yedges, image0 = plt.hist2d(good_x_natural,good_y_natural, bins=(100, 100), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# # anthropogenic
-# plt.figure(2)
-# h1, xedges1, yedges1, image1 = plt.hist2d(good_x_anthropogenic,good_y_anthropogenic, bins=(xedges, yedges), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-
-# # initialize figure
-# plt.close('all')
-# pfun.start_plot(figsize=(17,8))
-# fig,ax = plt.subplots(1,2, sharey = True)
-
-# # plot 2d histogram to get colored scatter by point density (natural)
-# cs = ax[0].hist2d(good_x_natural, good_y_natural, bins = [100,100], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# cbar = fig.colorbar(cs[3])
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
-
-# # plot difference between colormaps
-# # anthropogenic minus natural
-# vmin = np.min(h1-h)
-# vmax = np.max(h1-h)
-# cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
-# cs = ax[1].pcolormesh(xedges, yedges, (h1-h).T, cmap=cmap)
-# cbar = fig.colorbar(cs)
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
-
-# # format natural figure
-# ax[0].set_xlabel('DO minima concentration [mg/L]')
-# ax[0].set_title('(a) Natural')
-# ax[0].grid(visible=True, color='w')
-# # add labels
-# ax[0].set_ylabel('Depth [m]')
-# # format background color
-# ax[0].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[0].spines[border].set_visible(False)
-
-# # format difference figure
-# ax[1].set_xlabel('DO minima concentration [mg/L]')
-# ax[1].set_title('(b) Anthropogenic - Natural')
-# ax[1].grid(visible=True, color='w')
-# # format background color
-# ax[1].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[1].spines[border].set_visible(False)
-
-
-# plt.tight_layout
-# plt.subplots_adjust(left=0.05, right=0.95, top=0.80, wspace=0.02)
-# plt.suptitle(r'2D Histogram: Depth vs. DO Minima in Water Column' + '\n for all cells and days in Puget Sound')
-# plt.savefig(out_dir / 'depth_vs_minDO')
-# plt.close('all')
 
 # #############################################################
 # ##      S-LEVEL VS. NATURAL DO (MIN OF WATER COLUMN)       ## (2D histogram)
 # #############################################################
 
+print('    2D histogram: minima s-level vs. DO')
 
-# # compress spatial and time dimensions
-# # natural
-# slev_min_all_natural = np.reshape(slev_min_natural,-1)
-# DO_min_all_natural = np.reshape(DO_min_natural,-1)
-# # anthropogenic
-# slev_min_all_anthropogenic = np.reshape(slev_min_anthropogenic,-1)
-# DO_min_all_anthropogenic = np.reshape(DO_min_anthropogenic,-1)
+# create dataframe of slev of DO minima (reshpaed to 1D array)
+# initialize empty dataframe
+slev_min_df = pd.DataFrame()
+# add ds to dictionary
+for year in years:
+    # get min DO values
+    slev_min = ds_dict[year].slev_min.values
+    # compress spatial and time dimensions
+    slev_min = np.reshape(slev_min,-1)
+    slev_min_df[year] = slev_min
 
-# # rename variables so its easier to manipulate
-# # natural
-# x_natural = DO_min_all_natural
-# y_natural = slev_min_all_natural
-# # anthropogenic
-# x_anthropogenic = DO_min_all_anthropogenic
-# y_anthropogenic = slev_min_all_anthropogenic
-# # get rid of nans in dataset
-# # natural
-# bad_indices = np.isnan(x_natural) | np.isnan(y_natural)
-# good_indices = ~bad_indices
-# good_x_natural = x_natural[good_indices]
-# good_y_natural = y_natural[good_indices]
-# # anthropogenic
-# bad_indices = np.isnan(x_anthropogenic) | np.isnan(y_anthropogenic)
-# good_indices = ~bad_indices
-# good_x_anthropogenic = x_anthropogenic[good_indices]
-# good_y_anthropogenic = y_anthropogenic[good_indices]
+# initialize figure
+plt.close('all')
+pfun.start_plot(figsize=(12,9))
+fig,axes = plt.subplots(2,3)
+ax = axes.ravel()
 
-# # calculate difference between two histograms
-# # natural
-# plt.figure(1)
-# h, xedges, yedges, image0 = plt.hist2d(good_x_natural,good_y_natural, bins=(100, 30), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# # anthropogenic
-# plt.figure(2)
-# h1, xedges1, yedges1, image1 = plt.hist2d(good_x_anthropogenic,good_y_anthropogenic, bins=(xedges, yedges), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
+# plot each year
+for j,year in enumerate(years):
 
-# # initialize figure
-# plt.close('all')
-# pfun.start_plot(figsize=(17,8))
-# fig,ax = plt.subplots(1,2, sharey = True)
+    # rename variables so its easier to manipulate
+    x = DO_min_df[year]
+    y = slev_min_df[year]
+    # get rid of nans in dataset
+    bad_indices = np.isnan(x) | np.isnan(y)
+    good_indices = ~bad_indices
+    good_x = x[good_indices]
+    good_y = y[good_indices]
 
-# # plot 2d histogram to get colored scatter by point density (natural)
-# cs = ax[0].hist2d(good_x_natural, good_y_natural, bins = [100,30], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# cbar = fig.colorbar(cs[3])
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
+    # plot 2d histogram for each year
+    cs = ax[j].hist2d(good_x, good_y, bins = [100,30],
+                      norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
 
-# # plot difference between colormaps
-# # anthropogenic minus natural
-# vmin = np.min(h1-h)
-# vmax = np.max(h1-h)
-# cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
-# cs = ax[1].pcolormesh(xedges, yedges, (h1-h).T, cmap=cmap)
-# cbar = fig.colorbar(cs)
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
+    # format figure
+    ax[j].set_title(year)
+    ax[j].grid(visible=True, color='w')
+    # format background color
+    ax[j].set_facecolor('#EEEEEE')
+    for border in ['top','right','bottom','left']:
+        ax[j].spines[border].set_visible(False)
+    # add y-labels
+    if j in [0,3]:
+        ax[j].set_ylabel('S-level')
+    else:
+        ax[j].set_yticklabels([]) 
+    # add x-labels
+    if j in [3,4,5]:
+        ax[j].set_xlabel('DO [mg/L]')
+        ax[j].tick_params(axis='x', labelrotation=30)
+    else:
+        ax[j].set_xticklabels([]) 
+    if j in [2,5]:
+        # add colorbar
+        if j == 2:
+            cbar = fig.colorbar(cs[3], ax=[ax[0],ax[1],ax[2]],
+                                anchor=(1.2,0.5), location='right')
+        else:
+            cbar = fig.colorbar(cs[3], ax=[ax[3],ax[4],ax[5]],
+                                anchor=(1.2,0.5), location='right')
+        cbar.ax.set_ylabel('Count')
+        cbar.outline.set_visible(False)
 
+# save figure
+plt.tight_layout
+plt.subplots_adjust(left=0.1, right=0.9, top=0.85, wspace=0.04)
+plt.suptitle(r'2D Histogram: S-level vs. DO Minima in Water Column' +
+             '\n for all cells and days in Puget Sound with DO < {} mg/L'.format(DO_thresh))
+plt.savefig(out_dir / ('slevVSminDO_'+straits+'_DOthresh'+str(DO_thresh)+'.png'))
+plt.close('all')
 
-# # format natural figure
-# ax[0].set_xlabel('DO minima concentration [mg/L]')
-# ax[0].set_title('(a) Natural')
-# ax[0].grid(visible=True, color='w')
-# # add labels
-# ax[0].set_ylabel('S-Level')
-# # format background color
-# ax[0].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[0].spines[border].set_visible(False)
+#############################################################
+##                   S-LEVEL VS. TIME                      ## (2D histogram)
+#############################################################
 
-# # format difference figure
-# ax[1].set_xlabel('DO minima concentration [mg/L]')
-# ax[1].set_title('(b) Anthropogenic - Natural')
-# ax[1].grid(visible=True, color='w')
-# # add labels
-# ax[0].set_ylabel('S-Level')
-# # format background color
-# ax[1].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[1].spines[border].set_visible(False)
+print('    2D histogram: minima s-level vs. yearday')
 
+# create time vector
+startdate = '2013.01.01'
+enddate = '2013.12.31'
+dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+dates_local = [pfun.get_dt_local(x) for x in dates]
+# duplicate time dimension
+day = np.linspace(1,365,365)
+dates_timeonly = np.repeat(day[:, np.newaxis], 78057, axis=1)
 
-# plt.tight_layout
-# plt.subplots_adjust(left=0.05, right=0.95, top=0.80, wspace=0.02)
-# plt.suptitle(r'2D Histogram: S-Level vs. DO Minima in Water Column' + '\n for all cells and days in Puget Sound')
-# plt.savefig(out_dir / 'slevel_vs_minDO')
-# plt.close('all')
+# create dictionary of slev of DO minima (reshpaed to 2D array)
+# initialize empty dictionary
+slev_min_withtime_dict = {}
+# add ds to dictionary
+for year in years:
+    # get min DO values
+    slev_min_withtime = ds_dict[year].slev_min.values
+    # compress spatial and time dimensions
+    slev_min_withtime = np.reshape(slev_min_withtime,(365,78057))
+    slev_min_withtime_dict[year] = slev_min_withtime
 
-# #############################################################
-# ##                   S-LEVEL VS. YEARDAY                   ## (2D histogram)
-# #############################################################
+# initialize figure
+plt.close('all')
+pfun.start_plot(figsize=(12,9))
+fig,axes = plt.subplots(2,3)
+ax = axes.ravel()
 
-# # create time vector
-# startdate = '2013.01.01'
-# enddate = '2013.12.31'
-# dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-# dates_local = [pfun.get_dt_local(x) for x in dates]
-# # duplicate time dimension
-# day = np.linspace(1,365,365)
-# dates_timeonly = np.repeat(day[:, np.newaxis], 78057, axis=1)
+# plot each year
+for j,year in enumerate(years):
 
-# # compress dimensions, but keep time dimension (lost spatial resolution)
-# # natural
-# slev_min_timeonly_natural = np.reshape(slev_min_natural,(365,78057))
-# # anthropogenic
-# slev_min_timeonly_anthropogenic = np.reshape(slev_min_anthropogenic,(365,78057))
+    # rename variables so its easier to manipulate
+    x = dates_timeonly
+    y = slev_min_withtime_dict[year]
+    # get rid of nans in dataset
+    bad_indices = np.isnan(x) | np.isnan(y)
+    good_indices = ~bad_indices
+    good_x = x[good_indices]
+    good_y = y[good_indices]
 
+    # plot 2d histogram for each year
+    cs = ax[j].hist2d(good_x, good_y, bins = [365,30],
+                      norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
 
-# # rename variables so its easier to manipulate
-# # natural
-# x_natural = dates_timeonly
-# y_natural = slev_min_timeonly_natural
-# # anthropogenic
-# x_anthropogenic = dates_timeonly
-# y_anthropogenic = slev_min_timeonly_anthropogenic
-# # get rid of nans in dataset
-# # natural
-# bad_indices = np.isnan(x_natural) | np.isnan(y_natural)
-# good_indices = ~bad_indices
-# good_x_natural = x_natural[good_indices]
-# good_y_natural = y_natural[good_indices]
-# # anthropogenic
-# bad_indices = np.isnan(x_anthropogenic) | np.isnan(y_anthropogenic)
-# good_indices = ~bad_indices
-# good_x_anthropogenic = x_anthropogenic[good_indices]
-# good_y_anthropogenic = y_anthropogenic[good_indices]
+    # format figure
+    ax[j].set_title(year)
+    ax[j].grid(visible=True, color='w')
+    # format background color
+    ax[j].set_facecolor('#EEEEEE')
+    for border in ['top','right','bottom','left']:
+        ax[j].spines[border].set_visible(False)
+    # add y-labels
+    if j in [0,3]:
+        ax[j].set_ylabel('S-level')
+    else:
+        ax[j].set_yticklabels([]) 
+    # add x-labels
+    ax[j].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+    if j in [3,4,5]:
+        ax[j].set_xlabel('Month')
+        ax[j].tick_params(axis='x', labelrotation=30)
+    else:
+        ax[j].set_xticklabels([]) 
+    if j in [2,5]:
+        # add colorbar
+        if j == 2:
+            cbar = fig.colorbar(cs[3], ax=[ax[0],ax[1],ax[2]],
+                                anchor=(1.2,0.5), location='right')
+        else:
+            cbar = fig.colorbar(cs[3], ax=[ax[3],ax[4],ax[5]],
+                                anchor=(1.2,0.5), location='right')
+        cbar.ax.set_ylabel('Count')
+        cbar.outline.set_visible(False)
 
-# # calculate difference between two histograms
-# # natural
-# plt.figure(1)
-# h, xedges, yedges, image0 = plt.hist2d(good_x_natural,good_y_natural, bins=(365, 30), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# # anthropogenic
-# plt.figure(2)
-# h1, xedges1, yedges1, image1 = plt.hist2d(good_x_anthropogenic,good_y_anthropogenic, bins=(xedges, yedges), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
+# save figure
+plt.tight_layout
+plt.subplots_adjust(left=0.1, right=0.9, top=0.85, wspace=0.04)
+plt.suptitle(r'2D Histogram: S-level of DO minima vs. Time' +
+             '\n for all cells and days in Puget Sound')
+plt.savefig(out_dir / ('slevVStime_'+straits+'.png'))
+plt.close('all')
 
-# # initialize figure
-# plt.close('all')
-# pfun.start_plot(figsize=(17,8))
-# fig,ax = plt.subplots(1,2, sharey = True)
+#############################################################
+##                     DEPTH VS. TIME                      ## (2D histogram)
+#############################################################
 
-# # plot 2d histogram to get colored scatter by point density (natural)
-# cs = ax[0].hist2d(good_x_natural, good_y_natural, bins = [365,30], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# cbar = fig.colorbar(cs[3])
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
+print('    2D histogram: minima depth vs. yearday')
 
-# # plot difference between colormaps
-# # anthropogenic minus natural
-# vmin = np.min(h1-h)
-# vmax = np.max(h1-h)
-# cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
-# cs = ax[1].pcolormesh(xedges, yedges, (h1-h).T, cmap=cmap)
-# cbar = fig.colorbar(cs)
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
+# create dictionary of slev of DO minima (reshpaed to 2D array)
+# initialize empty dictionary
+depth_min_withtime_dict = {}
+# add ds to dictionary
+for year in years:
+    # get min DO values
+    depth_min_withtime = ds_dict[year].depth_min.values
+    # compress spatial and time dimensions
+    depth_min_withtime = np.reshape(depth_min_withtime,(365,78057))
+    depth_min_withtime_dict[year] = depth_min_withtime
 
+# initialize figure
+plt.close('all')
+pfun.start_plot(figsize=(12,9))
+fig,axes = plt.subplots(2,3)
+ax = axes.ravel()
 
-# # format natural figure
-# ax[0].set_xlabel('Year day')
-# ax[0].set_title('(a) Natural')
-# ax[0].grid(visible=True, color='w')
-# # add labels
-# ax[0].set_ylabel('S-Level')
-# # format background color
-# ax[0].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[0].spines[border].set_visible(False)
+# plot each year
+for j,year in enumerate(years):
 
-# # format difference figure
-# ax[1].set_xlabel('Year day')
-# ax[1].set_title('(b) Anthropogenic - Natural')
-# ax[1].grid(visible=True, color='w')
-# # add labels
-# ax[0].set_ylabel('S-Level')
-# # format background color
-# ax[1].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[1].spines[border].set_visible(False)
+    # rename variables so its easier to manipulate
+    x = dates_timeonly
+    y = depth_min_withtime_dict[year]
+    # get rid of nans in dataset
+    bad_indices = np.isnan(x) | np.isnan(y)
+    good_indices = ~bad_indices
+    good_x = x[good_indices]
+    good_y = y[good_indices]
 
+    # plot 2d histogram for each year
+    cs = ax[j].hist2d(good_x, good_y, bins = [365,100],
+                      norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
 
-# plt.tight_layout
-# plt.subplots_adjust(left=0.05, right=0.95, top=0.80, wspace=0.02)
-# plt.suptitle(r'2D Histogram: S-Level of DO minima vs. day of year' + '\n for all cells in Puget Sound')
-# plt.savefig(out_dir / 'slevel_vs_time')
-# plt.close('all')
+    # format figure
+    ax[j].set_title(year)
+    ax[j].grid(visible=True, color='w')
+    # format background color
+    ax[j].set_facecolor('#EEEEEE')
+    for border in ['top','right','bottom','left']:
+        ax[j].spines[border].set_visible(False)
+    # add y-labels
+    if j in [0,3]:
+        ax[j].set_ylabel('Depth [m]')
+    else:
+        ax[j].set_yticklabels([]) 
+    # add x-labels
+    ax[j].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+    if j in [3,4,5]:
+        ax[j].set_xlabel('Month')
+        ax[j].tick_params(axis='x', labelrotation=30)
+    else:
+        ax[j].set_xticklabels([]) 
+    if j in [2,5]:
+        # add colorbar
+        if j == 2:
+            cbar = fig.colorbar(cs[3], ax=[ax[0],ax[1],ax[2]],
+                                anchor=(1.2,0.5), location='right')
+        else:
+            cbar = fig.colorbar(cs[3], ax=[ax[3],ax[4],ax[5]],
+                                anchor=(1.2,0.5), location='right')
+        cbar.ax.set_ylabel('Count')
+        cbar.outline.set_visible(False)
 
-# #############################################################
-# ##                    DEPTH VS. YEARDAY                    ## (2D histogram)
-# #############################################################
-
-# # create time vector
-# startdate = '2013.01.01'
-# enddate = '2013.12.31'
-# dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-# dates_local = [pfun.get_dt_local(x) for x in dates]
-# # duplicate time dimension
-# day = np.linspace(1,365,365)
-# dates_timeonly = np.repeat(day[:, np.newaxis], 78057, axis=1)
-
-# # compress dimensions, but keep time dimension (lost spatial resolution)
-# # natural
-# depth_min_timeonly_natural = np.reshape(depth_min_natural,(365,78057))
-# # anthropogenic
-# depth_min_timeonly_anthropogenic = np.reshape(depth_min_anthropogenic,(365,78057))
-
-
-# # rename variables so its easier to manipulate
-# # natural
-# x_natural = dates_timeonly
-# y_natural = depth_min_timeonly_natural
-# # anthropogenic
-# x_anthropogenic = dates_timeonly
-# y_anthropogenic = depth_min_timeonly_anthropogenic
-# # get rid of nans in dataset
-# # natural
-# bad_indices = np.isnan(x_natural) | np.isnan(y_natural)
-# good_indices = ~bad_indices
-# good_x_natural = x_natural[good_indices]
-# good_y_natural = y_natural[good_indices]
-# # anthropogenic
-# bad_indices = np.isnan(x_anthropogenic) | np.isnan(y_anthropogenic)
-# good_indices = ~bad_indices
-# good_x_anthropogenic = x_anthropogenic[good_indices]
-# good_y_anthropogenic = y_anthropogenic[good_indices]
-
-# # calculate difference between two histograms
-# # natural
-# plt.figure(1)
-# h, xedges, yedges, image0 = plt.hist2d(good_x_natural,good_y_natural, bins=(365, 100), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# # anthropogenic
-# plt.figure(2)
-# h1, xedges1, yedges1, image1 = plt.hist2d(good_x_anthropogenic,good_y_anthropogenic, bins=(xedges, yedges), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-
-# # initialize figure
-# plt.close('all')
-# pfun.start_plot(figsize=(17,8))
-# fig,ax = plt.subplots(1,2, sharey = True)
-
-# # plot 2d histogram to get colored scatter by point density (natural)
-# cs = ax[0].hist2d(good_x_natural, good_y_natural, bins = [365,100], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# cbar = fig.colorbar(cs[3])
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
-
-# # plot difference between colormaps
-# # anthropogenic minus natural
-# vmin = np.min(h1-h)
-# vmax = np.max(h1-h)
-# cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
-# cs = ax[1].pcolormesh(xedges, yedges, (h1-h).T, cmap=cmap)
-# cbar = fig.colorbar(cs)
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
-
-
-# # format natural figure
-# ax[0].set_xlabel('Year day')
-# ax[0].set_title('(a) Natural')
-# ax[0].grid(visible=True, color='w')
-# # add labels
-# ax[0].set_ylabel('Depth [m]')
-# # format background color
-# ax[0].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[0].spines[border].set_visible(False)
-
-# # format difference figure
-# ax[1].set_xlabel('Year day')
-# ax[1].set_title('(b) Anthropogenic - Natural')
-# ax[1].grid(visible=True, color='w')
-# # format background color
-# ax[1].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[1].spines[border].set_visible(False)
-
-
-# plt.tight_layout
-# plt.subplots_adjust(left=0.05, right=0.95, top=0.80, wspace=0.02)
-# plt.suptitle(r'2D Histogram: Depth of DO minima vs. day of year' + '\n for all cells in Puget Sound')
-# plt.savefig(out_dir / 'depth_vs_time')
-# plt.close('all')
+# save figure
+plt.tight_layout
+plt.subplots_adjust(left=0.1, right=0.9, top=0.85, wspace=0.04)
+plt.suptitle(r'2D Histogram: Depth of DO minima vs. Time' +
+             '\n for all cells and days in Puget Sound')
+plt.savefig(out_dir / ('depthVStime_'+straits+'.png'))
+plt.close('all')
 
 #############################################################
 ##                 DO MINIMA VS. YEARDAY                   ## (2D histogram)
 #############################################################
 
-# TODO: put everything in a dataframe with min DO values, so I don't have to deal with multiple datasets anymore
-# Then to plot, it will be a lot easier to average of all of the columns, and then plot the values in each column
-# with the subplot title as the dataframe column name (year)
+print('    2D histogram: DO minima concentration vs. yearday')
 
+# create dictionary of slev of DO minima (reshpaed to 2D array)
+# initialize empty dictionary
+DO_min_withtime_dict = {}
+# add ds to dictionary
+for year in years:
+    # get min DO values
+    DO_min_withtime = ds_dict[year].DO_min.values
+    # compress spatial and time dimensions
+    DO_min_withtime = np.reshape(DO_min_withtime,(365,78057))
+    DO_min_withtime_dict[year] = DO_min_withtime
 
-# # compress dimensions, but keep time dimension (lost spatial resolution)
-# DO_min_all_natural = np.reshape(DO_min_natural,(365,78057))
-# # anthropogenic
-# DO_min_all_anthropogenic = np.reshape(DO_min_anthropogenic,(365,78057))
+# initialize figure
+plt.close('all')
+pfun.start_plot(figsize=(12,9))
+fig,axes = plt.subplots(2,3)
+ax = axes.ravel()
 
-# # rename variables so its easier to manipulate
-# # natural
-# x_natural = dates_timeonly
-# y_natural = DO_min_all_natural
-# # anthropogenic
-# x_anthropogenic = dates_timeonly
-# y_anthropogenic = DO_min_all_anthropogenic
-# # get rid of nans in dataset
-# # natural
-# bad_indices = np.isnan(x_natural) | np.isnan(y_natural)
-# good_indices = ~bad_indices
-# good_x_natural = x_natural[good_indices]
-# good_y_natural = y_natural[good_indices]
-# # anthropogenic
-# bad_indices = np.isnan(x_anthropogenic) | np.isnan(y_anthropogenic)
-# good_indices = ~bad_indices
-# good_x_anthropogenic = x_anthropogenic[good_indices]
-# good_y_anthropogenic = y_anthropogenic[good_indices]
+# plot each year
+for j,year in enumerate(years):
 
-# # calculate difference between two histograms
-# # natural
-# plt.figure(1)
-# h, xedges, yedges, image0 = plt.hist2d(good_x_natural,good_y_natural, bins=(365, 100), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# # anthropogenic
-# plt.figure(2)
-# h1, xedges1, yedges1, image1 = plt.hist2d(good_x_anthropogenic,good_y_anthropogenic, bins=(xedges, yedges), norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
+    # rename variables so its easier to manipulate
+    x = dates_timeonly
+    y = DO_min_withtime_dict[year]
+    # get rid of nans in dataset
+    bad_indices = np.isnan(x) | np.isnan(y)
+    good_indices = ~bad_indices
+    good_x = x[good_indices]
+    good_y = y[good_indices]
 
-# # initialize figure
-# plt.close('all')
-# pfun.start_plot(figsize=(17,8))
-# fig,ax = plt.subplots(1,2, sharey = True)
+    # plot 2d histogram for each year
+    cs = ax[j].hist2d(good_x, good_y, bins = [365,100],
+                      norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
 
-# # plot 2d histogram to get colored scatter by point density (natural)
-# cs = ax[0].hist2d(good_x_natural, good_y_natural, bins = [365,100], norm=mpl.colors.LogNorm(), cmap=cmocean.cm.thermal)
-# cbar = fig.colorbar(cs[3])
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
+    # format figure
+    ax[j].set_title(year)
+    ax[j].grid(visible=True, color='w')
+    # format background color
+    ax[j].set_facecolor('#EEEEEE')
+    for border in ['top','right','bottom','left']:
+        ax[j].spines[border].set_visible(False)
+    # add y-labels
+    if j in [0,3]:
+        ax[j].set_ylabel('DO [mg/L]')
+    else:
+        ax[j].set_yticklabels([]) 
+    # add x-labels
+    ax[j].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+    if j in [3,4,5]:
+        ax[j].set_xlabel('Month')
+        ax[j].tick_params(axis='x', labelrotation=30)
+    else:
+        ax[j].set_xticklabels([]) 
+    if j in [2,5]:
+        # add colorbar
+        if j == 2:
+            cbar = fig.colorbar(cs[3], ax=[ax[0],ax[1],ax[2]],
+                                anchor=(1.2,0.5), location='right')
+        else:
+            cbar = fig.colorbar(cs[3], ax=[ax[3],ax[4],ax[5]],
+                                anchor=(1.2,0.5), location='right')
+        cbar.ax.set_ylabel('Count')
+        cbar.outline.set_visible(False)
 
-# # plot difference between colormaps
-# # anthropogenic minus natural
-# vmin = np.min(h1-h)
-# vmax = np.max(h1-h)
-# cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
-# cs = ax[1].pcolormesh(xedges, yedges, (h1-h).T, cmap=cmap)
-# cbar = fig.colorbar(cs)
-# cbar.ax.set_ylabel('Count')
-# cbar.outline.set_visible(False)
-
-
-# # format natural figure
-# ax[0].set_xlabel('Year day')
-# ax[0].set_title('(a) Natural')
-# ax[0].grid(visible=True, color='w')
-# # add labels
-# ax[0].set_ylabel('DO minima concentration [mg/L]')
-# # format background color
-# ax[0].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[0].spines[border].set_visible(False)
-
-# # format difference figure
-# ax[1].set_xlabel('Year day')
-# ax[1].set_title('(b) Anthropogenic - Natural')
-# ax[1].grid(visible=True, color='w')
-# # format background color
-# ax[1].set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax[1].spines[border].set_visible(False)
-
-
-# plt.tight_layout
-# plt.subplots_adjust(left=0.05, right=0.95, top=0.80, wspace=0.02)
-# plt.suptitle(r'2D Histogram: Concentration of DO minima vs. day of year' + '\n for all cells in Puget Sound')
-# plt.savefig(out_dir / ('minDO_vs_time_' + straits))
-# plt.close('all')
-
-# print('Done.')
+# save figure
+plt.tight_layout
+plt.subplots_adjust(left=0.1, right=0.9, top=0.85, wspace=0.04)
+plt.suptitle(r'2D Histogram: DO minima vs. Time' +
+             '\n for all cells and days in Puget Sound')
+plt.savefig(out_dir / ('DOVStime_'+straits+'.png'))
+plt.close('all')
