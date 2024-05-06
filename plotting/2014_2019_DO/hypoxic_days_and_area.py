@@ -1,0 +1,321 @@
+"""
+Compare average bottom DO between multiple years
+(Set up to run for 6 years)
+
+HAVING ISSUE WITH LEAP YEAR IN 2016
+
+"""
+
+# import things
+from subprocess import Popen as Po
+from subprocess import PIPE as Pi
+from matplotlib.markers import MarkerStyle
+import matplotlib.dates as mdates
+import numpy as np
+import xarray as xr
+from datetime import datetime, timedelta
+from matplotlib.dates import DateFormatter
+from matplotlib.dates import MonthLocator
+from matplotlib.offsetbox import (OffsetImage, AnnotationBbox)
+import matplotlib.image as image
+import pandas as pd
+import cmocean
+import matplotlib.pylab as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib.patheffects as PathEffects
+import pinfo
+
+from lo_tools import Lfun, zfun, zrfun
+from lo_tools import plotting_functions as pfun
+
+import sys
+from pathlib import Path
+pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'pgrid'
+if str(pth) not in sys.path:
+    sys.path.append(str(pth))
+import gfun_utility as gfu
+import gfun
+
+Gr = gfun.gstart()
+
+Ldir = Lfun.Lstart()
+
+##############################################################
+##                       USER INPUTS                        ##
+##############################################################
+
+# DO threshold for calculating days of bottom DO < threshold,
+# and bottom area with DO < threshold
+DO_thresh = 2 # [mg/L]
+
+# Show WWTP locations?
+WWTP_loc = False
+
+remove_straits = False
+
+vn = 'oxygen'
+
+years =  ['2014','2015','2017','2018','2019'] # ['2014','2015','2016','2017','2018','2019']
+# TODO: deal with leapyears.... probably padding all other years with nan for Feb 29...
+
+# which  model run to look at?
+gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
+
+# where to put output figures
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
+Lfun.make_dir(out_dir)
+
+region = 'Puget Sound'
+
+##############################################################
+##                    HELPER FUNCTIONS                      ##
+##############################################################
+
+# helper function to convert Ecology name to LO name
+def SSM2LO_name(rname):
+    """
+    Given a river name in LiveOcean, find corresponding river name in SSM
+    """
+    repeatrivs_fn = '../../../LO_data/trapsD00/LiveOcean_SSM_rivers.xlsx'
+    repeatrivs_df = pd.read_excel(repeatrivs_fn)
+    rname_LO = repeatrivs_df.loc[repeatrivs_df['SSM_rname'] == rname, 'LO_rname'].values[0]
+    return rname_LO
+
+def LO2SSM_name(rname):
+    """
+    Given a river name in LiveOcean, find corresponding river name in SSM
+    """
+    repeatrivs_fn = Ldir['data'] / 'trapsD00' / 'LiveOcean_SSM_rivers.xlsx'
+    repeatrivs_df = pd.read_excel(repeatrivs_fn)
+    rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
+    return rname_SSM
+
+
+if WWTP_loc == True:
+    # set up the time index for the record
+    Ldir = Lfun.Lstart()
+    dsf = Ldir['ds_fmt']
+    dt0 = datetime.strptime('2020.01.01',dsf)
+    dt1 = datetime.strptime('2020.12.31',dsf)
+    days = (dt0, dt1)
+        
+    # pandas Index objects
+    dt_ind = pd.date_range(start=dt0, end=dt1)
+    yd_ind = pd.Index(dt_ind.dayofyear)
+
+    # Get LiveOcean grid info --------------------------------------------------
+
+    # get the grid data
+    ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
+    z = -ds.h.values
+    mask_rho = np.transpose(ds.mask_rho.values)
+    lon = ds.lon_rho.values
+    lat = ds.lat_rho.values
+    X = lon[0,:] # grid cell X values
+    Y = lat[:,0] # grid cell Y values
+    plon, plat = pfun.get_plon_plat(lon,lat)
+    # make a version of z with nans where masked
+    zm = z.copy()
+    zm[np.transpose(mask_rho) == 0] = np.nan
+    zm[np.transpose(mask_rho) != 0] = -1
+
+    # get flow, nitrate, and ammonium values
+    fp_wwtps = '../../../LO_output/pre/trapsP00/point_sources/lo_base/Data_historical/'
+    flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
+
+    # calculate total DIN concentration in mg/L
+    dindf_wwtps = (no3df_wwtps + nh4df_wwtps)/71.4    # mg/L
+
+    # calculate daily loading timeseries in kg/d
+    dailyloaddf_wwtps = 86.4*dindf_wwtps*flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
+
+    # calculate average daily load over the year (kg/d)
+    avgload_wwtps = dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+
+    # add row and col index for plotting on LiveOcean grid
+    griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas6/wwtp_info.csv')
+    griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
+    avgload_wwtps = avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    avgload_wwtps = avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+
+    # get point source lat and lon
+    lon_wwtps = [X[int(col)] for col in avgload_wwtps['col_py']]
+    lat_wwtps = [Y[int(row)] for row in avgload_wwtps['row_py']]
+    
+    # define marker sizes (minimum size is 10 so dots don't get too small)
+    sizes_wwtps = [max(0.3*load,30) for load in avgload_wwtps['avg-daily-load(kg/d)']]
+
+##############################################################
+##                      PROCESS DATA                        ##
+##############################################################
+
+# open datasets
+if remove_straits:
+    straits = 'noStraits'
+else:
+    straits = 'withStraits'
+
+
+# initialize empty dictionaries
+val_dict = {} # dictionary with DO_bot values
+DO_days_dict = {}
+
+for year in years:
+    # add ds to dictionary
+    ds = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / (year + '_DO_info_' + straits + '.nc'))
+    v = ds['DO_bot'].values
+    val_dict[year] = v
+
+# calculate average of all of the arrays
+v_avg = sum(val_dict.values())/len(val_dict)
+# add average to dictionary
+val_dict['avg'] = v_avg
+
+# initialize new dictionary for number of days with bottom DO < threshold
+DO_days = {}
+DO_bot_threshold_dict = {} # and dictionary with 1 if DO < thresh, else nan
+# get days with DO < threshold (for average year, and difference in days for individual years)
+for year in ['avg'] + years:
+    # Get boolean array. True if DO < threshold mg/L, otherwise, nan
+    DO_bot_threshold = np.where(val_dict[year] < DO_thresh, 1, np.nan)
+    DO_bot_threshold_dict[year] = DO_bot_threshold
+    # Sum over time to compress into just lat/lon dimension, with values indicating days with bottom DO < 2mg/L
+    DO_days_threshold = np.nansum(DO_bot_threshold, axis=0)
+    # save difference from average for all years
+    if year != 'avg':
+        DO_days_threshold = DO_days_threshold - DO_days['avg']
+    # convert zeros to nans in dataset
+    DO_days_threshold = np.where(DO_days_threshold == 0, np.nan, DO_days_threshold)
+    DO_days[year] = DO_days_threshold
+
+# initialize dictionary for hypoxic area
+hyp_area = {}
+for year in years:
+    # calculate bottom hypoxic area
+    hyp_area_arr = 0.5 * 0.5 * DO_bot_threshold_dict[year] # area of grid cell = 05 km by 0.5 km time number of gridcells with hypoxia
+    # get timeseries of bottom hypoxic area (by summing over spatial dimensions)
+    hyp_area_timeseries = np.nansum(hyp_area_arr,axis=1)
+    hyp_area_timeseries = np.nansum(hyp_area_timeseries,axis=1)
+    hyp_area[year] = hyp_area_timeseries
+
+##############################################################
+##                         MAKE MAP                         ##
+##############################################################
+
+cbar_pad = 0.02
+
+# get plotting limits based on region
+if region == 'Puget Sound':
+    # box extracion limits: [-123.29, -122.1, 46.95, 48.93]
+    xmin = -123.29
+    xmax = -122.1 + 0.1 # to make room for legend key
+    ymin = 46.95 - 0.1 # to make room for legend key
+    ymax = 48.93
+
+# Initialize figure
+fs = 10
+pfun.start_plot(fs=fs, figsize=(45,20))#figsize=(50,20))
+fig,axes = plt.subplots(1,len(years)+1)
+ax = axes.ravel()
+
+# get lat and lon
+fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
+ds = xr.open_dataset(fp)
+lons = ds.coords['lon_rho'].values
+lats = ds.coords['lat_rho'].values
+px, py = pfun.get_plon_plat(lons,lats)
+
+
+# loop through and plot both conditions
+for i,year in enumerate(['avg'] + years):
+
+    # get days
+    v = DO_days[year]
+                
+    if i == 0:
+        cs = ax[i].pcolormesh(px,py,v, vmin=0, vmax=np.nanmax(v), cmap='rainbow_r')
+        cbar = fig.colorbar(cs, location='left', anchor=(-1,0.5),
+                            ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5]])#ax[6]])
+        cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+        cbar.outline.set_visible(False)
+        ax[i].set_title('Average of all years', fontsize=38)
+
+        # add wwtp locations
+        if WWTP_loc == True:
+            ax[i].scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
+
+        # add 10 km bar
+        lat0 = 46.94
+        lon0 = -123.05
+        lat1 = lat0
+        lon1 = -122.91825
+        distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
+        x_dist_km = round(distances_m[0]/1000)
+        ax[i].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
+        ax[i].text(lon0-0.01,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=28)
+
+    else: 
+        cs = ax[i].pcolormesh(px,py,v, vmin=-60, vmax=60, cmap=cmocean.cm.balance_r)
+        if i == 5:#6:
+            cbar = fig.colorbar(cs, location='right', anchor=(2,0.5), #anchor=(1.8,0.5),
+                        ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5]])#,ax[6]])
+            cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+            cbar.outline.set_visible(False)
+        ax[i].set_title(year + '- avg', fontsize=38)
+
+    # format figure
+    ax[i].set_xlim([xmin,xmax])
+    ax[i].set_ylim([ymin,ymax])
+    ax[i].set_yticklabels([])
+    ax[i].set_xticklabels([])
+    ax[i].axis('off')
+    pfun.dar(ax[i])
+    pfun.add_coast(ax[i])
+                                
+# Add colormap title
+plt.suptitle('Days with bottom DO < {} [mg/L]'.format(str(DO_thresh)),
+            fontsize=44, fontweight='bold', y=0.95)
+
+# Generate plot
+plt.tight_layout
+plt.subplots_adjust(left=0.05, right=0.95, top=0.85, wspace=0.02)
+plt.savefig(out_dir / ('days_DO_less_than_{}.png'.format(str(DO_thresh))))
+
+##############################################################
+##                HYPOXIC AREA TIMESERIES                   ##
+##############################################################
+
+# initialize figure
+plt.close('all)')
+pfun.start_plot(figsize=(12,5))
+fig,ax = plt.subplots(1,1)
+
+
+# create time vector
+startdate = '2013.01.01'
+enddate = '2013.12.31'
+dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+dates_local = [pfun.get_dt_local(x) for x in dates]
+
+colors = ['red','darkorange','gold','green','blue','purple']
+
+# plot timeseries
+for i,year in enumerate(years):
+    # plot hypoxic area timeseries
+    plt.plot(dates_local,hyp_area[year],color=colors[i],
+             linewidth=3,alpha=0.5,label=year)
+
+# format figure
+ax.grid(visible=True, color='w')
+# format background color
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+plt.legend(loc='best')
+plt.title('Bottom Area with DO < {} mg/L '.format(DO_thresh) + r'[km$^2$]')
+ax.set_xlim([dates_local[0],dates_local[-1]])
+
+plt.savefig(out_dir / 'area_with_DO_lt{}'.format(DO_thresh))
