@@ -274,9 +274,6 @@ def make_initial_info(gridname=gridname):
         # get list of default choices
         dch = gfun.default_choices()
 
-        # update ctag for river
-        dch['ctag'] = 'hc_al_rivs'
-
         # 200 m resolution inside of Hood Canal, and 2500 far away
         # lon_list = [-124.1, -122.7, -122.5, -121.1]
         lon_list = [-123.5, -122.7, -122.5, -121.7]
@@ -338,6 +335,28 @@ def make_initial_info(gridname=gridname):
         z = zshelf
         mask = zestuary < z
         z[mask] = zestuary[mask]
+
+        # create a river file by hand
+        Ldir = Lfun.Lstart()
+        # update ctag for river
+        dch['ctag'] = 'hc_al_rivs'
+        ri_dir = Ldir['LOo'] / 'pre' / 'river1' / dch['ctag']
+        Lfun.make_dir(ri_dir)
+        gri_fn = ri_dir / 'river_info.csv'
+        with open(gri_fn, 'w') as rf:
+            rf.write('rname,usgs,ec,nws,ratio,depth,flow_units,temp_units\n')
+            rf.write('creek0,,,,1.0,5.0,m3/s,degC\n')
+        # and make a track for the river
+        track_dir = ri_dir / 'tracks'
+        Lfun.make_dir(track_dir)
+        track_fn = track_dir / 'creek0.p'
+        track_df = pd.DataFrame()
+        NTR = 100
+        if True:
+            track_df['lon'] = -122.6*np.ones(NTR)
+            track_df['lat'] = np.linspace(47.12,46.9,NTR) # OK to go past edge of domain
+        track_df.to_pickle(track_fn)
+        # *** NOTE: TRACKS MUST GO FROM OCEAN TO LAND ***
 
     else:
         print('Error from make_initial_info: unsupported gridname')
