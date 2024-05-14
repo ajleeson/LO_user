@@ -16,7 +16,7 @@ import gfun_utility as gfu
 import gfun
 
 # This is the name of the grid that you are working on.
-gridname = 'hc_al'
+gridname = 'hcal'
 
 # default s-coordinate info (could override below)
 s_dict = {'THETA_S': 4, 'THETA_B': 2, 'TCLINE': 10, 'N': 30,
@@ -270,7 +270,7 @@ def make_initial_info(gridname=gridname):
         
 
     # my idalized hood canal estuary
-    elif gridname == 'hc_al':
+    elif gridname == 'hcal':
         # get list of default choices
         dch = gfun.default_choices()
 
