@@ -52,7 +52,7 @@ import random
 import string
 
 # add the path by hand so that it will run on klone or mox (outside of loenv)
-pth = Path(__file__).absolute().parent.parent / 'lo_tools' / 'lo_tools'
+pth = Path(__file__).absolute().parent.parent.parent / 'lo_tools' / 'lo_tools'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
 import Lfun
@@ -293,7 +293,7 @@ while dt <= dt1:
             tt0 = time()
             # Run ROMS using the batch script.
             if 'klone' in Ldir['lo_env']:
-                cmd_list = ['sbatch', '-p', 'compute', '-A', 'macc',
+                cmd_list = ['sbatch', '-p', 'compute', '-A', 'stf',
                     str(roms_out_dir / 'klone_batch.sh')]
             elif 'mox' in Ldir['lo_env']:
                 cmd_list = ['sbatch', '-p', 'macc', '-A', 'macc',
@@ -306,7 +306,7 @@ while dt <= dt1:
             if 'mox' in Ldir['lo_env']:
                 cmd_list = ['squeue', '-p', 'macc']
             elif 'klone' in Ldir['lo_env']:
-                cmd_list = ['squeue', '-A', 'macc']
+                cmd_list = ['squeue', '-A', 'stf']
 
             # first figure out if it has started
             for rrr in range(10):
