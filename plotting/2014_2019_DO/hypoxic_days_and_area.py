@@ -30,10 +30,9 @@ from lo_tools import plotting_functions as pfun
 
 import sys
 from pathlib import Path
-pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'pgrid'
+pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
-import gfun_utility as gfu
 import gfun
 
 Gr = gfun.gstart()
@@ -49,13 +48,13 @@ Ldir = Lfun.Lstart()
 DO_thresh = 2 # [mg/L]
 
 # Show WWTP locations?
-WWTP_loc = False
+WWTP_loc = True
 
 remove_straits = False
 
 vn = 'oxygen'
 
-years =  ['2014','2015','2017','2018','2019'] # ['2014','2015','2016','2017','2018','2019']
+years =  ['2014','2015','2016','2017','2018','2019'] # ['2014','2015','2016','2017','2018','2019']
 # TODO: deal with leapyears.... probably padding all other years with nan for Feb 29...
 
 # which  model run to look at?
@@ -66,6 +65,8 @@ out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
 Lfun.make_dir(out_dir)
 
 region = 'Puget Sound'
+
+plt.close('all')
 
 ##############################################################
 ##                    HELPER FUNCTIONS                      ##
@@ -166,6 +167,9 @@ for year in years:
     # add ds to dictionary
     ds = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / (year + '_DO_info_' + straits + '.nc'))
     v = ds['DO_bot'].values
+    # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
+    if np.mod(int(year),4) != 0: 
+        v = np.insert(v,59,'nan',axis=0)
     val_dict[year] = v
 
 # calculate average of all of the arrays
@@ -216,7 +220,7 @@ if region == 'Puget Sound':
 
 # Initialize figure
 fs = 10
-pfun.start_plot(fs=fs, figsize=(45,20))#figsize=(50,20))
+pfun.start_plot(fs=fs, figsize=(51,21))
 fig,axes = plt.subplots(1,len(years)+1)
 ax = axes.ravel()
 
@@ -235,9 +239,9 @@ for i,year in enumerate(['avg'] + years):
     v = DO_days[year]
                 
     if i == 0:
-        cs = ax[i].pcolormesh(px,py,v, vmin=0, vmax=np.nanmax(v), cmap='rainbow_r')
+        cs = ax[i].pcolormesh(px,py,v, vmin=0, vmax=np.nanmax(v), cmap='rainbow')
         cbar = fig.colorbar(cs, location='left', anchor=(-1,0.5),
-                            ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5]])#ax[6]])
+                            ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
         cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
         cbar.outline.set_visible(False)
         ax[i].set_title('Average of all years', fontsize=38)
@@ -245,6 +249,15 @@ for i,year in enumerate(['avg'] + years):
         # add wwtp locations
         if WWTP_loc == True:
             ax[i].scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
+            leg_szs = [100, 1000, 10000]
+            szs = [0.3*(leg_sz) for leg_sz in leg_szs]
+            l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=3)
+            l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=3)
+            l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=3)
+            labels = ['< 100', '1,000', '10,000']
+            legend = ax[i].legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
+                title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
+            plt.setp(legend.get_title(),fontsize=20)
 
         # add 10 km bar
         lat0 = 46.94
@@ -254,13 +267,13 @@ for i,year in enumerate(['avg'] + years):
         distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
         x_dist_km = round(distances_m[0]/1000)
         ax[i].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
-        ax[i].text(lon0-0.01,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=28)
+        ax[i].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
 
     else: 
-        cs = ax[i].pcolormesh(px,py,v, vmin=-60, vmax=60, cmap=cmocean.cm.balance_r)
+        cs = ax[i].pcolormesh(px,py,v, vmin=-60, vmax=60, cmap=cmocean.cm.balance)
         if i == 5:#6:
             cbar = fig.colorbar(cs, location='right', anchor=(2,0.5), #anchor=(1.8,0.5),
-                        ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5]])#,ax[6]])
+                        ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
             cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
             cbar.outline.set_visible(False)
         ax[i].set_title(year + '- avg', fontsize=38)
@@ -294,8 +307,8 @@ fig,ax = plt.subplots(1,1)
 
 
 # create time vector
-startdate = '2013.01.01'
-enddate = '2013.12.31'
+startdate = '2020.01.01'
+enddate = '2020.12.31'
 dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 dates_local = [pfun.get_dt_local(x) for x in dates]
 

@@ -43,7 +43,7 @@ Ldir = Lfun.Lstart()
 ##############################################################
 
 # Show WWTP locations?
-WWTP_loc = False
+WWTP_loc = True
 
 remove_straits = False
 
@@ -60,6 +60,10 @@ out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
 Lfun.make_dir(out_dir)
 
 region = 'Puget Sound'
+
+# start date
+start = '06-01'
+end = '10-31'
 
 ##############################################################
 ##                    HELPER FUNCTIONS                      ##
@@ -208,7 +212,7 @@ units = pinfo.units_dict[vn]
 
 # Initialize figure
 fs = 10
-pfun.start_plot(fs=fs, figsize=(50,20))
+pfun.start_plot(fs=fs, figsize=(51,21))
 fig,axes = plt.subplots(1,len(years)+1)
 ax = axes.ravel()
 
@@ -225,7 +229,7 @@ val_dict = {}
 for year in years:
     ds = ds_dict[year]
     # crop to just hypoxic season
-    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-05-01'),np.datetime64(year+'-12-01')))
+    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
     v = ds[var].values
     # take average over season
     v = np.nanmean(v,axis=0)
@@ -243,6 +247,15 @@ ax[0].set_title('Average of all years', fontsize=38)
  # add wwtp locations
 if WWTP_loc == True:
     ax[0].scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
+    leg_szs = [100, 1000, 10000]
+    szs = [0.3*(leg_sz) for leg_sz in leg_szs]
+    l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=3)
+    l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=3)
+    l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=3)
+    labels = ['< 100', '1,000', '10,000']
+    legend = ax[0].legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
+        title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
+    plt.setp(legend.get_title(),fontsize=20)
 
 # add 10 km bar
 lat0 = 46.94
@@ -252,7 +265,7 @@ lon1 = -122.91825
 distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
 x_dist_km = round(distances_m[0]/1000)
 ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
-ax[0].text(lon0-0.01,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=28)
+ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
 
 # format figure
 ax[0].set_xlim([xmin,xmax])
@@ -287,10 +300,10 @@ for j,year in enumerate(years):
     ax[i].set_title(year + '- avg', fontsize=38)
                                 
 # Add colormap title
-plt.suptitle('Hypoxic season average ' + stext + ' ' + vn + ' ' + units,
+plt.suptitle(start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,
             fontsize=44, fontweight='bold', y=0.95)
 
 # Generate plot
 plt.tight_layout
 plt.subplots_adjust(left=0.05, right=0.95, top=0.85, wspace=0.02)
-plt.savefig(out_dir / (vn+'_'+stext+'_avg_mayTHRUnov.png'))
+plt.savefig(out_dir / (vn+'_'+stext+'_avg_'+ start + 'THRU'+end+'.png'))
