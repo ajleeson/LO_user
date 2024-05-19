@@ -1403,7 +1403,7 @@ def P_sect_hcal(in_dict):
     # PLOT CODE
     vn = 'salt'#'phytoplankton'
     if vn == 'salt':
-        pinfo.cmap_dict[vn] = 'jet'
+        pinfo.cmap_dict[vn] = cm.haline
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     # CREATE THE SECTION
@@ -1454,12 +1454,10 @@ def P_sect_hcal(in_dict):
     # PLOTTING
     # map with section line
     ax = fig.add_subplot(1, 3, 1)
-    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+    cs = pfun.add_map_field(ax, ds, vn, {'salt':(0,30)},#pinfo.vlims_dict,
             cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], do_mask_edges=True)
-    # fig.colorbar(cs, ax=ax) # It is identical to that of the section
-    # pfun.add_coast(ax)
-    aaf = [-123.5, -121.5, 47, 48.5] # focus domain
-    ax.axis(aaf)
+    ax.set_xlim([-123.2,-122.1])
+    ax.set_ylim([47,48.3])
     pfun.dar(ax)
     pfun.add_info(ax, in_dict['fn'], loc='upper_right')
     ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
@@ -1480,10 +1478,13 @@ def P_sect_hcal(in_dict):
     ax.set_ylim(zdeep, 5)
     
     # plot section
-    svlims = pinfo.vlims_dict[vn]
+    svlims = (20,30)#pinfo.vlims_dict[vn]
     cs = ax.pcolormesh(dist_se,zw_se,sf,
                        vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
     fig.colorbar(cs, ax=ax)
+    # add isohalines
+    cs2 = ax.contour(dist_se[0:-1,0:-1],zw_se[0:-1,0:-1],sf,[20,25,28,29],colors='k')
+    ax.clabel(cs2, inline=True, fontsize=16)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
     ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
@@ -1496,7 +1497,6 @@ def P_sect_hcal(in_dict):
         plt.close()
     else:
         plt.show()
-
 
 def P_sect_alpe(in_dict):
     """
