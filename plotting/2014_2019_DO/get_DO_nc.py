@@ -14,8 +14,9 @@ in Puget Sound. (optional using flag remove_straits)
 # import things
 import numpy as np
 import xarray as xr
+import csv
 import pinfo
-from lo_tools import Lfun
+from lo_tools import Lfun, zrfun
 
 import sys
 from pathlib import Path
@@ -34,7 +35,7 @@ Ldir = Lfun.Lstart()
 
 remove_straits = False
 
-years = ['2013','2014','2015','2016','2017','2018','2019']
+years = ['2013']#,'2014','2015','2016','2017','2018','2019']
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
@@ -129,6 +130,29 @@ for year in years:
     # add metadata
     ds = add_metadata(ds)
 
+    print('    Calculating hypoxic thickness')
+    # get thickness of hypoxic layer in watercolumn at ever lat/lon cell (ocean_time: 365, eta_rho: 441, xi_rho: 177)
+    # units are in m (thickness of hypoxic layer)
+    # get S for the whole grid
+    Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
+    reader = csv.DictReader(open(Sfp))
+    S_dict = {}
+    for row in reader:
+        S_dict[row['ITEMS']] = row['VALUES']
+    S = zrfun.get_S(S_dict)
+    # get cell thickness
+    h = ds_raw['h'].values # height of water column
+    z_rho, z_w = zrfun.get_z(h, 0*h, S) 
+    dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
+    # Now get oxygen values at every grid cell and convert to mg/L
+    oxy_mgL = pinfo.fac_dict['oxygen'] * ds_raw['oxygen'].values
+    # remove all non-hypoxic values (greater than 2 mg/L)
+    hypoxic = np.where(oxy_mgL <= 2, 1, np.nan) # array of nans and ones. one means hypoxic, nan means nonhypoxic
+    # Multiple cell height array by hypoxic array boolean array
+    hyp_cell_thick = dzr * hypoxic
+    # Sum along z to get thickness of hypoxic layer
+    hyp_thick = np.sum(hyp_cell_thick,axis=1)
+
     print('    Calculating depth of DO minima')
     # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
     srho_min = ds_raw['oxygen'].idxmin(dim='s_rho', skipna=True).values
@@ -183,6 +207,12 @@ for year in years:
                                 dims=['eta_rho', 'xi_rho'])
     # DO concentration at bottom
     ds['DO_bot'] = xr.DataArray(DO_bot,
+                                coords={'ocean_time': ds_raw['ocean_time'].values,
+                                        'eta_rho': ds_raw['eta_rho'].values,
+                                        'xi_rho': ds_raw['xi_rho'].values},
+                                dims=['ocean_time','eta_rho', 'xi_rho'])
+    # hypoxic layer thickness
+    ds['hyp_thick'] = xr.DataArray(hyp_thick,
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},

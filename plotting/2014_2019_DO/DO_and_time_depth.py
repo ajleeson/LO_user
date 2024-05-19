@@ -53,8 +53,7 @@ Ldir = Lfun.Lstart()
 
 remove_straits = True
 
-years =  ['2013','2014','2015','2017','2018','2019'] # ['2014','2015','2016','2017','2018','2019']
-# TODO: deal with leapyears.... probably padding all other years with nan for Feb 29...
+years =  ['2014','2015','2016','2017','2018','2019']
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
@@ -176,20 +175,20 @@ for year in years:
 
 print('    2D histogram: minima depth vs. DO')
 
-# create dataframe of depth of DO minima (reshpaed to 1D array)
+# create dictionary of depth of DO minima (reshpaed to 1D array)
 # initialize empty dataframe
-depth_min_df = pd.DataFrame()
+depth_min_dict = {}
 # add ds to dictionary
 for year in years:
     # get min DO values
     depth_min = ds_dict[year].depth_min.values
     # compress spatial and time dimensions
     depth_min = np.reshape(depth_min,-1)
-    depth_min_df[year] = depth_min
+    depth_min_dict[year] = depth_min
 
 # create dataframe of DO minima concentration (reshpaed to 1D array)
 # initialize empty dataframe
-DO_min_df = pd.DataFrame()
+DO_min_dict = {}
 # add ds to dictionary
 for year in years:
     # get min DO values
@@ -198,7 +197,7 @@ for year in years:
     DO_min = np.where(DO_min < DO_thresh, DO_min, np.nan)
     # compress spatial and time dimensions
     DO_min = np.reshape(DO_min,-1)
-    DO_min_df[year] = DO_min
+    DO_min_dict[year] = DO_min
 
 # initialize figure
 plt.close('all')
@@ -214,8 +213,8 @@ else:
 for j,year in enumerate(years):
 
     # rename variables so its easier to manipulate
-    x = DO_min_df[year]
-    y = depth_min_df[year]
+    x = DO_min_dict[year]
+    y = depth_min_dict[year]
     # get rid of nans in dataset
     bad_indices = np.isnan(x) | np.isnan(y)
     good_indices = ~bad_indices
@@ -272,14 +271,14 @@ print('    2D histogram: minima s-level vs. DO')
 
 # create dataframe of slev of DO minima (reshpaed to 1D array)
 # initialize empty dataframe
-slev_min_df = pd.DataFrame()
+slev_min_dict = {}
 # add ds to dictionary
 for year in years:
     # get min DO values
     slev_min = ds_dict[year].slev_min.values
     # compress spatial and time dimensions
     slev_min = np.reshape(slev_min,-1)
-    slev_min_df[year] = slev_min
+    slev_min_dict[year] = slev_min
 
 # initialize figure
 plt.close('all')
@@ -291,8 +290,8 @@ ax = axes.ravel()
 for j,year in enumerate(years):
 
     # rename variables so its easier to manipulate
-    x = DO_min_df[year]
-    y = slev_min_df[year]
+    x = DO_min_dict[year]
+    y = slev_min_dict[year]
     # get rid of nans in dataset
     bad_indices = np.isnan(x) | np.isnan(y)
     good_indices = ~bad_indices
@@ -346,15 +345,6 @@ plt.close('all')
 
 print('    2D histogram: minima s-level vs. yearday')
 
-# create time vector
-startdate = '2013.01.01'
-enddate = '2013.12.31'
-dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-dates_local = [pfun.get_dt_local(x) for x in dates]
-# duplicate time dimension
-day = np.linspace(1,365,365)
-dates_timeonly = np.repeat(day[:, np.newaxis], 78057, axis=1)
-
 # create dictionary of slev of DO minima (reshpaed to 2D array)
 # initialize empty dictionary
 slev_min_withtime_dict = {}
@@ -363,7 +353,11 @@ for year in years:
     # get min DO values
     slev_min_withtime = ds_dict[year].slev_min.values
     # compress spatial and time dimensions
-    slev_min_withtime = np.reshape(slev_min_withtime,(365,78057))
+    # leap years have 366 days
+    if np.mod(int(year),4) == 0:
+        slev_min_withtime = np.reshape(slev_min_withtime,(366,-1))
+    else:
+        slev_min_withtime = np.reshape(slev_min_withtime,(365,-1))
     slev_min_withtime_dict[year] = slev_min_withtime
 
 # initialize figure
@@ -374,6 +368,24 @@ ax = axes.ravel()
 
 # plot each year
 for j,year in enumerate(years):
+
+    # time vector is different depending on whether it is a leap year
+    if np.mod(int(year),4) == 0:
+        # arbitrary leap year
+        startdate = '2016.01.01'
+        enddate = '2016.12.31'
+        day = np.linspace(1,366,366)
+    else:
+        # arbitrary non-leap year
+        startdate = '2013.01.01'
+        enddate = '2013.12.31'
+        day = np.linspace(1,365,365)
+
+    # create time vector
+    dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+    # duplicate time dimension
+    dates_timeonly = np.repeat(day[:, np.newaxis], 78057, axis=1)
 
     # rename variables so its easier to manipulate
     x = dates_timeonly
@@ -440,7 +452,11 @@ for year in years:
     # get min DO values
     depth_min_withtime = ds_dict[year].depth_min.values
     # compress spatial and time dimensions
-    depth_min_withtime = np.reshape(depth_min_withtime,(365,78057))
+    # leap years have 366 days
+    if np.mod(int(year),4) == 0:
+        depth_min_withtime = np.reshape(depth_min_withtime,(366,-1))
+    else:
+        depth_min_withtime = np.reshape(depth_min_withtime,(365,-1))
     depth_min_withtime_dict[year] = depth_min_withtime
 
 # initialize figure
@@ -451,6 +467,24 @@ ax = axes.ravel()
 
 # plot each year
 for j,year in enumerate(years):
+
+    #  time vector is different depending on whether it is a leap year
+    if np.mod(int(year),4) == 0:
+        # arbitrary leap year
+        startdate = '2016.01.01'
+        enddate = '2016.12.31'
+        day = np.linspace(1,366,366)
+    else:
+        # arbitrary non-leap year
+        startdate = '2013.01.01'
+        enddate = '2013.12.31'
+        day = np.linspace(1,365,365)
+
+    # create time vector
+    dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+    # duplicate time dimension
+    dates_timeonly = np.repeat(day[:, np.newaxis], 78057, axis=1)
 
     # rename variables so its easier to manipulate
     x = dates_timeonly
@@ -517,7 +551,11 @@ for year in years:
     # get min DO values
     DO_min_withtime = ds_dict[year].DO_min.values
     # compress spatial and time dimensions
-    DO_min_withtime = np.reshape(DO_min_withtime,(365,78057))
+    # leap years have 366 days
+    if np.mod(int(year),4) == 0:
+        DO_min_withtime = np.reshape(DO_min_withtime,(366,-1))
+    else:
+        DO_min_withtime = np.reshape(DO_min_withtime,(365,-1))
     DO_min_withtime_dict[year] = DO_min_withtime
 
 # initialize figure
@@ -528,6 +566,24 @@ ax = axes.ravel()
 
 # plot each year
 for j,year in enumerate(years):
+
+    #  time vector is different depending on whether it is a leap year
+    if np.mod(int(year),4) == 0:
+        # arbitrary leap year
+        startdate = '2016.01.01'
+        enddate = '2016.12.31'
+        day = np.linspace(1,366,366)
+    else:
+        # arbitrary non-leap year
+        startdate = '2013.01.01'
+        enddate = '2013.12.31'
+        day = np.linspace(1,365,365)
+
+    # create time vector
+    dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+    # duplicate time dimension
+    dates_timeonly = np.repeat(day[:, np.newaxis], 78057, axis=1)
 
     # rename variables so its easier to manipulate
     x = dates_timeonly
