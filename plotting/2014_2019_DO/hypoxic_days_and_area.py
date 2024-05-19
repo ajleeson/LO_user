@@ -2,8 +2,6 @@
 Compare average bottom DO between multiple years
 (Set up to run for 6 years)
 
-HAVING ISSUE WITH LEAP YEAR IN 2016
-
 """
 
 # import things
@@ -50,12 +48,11 @@ DO_thresh = 2 # [mg/L]
 # Show WWTP locations?
 WWTP_loc = True
 
-remove_straits = False
+remove_straits = True
 
 vn = 'oxygen'
 
-years =  ['2014','2015','2016','2017','2018','2019'] # ['2014','2015','2016','2017','2018','2019']
-# TODO: deal with leapyears.... probably padding all other years with nan for Feb 29...
+years =  ['2014','2015','2016','2017','2018','2019']
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
@@ -160,22 +157,25 @@ else:
 
 
 # initialize empty dictionaries
-val_dict = {} # dictionary with DO_bot values
-DO_days_dict = {}
+DO_bot_dict = {} # dictionary with DO_bot values
+hyp_thick_dict = {}
 
 for year in years:
     # add ds to dictionary
     ds = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / (year + '_DO_info_' + straits + '.nc'))
-    v = ds['DO_bot'].values
+    DO_bot = ds['DO_bot'].values
+    hyp_thick = ds['hyp_thick'].values
     # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
     if np.mod(int(year),4) != 0: 
-        v = np.insert(v,59,'nan',axis=0)
-    val_dict[year] = v
+        DO_bot = np.insert(DO_bot,59,'nan',axis=0)
+        hyp_thick = np.insert(hyp_thick,59,'nan',axis=0)
+    DO_bot_dict[year] = DO_bot
+    hyp_thick_dict[year] = hyp_thick
 
 # calculate average of all of the arrays
-v_avg = sum(val_dict.values())/len(val_dict)
+v_avg = sum(DO_bot_dict.values())/len(DO_bot_dict)
 # add average to dictionary
-val_dict['avg'] = v_avg
+DO_bot_dict['avg'] = v_avg
 
 # initialize new dictionary for number of days with bottom DO < threshold
 DO_days = {}
@@ -183,7 +183,7 @@ DO_bot_threshold_dict = {} # and dictionary with 1 if DO < thresh, else nan
 # get days with DO < threshold (for average year, and difference in days for individual years)
 for year in ['avg'] + years:
     # Get boolean array. True if DO < threshold mg/L, otherwise, nan
-    DO_bot_threshold = np.where(val_dict[year] < DO_thresh, 1, np.nan)
+    DO_bot_threshold = np.where(DO_bot_dict[year] < DO_thresh, 1, np.nan)
     DO_bot_threshold_dict[year] = DO_bot_threshold
     # Sum over time to compress into just lat/lon dimension, with values indicating days with bottom DO < 2mg/L
     DO_days_threshold = np.nansum(DO_bot_threshold, axis=0)
@@ -198,11 +198,26 @@ for year in ['avg'] + years:
 hyp_area = {}
 for year in years:
     # calculate bottom hypoxic area
-    hyp_area_arr = 0.5 * 0.5 * DO_bot_threshold_dict[year] # area of grid cell = 05 km by 0.5 km time number of gridcells with hypoxia
+    hyp_area_arr = 0.5 * 0.5 * DO_bot_threshold_dict[year] # area of grid cell = 0.5 km by 0.5 km times number of gridcells with hypoxia
     # get timeseries of bottom hypoxic area (by summing over spatial dimensions)
     hyp_area_timeseries = np.nansum(hyp_area_arr,axis=1)
     hyp_area_timeseries = np.nansum(hyp_area_timeseries,axis=1)
     hyp_area[year] = hyp_area_timeseries
+
+# initialize dictionary for hypoxic volume [km3]
+hyp_vol = {}
+for year in years:
+    # get hypoxic thickness
+    hyp_thick = hyp_thick_dict[year] # [m]
+    # get timeseries of hypoxic volume (by summing over spatial dimensions)
+    hyp_thick_timeseries = np.nansum(hyp_thick,axis=1)
+    hyp_thick_timeseries = np.nansum(hyp_thick_timeseries,axis=1)
+    print(hyp_thick_timeseries.shape)
+    print(hyp_thick_timeseries)
+    # calculate hypoxic volume
+    # area of grid cell = 0.5 km by 0.5 km times thickness of hypoxic layer (converted from m to km)
+    hyp_vol_timeseries = 0.5 * 0.5 * (hyp_thick_timeseries/1000) 
+    hyp_vol[year] = hyp_vol_timeseries
 
 ##############################################################
 ##                         MAKE MAP                         ##
@@ -236,10 +251,10 @@ px, py = pfun.get_plon_plat(lons,lats)
 for i,year in enumerate(['avg'] + years):
 
     # get days
-    v = DO_days[year]
+    DO_bot = DO_days[year]
                 
     if i == 0:
-        cs = ax[i].pcolormesh(px,py,v, vmin=0, vmax=np.nanmax(v), cmap='rainbow')
+        cs = ax[i].pcolormesh(px,py,DO_bot, vmin=0, vmax=np.nanmax(DO_bot), cmap='rainbow')
         cbar = fig.colorbar(cs, location='left', anchor=(-1,0.5),
                             ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
         cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
@@ -270,7 +285,7 @@ for i,year in enumerate(['avg'] + years):
         ax[i].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
 
     else: 
-        cs = ax[i].pcolormesh(px,py,v, vmin=-60, vmax=60, cmap=cmocean.cm.balance)
+        cs = ax[i].pcolormesh(px,py,DO_bot, vmin=-60, vmax=60, cmap=cmocean.cm.balance)
         if i == 5:#6:
             cbar = fig.colorbar(cs, location='right', anchor=(2,0.5), #anchor=(1.8,0.5),
                         ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
@@ -332,3 +347,40 @@ plt.title('Bottom Area with DO < {} mg/L '.format(DO_thresh) + r'[km$^2$]')
 ax.set_xlim([dates_local[0],dates_local[-1]])
 
 plt.savefig(out_dir / 'area_with_DO_lt{}'.format(DO_thresh))
+
+##############################################################
+##                HYPOXIC VOLUME TIMESERIES                 ##
+##############################################################
+
+# initialize figure
+plt.close('all)')
+pfun.start_plot(figsize=(12,5))
+fig,ax = plt.subplots(1,1)
+
+
+# create time vector
+startdate = '2020.01.01'
+enddate = '2020.12.31'
+dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+dates_local = [pfun.get_dt_local(x) for x in dates]
+
+colors = ['red','darkorange','gold','green','blue','purple']
+
+# plot timeseries
+for i,year in enumerate(years):
+    # plot hypoxic area timeseries
+    plt.plot(dates_local,hyp_vol[year],color=colors[i],
+             linewidth=3,alpha=0.5,label=year)
+
+# format figure
+ax.grid(visible=True, color='w')
+# format background color
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+plt.legend(loc='best')
+plt.title('Hypoxic volume (DO < 2 mg/L) ' + r'[km$^3$]')
+ax.set_xlim([dates_local[0],dates_local[-1]])
+
+plt.savefig(out_dir / 'volume_with_DO_lt2')
