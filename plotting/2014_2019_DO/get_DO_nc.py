@@ -33,12 +33,12 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-remove_straits = False
+remove_straits = True
 
-years = ['2013','2014','2015','2016','2017','2018','2019']
+years = ['2014']#['2013','2014','2015','2016','2017','2018','2019']
 
 # which  model run to look at?
-gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
+gtagex = 'cas7_t0noN_x4b'#'cas7_t0_x4b' # long hindcast (anthropogenic)
 
 # where to put output files
 out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'data'
