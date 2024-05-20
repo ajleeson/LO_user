@@ -3,9 +3,7 @@ This is the main program for making the RIVER and TRAPS forcing file, for the
 updated ROMS
 
 Test on pc in ipython:
-run make_forcing_main.py -g cas6 -r backfill -d 2021.01.01 -f traps2 -test True
-
-2023.05.30 Updated to work with pre/river1 data format.
+run make_forcing_main.py -g cas6 -r backfill -d 2021.01.01 -f TRAPS2 -test True
 
 """
 
@@ -67,43 +65,20 @@ G = zrfun.get_basic_info(grid_fn, only_G=True)
 # LIVEOCEAN PRE-EXISTING RIVERS
 
 # Load a dataframe with info for rivers to get
-if Ldir['gridname'] == 'cas6':
-    ctag = 'lo_base'
-else:
-    print('You need to specify a gridname for this ctag.')
-    sys.exit()
-
-ri_dir = Ldir['LOo'] / 'pre' / 'river1' / ctag
-ri_df_fn = ri_dir / 'river_info.p'
-ri_df = pd.read_pickle(ri_df_fn)
+gtag = 'cas6_v3'
+ri_dir = Ldir['LOo'] / 'pre' / 'river' / gtag
+ri_fn = ri_dir / 'river_info.csv'
+ri_df = pd.read_csv(ri_fn, index_col='rname')
 
 # get historical and climatological data files
-Ldir['Hflow_fn'] = ri_dir / 'Data_historical' / ('ALL_flow.p')
-Ldir['Cflow_fn'] = ri_dir / 'Data_historical' / ('CLIM_flow.p')
-Ldir['Ctemp_fn'] = ri_dir / 'Data_historical' / ('CLIM_temp.p')
-
-# get biologeochem data for rivers for which Ecology has data
-LObio_dir = Ldir['LOo'] / 'pre' / 'traps' / 'LO_rivbio'
-traps_type = 'LOriv'
-# climatological data files
-year0 = 1999
-year1 = 2017
-# climatological data
-Ldir['CDO_LOriv_fn']   = LObio_dir / 'Data_historical' / ('CLIM_DO_' + str(year0) + '_' + str(year1) + '.p')
-Ldir['CNH4_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_NH4_' + str(year0) + '_' + str(year1) + '.p')
-Ldir['CNO3_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_NO3_' + str(year0) + '_' + str(year1) + '.p')
-Ldir['CTalk_LOriv_fn'] = LObio_dir / 'Data_historical' / ('CLIM_Talk_' + str(year0) + '_' + str(year1) + '.p')
-Ldir['CTIC_LOriv_fn']  = LObio_dir / 'Data_historical' / ('CLIM_TIC_' + str(year0) + '_' + str(year1) + '.p')
-
-# get names of rivers for which Ecology has biogeochem data
-# these are the names the LiveOcean calls them. Later, they will be converted to the name Ecology/SSM uses
-repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
-repeatrivs_df = pd.read_excel(repeatrivs_fn)
-LObio_names_all = list(repeatrivs_df.loc[repeatrivs_df['in_both'] == 1, 'LO_rname'])
-# remove the weird rivers
-weird_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R', 'Columbia R', 'Comox']
-# These are the names that LO uses
-LObio_names = [rname for rname in LObio_names_all if trapsfun.LO2SSM_name(rname) not in weird_rivers]
+year0 = 1980
+year1 = 2021
+clim_temp_year0 = 1980
+clim_temp_year1 = 2020
+# historical and climatological data
+Ldir['Hflow_fn'] = ri_dir / 'Data_historical' / ('ALL_flow_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['Cflow_fn'] = ri_dir / 'Data_historical' / ('CLIM_flow_' + str(year0) + '_' + str(year1) + '.p')
+Ldir['Ctemp_fn'] = ri_dir / 'Data_historical' / ('CLIM_temp_' + str(clim_temp_year0) + '_' + str(clim_temp_year1) + '.p')
 
 # get the list of rivers and indices for this grid
 gri_fn = Ldir['grid'] / 'river_info.csv'
@@ -117,8 +92,6 @@ ri_df = rivfun.get_tc_rn(ri_df)
 
 # get the flow and temperature data for these days
 qt_df_dict = rivfun.get_qt(gri_df, ri_df, dt_ind, yd_ind, Ldir, dt1, days)
-# get the biology for LO pre-existing rivers for which Ecology has data
-LObio_df_dict = trapsfun.get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type)
 
 # Start Dataset
 LOriv_ds = xr.Dataset()
@@ -220,18 +193,9 @@ for bvn in bvn_list:
     B_mat = np.nan * np.zeros((NT, N, NRIV))
     rr = 0
     for rn in gri_df.index:
-        # Add biogeochem climatology for rivers for which Ecology have data
-        if rn in LObio_names and bvn in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
-            # get corresponding Ecology/SSM river name
-            rn_SSM = trapsfun.LO2SSM_name(rn)
-            # get the biogeochem values from climatology
-            bio_LOriv_df = LObio_df_dict[rn_SSM]
-            bvals = bio_LOriv_df[bvn].values
-        # If Ecology doesn't have data, use default LO bio
-        else:
-            bvals = rivfun.get_bio_vec(bvn, rn, yd_ind)
+        qt_df = qt_df_dict[rn]
         for nn in range(N):
-            B_mat[:, nn, rr] = bvals
+            B_mat[:, nn, rr] = rivfun.get_bio_vec(bvn, rn, yd_ind)
         rr += 1
     if np.isnan(B_mat).any():
         print('Error from riv00: nans in B_mat for ' + vn)
@@ -545,26 +509,22 @@ if enable_pointsources == True:
     for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
         vinfo = zrfun.get_varinfo(vn, vartype='climatology')
         if vn == 'river_direction':
-            wwtp_ds[vn] = (('river',), gri_df_no_ovrlp.idir.to_numpy())
+            # set point source diretion to enter vertically (2)
+            wwtp_direction = 2 * np.ones(NWWTP) 
+            wwtp_ds[vn] = (('river',), wwtp_direction)
         elif vn == 'river_Xposition':
             X_vec = np.nan * np.ones(NWWTP)
-            ii = 0
-            for rn in gri_df_no_ovrlp.index:
-                if gri_df_no_ovrlp.loc[rn, 'idir'] == 0:
-                    X_vec[ii] = gri_df_no_ovrlp.loc[rn, 'col_py'] + 1
-                elif gri_df_no_ovrlp.loc[rn, 'idir'] == 1:
-                    X_vec[ii] = gri_df_no_ovrlp.loc[rn, 'col_py']
-                ii += 1
+            for ii,wn in enumerate(gri_df_no_ovrlp.index):
+                X_vec[ii] = gri_df_no_ovrlp.loc[wn, 'col_py']
             wwtp_ds[vn] = (('river',), X_vec)
         elif vn == 'river_Eposition':
             E_vec = np.nan * np.ones(NWWTP)
-            ii = 0
-            for rn in gri_df_no_ovrlp.index:
-                if gri_df_no_ovrlp.loc[rn, 'idir'] == 0:
-                    E_vec[ii] = gri_df_no_ovrlp.loc[rn, 'row_py']
-                elif gri_df_no_ovrlp.loc[rn, 'idir'] == 1:
-                    E_vec[ii] = gri_df_no_ovrlp.loc[rn, 'row_py'] + 1
-                ii += 1
+            # ii = 0
+            for ii,wn in enumerate(gri_df_no_ovrlp.index):
+                E_vec[ii] = gri_df_no_ovrlp.loc[wn, 'row_py']
+                # ii += 1
+            wwtp_ds[vn] = (('river',), E_vec)
+                # ii += 1
             wwtp_ds[vn] = (('river',), E_vec)
         wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
 
@@ -589,7 +549,7 @@ if enable_pointsources == True:
         else:
             qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
             flow = qtbio_wwtp_df['flow'].values
-        Q_mat[:,rr] = flow * gri_df_no_ovrlp.loc[rn, 'isign']
+        Q_mat[:,rr] = flow
         rr += 1
     wwtp_ds[vn] = (dims, Q_mat)
     wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
