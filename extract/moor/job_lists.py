@@ -216,6 +216,12 @@ def get_sta_dict(job_name):
         'hood_canal': (-122.813348, 47.667696), 
         'admiralty_sill': (-122.700874, 48.138784)
         }
+
+    # random point near river in hcal model
+    elif job_name == 'hcal':
+        sta_dict = {
+        'hcal': (-122.6,47.2),
+        }
             
             
     else:
