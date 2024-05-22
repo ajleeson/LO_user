@@ -119,7 +119,7 @@ for year in years:
         # Create a mask for latitudes and longitudes in the Straits
         mask = (ds_raw['lat_rho'] > lat_threshold) & (ds_raw['lon_rho'] < lon_threshold)
         # Expand mask dimensions to match 'oxygen' dimensions
-        expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['oxygen']), s_rho=len(ds_raw['s_rho']))
+        expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['ocean_time']), s_rho=len(ds_raw['s_rho']))
         # Apply the mask to the 'oxygen' variable
         ds_raw['oxygen'] = xr.where(expanded_mask, np.nan, ds_raw['oxygen'])
 
