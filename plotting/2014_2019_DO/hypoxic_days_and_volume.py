@@ -49,7 +49,7 @@ DO_thresh = 2 # [mg/L]
 # Show WWTP locations?
 WWTP_loc = True
 
-remove_straits = False
+remove_straits = True
 
 vn = 'oxygen'
 
