@@ -62,7 +62,7 @@ Lfun.make_dir(out_dir)
 region = 'Puget Sound'
 
 # start date
-start = '06-01'
+start = '08-01'
 end = '10-31'
 
 ##############################################################

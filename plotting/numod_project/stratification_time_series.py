@@ -42,11 +42,13 @@ tags = ['amtc','amtk','ahtc','ahtk']
 colors = ['red','red','navy','navy']
 styles = ['-',':','-',':']
 
+location = 'near_river'
+
 # font sizes
 fs_label = 12
 fs_header = 12
 fs_title = 14
-pfun.start_plot(fs=10, figsize=(8,5))
+pfun.start_plot(fs=10, figsize=(8,3))
 fig,ax = plt.subplots(1,1)
 
 # Loop through all model runs, get data, and plot
@@ -59,7 +61,7 @@ for i,tag in enumerate(tags):
         ex = '_xatk'
 
     # get data
-    ds = xr.open_dataset(Ldir['LOo'] / 'extract' / ('hcal_' + tag + ex) / 'moor' / 'hcal' / 'hcal_2020.01.01_2020.01.15.nc')
+    ds = xr.open_dataset(Ldir['LOo'] / 'extract' / ('hcal_' + tag + ex) / 'moor' / 'hcal' / (location + '_2020.01.01_2020.01.15.nc'))
     
     # get salinity along transect
     s_top = ds.salt[:,-1].values
@@ -111,7 +113,7 @@ ax.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
 # plt.ylim([10,17.5])
 ax.set_xlim([dates_local[0],dates_local[-1]])
 plt.title('Sea surface height time-series')
-plt.ylabel(r'Stratification [g kg$^{-1}$]')
+plt.ylabel('SSH [m]')
 plt.xlabel('Date')
 # format figure
 ax.grid(visible=True, color='w')
