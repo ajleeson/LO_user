@@ -55,7 +55,7 @@ DO_thresh = 2 # mg/L DO threshold
 remove_straits = False
 
 
-year = '2013'
+year = '2014'
 
 # Variables to compare
 vn = 'oxygen'
@@ -163,9 +163,9 @@ if WWTP_loc == True:
 print('Processing started...')
 
 # get data
-fp_natural = Ldir['LOo'] / 'extract' / natural_gtagex / 'box' / 'pugetsoundDO_2013.01.01_2013.12.31.nc'
+fp_natural = Ldir['LOo'] / 'extract' / natural_gtagex / 'box' / 'pugetsoundDO_'+year+'.01.01_'+year+'.12.31.nc'
 ds_natural = xr.open_dataset(fp_natural)
-fp_anthropogenic = Ldir['LOo'] / 'extract' / anthropogenic_gtagex / 'box' / 'pugetsoundDO_2013.01.01_2013.12.31.nc'
+fp_anthropogenic = Ldir['LOo'] / 'extract' / anthropogenic_gtagex / 'box' / 'pugetsoundDO_'+year+'.01.01_'+year+'.12.31.nc'
 ds_anthropogenic = xr.open_dataset(fp_anthropogenic)
 
 if remove_straits:
@@ -279,7 +279,7 @@ plt.suptitle('Days with Bottom DO < {} mg/L'.format(DO_thresh),
             fontsize=44, fontweight='bold', y=0.95)
 
 # save figure
-plt.savefig(out_dir / 'map_days_do_lt_{}'.format(DO_thresh))
+plt.savefig(out_dir / '{}_map_days_do_lt_{}'.format(year,DO_thresh))
 
 print('DO maps done...')
 

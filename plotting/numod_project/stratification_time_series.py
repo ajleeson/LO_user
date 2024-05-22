@@ -42,9 +42,6 @@ tags = ['amtc','amtk','ahtc','ahtk']
 colors = ['red','red','navy','navy']
 styles = ['-',':','-',':']
 
-date = '2020.01.15'
-hn = '25'
-
 # font sizes
 fs_label = 12
 fs_header = 12
@@ -62,33 +59,29 @@ for i,tag in enumerate(tags):
         ex = '_xatk'
 
     # get data
-    ds = xr.open_dataset(Ldir['roms_out'] / ('hcal_' + tag + ex) / ('f' + date) / ('ocean_his_00' + hn + '.nc'))
-
-    start_ind = 23
-
-    # get transect lats
-    lat = ds.lat_rho.values[start_ind:222,95]
-
-    # get transect distance
-    x,y = zfun.ll2xy(0, lat, 0, lat[0])
+    ds = xr.open_dataset(Ldir['LOo'] / 'extract' / ('hcal_' + tag + ex) / 'moor' / 'hcal' / 'hcal_2020.01.01_2020.01.15.nc')
     
     # get salinity along transect
-    s_top = ds.salt[:,-1,start_ind:222,95].values
-    s_bot = ds.salt[:,0,start_ind:222,95].values
+    s_top = ds.salt[:,-1].values
+    s_bot = ds.salt[:,0].values
 
     # calcualte stratification
     S = s_bot.reshape(-1) - s_top.reshape(-1)
 
+    # create time vector
+    dates_local = [pfun.get_dt_local(pd.Timestamp(x)) for x in ds.ocean_time.values]
+
     # plot stratification along transect
-    plt.plot(y/1000,S,label=tag,alpha=0.5,linewidth=2,color=colors[i],linestyle=styles[i])
+    plt.plot(dates_local,S,label=tag,alpha=0.5,linewidth=2,color=colors[i],linestyle=styles[i])
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
     plt.legend()
 
     # format figure
-    plt.ylim([0,30])
-    plt.xlim([0,100])
-    plt.title(r'$s_{bot}-s_{top}$' + '\n' + date + ' hour ' + hn)
+    # plt.ylim([10,17.5])
+    ax.set_xlim([dates_local[0],dates_local[-1]])
+    plt.title(r'$s_{bot}-s_{top}$' + ' time-series')
     plt.ylabel(r'Stratification [g kg$^{-1}$]')
-    plt.xlabel('Distance [km]')
+    plt.xlabel('Date')
     # format figure
     ax.grid(visible=True, color='w')
     # format background color
@@ -96,4 +89,35 @@ for i,tag in enumerate(tags):
     for border in ['top','right','bottom','left']:
         ax.spines[border].set_visible(False)
 
-plt.savefig(out_dir / (date + '_hr' + hn + '_stratification.png'))
+plt.savefig(out_dir / 'stratification_time_series.png')
+
+# plot sea surface height ---------------------------------------------
+
+
+plt.close('all')
+
+# font sizes
+fs_label = 12
+fs_header = 12
+fs_title = 14
+pfun.start_plot(fs=10, figsize=(8,4))
+fig,ax = plt.subplots(1,1)
+
+# plot stratification along transect
+plt.plot(dates_local,ds.zeta.values,alpha=0.5,linewidth=2,color='k')
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
+
+# format figure
+# plt.ylim([10,17.5])
+ax.set_xlim([dates_local[0],dates_local[-1]])
+plt.title('Sea surface height time-series')
+plt.ylabel(r'Stratification [g kg$^{-1}$]')
+plt.xlabel('Date')
+# format figure
+ax.grid(visible=True, color='w')
+# format background color
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+plt.savefig(out_dir / 'SSH_time_series.png')
