@@ -220,7 +220,8 @@ def get_sta_dict(job_name):
     # random point near river in hcal model
     elif job_name == 'hcal':
         sta_dict = {
-        'hcal': (-122.6,47.2),
+        'near_river': (-122.6,47.2),
+        'middle': (-122.6,47.5),
         }
             
             
