@@ -298,7 +298,7 @@ for j in range(1):
 
         # add label of total load
         if sname == 'Ocean':
-            tload = ax.text(0.40,0.87, '{:,}'.format(int(round(totalloads[i],-3))) + r'$ \ kg \ d^{-1}$' + '\n(Mackas & Harrison 1997)',
+            tload = ax.text(0.40,0.87, '{:,}'.format(int(round(totalloads[i],-3))) + r'$ \ kg \ d^{-1}$' + '\n(Mackas & Harrison, 1997)',
                 horizontalalignment = 'center', fontsize = 16, color = 'k', transform=ax.transAxes)
         else:
             tload = ax.text(0.77,0.87, r'$\Sigma$ ' + sname + 's: \n {:,}'.format(int(round(totalloads[i],-3))) + r'$ \ kg \ d^{-1}$',
@@ -313,7 +313,7 @@ for j in range(1):
         # reduce gap between subplots
         plt.subplots_adjust(wspace=0.05)
         
-        plt.savefig(out_dir / ('loading_plot.png'))
+        plt.savefig(out_dir / ('loading_plot.png'),transparent='True')
 
 
 # Print stuff for comparison with Ben

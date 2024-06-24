@@ -1,6 +1,19 @@
 """
-This script determines the s-level, depth, and concentration of the 
-DO minima in the watercolumn, and saves the data in a new .nc file.
+This script gets the following variables from box extraction:
+ubar
+vbar
+surface T
+surface S
+bottom T
+bottom S
+depth-averaged Akv
+depht-averaged Akt
+depth-integrated LdetN
+depth-integrated SdetN
+depth-integrated phytoplankton
+depth-integrated zooplankton
+
+Data are saved in a new .nc file
 
 This script searches for yearly box extractions in LO_output, for the
 region "pugetsoundDO"
@@ -35,7 +48,7 @@ Ldir = Lfun.Lstart()
 
 remove_straits = True
 
-years = ['2014']#['2013','2014','2015','2016','2017','2018','2019']
+years = ['2013']#['2014','2015','2016','2017','2018','2019']
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
@@ -60,16 +73,31 @@ def start_ds(ocean_time,eta_rho,xi_rho):
     Nxi = len(xi_rho.values)
 
     ds = xr.Dataset(data_vars=dict(
-        # depth of DO minima
-        depth_min   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # slevel of DO minima
-        slev_min    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # concentration of DO minima
-        DO_min      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth of water column
-        depth_bot   = (['eta_rho','xi_rho'], np.zeros((Neta,Nxi))),
-        # DO concentration at bottom
-        DO_bot      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
+        # ubar
+        ubar        = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # vbar
+        vbar        = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # surface temp
+        surfT       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # surface salinity
+        surfS       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # bottom temp
+        bottT       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # bottom salinity
+        bottS       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # depth-averaged eddy viscosity
+        AKvbar      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # depth-averaged eddy diffusivity
+        AKtbar      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # depth-integrated LdetN
+        intLdetN    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # depth-integrated SdetN
+        intSdetN    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # depth-integrated phytoplankton
+        intphyto    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # depth-integrated zooplankton
+        intzoop     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
+
     coords=dict(ocean_time=ocean_time, eta_rho=eta_rho, xi_rho=xi_rho,),)
     
     return ds
@@ -79,20 +107,11 @@ def add_metadata(ds):
     Create metadata for processed DO data
     '''
 
-    ds['depth_min'].attrs['long_name'] = 'depth of watercolumn DO minima'
-    ds['depth_min'].attrs['units'] = 'm'
+    ds['ubar'].attrs['long_name'] = 'depth-averaged u'
+    ds['ubar'].attrs['units'] = 'm/s'
 
-    ds['slev_min'].attrs['long_name'] = 's-level of watercolumn DO minima'
-    ds['slev_min'].attrs['units'] = 'unitless'
-
-    ds['DO_min'].attrs['long_name'] = 'concentration of watercolumn DO minima'
-    ds['DO_min'].attrs['units'] = 'mg/L'
-
-    ds['depth_bot'].attrs['long_name'] = 'watercolumn depth'
-    ds['depth_bot'].attrs['units'] = 'm'
-
-    ds['DO_bot'].attrs['long_name'] = 'DO concentration at bottom'
-    ds['DO_bot'].attrs['units'] = 'mg/L'
+    ds['vbar'].attrs['long_name'] = 'depth-averaged v'
+    ds['vbar'].attrs['units'] = 'm/s'
 
     return ds
 
@@ -224,6 +243,6 @@ for year in years:
         straits = 'noStraits'
     else:
         straits = 'withStraits'
-    ds.to_netcdf(out_dir / (year + '_DO_info_' + straits + '.nc'))
+    ds.to_netcdf(out_dir / (year + '_var_info_' + straits + '.nc'))
 
 print('Done')

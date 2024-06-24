@@ -601,6 +601,7 @@ for j,year in enumerate(years):
     # format figure
     ax[j].set_title(year)
     ax[j].grid(visible=True, color='w')
+    ax[j].set_ylim([0,14])
     # format background color
     ax[j].set_facecolor('#EEEEEE')
     for border in ['top','right','bottom','left']:
@@ -632,6 +633,6 @@ for j,year in enumerate(years):
 plt.tight_layout
 plt.subplots_adjust(left=0.1, right=0.9, top=0.85, wspace=0.04)
 plt.suptitle(r'2D Histogram: DO minima vs. Time' +
-             '\n for all cells and days in Puget Sound')
+             '\n for all cells in Puget Sound')
 plt.savefig(out_dir / ('DOVStime_'+straits+'.png'))
 plt.close('all')
