@@ -97,6 +97,7 @@ for year in years:
     # area of grid cell = 0.5 km by 0.5 km times thickness of hypoxic layer (converted from m to km)
     hyp_vol_timeseries = 0.5 * 0.5 * (hyp_thick_timeseries/1000) 
     hyp_vol[year] = hyp_vol_timeseries
+    print(np.nansum(hyp_vol_timeseries))
 
 # get plotting limits based on region
 if region == 'Puget Sound':

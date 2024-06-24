@@ -28,7 +28,7 @@ from lo_tools import plotting_functions as pfun
 
 import sys
 from pathlib import Path
-pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'pgrid'
+pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
 import gfun_utility as gfu
@@ -45,7 +45,7 @@ Ldir = Lfun.Lstart()
 # Show WWTP locations?
 WWTP_loc = True
 
-remove_straits = False
+remove_straits = True
 
 vn = 'oxygen'
 

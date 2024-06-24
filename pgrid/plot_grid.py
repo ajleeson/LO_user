@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 import numpy as np
 import pickle
+import cmocean
 from lo_tools import Lfun
 
 import argparse
@@ -82,7 +83,7 @@ pfun.start_plot(figsize=figsize)
 # bathymetry
 fig = plt.figure()
 ax = fig.add_subplot(111)
-cs = ax.pcolormesh(plon, plat, zm, vmin=zmin, vmax=0, cmap='Spectral_r')
+cs = ax.pcolormesh(plon, plat, zm, vmin=zmin, vmax=0, cmap=cmocean.cm.deep_r)#cmap='Spectral_r')
 # cs = ax.pcolormesh(plon, plat, zm, vmin=-120, vmax=-100, cmap='Spectral_r')
 ax.tick_params(axis='x', labelrotation = 30)
 fig.colorbar(cs, ax=ax)
