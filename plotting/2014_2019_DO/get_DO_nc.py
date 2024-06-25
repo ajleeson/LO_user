@@ -69,7 +69,9 @@ def start_ds(ocean_time,eta_rho,xi_rho):
         # depth of water column
         depth_bot   = (['eta_rho','xi_rho'], np.zeros((Neta,Nxi))),
         # DO concentration at bottom
-        DO_bot      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
+        DO_bot      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # thickness of hypoxic layer
+        hyp_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
     coords=dict(ocean_time=ocean_time, eta_rho=eta_rho, xi_rho=xi_rho,),)
     
     return ds
@@ -93,6 +95,9 @@ def add_metadata(ds):
 
     ds['DO_bot'].attrs['long_name'] = 'DO concentration at bottom'
     ds['DO_bot'].attrs['units'] = 'mg/L'
+
+    ds['hyp_thick'].attrs['long_name'] = 'thickness of hypoxic layer'
+    ds['hyp_thick'].attrs['units'] = 'm'
 
     return ds
 
