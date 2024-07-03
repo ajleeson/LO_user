@@ -75,7 +75,7 @@ def get_box(job, Lon, Lat):
         aa = [-123.2, -122.1, 46.95, 48.45]
         vn_list =  ('h,pm,pn,mask_rho,salt,temp,zeta,NO3,NH4,phytoplankton,'
                 + 'zooplankton,SdetritusN,LdetritusN,oxygen')
-    elif job == 'pugetsoundDO':
+    elif job == 'pugetsoundDO': # this is what I am using for thesis
         aa = [-123.29, -122.1, 46.95, 48.93]
         vn_list =  ('h,pm,pn,mask_rho,salt,temp,zeta,NO3,NH4,phytoplankton,'
                 + 'zooplankton,SdetritusN,LdetritusN,oxygen,ubar,vbar,AKv,AKs')

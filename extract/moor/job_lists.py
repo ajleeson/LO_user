@@ -223,6 +223,32 @@ def get_sta_dict(job_name):
         'near_river': (-122.6,47.2),
         'middle': (-122.6,47.5),
         }
+
+    # 2024.07.03 Extraction locations for 21 inlets in Puget Sound
+    elif job_name == 'twentyoneinlets':
+        sta_dict = {
+        'similk': (),       # 01. Similk Bay
+        'oak': (),          # 02. Oak Harbor
+        'crescent': (),     # 03. Crescent Harbor
+        'penn': (),         # 04. Penn Cove
+        'portsusan': (),    # 05. Port Susan
+        'killsut': (),      # 06. Killsut Harbor
+        'holmes': (),       # 07. Holmes Harbor
+        'dabob': (),        # 08. Dabob Bay
+        'dyes': (),         # 09. Dyes Inlet
+        'sinclair': (),     # 10. Sinclair Inlet
+        'elliot': (),       # 11. Elliot Bay
+        'lynchcove': (),    # 12. Lynch Cove
+        'case': (),         # 13. Case Inlet
+        'carr': (),         # 14. Carr Inlet
+        'quartermaster': (),# 15. Quartermaster Harbor
+        'commencement': (), # 16. Commencement Bay
+        'hammersley': (),   # 17. Hammersley Inlet
+        'totten': (),       # 18. Totten Inlet
+        'eld': (),          # 19. Eld Inlet
+        'budd': (),         # 20. Budd Inlet
+        'henderson': (),    # 21. Henderson Inlet
+        }
             
             
     else:

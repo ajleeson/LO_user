@@ -15,7 +15,7 @@ import pandas as pd
 import xarray as xr
 import numpy as np
 from datetime import datetime
-import Path
+from pathlib import Path
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import extract_argfun as exfun
@@ -34,8 +34,9 @@ out_dir = (Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'cast' /
     (Ldir['source'] + '_' + Ldir['otype'] + '_' + year_str))
 Lfun.make_dir(out_dir, clean=True)
 
-# path to Parker's observational data on apogee
-obs_dir = Path('/dat1/parker/LO_output/obs')
+
+# path to Parker's observational data on perigee
+obs_dir = Path('/data1/parker/LO_output/obs')
 info_fn = obs_dir / Ldir['source'] / Ldir['otype'] / ('info_' + year_str + '.p')
 
 if info_fn.is_file():
