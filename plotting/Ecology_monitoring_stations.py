@@ -28,4 +28,4 @@ ax.scatter(lon,lat,s=50, edgecolors='k', color='deeppink' )
 ax.set_xlim(-123.5,-122)
 ax.set_ylim(47,48.9)
 
-plt.show()
+plt.savefig('Ecology_stations.png')
