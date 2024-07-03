@@ -15,7 +15,7 @@ import pandas as pd
 import xarray as xr
 import numpy as np
 from datetime import datetime
-import Path
+from pathlib import Path
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import extract_argfun as exfun
