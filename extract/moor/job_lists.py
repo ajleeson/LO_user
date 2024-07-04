@@ -227,13 +227,13 @@ def get_sta_dict(job_name):
     # 2024.07.03 Extraction locations for 21 inlets in Puget Sound
     elif job_name == 'twentyoneinlets':
         sta_dict = {
-        'similk': (),       # 01. Similk Bay
-        'oak': (),          # 02. Oak Harbor
-        'crescent': (),     # 03. Crescent Harbor
-        'penn': (),         # 04. Penn Cove
-        'portsusan': (),    # 05. Port Susan
-        'killsut': (),      # 06. Killsut Harbor
-        'holmes': (),       # 07. Holmes Harbor
+        'similk': (-122.566493, 48.433323),       # 01. Similk Bay
+        'oak': (-122.643288, 48.282798),          # 02. Oak Harbor
+        'crescent': (-122.594159, 48.284254),     # 03. Crescent Harbor
+        'penn': (-122.688449, 48.230183),         # 04. Penn Cove
+        'portsusan': (-122.407245, 48.142236),    # 05. Port Susan
+        'killsut': (-122.710107, 48.058841),      # 06. Killsut Harbor
+        'holmes': (-122.530311, 48.052192),       # 07. Holmes Harbor
         'dabob': (),        # 08. Dabob Bay
         'dyes': (),         # 09. Dyes Inlet
         'sinclair': (),     # 10. Sinclair Inlet
