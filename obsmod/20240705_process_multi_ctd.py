@@ -12,18 +12,17 @@ import numpy as np
 from datetime import datetime, timedelta
 import gsw
 import pickle
-from pathlib import Path
 
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
 testing = False
 
-source_list = ['ecology_nc', 'dfo1']
+source_list = ['ecology', 'dfo1']
 otype = 'ctd'
-year = '2014'
+year = '2015'
 
-out_dir = Ldir['parent'] / 'LO_output' / 'obsmod'
+out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 Lfun.make_dir(out_dir)
 out_fn = out_dir / ('multi_' + otype + '_' + year + '.p')
 
@@ -35,16 +34,13 @@ df_dict['obs'] = pd.DataFrame()
 for gtx in gtx_list:
     df_dict[gtx] = pd.DataFrame()
 
-# path to Parker's observational data on perigee
-obs_dir = Path('/data1/parker/LO_output/obs')
-
 cid0 = 0
 for source in source_list:
     print('\n'+source)
     
     # load observations
-    info_fn = obs_dir / source / otype / ('info_' + year + '.p')
-    obs_fn = obs_dir / source / otype / (year + '.p')
+    info_fn = Ldir['LOo'] / 'obs' / source / otype / ('info_' + year + '.p')
+    obs_fn = Ldir['LOo'] / 'obs' / source / otype / (year + '.p')
     
     try:
         info_df = pd.read_pickle(info_fn)
@@ -120,7 +116,6 @@ for source in source_list:
                 if npzd == 'old':
                     mod_df.loc[mod_df.cid==cid, 'Chl (mg m-3)'] = 2.5*ds.phytoplankton[iz_list].values
                 
-            
                 ii += 1
         
             else:
