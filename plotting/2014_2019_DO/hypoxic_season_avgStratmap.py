@@ -178,7 +178,7 @@ if region == 'Puget Sound':
 
 # set axis range
 vmin = 0
-vmax = 8
+vmax = 0.2
 cmap = cmocean.tools.crop_by_percent(cmocean.cm.dense, 20, which='min')
 
 # Initialize figure
@@ -247,6 +247,8 @@ for year in years:
     v = ds['rho_bot'].values - ds['rho_surf'].values
     # take average over season
     v = np.nanmean(v,axis=0)
+    # divide by depth
+    v = v/h
     val_dict[year] = v
 
 # calculate average of all of the arrays
@@ -327,7 +329,7 @@ if len(years) > 1:
         ax[i].set_title(year + '- avg', fontsize=38)
                                 
 # Add colormap title
-plt.suptitle(start+' to '+end+' average ' + r'$\Delta \rho$' + ' ' + r'[kg/m$^3$]',
+plt.suptitle(start+' to '+end+' average ' + r'$\Delta \rho / H$' + ' ' + r'[kg m$^{-4}$]',
             fontsize=44, fontweight='bold', y=0.95)
 
 # Generate plot
