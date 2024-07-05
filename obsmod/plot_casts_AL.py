@@ -15,15 +15,19 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
-year = '2017'
+year = '2014'
 in_dir = Ldir['parent'] / 'LO_output' / 'obsmod'
 
 # choices
-sta_name = 'HCB004'
+sta_name = 'HCB007'
 vn = 'DO (uM)'
 # vn = 'SA'
 # vn = 'CT'
 # vn = 'Chl (mg m-3)'
+
+# where to put output figures
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures' / 'model_data_comparison'
+Lfun.make_dir(out_dir)
 
 """
 HCB003 is around Hoodsport
@@ -36,7 +40,7 @@ otype = 'ctd'#'bottle'
 in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
 df_dict = pickle.load(open(in_fn, 'rb'))
 
-source = 'ecology'
+source = 'ecology_nc'
 for gtx in df_dict.keys():
     df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].source==source,:]
 
@@ -54,16 +58,16 @@ lim_dict = {'SA':(15,36),'CT':(0,20),'DO (uM)':(0,500),
     'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
     'DIC (uM)':(1500,2500),'TA (uM)':(1500,2500),'Chl (mg m-3)':(0,20)}
 
-c_list = ['k']#['darkturquoise','k']
+c_list = ['darkturquoise','k']
 c_dict = {'obs':'mediumorchid'}
 ii = 0
 for gtx in df_dict.keys():
     print(gtx)
-    if gtx == 'obs' or gtx == 'cas7_trapsV00_meV00_AugVFCinis' or gtx == 'cas6_traps2_x2b':
-        pass
-    else:
-        c_dict[gtx] = c_list[ii]
-        ii += 1
+    # if gtx == 'obs' or gtx == 'cas7_t0_x4b':
+    #     pass
+    # else:
+    c_dict[gtx] = c_list[ii]
+    ii += 1
     
     
 # plotting
@@ -78,8 +82,8 @@ cid_list.sort()
 ################################################################ 
 
 # Puget Sound only
-lat_low = 47
-lat_high = 48.15 #48.5
+lat_low = 46.95
+lat_high = 47.75 #48.95
 lon_low = -123.3
 lon_high = -122.1
 
@@ -128,7 +132,7 @@ for i,stn in enumerate(stn_names):
 plt.title('Cast Locations',fontsize = 16)
 fig.tight_layout
 
-plt.show()
+plt.savefig(out_dir / ('cast_locations.png'))
 
 ################################################################ 
 ##                     Plot cast profiles                     ##
@@ -143,7 +147,7 @@ plt.subplots_adjust(wspace=0, hspace=0.1)
 labels = ['(a) January', '(b) February', '(c) March', '(d) April', '(e) May', '(f) June',
           '(g) July', '(h) August', '(i) September', '(j) October', '(k) November', '(l) December']
 
-runnames = ['Observations','Updated Model']#['Observations','Current LiveOcean', 'Updated Model']
+runnames = ['Observations','Model']#['Observations','Current LiveOcean', 'Updated Model']
 
 # styles = ['-','-','--']
 
@@ -157,16 +161,13 @@ for i,cid in enumerate(cid_list):
     ax = fig.add_subplot(2,6,ii)
     j = 0
     for gtx in df_dict.keys():
-        if gtx == 'cas7_trapsV00_meV00_AugVFCinis' or gtx == 'cas6_traps2_x2b':
-            pass
-        else: 
-            x = df_dict[gtx].loc[df_dict[gtx].cid==cid,vn].to_numpy()
-            y = df_dict[gtx].loc[df_dict[gtx].cid==cid,'z'].to_numpy()
-            zbot = np.min((zbot,np.min(y)))
-            ax.plot(x,y,linestyle='-',c=c_dict[gtx],linewidth=widths[j],label=runnames[j]) # label = gtx
-            ax.text(.1,.05,labels[i],transform=ax.transAxes,bbox=pfun.bbox)
-            ax.set_xlim(lim_dict[vn])
-            j += 1
+        x = df_dict[gtx].loc[df_dict[gtx].cid==cid,vn].to_numpy()
+        y = df_dict[gtx].loc[df_dict[gtx].cid==cid,'z'].to_numpy()
+        zbot = np.min((zbot,np.min(y)))
+        ax.plot(x,y,linestyle='-',c=c_dict[gtx],linewidth=widths[j],label=runnames[j]) # label = gtx
+        ax.text(.1,.05,labels[i],transform=ax.transAxes,bbox=pfun.bbox)
+        ax.set_xlim(lim_dict[vn])
+        j += 1
     ax_dict[ii] = ax
     ax.set_xlim(lim_dict[vn])
     if ii not in [1,7]:
@@ -191,9 +192,10 @@ fig.tight_layout()
 fig.subplots_adjust(top=0.86, bottom=0.1)
 
 handles, labels = ax.get_legend_handles_labels()
-fig.legend(handles, labels, loc=(0.25, 0.88), ncol=3,
+fig.legend(handles, labels, loc=(0.38, 0.88), ncol=2,
            frameon = False, labelcolor = 'linecolor', prop=dict(weight='bold'))
     
 fig.suptitle('Station: %s, %s, %s' % (sta_name,vn,year),
              fontweight='bold', fontsize=16)
-plt.show()
+
+plt.savefig(out_dir / (sta_name + '_cast_profile.png'))

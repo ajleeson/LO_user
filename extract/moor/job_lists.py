@@ -224,7 +224,7 @@ def get_sta_dict(job_name):
         'middle': (-122.6,47.5),
         }
 
-    # 2024.07.03 Extraction locations for 21 inlets in Puget Sound
+    # 2024.07.03 Extraction locations for 21 inlets in Puget Sound, for the year 2014
     elif job_name == 'twentyoneinlets':
         sta_dict = {
         'similk': (-122.566493, 48.433323),       # 01. Similk Bay
@@ -236,17 +236,17 @@ def get_sta_dict(job_name):
         'holmes': (-122.530311, 48.052192),       # 07. Holmes Harbor
         'dabob': (-122.821167, 47.763285),        # 08. Dabob Bay
         'dyes': (-122.686548, 47.616928),         # 09. Dyes Inlet
-        'sinclair': (-122.643472, 47.549262),     # 10. Sinclair Inlet (Ecology monitoring station SIN001)
-        'elliot': (-122.369572, 47.596487),       # 11. Elliot Bay (Ecology monitoring station ELB015) 
-        'lynchcove': (-122.929592, 47.398148),    # 12. Lynch Cove (Ecology monitoring station HCB007)  
+        'sinclair': (-122.641701, 47.549999),     # 10. Sinclair Inlet (Ecology monitoring station SIN001)
+        'elliot': (-122.368301, 47.596668),       # 11. Elliot Bay (Ecology monitoring station ELB015) 
+        'lynchcove': (-122.928299, 47.398331),    # 12. Lynch Cove (Ecology monitoring station HCB007)  
         'case': (-122.807292, 47.332090),         # 13. Case Inlet
         'carr': (-122.711210, 47.317064),         # 14. Carr Inlet
         'quartermaster': (-122.470469, 47.377077),# 15. Quartermaster Harbor
-        'commencement': (-122.450123, 47.290377), # 16. Commencement Bay (Ecology monitoring station CMB003)
-        'hammersley': (-123.077650, 47.213427),   # 17. Hammersley Inlet (Ecology monitoring station OAK004) 
-        'totten': (-122.990814, 47.156019),       # 18. Totten Inlet
+        'commencement': (-122.448303, 47.290001), # 16. Commencement Bay (Ecology monitoring station CMB003)
+        'hammersley': (-123.076698, 47.213329),   # 17. Hammersley Inlet (Ecology monitoring station OAK004) 
+        'totten': (-123.019997, 47.121670),       # 18. Totten Inlet (Ecology monitoring station TOT002)
         'eld': (-122.949787, 47.115069),          # 19. Eld Inlet
-        'budd': (-122.918197, 47.092040),         # 20. Budd Inlet (Ecology monitoring station BUD005)
+        'budd': (-122.916702, 47.091671),         # 20. Budd Inlet (Ecology monitoring station BUD005)
         'henderson': (-122.834437, 47.143149),    # 21. Henderson Inlet
         }
             
