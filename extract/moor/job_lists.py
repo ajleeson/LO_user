@@ -234,20 +234,20 @@ def get_sta_dict(job_name):
         'portsusan': (-122.407245, 48.142236),    # 05. Port Susan
         'killsut': (-122.710107, 48.058841),      # 06. Killsut Harbor
         'holmes': (-122.530311, 48.052192),       # 07. Holmes Harbor
-        'dabob': (),        # 08. Dabob Bay
-        'dyes': (),         # 09. Dyes Inlet
-        'sinclair': (),     # 10. Sinclair Inlet
-        'elliot': (),       # 11. Elliot Bay
-        'lynchcove': (),    # 12. Lynch Cove
-        'case': (),         # 13. Case Inlet
-        'carr': (),         # 14. Carr Inlet
-        'quartermaster': (),# 15. Quartermaster Harbor
-        'commencement': (), # 16. Commencement Bay
-        'hammersley': (),   # 17. Hammersley Inlet
-        'totten': (),       # 18. Totten Inlet
-        'eld': (),          # 19. Eld Inlet
-        'budd': (),         # 20. Budd Inlet
-        'henderson': (),    # 21. Henderson Inlet
+        'dabob': (-122.821167, 47.763285),        # 08. Dabob Bay
+        'dyes': (-122.686548, 47.616928),         # 09. Dyes Inlet
+        'sinclair': (-122.643472, 47.549262),     # 10. Sinclair Inlet (Ecology monitoring station SIN001)
+        'elliot': (-122.369572, 47.596487),       # 11. Elliot Bay (Ecology monitoring station ELB015) 
+        'lynchcove': (-122.929592, 47.398148),    # 12. Lynch Cove (Ecology monitoring station HCB007)  
+        'case': (-122.807292, 47.332090),         # 13. Case Inlet
+        'carr': (-122.711210, 47.317064),         # 14. Carr Inlet
+        'quartermaster': (-122.470469, 47.377077),# 15. Quartermaster Harbor
+        'commencement': (-122.450123, 47.290377), # 16. Commencement Bay (Ecology monitoring station CMB003)
+        'hammersley': (-123.077650, 47.213427),   # 17. Hammersley Inlet (Ecology monitoring station OAK004) 
+        'totten': (-122.990814, 47.156019),       # 18. Totten Inlet
+        'eld': (-122.949787, 47.115069),          # 19. Eld Inlet
+        'budd': (-122.918197, 47.092040),         # 20. Budd Inlet (Ecology monitoring station BUD005)
+        'henderson': (-122.834437, 47.143149),    # 21. Henderson Inlet
         }
             
             
