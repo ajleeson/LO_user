@@ -35,8 +35,8 @@ df_dict['obs'] = pd.DataFrame()
 for gtx in gtx_list:
     df_dict[gtx] = pd.DataFrame()
 
-# path to Parker's observational data on perigee
-obs_dir = Path('/data1/parker/LO_output/obs')
+# path to Parker's observational data on apogee
+obs_dir = Path('/dat1/parker/LO_output/obs')
 
 cid0 = 0
 for source in source_list:
