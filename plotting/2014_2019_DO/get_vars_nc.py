@@ -77,10 +77,6 @@ def start_ds(ocean_time,eta_rho,xi_rho):
     ds = xr.Dataset(data_vars=dict(
         # depth of water column
         depth_bot   = (['eta_rho','xi_rho'], np.zeros((Neta,Nxi))),
-        # ubar
-        ubar        = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # vbar
-        vbar        = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # surface temp
         surfT       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # surface salinity
@@ -89,10 +85,6 @@ def start_ds(ocean_time,eta_rho,xi_rho):
         botT       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # bottom salinity
         botS       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth-averaged eddy viscosity
-        AKvbar      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth-averaged eddy diffusivity
-        AKsbar      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # depth-integrated LdetN
         intLdetN    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # depth-integrated SdetN
@@ -104,7 +96,11 @@ def start_ds(ocean_time,eta_rho,xi_rho):
         # depth-integrated NO3
         intNO3      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # depth-integrated NH4
-        intNH4     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
+        intNH4     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # surface NO3
+        surfNO3      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # surface NH4
+        surfNH4     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
 
     coords=dict(ocean_time=ocean_time, eta_rho=eta_rho, xi_rho=xi_rho,),)
     

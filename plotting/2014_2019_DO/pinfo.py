@@ -74,7 +74,7 @@ fac_dict =  {'salt': 1,
              'temp': 1,
              'NO3': 1,
              'NH4': 1,
-             'phytoplankton': 2.5, # how do these units work?
+             'phytoplankton': 2.5, # mg Phytoplankton/mmol N (see Banas et al., 2009)
              'zooplankton': 1,
              'oxygen': 32/1000, # convert mmol m-3 to mg L-1
              'TIC': 1,
