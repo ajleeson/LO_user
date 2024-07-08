@@ -175,12 +175,8 @@ for year in years:
         # Expand mask dimensions to match 'oxygen' dimensions
         expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['ocean_time']), s_rho=len(ds_raw['s_rho']))
         # Apply the mask to the variable
-        ds_raw['ubar'] = xr.where(expanded_mask, np.nan, ds_raw['ubar'])
-        ds_raw['vbar'] = xr.where(expanded_mask, np.nan, ds_raw['vbar'])
         ds_raw['temp'] = xr.where(expanded_mask, np.nan, ds_raw['temp'])
         ds_raw['salt'] = xr.where(expanded_mask, np.nan, ds_raw['salt'])
-        ds_raw['AKv'] = xr.where(expanded_mask, np.nan, ds_raw['AKv'])
-        ds_raw['AKs'] = xr.where(expanded_mask, np.nan, ds_raw['AKs'])
         ds_raw['LdetritusN'] = xr.where(expanded_mask, np.nan, ds_raw['LdetritusN'])
         ds_raw['SdetritusN'] = xr.where(expanded_mask, np.nan, ds_raw['SdetritusN'])
         ds_raw['phytoplankton'] = xr.where(expanded_mask, np.nan, ds_raw['phytoplankton'])
@@ -194,12 +190,6 @@ for year in years:
                   ds_raw['xi_rho'],)
     # add metadata
     ds = add_metadata(ds)
-    
-    print('    Calculating depth-averaged eddy viscosity/diffusivity')
-    # get depth-averaged eddy viscosity and diffusivity (ocean_time: 365, eta_rho: 441, xi_rho: 177)
-    # units are m2/s
-    AKvbar = ds_raw['AKv'].values.mean(axis=1)
-    AKsbar = ds_raw['AKs'].values.mean(axis=1)
 
     print('    Calculating depth-integrated bio vars')
     # get thickness of hypoxic layer in watercolumn at ever lat/lon cell (ocean_time: 365, eta_rho: 441, xi_rho: 177)
