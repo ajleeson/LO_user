@@ -79,6 +79,10 @@ ds_dict_vars = {}
 for year in years:
     ds_DO = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / (year + '_DO_info_' + straits + '.nc'))
     ds_vars = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / (year + '_vars_' + straits + '.nc'))
+    # crop to just hypoxic season
+    ds_DO = ds_DO.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+    ds_vars = ds_vars.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+    # save dataset
     ds_dict_DO[year] = ds_DO
     ds_dict_vars[year] = ds_vars
 
@@ -86,17 +90,17 @@ for year in years:
 ##                         MAKE MAP                         ##
 ##############################################################
 
-year = years[0]
+year = '2014'
 
 vns = ['oxygen','stratification','DIN','phytoplankton','zooplankton','SdetritusN','LdetritusN']
 
 labels = ['Bottom DO\n[mg L' + r'$^{-1}$' + ']',
       r'$\Delta\rho$' + '\n[kg m' + r'$^{-3}$' + ']',
       'Surface DIN (NO3+NH4)\n[mmol m'+ r'$^{-3}$' + ']',
-      r'$\int_{H}^{\zeta}$' +' phytoplankton\n[kg]',
-      r'$\int_{H}^{\zeta}$' +' zooplankton\n[mmol]',
-      r'$\int_{H}^{\zeta}$' +' S detritus\n[mmol]',
-      r'$\int_{H}^{\zeta}$' +' L detritus\n[mmol]',
+      r'$\int_{H}^{\zeta}$' +' phytoplankton\n[kg Chl]',
+      r'$\int_{H}^{\zeta}$' +' zooplankton\n[kg N]',
+      r'$\int_{H}^{\zeta}$' +' S detritus\n[kg N]',
+      r'$\int_{H}^{\zeta}$' +' L detritus\n[kg N]',
       ]
 
 # get lat and lon
@@ -155,8 +159,8 @@ for i, vn in enumerate(vns):
         # replace zeros with nans
         var[var == 0] = 'nan'
         vmin = 0
-        vmax = np.nanmax(var)
-        cmap = cmocean.tools.crop_by_percent(cmocean.cm.algae, 10, which='min')
+        vmax = 100
+        cmap = cmocean.cm.algae
     elif vn == 'stratification':  
         # get surface and bottom temp and salinity
         surfS = ds_dict_vars[year]['surfS'].values 
@@ -180,23 +184,62 @@ for i, vn in enumerate(vns):
         # take average over season
         var = delta_rho.mean(axis=0)
         vmin = 0
-        vmax = np.nanmax(var)
+        vmax = 12
         cmap = cmocean.tools.crop_by_percent(cmocean.cm.dense, 15, which='min')
     elif vn == 'DIN':
         # get surface NO3 and NH4
         surfNO3 = ds_dict_vars[year]['surfNO3'].values
         surfNH4 = ds_dict_vars[year]['surfNH4'].values
-        print(surfNO3)
         # sum to get DIN
         surfDIN = surfNO3 + surfNH4
         # time average
         var = surfDIN.mean(axis=0)
-        # replace zeros with nans
-        var[var == 0] = 'nan'
         # get colorbar options
         vmin = 0
         vmax = np.nanmax(var)
         cmap = cmocean.cm.matter
+    elif vn == 'zooplankton': 
+        # get cell thickness * zooplankton (mmol/m2)
+        thick_zoop = ds_dict_vars[year]['intzoop'].values
+        # multiply by horizontal area
+        int_zoop = thick_zoop * 500 * 500
+        # convert to kg N from mmol
+        int_zoop = int_zoop * 14 * (1/1000) * (1/1000) # 14 g/mol * 1/1000 g/mg * 1/1000 kg/g
+        # time average
+        var = int_zoop.mean(axis=0)
+        # replace zeros with nans
+        var[var == 0] = 'nan'
+        vmin = 0
+        vmax = 50
+        cmap = cmocean.tools.crop_by_percent(cmocean.cm.amp, 10, which='min')
+    elif vn == 'SdetritusN': 
+        # get cell thickness * setritus (mmol/m2)
+        thick_sdet = ds_dict_vars[year]['intSdetN'].values
+        # multiply by horizontal area
+        int_sdet = thick_sdet * 500 * 500
+        # convert to kg N from mmol
+        int_sdet = int_sdet * 14 * (1/1000) * (1/1000) # 14 g/mol * 1/1000 g/mg * 1/1000 kg/g
+        # time average
+        var = int_sdet.mean(axis=0)
+        # replace zeros with nans
+        var[var == 0] = 'nan'
+        vmin = 0
+        vmax = 500
+        cmap = cmocean.tools.crop_by_percent(cmocean.cm.turbid, 10, which='min')
+    elif vn == 'LdetritusN': 
+        # get cell thickness * setritus (mmol/m2)
+        thick_ldet = ds_dict_vars[year]['intLdetN'].values
+        # multiply by horizontal area
+        int_ldet = thick_ldet * 500 * 500
+        # convert to kg N from mmol
+        int_ldet = int_ldet * 14 * (1/1000) * (1/1000) # 14 g/mol * 1/1000 g/mg * 1/1000 kg/g
+        # time average
+        var = int_ldet.mean(axis=0)
+        # replace zeros with nans
+        var[var == 0] = 'nan'
+        vmin = 0
+        vmax = 30
+        cmap = cmocean.tools.crop_by_percent(cmocean.cm.turbid, 10, which='min')
     else:
         continue
 
@@ -205,39 +248,6 @@ for i, vn in enumerate(vns):
     cbar = fig.colorbar(cs, location='bottom', pad = 0.01)
     cbar.ax.tick_params(rotation=30)
     cbar.outline.set_visible(False)
-
-# # set axes range for different state variables
-# if vn == 'NO3':
-#     vmin = 0
-#     vmax = 40
-#     cmap = cmocean.cm.matter
-# elif vn == 'NH4':
-#     vmin = 0
-#     vmax = 6
-#     cmap = cmocean.cm.matter
-# elif vn == 'phytoplankton':
-#     vmin = 0
-#     vmax = 30
-#     cmap = cmocean.cm.algae
-# elif vn == 'oxygen':
-#     vmin = 0
-#     vmax = 10
-#     cmap = plt.cm.get_cmap('rainbow_r', 10)
-#     stext = 'bottom'
-#     slev = '0'
-#     var = 'DO_bot'
-# elif vn == 'SdetritusN':
-#     vmin = 0
-#     vmax = 5
-#     cmap = cmocean.cm.matter
-# elif vn == 'LdetritusN':
-#     vmin = 0
-#     vmax = 0.1
-#     cmap = cmocean.cm.matter
-
-# # scale variable & get units
-# # scale =  pinfo.fac_dict[vn]
-# units = pinfo.units_dict[vn]
 
     # add title
     ax[i].set_title(labels[i])
