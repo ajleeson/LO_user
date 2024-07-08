@@ -45,7 +45,7 @@ Ldir = Lfun.Lstart()
 # Show WWTP locations?
 WWTP_loc = True
 
-remove_straits = True
+remove_straits = False
 
 vn = 'oxygen'
 
