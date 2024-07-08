@@ -46,7 +46,7 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-remove_straits = True
+remove_straits = False
 
 years = ['2014','2015','2016','2017','2018','2019']
 
@@ -305,14 +305,14 @@ for year in years:
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     
     # surface NO3
-    ds['surfT'] = xr.DataArray(ds_raw['NO3'].values[:,-1,:,:],
+    ds['surfNO3'] = xr.DataArray(ds_raw['NO3'].values[:,-1,:,:],
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     
     # surface NH4
-    ds['surfT'] = xr.DataArray(ds_raw['NH4'].values[:,-1,:,:],
+    ds['surfNH4'] = xr.DataArray(ds_raw['NH4'].values[:,-1,:,:],
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},

@@ -416,4 +416,4 @@ plt.legend(loc='best')
 plt.title('Puget Sound hypoxic volume (DO < 2 mg/L) ' + r'[km$^3$]')
 ax1.set_xlim([dates_local[0],dates_local[-1]])
 
-plt.savefig(out_dir / 'volume_with_DO_lt2')
+plt.savefig(out_dir / ('volume_with_DO_lt2_'+straits+'.png'))
