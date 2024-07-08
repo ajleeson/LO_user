@@ -1,19 +1,17 @@
 """
 This script gets the following variables from box extraction:
-ubar
-vbar
 surface T
 surface S
 bottom T
 bottom S
-depth-averaged AKv
-depht-averaged AKs
 depth-integrated LdetN
 depth-integrated SdetN
 depth-integrated phytoplankton
 depth-integrated zooplankton
 depth-integrated NO3
 depth-integrated NH4
+surface NO3
+surface NH4
 
 Data are saved in a new .nc file
 
@@ -50,7 +48,7 @@ Ldir = Lfun.Lstart()
 
 remove_straits = False
 
-years = ['2014']#['2014','2015','2016','2017','2018','2019']
+years = ['2014','2015','2016','2017','2018','2019']
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
@@ -114,12 +112,6 @@ def add_metadata(ds):
     ds['depth_bot'].attrs['long_name'] = 'watercolumn depth'
     ds['depth_bot'].attrs['units'] = 'm'
 
-    ds['ubar'].attrs['long_name'] = 'depth-averaged u'
-    ds['ubar'].attrs['units'] = 'm/s'
-
-    ds['vbar'].attrs['long_name'] = 'depth-averaged v'
-    ds['vbar'].attrs['units'] = 'm/s'
-
     ds['surfT'].attrs['long_name'] = 'surface temperature'
     ds['surfT'].attrs['units'] = 'C'
 
@@ -131,12 +123,6 @@ def add_metadata(ds):
 
     ds['botS'].attrs['long_name'] = 'bottom salinity'
     ds['botS'].attrs['units'] = 'C'
-
-    ds['AKvbar'].attrs['long_name'] = 'depth-averaged eddy viscosity'
-    ds['AKvbar'].attrs['units'] = 'm2/s'
-
-    ds['AKsbar'].attrs['long_name'] = 'depth-averaged eddy diffusivity'
-    ds['AKsbar'].attrs['units'] = 'm2/s'
 
     ds['intLdetN'].attrs['long_name'] = 'depth-integrated large detritus'
     ds['intLdetN'].attrs['units'] = 'mmol N / m2'
@@ -155,6 +141,12 @@ def add_metadata(ds):
 
     ds['intNH4'].attrs['long_name'] = 'depth-integrated ammonium'
     ds['intNH4'].attrs['units'] = 'mmol N / m2'
+
+    ds['surfNO3'].attrs['long_name'] = 'surface nitrate'
+    ds['surfNO3'].attrs['units'] = 'mmol N / m3'
+
+    ds['surfNH4'].attrs['long_name'] = 'surface ammonium'
+    ds['surfNH4'].attrs['units'] = 'mmol N / m3'
 
     return ds
 
@@ -252,20 +244,6 @@ for year in years:
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['eta_rho', 'xi_rho'])
     
-    # ubar
-    ds['ubar'] = xr.DataArray(ds_raw['ubar'].values,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    # vbar
-    ds['ubar'] = xr.DataArray(ds_raw['vbar'].values,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
     # surfT
     ds['surfT'] = xr.DataArray(ds_raw['temp'].values[:,-1,:,:],
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
@@ -289,20 +267,6 @@ for year in years:
     
     # bottS
     ds['botS'] = xr.DataArray(ds_raw['salt'].values[:,0,:,:],
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-
-    # depth-averaged eddy viscosity
-    ds['AKvbar'] = xr.DataArray(AKvbar,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    # depth-averaged eddy diffusivity
-    ds['AKsbar'] = xr.DataArray(AKsbar,
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
@@ -336,15 +300,29 @@ for year in years:
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     
-    # depth-integrated LdetN
+    # depth-integrated NO3
     ds['intNO3'] = xr.DataArray(intNO3,
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     
-    # depth-integrated LdetN
+    # depth-integrated NH4
     ds['intNH4'] = xr.DataArray(intNH4,
+                                coords={'ocean_time': ds_raw['ocean_time'].values,
+                                        'eta_rho': ds_raw['eta_rho'].values,
+                                        'xi_rho': ds_raw['xi_rho'].values},
+                                dims=['ocean_time','eta_rho', 'xi_rho'])
+    
+    # surface NO3
+    ds['surfT'] = xr.DataArray(ds_raw['NO3'].values[:,-1,:,:],
+                                coords={'ocean_time': ds_raw['ocean_time'].values,
+                                        'eta_rho': ds_raw['eta_rho'].values,
+                                        'xi_rho': ds_raw['xi_rho'].values},
+                                dims=['ocean_time','eta_rho', 'xi_rho'])
+    
+    # surface NH4
+    ds['surfT'] = xr.DataArray(ds_raw['NH4'].values[:,-1,:,:],
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
