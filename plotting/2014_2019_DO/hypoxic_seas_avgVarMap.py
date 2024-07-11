@@ -46,7 +46,7 @@ Ldir = Lfun.Lstart()
 
 remove_straits = False
 
-years =  ['2014','2015','2016','2017','2018','2019'] 
+years =  ['2014']#['2014','2015','2016','2017','2018','2019'] 
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
@@ -89,8 +89,6 @@ for year in years:
 ##############################################################
 ##                         MAKE MAP                         ##
 ##############################################################
-
-year = '2014'
 
 vns = ['oxygen','stratification','DIN','phytoplankton','zooplankton','SdetritusN','LdetritusN']
 
