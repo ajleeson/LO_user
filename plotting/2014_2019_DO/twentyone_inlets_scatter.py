@@ -41,7 +41,7 @@ ts = 14 # title size
 
 # hypoxic season
 start = '08-01'
-end = '10-31'
+end = '09-30'
 
 ##########################################################
 ##              Get stations and gtagexes               ##
