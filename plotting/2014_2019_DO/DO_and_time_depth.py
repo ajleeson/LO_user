@@ -51,7 +51,7 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-remove_straits = False
+remove_straits = True
 
 years =  ['2014','2015','2016','2017','2018','2019']
 
@@ -66,7 +66,7 @@ out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
 Lfun.make_dir(out_dir)
 
 # cutoff threshold, don't look at results with DO higher than this value
-DO_thresh = 6 # [mg/L]
+DO_thresh = 14 # [mg/L]
 
 ##############################################################
 ##                    HELPER FUNCTIONS                      ##

@@ -61,8 +61,8 @@ Lfun.make_dir(out_dir)
 region = 'Puget Sound'
 
 # start date
-start = '08-01'
-end = '10-31'
+start = '01-01'
+end = '01-31'
 
 ##############################################################
 ##                    HELPER FUNCTIONS                      ##
@@ -335,4 +335,4 @@ plt.suptitle(start+' to '+end+' average ' + r'$\Delta \rho / H$' + ' ' + r'[kg m
 # Generate plot
 plt.tight_layout
 plt.subplots_adjust(left=0.05, right=0.95, top=0.85, wspace=0.02)
-plt.savefig(out_dir / ('deltaRho_avg_'+ start + 'THRU'+end+'.png'))
+plt.savefig(out_dir / ('bottNH4_avg_'+ start + 'THRU'+end+'.png'))

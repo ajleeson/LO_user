@@ -50,7 +50,6 @@ remove_straits = False
 vn = 'oxygen'
 
 years =  ['2014','2015','2016','2017','2018','2019'] # ['2014','2015','2016','2017','2018','2019']
-# TODO: deal with leapyears.... probably padding all other years with nan for Feb 29...
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
@@ -62,8 +61,8 @@ Lfun.make_dir(out_dir)
 region = 'Puget Sound'
 
 # start date
-start = '06-01'
-end = '10-31'
+start = '08-01'
+end = '09-30'
 
 ##############################################################
 ##                    HELPER FUNCTIONS                      ##
@@ -169,6 +168,10 @@ for year in years:
 
 cbar_pad = 0.02
 
+letters= ['(a)','(b)','(c)',
+          '(d)','(e)','(f)',
+          '(g)']
+
 # get plotting limits based on region
 if region == 'Puget Sound':
     # box extracion limits: [-123.29, -122.1, 46.95, 48.93]
@@ -242,7 +245,7 @@ cbar = fig.colorbar(cs, location='left', anchor=(-1,0.5),
                      ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
 cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
 cbar.outline.set_visible(False)
-ax[0].set_title('Average of all years', fontsize=38)
+ax[0].set_title(letters[0] + ' Average', fontsize=38, loc='left')
 
  # add wwtp locations
 if WWTP_loc == True:
@@ -282,7 +285,7 @@ for j,year in enumerate(years):
     i = j+1
                 
     v = val_dict[year]
-    cs = ax[i].pcolormesh(px,py,v-v_avg, vmin=-1, vmax=1, cmap=cmocean.cm.balance_r)
+    cs = ax[i].pcolormesh(px,py,v-v_avg, vmin=-1.5, vmax=1.5, cmap=cmocean.cm.balance_r)
 
     if i == 6:
         cbar = fig.colorbar(cs, location='right', anchor=(1.8,0.5),
@@ -297,7 +300,7 @@ for j,year in enumerate(years):
     ax[i].set_xticklabels([])
     ax[i].axis('off')
     pfun.dar(ax[i])
-    ax[i].set_title(year + '- avg', fontsize=38)
+    ax[i].set_title(letters[i] + ' ' + year + ' - Avg', fontsize=38, loc = 'left')
                                 
 # Add colormap title
 plt.suptitle(start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,

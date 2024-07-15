@@ -164,8 +164,8 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
         # DELTA RHO
         if vn == 'delta_rho':
             color = 'black'
-            press_top = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,-1]]
-            press_bott = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,0]]
+            # press_top = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,-1]]
+            # press_bott = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,0]]
             # calculate absolute salinity from practical salinity
             salt_abs_top_all = gsw.conversions.SA_from_SP(ds['salt'].values[:,-1], ds['z_rho'].values[:,-1], lon, lat)
             salt_abs_bott_all = gsw.conversions.SA_from_SP(ds['salt'].values[:,0], ds['z_rho'].values[:,0], lon, lat)
@@ -173,8 +173,10 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
             cons_temp_top_all = gsw.conversions.CT_from_pt(salt_abs_top_all, ds['temp'].values[:,-1])
             cons_temp_bott_all = gsw.conversions.CT_from_pt(salt_abs_bott_all, ds['temp'].values[:,0])
             # calculate density
-            rho_top_all = gsw.rho(salt_abs_top_all,cons_temp_top_all,press_top)
-            rho_bott_all = gsw.rho(salt_abs_bott_all,cons_temp_bott_all,press_bott)
+            # rho_top_all = gsw.rho(salt_abs_top_all,cons_temp_top_all,press_top)
+            # rho_bott_all = gsw.rho(salt_abs_bott_all,cons_temp_bott_all,press_bott)
+            rho_top_all = gsw.density.sigma0(salt_abs_top_all,cons_temp_top_all)
+            rho_bott_all = gsw.density.sigma0(salt_abs_bott_all,cons_temp_bott_all)
             # calculate density difference
             rho_diff_all = rho_bott_all - rho_top_all
             # save value
@@ -186,11 +188,12 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
                       alpha=1,label=r'$\Delta\rho$')
             # format
             # axis.set_ylim([0,24])
-            axis.set_ylim([0,12])
+            ymax = 18
+            axis.set_ylim([0,ymax])
             axis.set_ylabel(r'$\rho_{bottom}-\rho_{surface}$ [kg m$^{-3}$]',fontsize=ls+2,color=color)
             axis.tick_params(axis='y', labelcolor=color)
             # axis.set_yticks(np.arange(0, 24, 4))
-            axis.set_yticks(np.arange(0, 12, 2))
+            axis.set_yticks(np.arange(0, ymax, ymax/6))
 
         # NO3 (average surface 20 m)
         if vn == 'NO3':

@@ -3,7 +3,7 @@ This is the main program for making the TIDE forcing file for analytical hood ca
 
 Test on mac in ipython:
 
-run make_forcing_main.py -g hc_al -r backfill -d 2020.01.01 -f tide_hc -test True
+run make_forcing_main.py -g hcal -r backfill -d 2020.01.01 -f tide_hc -test True
 
 """
 
@@ -80,6 +80,8 @@ for vn in ['tide_Ephase', 'tide_Cangle', 'tide_Cphase', 'tide_Cmax', 'tide_Cmin'
     ds[vn] = (dims, omat.copy())
     ds[vn].attrs['units'] = vinfo['units']
     ds[vn].attrs['long_name'] = vinfo['long_name']
+
+print(ds)
 
 # Compress and save to NetCDF
 Enc_dict = {vn:zrfun.enc_dict for vn in ds.data_vars}
