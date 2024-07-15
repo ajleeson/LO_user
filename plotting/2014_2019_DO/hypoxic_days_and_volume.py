@@ -216,6 +216,7 @@ for year in years:
     # calculate hypoxic volume
     # area of grid cell = 0.5 km by 0.5 km times thickness of hypoxic layer (converted from m to km)
     hyp_vol_timeseries = 0.5 * 0.5 * (hyp_thick_timeseries/1000) 
+    print('FIX HYPOXIC VOLUME AREA MEASUREMENTS!!!!!!!!!!!!!')
     hyp_vol[year] = hyp_vol_timeseries
 
 ##############################################################
@@ -223,6 +224,10 @@ for year in years:
 ##############################################################
 
 cbar_pad = 0.02
+
+letters= ['(a)','(b)','(c)',
+          '(d)','(e)','(f)',
+          '(g)']
 
 # get plotting limits based on region
 if region == 'Puget Sound':
@@ -258,7 +263,7 @@ for i,year in enumerate(['avg'] + years):
                             ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
         cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
         cbar.outline.set_visible(False)
-        ax[i].set_title('Average of all years', fontsize=38)
+        ax[i].set_title(letters[0] + ' Average', fontsize=38, loc='left')
 
         # add wwtp locations
         if WWTP_loc == True:
@@ -290,7 +295,7 @@ for i,year in enumerate(['avg'] + years):
                         ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
             cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
             cbar.outline.set_visible(False)
-        ax[i].set_title(year + '- avg', fontsize=38)
+        ax[i].set_title(letters[i] + ' ' + year + ' - Avg', fontsize=38, loc = 'left')
 
     # format figure
     ax[i].set_xlim([xmin,xmax])
@@ -328,24 +333,24 @@ dates_local = [pfun.get_dt_local(x) for x in dates]
 
 colors = ['red','darkorange','gold','green','blue','purple','deeppink']
 
-# plot timeseries
-for i,year in enumerate(years):
-    # plot hypoxic area timeseries
-    plt.plot(dates_local,hyp_area[year],color=colors[i],
-             linewidth=3,alpha=0.5,label=year)
+# # plot timeseries
+# for i,year in enumerate(years):
+#     # plot hypoxic area timeseries
+#     plt.plot(dates_local,hyp_area[year],color=colors[i],
+#              linewidth=3,alpha=0.5,label=year)
 
-# format figure
-ax.grid(visible=True, color='w')
-# format background color
-ax.set_facecolor('#EEEEEE')
-for border in ['top','right','bottom','left']:
-    ax.spines[border].set_visible(False)
-ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-plt.legend(loc='best')
-plt.title('Bottom Area with DO < {} mg/L '.format(DO_thresh) + r'[km$^2$]')
-ax.set_xlim([dates_local[0],dates_local[-1]])
+# # format figure
+# ax.grid(visible=True, color='w')
+# # format background color
+# ax.set_facecolor('#EEEEEE')
+# for border in ['top','right','bottom','left']:
+#     ax.spines[border].set_visible(False)
+# ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+# plt.legend(loc='best')
+# plt.title('Bottom Area with DO < {} mg/L '.format(DO_thresh) + r'[km$^2$]')
+# ax.set_xlim([dates_local[0],dates_local[-1]])
 
-plt.savefig(out_dir / 'area_with_DO_lt{}'.format(DO_thresh))
+# plt.savefig(out_dir / 'area_with_DO_lt{}'.format(DO_thresh))
 
 ##############################################################
 ##                HYPOXIC VOLUME TIMESERIES                 ##

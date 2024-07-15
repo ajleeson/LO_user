@@ -157,8 +157,8 @@ for i,station in enumerate(sta_dict):
 
     # get stratification at this point
     # get pressure
-    press_top = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,-1]]
-    press_bott = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,0]]
+    # press_top = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,-1]]
+    # press_bott = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,0]]
     # calculate absolute salinity from practical salinity
     salt_abs_top_all = gsw.conversions.SA_from_SP(ds['salt'].values[:,-1], ds['z_rho'].values[:,-1], lon, lat)
     salt_abs_bott_all = gsw.conversions.SA_from_SP(ds['salt'].values[:,0], ds['z_rho'].values[:,0], lon, lat)
@@ -166,8 +166,10 @@ for i,station in enumerate(sta_dict):
     cons_temp_top_all = gsw.conversions.CT_from_pt(salt_abs_top_all, ds['temp'].values[:,-1])
     cons_temp_bott_all = gsw.conversions.CT_from_pt(salt_abs_bott_all, ds['temp'].values[:,0])
     # calculate density
-    rho_top_all = gsw.rho(salt_abs_top_all,cons_temp_top_all,press_top)
-    rho_bott_all = gsw.rho(salt_abs_bott_all,cons_temp_bott_all,press_bott)
+    # rho_top_all = gsw.rho(salt_abs_top_all,cons_temp_top_all,press_top)
+    # rho_bott_all = gsw.rho(salt_abs_bott_all,cons_temp_bott_all,press_bott)
+    rho_top_all = gsw.density.sigma0(salt_abs_top_all,cons_temp_top_all)
+    rho_bott_all = gsw.density.sigma0(salt_abs_bott_all,cons_temp_bott_all)
     # calculate density difference
     rho_diff_all = rho_bott_all - rho_top_all
     # get average and divide by depth
@@ -187,9 +189,9 @@ ax.text(0.85, 0.78, r'$p =$' + str(round(p,4)) ,color='navy',
                         transform=ax.transAxes, fontsize=ts)
 
 # format labels
-ax.set_title('Average bottom DO vs. Stratification\n('+year+'-'+start+' to '+year+'-'+end+')',
+ax.set_title(r'Average bottom DO vs. $\Delta\rho$' + '\n('+year+'-'+start+' to '+year+'-'+end+')',
              fontsize=ts)
-ax.set_xlabel(r'Stratification $\Delta\rho$ [kg m$^{-3}$]',fontsize=ls)
+ax.set_xlabel(r'$\rho_{bottom} - \rho_{surface}$ [kg m$^{-3}$]',fontsize=ls)
 ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
 
 # format grid
@@ -202,60 +204,60 @@ for border in ['top','right','bottom','left']:
 
 plt.savefig(out_dir / 'botDO_vs_strat.png')
 
-##########################################################
-##         Average bottom DO vs. delta rho/h            ##
-##########################################################
+# ##########################################################
+# ##         Average bottom DO vs. delta rho/h            ##
+# ##########################################################
 
-plt.close('all')
+# plt.close('all')
 
-pfun.start_plot(figsize=(5,5))
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
-plt.subplots_adjust(wspace=0, hspace=0.1)
+# pfun.start_plot(figsize=(5,5))
+# fig = plt.figure()
+# ax = fig.add_subplot(1,1,1)
+# plt.subplots_adjust(wspace=0, hspace=0.1)
 
-# initialize arrays for plotting
-strat_over_h = np.zeros(len(sta_dict))
+# # initialize arrays for plotting
+# strat_over_h = np.zeros(len(sta_dict))
 
-for i,station in enumerate(sta_dict):
+# for i,station in enumerate(sta_dict):
 
-    # download .nc files
-    fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
-    ds = xr.open_dataset(fn)
-    # crop to hypoxic season
-    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+#     # download .nc files
+#     fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+#     ds = xr.open_dataset(fn)
+#     # crop to hypoxic season
+#     ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
 
-    # get depth at this point
-    h =  ds['h'].values
+#     # get depth at this point
+#     h =  ds['h'].values
 
-    strat_over_h[i] = strat[i]/h
+#     strat_over_h[i] = strat[i]/h
     
-# create scatter plot
-ax.plot(strat_over_h,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
+# # create scatter plot
+# ax.plot(strat_over_h,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
 
-# calculate correlation coefficient (Pearson)
-r,p = pearsonr(strat_over_h, bott_DO)
-ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
-                        verticalalignment='bottom', horizontalalignment='right',
-                        transform=ax.transAxes, fontsize=ts)
-ax.text(0.85, 0.78, r'$p =$' + str(round(p,2)) ,color='navy',
-                        verticalalignment='bottom', horizontalalignment='right',
-                        transform=ax.transAxes, fontsize=ts)
+# # calculate correlation coefficient (Pearson)
+# r,p = pearsonr(strat_over_h, bott_DO)
+# ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
+#                         verticalalignment='bottom', horizontalalignment='right',
+#                         transform=ax.transAxes, fontsize=ts)
+# ax.text(0.85, 0.78, r'$p =$' + str(round(p,2)) ,color='navy',
+#                         verticalalignment='bottom', horizontalalignment='right',
+#                         transform=ax.transAxes, fontsize=ts)
 
-# format labels
-ax.set_title('Average bottom DO vs. Stratification/Depth\n('+year+'-'+start+' to '+year+'-'+end+')',
-             fontsize=ts)
-ax.set_xlabel(r'$\Delta\rho/H$ [kg m$^{-4}$]',fontsize=ls)
-ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
+# # format labels
+# ax.set_title('Average bottom DO vs. Stratification/Depth\n('+year+'-'+start+' to '+year+'-'+end+')',
+#              fontsize=ts)
+# ax.set_xlabel(r'$\Delta\rho/H$ [kg m$^{-4}$]',fontsize=ls)
+# ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
 
-# format grid
-ax.tick_params(axis='both', which='major', labelsize=ls)
-ax.grid(True,color='white',linewidth=1)
-# format colors
-ax.set_facecolor('#EEEEEE')
-for border in ['top','right','bottom','left']:
-    ax.spines[border].set_visible(False)
+# # format grid
+# ax.tick_params(axis='both', which='major', labelsize=ls)
+# ax.grid(True,color='white',linewidth=1)
+# # format colors
+# ax.set_facecolor('#EEEEEE')
+# for border in ['top','right','bottom','left']:
+#     ax.spines[border].set_visible(False)
 
-plt.savefig(out_dir / 'botDO_vs_strat_over_h.png')
+# plt.savefig(out_dir / 'botDO_vs_strat_over_h.png')
 
 
 ##########################################################
