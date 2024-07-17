@@ -1,6 +1,5 @@
 """
-Compare average bottom DO between multiple years
-(Set up to run for 6 years)
+
 
 """
 
@@ -59,7 +58,7 @@ region = 'Puget Sound'
 
 # start date
 start = '08-01'
-end = '10-31'
+end = '09-30'
 
 ##############################################################
 ##                      PROCESS DATA                        ##
@@ -94,11 +93,11 @@ vns = ['oxygen','stratification','DIN','phytoplankton','zooplankton','SdetritusN
 
 labels = ['Bottom DO\n[mg L' + r'$^{-1}$' + ']',
       r'$\Delta\rho$' + '\n[kg m' + r'$^{-3}$' + ']',
-      'Surface DIN (NO3+NH4)\n[mmol m'+ r'$^{-3}$' + ']',
-      r'$\int_{H}^{\zeta}$' +' phytoplankton\n[kg Chl]',
-      r'$\int_{H}^{\zeta}$' +' zooplankton\n[kg N]',
-      r'$\int_{H}^{\zeta}$' +' S detritus\n[kg N]',
-      r'$\int_{H}^{\zeta}$' +' L detritus\n[kg N]',
+      'Surface DIN (NO3+NH4)\n[mmol N m'+ r'$^{-3}$' + ']',
+      'Surface phytoplankton\n[mmol N m'+ r'$^{-3}$' + ']',
+      'Surface zooplankton\n[mmol N m'+ r'$^{-3}$' + ']',
+      'Surface small detritus\n[mmol N m'+ r'$^{-3}$' + ']',
+      'Bottom large detritus\n[mmol N m'+ r'$^{-3}$' + ']',
       ]
 
 # get lat and lon
@@ -146,18 +145,12 @@ for i, vn in enumerate(vns):
         vmax = 10
         cmap = plt.cm.get_cmap('rainbow_r', 10)
     elif vn == 'phytoplankton': 
-        # get cell thickness * phytoplankton (mmol/m2)
-        thick_phyto = ds_dict_vars[year]['intphyto'].values
-        # multiply by horizontal area
-        int_phyto = thick_phyto * 500 * 500
-        # convert to kg from mmol
-        int_phyto = int_phyto * pinfo.fac_dict['phytoplankton'] * (1/1000) * (1/1000) # 2.5 mg/mmol * 1/1000 g/mg * 1/1000 kg/g
+        # get surf phyto (mmol/m3)
+        surfphyto = ds_dict_vars[year]['surfphyto'].values
         # time average
-        var = int_phyto.mean(axis=0)
-        # replace zeros with nans
-        var[var == 0] = 'nan'
+        var = surfphyto.mean(axis=0)
         vmin = 0
-        vmax = 100
+        vmax = 30
         cmap = cmocean.cm.algae
     elif vn == 'stratification':  
         # get surface and bottom temp and salinity
@@ -165,9 +158,6 @@ for i, vn in enumerate(vns):
         botS = ds_dict_vars[year]['botS'].values
         surfT = ds_dict_vars[year]['surfT'].values 
         botT = ds_dict_vars[year]['botT'].values 
-        # Calculate pressure
-        p_surf = gsw.p_from_z(z_rho_surf,lats)
-        p_bot = gsw.p_from_z(z_rho_bot,lats)
         # calculate absolute salinity from practical salinity
         salt_abs_surf = gsw.conversions.SA_from_SP(surfS, z_rho_surf, lons, lats)
         salt_abs_bot = gsw.conversions.SA_from_SP(botS, z_rho_bot, lons, lats)
@@ -175,8 +165,8 @@ for i, vn in enumerate(vns):
         temp_cons_surf = gsw.conversions.CT_from_pt(salt_abs_surf, surfT)
         temp_cons_bot = gsw.conversions.CT_from_pt(salt_abs_bot, botT)
         # calculate density
-        rho_surf = gsw.rho(salt_abs_surf,temp_cons_surf,p_surf)
-        rho_bot = gsw.rho(salt_abs_bot,temp_cons_bot,p_bot)
+        rho_surf = gsw.density.sigma0(salt_abs_surf,temp_cons_surf)
+        rho_bot = gsw.density.sigma0(salt_abs_bot,temp_cons_bot)
         # calculate density difference
         delta_rho = rho_bot - rho_surf
         # take average over season
@@ -197,46 +187,30 @@ for i, vn in enumerate(vns):
         vmax = np.nanmax(var)
         cmap = cmocean.cm.matter
     elif vn == 'zooplankton': 
-        # get cell thickness * zooplankton (mmol/m2)
-        thick_zoop = ds_dict_vars[year]['intzoop'].values
-        # multiply by horizontal area
-        int_zoop = thick_zoop * 500 * 500
-        # convert to kg N from mmol
-        int_zoop = int_zoop * 14 * (1/1000) * (1/1000) # 14 g/mol * 1/1000 g/mg * 1/1000 kg/g
+        # surface zooplankton (mmol/m3)
+        surfzoop = ds_dict_vars[year]['surfzoop'].values
         # time average
-        var = int_zoop.mean(axis=0)
+        var = surfzoop.mean(axis=0)
         # replace zeros with nans
         var[var == 0] = 'nan'
         vmin = 0
-        vmax = 50
+        vmax = 1
         cmap = cmocean.tools.crop_by_percent(cmocean.cm.amp, 10, which='min')
     elif vn == 'SdetritusN': 
-        # get cell thickness * setritus (mmol/m2)
-        thick_sdet = ds_dict_vars[year]['intSdetN'].values
-        # multiply by horizontal area
-        int_sdet = thick_sdet * 500 * 500
-        # convert to kg N from mmol
-        int_sdet = int_sdet * 14 * (1/1000) * (1/1000) # 14 g/mol * 1/1000 g/mg * 1/1000 kg/g
+        # surface small detritus (mmol/m3)
+        surfSdetN = ds_dict_vars[year]['surfSdetN'].values
         # time average
-        var = int_sdet.mean(axis=0)
-        # replace zeros with nans
-        var[var == 0] = 'nan'
+        var = surfSdetN.mean(axis=0)
         vmin = 0
-        vmax = 500
+        vmax = 1
         cmap = cmocean.tools.crop_by_percent(cmocean.cm.turbid, 10, which='min')
     elif vn == 'LdetritusN': 
-        # get cell thickness * setritus (mmol/m2)
-        thick_ldet = ds_dict_vars[year]['intLdetN'].values
-        # multiply by horizontal area
-        int_ldet = thick_ldet * 500 * 500
-        # convert to kg N from mmol
-        int_ldet = int_ldet * 14 * (1/1000) * (1/1000) # 14 g/mol * 1/1000 g/mg * 1/1000 kg/g
+        # surface large detritus (mmol/m3)
+        botLdetN = ds_dict_vars[year]['botLdetN'].values
         # time average
-        var = int_ldet.mean(axis=0)
-        # replace zeros with nans
-        var[var == 0] = 'nan'
+        var = botLdetN.mean(axis=0)
         vmin = 0
-        vmax = 30
+        vmax = 0.05
         cmap = cmocean.tools.crop_by_percent(cmocean.cm.turbid, 10, which='min')
     else:
         continue
