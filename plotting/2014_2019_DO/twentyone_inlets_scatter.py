@@ -37,11 +37,57 @@ year = '2014' # for making a date label
 # figure settings
 fs = 12 # figure font size
 ls = 11 # label size
-ts = 14 # title size
+ts = 12 # title size
 
 # hypoxic season
 start = '08-01'
 end = '09-30'
+
+##########################################################
+##                  Helper Functions                    ##
+##########################################################
+
+def get_surf_average(vn,d,ds):
+    '''
+    calculate average value of vn in surface d meters
+    '''
+    z_ds = ds.where((ds.z_w >= -d))
+    var_ds = ds.where((ds.z_rho >= -d))
+    # get thickness of each vertical layer
+    z_thick = np.diff(z_ds['z_w'],axis=1) # 365,30
+    # get variable data 
+    var = var_ds[vn].values
+    # check if thickness array is all nan
+    # (this occurs if the first z_w is already greater than the threshold, so we don't have two z_w values to diff)
+    # in which case, average value is just the single value
+    if np.isnan(z_thick).all():
+        val = np.nansum(var,axis=1)
+    # take weighted average given depth
+    # first, multiply by thickness of each layer and sum in z, then divide by layer thickness
+    else:
+        val = np.nansum(var * z_thick, axis=1)/np.nansum(z_thick,axis=1)
+    return val
+
+def get_bott_average(vn,d,h,ds):
+    '''
+    calculate average value of vn in bottom d meters
+    '''
+    z_ds = ds.where((ds.z_w <= (-1*h) + d))
+    var_ds = ds.where((ds.z_rho <= (-1*h) + d))
+    # get thickness of each vertical layer
+    z_thick = np.diff(z_ds['z_w'],axis=1) # 365,30
+    # get variable data 
+    var = var_ds[vn].values
+    # check if thickness array is all nan
+    # (this occurs if the first z_w is already greater than the threshold, so we don't have two z_w values to diff)
+    # in which case, average value is just the single value
+    if np.isnan(z_thick).all():
+        val = np.nansum(var,axis=1)
+    # take weighted average given depth
+    # first, multiply by thickness of each layer and sum in z, then divide by layer thickness
+    else:
+        val = np.nansum(var * z_thick, axis=1)/np.nansum(z_thick,axis=1)
+    return val
 
 ##########################################################
 ##              Get stations and gtagexes               ##
@@ -127,6 +173,10 @@ ax.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
     ax.spines[border].set_visible(False)
 
+# add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (depth[i],bott_DO[i]), fontsize=10)
+
 plt.savefig(out_dir / 'botDO_vs_depth.png')
 
 ##########################################################
@@ -156,18 +206,13 @@ for i,station in enumerate(sta_dict):
     ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
 
     # get stratification at this point
-    # get pressure
-    # press_top = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,-1]]
-    # press_bott = [gsw.p_from_z(z,lat) for z in ds['z_rho'].values[:,0]]
     # calculate absolute salinity from practical salinity
     salt_abs_top_all = gsw.conversions.SA_from_SP(ds['salt'].values[:,-1], ds['z_rho'].values[:,-1], lon, lat)
     salt_abs_bott_all = gsw.conversions.SA_from_SP(ds['salt'].values[:,0], ds['z_rho'].values[:,0], lon, lat)
     # calculate conservative temperature from potential temperature
     cons_temp_top_all = gsw.conversions.CT_from_pt(salt_abs_top_all, ds['temp'].values[:,-1])
     cons_temp_bott_all = gsw.conversions.CT_from_pt(salt_abs_bott_all, ds['temp'].values[:,0])
-    # calculate density
-    # rho_top_all = gsw.rho(salt_abs_top_all,cons_temp_top_all,press_top)
-    # rho_bott_all = gsw.rho(salt_abs_bott_all,cons_temp_bott_all,press_bott)
+    # calculate potential density
     rho_top_all = gsw.density.sigma0(salt_abs_top_all,cons_temp_top_all)
     rho_bott_all = gsw.density.sigma0(salt_abs_bott_all,cons_temp_bott_all)
     # calculate density difference
@@ -202,63 +247,11 @@ ax.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
     ax.spines[border].set_visible(False)
 
+# add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (strat[i],bott_DO[i]), fontsize=10)
+
 plt.savefig(out_dir / 'botDO_vs_strat.png')
-
-# ##########################################################
-# ##         Average bottom DO vs. delta rho/h            ##
-# ##########################################################
-
-# plt.close('all')
-
-# pfun.start_plot(figsize=(5,5))
-# fig = plt.figure()
-# ax = fig.add_subplot(1,1,1)
-# plt.subplots_adjust(wspace=0, hspace=0.1)
-
-# # initialize arrays for plotting
-# strat_over_h = np.zeros(len(sta_dict))
-
-# for i,station in enumerate(sta_dict):
-
-#     # download .nc files
-#     fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
-#     ds = xr.open_dataset(fn)
-#     # crop to hypoxic season
-#     ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
-
-#     # get depth at this point
-#     h =  ds['h'].values
-
-#     strat_over_h[i] = strat[i]/h
-    
-# # create scatter plot
-# ax.plot(strat_over_h,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
-
-# # calculate correlation coefficient (Pearson)
-# r,p = pearsonr(strat_over_h, bott_DO)
-# ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
-#                         verticalalignment='bottom', horizontalalignment='right',
-#                         transform=ax.transAxes, fontsize=ts)
-# ax.text(0.85, 0.78, r'$p =$' + str(round(p,2)) ,color='navy',
-#                         verticalalignment='bottom', horizontalalignment='right',
-#                         transform=ax.transAxes, fontsize=ts)
-
-# # format labels
-# ax.set_title('Average bottom DO vs. Stratification/Depth\n('+year+'-'+start+' to '+year+'-'+end+')',
-#              fontsize=ts)
-# ax.set_xlabel(r'$\Delta\rho/H$ [kg m$^{-4}$]',fontsize=ls)
-# ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
-
-# # format grid
-# ax.tick_params(axis='both', which='major', labelsize=ls)
-# ax.grid(True,color='white',linewidth=1)
-# # format colors
-# ax.set_facecolor('#EEEEEE')
-# for border in ['top','right','bottom','left']:
-#     ax.spines[border].set_visible(False)
-
-# plt.savefig(out_dir / 'botDO_vs_strat_over_h.png')
-
 
 ##########################################################
 ##       Average bottom DO vs. tidal currents           ##
@@ -312,4 +305,351 @@ ax.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
     ax.spines[border].set_visible(False)
 
+# add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (tcurr[i],bott_DO[i]), fontsize=10)
+
 plt.savefig(out_dir / 'botDO_vs_tidalcurr.png')
+
+
+##########################################################
+##      Average bottom DO vs. bottom large detritus     ##
+##########################################################
+
+plt.close('all')
+
+pfun.start_plot(figsize=(5,5))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+# initialize arrays for plotting
+botLdetN = np.zeros(len(sta_dict))
+
+for i,station in enumerate(sta_dict):
+
+    # download .nc files
+    fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+    ds = xr.open_dataset(fn)
+    # crop to hypoxic season
+    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+
+    d = 5 # bottom 5 m
+    botLdetN[i] = np.nanmean(get_bott_average('LdetritusN',d,ds.h,ds))
+    
+# create scatter plot
+ax.plot(botLdetN,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
+
+# calculate correlation coefficient (Pearson)
+r,p = pearsonr(botLdetN, bott_DO)
+ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+ax.text(0.85, 0.78, r'$p =$' + str(round(p,4)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+
+# format labels
+ax.set_title('Average bottom DO vs. bottom 5 m large detritus\n('+year+'-'+start+' to '+year+'-'+end+')',
+             fontsize=ts)
+ax.set_xlabel(r'Avg. bottom 5 m large detritus [mmol/m$^3$]',fontsize=ls)
+ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
+
+# format grid
+ax.tick_params(axis='both', which='major', labelsize=ls)
+ax.grid(True,color='white',linewidth=1)
+# format colors
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+# add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (botLdetN[i],bott_DO[i]), fontsize=10)
+
+plt.savefig(out_dir / 'botDO_vs_botLdet.png')
+
+##########################################################
+##      Average bottom DO vs. surface small detritus    ##
+##########################################################
+
+plt.close('all')
+
+pfun.start_plot(figsize=(5,5))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+# initialize arrays for plotting
+surfSdetN = np.zeros(len(sta_dict))
+
+for i,station in enumerate(sta_dict):
+
+    # download .nc files
+    fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+    ds = xr.open_dataset(fn)
+    # crop to hypoxic season
+    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+
+    d = 80 # surface 80 m
+    surfSdetN[i] = np.nanmean(get_surf_average('SdetritusN',d,ds))
+    
+# create scatter plot
+ax.plot(surfSdetN,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
+
+# calculate correlation coefficient (Pearson)
+r,p = pearsonr(surfSdetN, bott_DO)
+ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+ax.text(0.85, 0.78, r'$p =$' + str(round(p,4)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+
+# format labels
+ax.set_title('Average bottom DO vs. surface 80 m small detritus\n('+year+'-'+start+' to '+year+'-'+end+')',
+             fontsize=ts)
+ax.set_xlabel(r'Avg. surface 80 m small detritus [mmol/m$^3$]',fontsize=ls)
+ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
+
+# format grid
+ax.tick_params(axis='both', which='major', labelsize=ls)
+ax.grid(True,color='white',linewidth=1)
+# format colors
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+# add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (surfSdetN[i],bott_DO[i]), fontsize=10)
+
+plt.savefig(out_dir / 'botDO_vs_surfSdet.png')
+
+##########################################################
+##      Average bottom DO vs. surface phytoplankton     ##
+##########################################################
+
+plt.close('all')
+
+pfun.start_plot(figsize=(5,5))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+# initialize arrays for plotting
+surfphyto = np.zeros(len(sta_dict))
+
+for i,station in enumerate(sta_dict):
+
+    # download .nc files
+    fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+    ds = xr.open_dataset(fn)
+    # crop to hypoxic season
+    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+
+    d = 20 # surface 20 m
+    surfphyto[i] = np.nanmean(get_surf_average('phytoplankton',d,ds))
+    
+# create scatter plot
+ax.plot(surfphyto,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
+
+# calculate correlation coefficient (Pearson)
+r,p = pearsonr(surfphyto, bott_DO)
+ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+ax.text(0.85, 0.78, r'$p =$' + str(round(p,4)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+
+# format labels
+ax.set_title('Average bottom DO vs. surface 20 m phytoplankton\n('+year+'-'+start+' to '+year+'-'+end+')',
+             fontsize=ts)
+ax.set_xlabel(r'Avg. surface 20 m phytoplankton [mmol/m$^3$]',fontsize=ls)
+ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
+
+# format grid
+ax.tick_params(axis='both', which='major', labelsize=ls)
+ax.grid(True,color='white',linewidth=1)
+# format colors
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+# add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (surfphyto[i],bott_DO[i]), fontsize=10)
+
+plt.savefig(out_dir / 'botDO_vs_surfphyto.png')
+
+##########################################################
+##      Average bottom DO vs. surface zooplankton       ##
+##########################################################
+
+plt.close('all')
+
+pfun.start_plot(figsize=(5,5))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+# initialize arrays for plotting
+surfzoop = np.zeros(len(sta_dict))
+
+for i,station in enumerate(sta_dict):
+
+    # download .nc files
+    fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+    ds = xr.open_dataset(fn)
+    # crop to hypoxic season
+    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+
+    d = 20 # surface 20 m
+    surfzoop[i] = np.nanmean(get_surf_average('zooplankton',d,ds))
+    
+# create scatter plot
+ax.plot(surfzoop,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
+
+# calculate correlation coefficient (Pearson)
+r,p = pearsonr(surfzoop, bott_DO)
+ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+ax.text(0.85, 0.78, r'$p =$' + str(round(p,4)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+
+# format labels
+ax.set_title('Average bottom DO vs. surface 20 m zooplankton\n('+year+'-'+start+' to '+year+'-'+end+')',
+             fontsize=ts)
+ax.set_xlabel(r'Avg. surface 20 m zooplankton [mmol/m$^3$]',fontsize=ls)
+ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
+
+# format grid
+ax.tick_params(axis='both', which='major', labelsize=ls)
+ax.grid(True,color='white',linewidth=1)
+# format colors
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+# add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (surfzoop[i],bott_DO[i]), fontsize=10)
+
+plt.savefig(out_dir / 'botDO_vs_surfzoop.png')
+
+##########################################################
+##          Average bottom DO vs. surface NO3           ##
+##########################################################
+
+plt.close('all')
+
+pfun.start_plot(figsize=(5,5))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+# initialize arrays for plotting
+surfNO3 = np.zeros(len(sta_dict))
+
+for i,station in enumerate(sta_dict):
+
+    # download .nc files
+    fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+    ds = xr.open_dataset(fn)
+    # crop to hypoxic season
+    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+
+    d = 20 # surface 20 m
+    surfNO3[i] = np.nanmean(get_surf_average('NO3',d,ds))
+    
+# create scatter plot
+ax.plot(surfNO3,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
+
+# calculate correlation coefficient (Pearson)
+r,p = pearsonr(surfNO3, bott_DO)
+ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+ax.text(0.85, 0.78, r'$p =$' + str(round(p,4)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+
+# format labels
+ax.set_title('Average bottom DO vs. surface 20 m NO3\n('+year+'-'+start+' to '+year+'-'+end+')',
+             fontsize=ts)
+ax.set_xlabel(r'Avg. surface 20 m NO3 [mmol/m$^3$]',fontsize=ls)
+ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
+
+# format grid
+ax.tick_params(axis='both', which='major', labelsize=ls)
+ax.grid(True,color='white',linewidth=1)
+# format colors
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+    # add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (surfNO3[i],bott_DO[i]), fontsize=10)
+
+plt.savefig(out_dir / 'botDO_vs_surfNO3.png')
+
+##########################################################
+##          Average bottom DO vs. surface NH4           ##
+##########################################################
+
+plt.close('all')
+
+pfun.start_plot(figsize=(5,5))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+# initialize arrays for plotting
+surfNH4 = np.zeros(len(sta_dict))
+
+for i,station in enumerate(sta_dict):
+
+    # download .nc files
+    fn = '../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+    ds = xr.open_dataset(fn)
+    # crop to hypoxic season
+    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
+
+    d = 20 # surface 20 m
+    surfNH4[i] = np.nanmean(get_surf_average('NH4',d,ds))
+    
+# create scatter plot
+ax.plot(surfNH4,bott_DO,linestyle='none',marker='o',color='navy',alpha=0.5,markersize=10)
+
+# calculate correlation coefficient (Pearson)
+r,p = pearsonr(surfNH4, bott_DO)
+ax.text(0.85, 0.85, r'$r =$' + str(round(r,2)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+ax.text(0.85, 0.78, r'$p =$' + str(round(p,4)) ,color='navy',
+                        verticalalignment='bottom', horizontalalignment='right',
+                        transform=ax.transAxes, fontsize=ts)
+
+# format labels
+ax.set_title('Average bottom DO vs. surface 20 m NH4\n('+year+'-'+start+' to '+year+'-'+end+')',
+             fontsize=ts)
+ax.set_xlabel(r'Avg. surface 20 m NH4 [mmol/m$^3$]',fontsize=ls)
+ax.set_ylabel('Avg. bottom DO [mg/L]',fontsize=ls)
+
+# format grid
+ax.tick_params(axis='both', which='major', labelsize=ls)
+ax.grid(True,color='white',linewidth=1)
+# format colors
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+# add inlet label
+for i, txt in enumerate(sta_dict):
+    ax.annotate(txt, (surfNH4[i],bott_DO[i]), fontsize=10)
+
+plt.savefig(out_dir / 'botDO_vs_surfNH4.png')

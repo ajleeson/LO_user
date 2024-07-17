@@ -95,7 +95,7 @@ ecol_stn = {
 letter = ['(a)','(b)','(c)','(d)']
 
 # Loop through all of the mooring stations
-for i,station in enumerate(ecol_stn): # enumerate(['commencement']): #
+for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
     plt.close('all')
 
     print(station)
@@ -104,16 +104,20 @@ for i,station in enumerate(ecol_stn): # enumerate(['commencement']): #
     lon = sta_dict[station][0]
     lat = sta_dict[station][1]
 
-    # get observational information
-    df_ob_stn = df_obs.loc[df_obs.name==ecol_stn[station],:]
-    df_mo_stn = df_model.loc[df_model.name==ecol_stn[station],:]
-    # get depth and time of observations
-    z = df_ob_stn['z']
-    time = [pd.Timestamp(x) for x in df_ob_stn['time']]
+    if station in ecol_stn:
+        # get observational information
+        df_ob_stn = df_obs.loc[df_obs.name==ecol_stn[station],:]
+        df_mo_stn = df_model.loc[df_model.name==ecol_stn[station],:]
+        # get depth and time of observations
+        z = df_ob_stn['z']
+        time = [pd.Timestamp(x) for x in df_ob_stn['time']]
 
     # Initialize Figure
     width = 11
-    fig, ax = plt.subplots(rows,3,figsize = (width,(4/5)*width), gridspec_kw={'width_ratios': [2, 2, 1]}) # adjust subplot sizes
+    if station in ecol_stn:
+        fig, ax = plt.subplots(rows,3,figsize = (width,(4/5)*width), gridspec_kw={'width_ratios': [2, 2, 1]}) # adjust subplot sizes
+    else:
+        fig, ax = plt.subplots(rows,2,figsize = (width,(4/5)*width)) # adjust subplot sizes
     fig.suptitle(station + ' ' + year, fontsize = 18)
     
     # loop through different state variables
@@ -199,50 +203,57 @@ for i,station in enumerate(ecol_stn): # enumerate(['commencement']): #
         if i == 0:
             axis.set_title('Model')
 
-        # add observation locations
-        # get current station
-        if i == 0:
-            ax[i,0].plot(time,z,linestyle='none',marker='o', markersize=3,
-                    markeredgecolor='none',markerfacecolor='black',label='obs')
-            ax[i,0].legend(loc='upper right',fontsize=11, frameon=False, handletextpad=0.1, handlelength=1)
+        if station in ecol_stn:
+            # add observation locations
+            # get current station
+            if i == 0:
+                ax[i,0].plot(time,z,linestyle='none',marker='o', markersize=3,
+                        markeredgecolor='none',markerfacecolor='black',label='obs')
+                ax[i,0].legend(loc='upper right',fontsize=11, frameon=False, handletextpad=0.1, handlelength=1)
 
 
         # PLOT PROPERTY PROPERTY SCATTER -------------------------------------------------------------
-        col = 2
-        axis = ax[i,col]
-        # get obs and model values
-        obsvals = df_ob_stn[var].values
-        modvals = df_mo_stn[var].values
-        # calculate bias and rmse
-        bias = np.nanmean(modvals-obsvals)
-        rmse = np.sqrt(np.nanmean((modvals-obsvals)**2))
-        # get min and max limits
-        minval = np.nanmin([np.nanmin(obsvals),np.nanmin(modvals)])
-        maxval = np.nanmax([np.nanmax(obsvals),np.nanmax(modvals)])
-        # plot data and y = x line
-        axis.scatter(obsvals,modvals, color='mediumorchid', alpha=0.6, s=10, zorder=10)
-                     #c=z, cmap=cmocean.tools.crop_by_percent(cmocean.cm.thermal, 15, which='both'), 
-        axis.plot([0,maxval*1.2], [0,maxval*1.2], 'k-', zorder=5)
-        axis.set_ylim([0,maxval*1.2])
-        axis.set_xlim([0,maxval*1.2])
-        axis.set_aspect('equal')
-        if i ==0:
-            axis.set_title('Modeled vs. Observed')
-        # add bias and rmse label
-        t1 = axis.text(0.05, 0.95, 'bias: {}'.format(str(round(bias,2))),
-            verticalalignment='top', horizontalalignment='left',
-            transform=axis.transAxes, fontsize=ls, color = 'k')
-        t2 = axis.text(0.05, 0.8, 'rmse: {}'.format(str(round(rmse,2))),
-            verticalalignment='top', horizontalalignment='left',
-            transform=axis.transAxes, fontsize=ls, color = 'k')
-        t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
-        t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
+        if station in ecol_stn:
+            col = 2
+            axis = ax[i,col]
+            # get obs and model values
+            obsvals = df_ob_stn[var].values
+            modvals = df_mo_stn[var].values
+            # calculate bias and rmse
+            bias = np.nanmean(modvals-obsvals)
+            rmse = np.sqrt(np.nanmean((modvals-obsvals)**2))
+            # get min and max limits
+            minval = np.nanmin([np.nanmin(obsvals),np.nanmin(modvals)])
+            maxval = np.nanmax([np.nanmax(obsvals),np.nanmax(modvals)])
+            # plot data and y = x line
+            axis.scatter(obsvals,modvals, color='mediumorchid', alpha=0.6, s=10, zorder=10)
+                        #c=z, cmap=cmocean.tools.crop_by_percent(cmocean.cm.thermal, 15, which='both'), 
+            axis.plot([0,maxval*1.2], [0,maxval*1.2], 'k-', zorder=5)
+            axis.set_ylim([0,maxval*1.2])
+            axis.set_xlim([0,maxval*1.2])
+            axis.set_aspect('equal')
+            if i ==0:
+                axis.set_title('Modeled vs. Observed')
+            # add bias and rmse label
+            t1 = axis.text(0.05, 0.95, 'bias: {}'.format(str(round(bias,2))),
+                verticalalignment='top', horizontalalignment='left',
+                transform=axis.transAxes, fontsize=ls, color = 'k')
+            t2 = axis.text(0.05, 0.8, 'rmse: {}'.format(str(round(rmse,2))),
+                verticalalignment='top', horizontalalignment='left',
+                transform=axis.transAxes, fontsize=ls, color = 'k')
+            t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
+            t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
         
 
 
         # PLOT TIME SERIES -------------------------------------------------------------
         col = 1
         axis = ax[i,col]
+
+        if station in ecol_stn:
+                alpha = 0.5
+        else:
+            alpha = 0.5
 
         # if deeper than 10 m, split into top 5 m and bottom 5 m layer
         d = 10
@@ -275,19 +286,20 @@ for i,station in enumerate(ecol_stn): # enumerate(['commencement']): #
             else:
                 bott_mod_avg = np.nansum(bott_mod * z_thick_bott, axis=1)/np.nansum(z_thick_bott,axis=1)
             # plot model output
-            axis.plot(dates_local, surf_mod_avg, color='deeppink', linewidth=2, alpha=0.3, zorder=5)
-            axis.plot(dates_local, bott_mod_avg, color='royalblue', linewidth=2, alpha=0.3, zorder=5,label='model')
+            axis.plot(dates_local, surf_mod_avg, color='deeppink', linewidth=2, alpha=alpha, zorder=5)
+            axis.plot(dates_local, bott_mod_avg, color='royalblue', linewidth=2, alpha=alpha, zorder=5,label='model')
 
-            # observation
-            surf_obs_df = df_ob_stn.where(z >= -(d/2))
-            bott_obs_df = df_ob_stn.where(z <= (-1*h) + (d/2))
-            # get average value
-            surf_obs_avg = surf_obs_df.groupby('time')[var].mean()
-            bott_obs_avg = bott_obs_df.groupby('time')[var].mean()
-            # plot observations
-            unique_time = [pd.Timestamp(x) for x in df_ob_stn['time'].unique()] # one point per timestampe
-            axis.scatter(unique_time, surf_obs_avg, color='deeppink', s=20,zorder=10)
-            axis.scatter(unique_time, bott_obs_avg, color='royalblue', s=20,zorder=10, label='obs')
+            if station in ecol_stn:
+                # observation
+                surf_obs_df = df_ob_stn.where(z >= -(d/2))
+                bott_obs_df = df_ob_stn.where(z <= (-1*h) + (d/2))
+                # get average value
+                surf_obs_avg = surf_obs_df.groupby('time')[var].mean()
+                bott_obs_avg = bott_obs_df.groupby('time')[var].mean()
+                # plot observations
+                unique_time = [pd.Timestamp(x) for x in df_ob_stn['time'].unique()] # one point per timestampe
+                axis.scatter(unique_time, surf_obs_avg, color='deeppink', s=20,zorder=10)
+                axis.scatter(unique_time, bott_obs_avg, color='royalblue', s=20,zorder=10, label='obs')
 
 
             # label
@@ -315,23 +327,27 @@ for i,station in enumerate(ecol_stn): # enumerate(['commencement']): #
             # first, multiply by thickness of each layer and sum in z, then divide by water column depth
             mod_avg = np.nansum(mod * z_thick, axis=1)/np.nansum(z_thick,axis=1)
             # plot model output
-            axis.plot(dates_local, mod_avg, color='mediumorchid', linewidth=2, alpha=0.3, zorder=5, label='model')
+            axis.plot(dates_local, mod_avg, color='mediumorchid', linewidth=2, alpha=alpha, zorder=5, label='model')
 
-            # observation
-            obs_df = df_ob_stn
-            # get average value
-            obs_avg = obs_df.groupby('time')[var].mean()
-            # plot observations
-            unique_time = [pd.Timestamp(x) for x in df_ob_stn['time'].unique()]
-            # axis.scatter(time, obs_df[var], color='k',s=3)
-            axis.scatter(unique_time, obs_avg, color='mediumorchid', s=20, zorder=10, label='obs')
+            if station in ecol_stn:
+                # observation
+                obs_df = df_ob_stn
+                # get average value
+                obs_avg = obs_df.groupby('time')[var].mean()
+                # plot observations
+                unique_time = [pd.Timestamp(x) for x in df_ob_stn['time'].unique()]
+                # axis.scatter(time, obs_df[var], color='k',s=3)
+                axis.scatter(unique_time, obs_avg, color='mediumorchid', s=20, zorder=10, label='obs')
 
         axis.set_xlim((dates_local[0],dates_local[-1]))
         axis.set_ylabel(name)
         if i ==0:
-            axis.set_title('Time series comparison')
-            axis.legend(loc='upper right',fontsize=11, frameon=False, handletextpad=0.1,
-                        handlelength=1, markerfirst = False)
+            if station in ecol_stn:
+                axis.set_title('Time series comparison')
+                axis.legend(loc='upper right',fontsize=11, frameon=False, handletextpad=0.1,
+                            handlelength=1, markerfirst = False)
+            else:
+               axis.set_title('Time series') 
 
 
 
@@ -341,25 +357,30 @@ for i,station in enumerate(ecol_stn): # enumerate(['commencement']): #
                 return mdates.num2date(x).strftime('%b')[0]
 
         # add bottom axis
-        for col in [0,1,2]:
-
+        for col in [0,1]:
             axis = ax[i,col]
             # format grid
             axis.tick_params(axis='both', which='major', labelsize=ls)
-            if col > 0 :
+            if col == 1:
                 axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
-
             # format axis labels
-            if i == rows-1 and col < 2:
+            if i == rows-1:
                 axis.set_xlabel(year, fontsize = fs)
                 axis.tick_params(axis='both', which='major', labelsize=ls)
                 axis.xaxis.set_major_formatter(ticker.FuncFormatter(month_initial))
                 # axis.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
                 axis.tick_params(axis='x', labelrotation=0, labelsize=ls)
-            elif i < rows-1 and col != 2:
+            elif i < rows-1:
                 axis.set_xticklabels([])
-                
+            # format colors
+            axis.set_facecolor('#EEEEEE')
+            for border in ['top','right','bottom','left']:
+                axis.spines[border].set_visible(False)
 
+        # format property property plots
+        if station in ecol_stn:
+            axis = ax[i,2]
+            axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
             # format colors
             axis.set_facecolor('#EEEEEE')
             for border in ['top','right','bottom','left']:

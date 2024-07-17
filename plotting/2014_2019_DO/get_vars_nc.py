@@ -4,14 +4,13 @@ surface T
 surface S
 bottom T
 bottom S
-depth-integrated LdetN
-depth-integrated SdetN
-depth-integrated phytoplankton
-depth-integrated zooplankton
-depth-integrated NO3
-depth-integrated NH4
+bottom LdetN
+surface m SdetN
+surface phytoplankton
+surface zooplankton
 surface NO3
 surface NH4
+bottom NH4
 
 Data are saved in a new .nc file
 
@@ -48,7 +47,7 @@ Ldir = Lfun.Lstart()
 
 remove_straits = False
 
-years = ['2014','2015','2016','2017','2018','2019']
+years = ['2013']#['2014','2015','2016','2017','2018','2019']
 
 # which  model run to look at?
 gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
@@ -83,22 +82,20 @@ def start_ds(ocean_time,eta_rho,xi_rho):
         botT       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # bottom salinity
         botS       = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth-integrated LdetN
-        intLdetN    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth-integrated SdetN
-        intSdetN    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth-integrated phytoplankton
-        intphyto    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth-integrated zooplankton
-        intzoop     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth-integrated NO3
-        intNO3      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # depth-integrated NH4
-        intNH4     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # bottom LdetN
+        botLdetN    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # surface SdetN
+        surfSdetN    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # surface phytoplankton
+        surfphyto    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # surface zooplankton
+        surfzoop     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # surface NO3
         surfNO3      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # surface NH4
-        surfNH4     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
+        surfNH4     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # bottom NH4
+        botNH4     = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
 
     coords=dict(ocean_time=ocean_time, eta_rho=eta_rho, xi_rho=xi_rho,),)
     
@@ -124,29 +121,26 @@ def add_metadata(ds):
     ds['botS'].attrs['long_name'] = 'bottom salinity'
     ds['botS'].attrs['units'] = 'C'
 
-    ds['intLdetN'].attrs['long_name'] = 'depth-integrated large detritus'
-    ds['intLdetN'].attrs['units'] = 'mmol N / m2'
+    ds['botLdetN'].attrs['long_name'] = 'bottom large detritus'
+    ds['botLdetN'].attrs['units'] = 'mmol N / m3'
 
-    ds['intSdetN'].attrs['long_name'] = 'depth-integrated small detritus'
-    ds['intSdetN'].attrs['units'] = 'mmol N / m2'
+    ds['surfSdetN'].attrs['long_name'] = 'surface small detritus'
+    ds['surfSdetN'].attrs['units'] = 'mmol N / m3'
 
-    ds['intphyto'].attrs['long_name'] = 'depth-integrated phytoplankton'
-    ds['intphyto'].attrs['units'] = 'mmol N / m2'
+    ds['surfphyto'].attrs['long_name'] = 'surface phytoplankton'
+    ds['surfphyto'].attrs['units'] = 'mmol N / m3'
 
-    ds['intzoop'].attrs['long_name'] = 'depth-integrated zooplankton'
-    ds['intzoop'].attrs['units'] = 'mmol N / m2'
-
-    ds['intNO3'].attrs['long_name'] = 'depth-integrated nitrate'
-    ds['intNO3'].attrs['units'] = 'mmol N / m2'
-
-    ds['intNH4'].attrs['long_name'] = 'depth-integrated ammonium'
-    ds['intNH4'].attrs['units'] = 'mmol N / m2'
+    ds['surfzoop'].attrs['long_name'] = 'surface zooplankton'
+    ds['surfzoop'].attrs['units'] = 'mmol N / m3'
 
     ds['surfNO3'].attrs['long_name'] = 'surface nitrate'
     ds['surfNO3'].attrs['units'] = 'mmol N / m3'
 
     ds['surfNH4'].attrs['long_name'] = 'surface ammonium'
     ds['surfNH4'].attrs['units'] = 'mmol N / m3'
+
+    ds['botNH4'].attrs['long_name'] = 'bottom ammonium'
+    ds['botNH4'].attrs['units'] = 'mmol N / m3'
 
     return ds
 
@@ -191,41 +185,10 @@ for year in years:
     # add metadata
     ds = add_metadata(ds)
 
-    print('    Calculating depth-integrated bio vars')
-    # get thickness of hypoxic layer in watercolumn at ever lat/lon cell (ocean_time: 365, eta_rho: 441, xi_rho: 177)
-    # units are in mmol N / m2
-    Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
-    reader = csv.DictReader(open(Sfp))
-    S_dict = {}
-    for row in reader:
-        S_dict[row['ITEMS']] = row['VALUES']
-    S = zrfun.get_S(S_dict)
-    # get cell thickness
-    h = ds_raw['h'].values # height of water column
-    z_rho, z_w = zrfun.get_z(h, 0*h, S) 
-    dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
-    # Multiple cell height array by variable (m * mmol N / m3 = mmol N / m2)
-    # then sum along z to depth-integrate
-    print('         LdetN')
-    height_times_LdetN = dzr * ds_raw['LdetritusN'].values
-    intLdetN = np.nansum(height_times_LdetN,axis=1)
-    print('         SdetN')
-    height_times_SdetN = dzr * ds_raw['SdetritusN'].values
-    intSdetN = np.nansum(height_times_SdetN,axis=1)
-    print('         phytoplankton')
-    height_times_phyto = dzr * ds_raw['phytoplankton'].values
-    intphyto = np.nansum(height_times_phyto,axis=1)
-    print('         zooplankton')
-    height_times_zoop = dzr * ds_raw['zooplankton'].values
-    intzoop = np.nansum(height_times_zoop,axis=1)
-    print('         NO3')
-    height_times_NO3 = dzr * ds_raw['NO3'].values
-    intNO3 = np.nansum(height_times_NO3,axis=1)
-    print('         NH4')
-    height_times_NH4 = dzr * ds_raw['NH4'].values
-    intNH4 = np.nansum(height_times_NH4,axis=1)
 
-    # add data to ds
+##############################################################
+##                 ADD DATA TO DATASET                      ##
+##############################################################
     print('    Adding data to dataset')
 
     # depth of water column
@@ -262,43 +225,30 @@ for year in years:
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     
-    # depth-integrated LdetN
-    ds['intLdetN'] = xr.DataArray(intLdetN,
+    # bottom LdetN
+    ds['botLdetN'] = xr.DataArray(ds_raw['LdetritusN'].values[:,0,:,:],
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     
-    # depth-integrated LdetN
-    ds['intSdetN'] = xr.DataArray(intSdetN,
+    # surface SdetN
+    ds['surfSdetN'] = xr.DataArray(ds_raw['SdetritusN'].values[:,-1,:,:],
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     
-    # depth-integrated LdetN
-    ds['intphyto'] = xr.DataArray(intphyto,
+    # surface phytoplankton
+    surfphyto = ds_raw['phytoplankton'].values[:,-1,:,:]
+    ds['surfphyto'] = xr.DataArray(surfphyto,
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     
-    # depth-integrated LdetN
-    ds['intzoop'] = xr.DataArray(intzoop,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    # depth-integrated NO3
-    ds['intNO3'] = xr.DataArray(intNO3,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    # depth-integrated NH4
-    ds['intNH4'] = xr.DataArray(intNH4,
+    # surface zooplankton
+    ds['surfzoop'] = xr.DataArray(ds_raw['zooplankton'].values[:,-1,:,:],
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
@@ -313,6 +263,13 @@ for year in years:
     
     # surface NH4
     ds['surfNH4'] = xr.DataArray(ds_raw['NH4'].values[:,-1,:,:],
+                                coords={'ocean_time': ds_raw['ocean_time'].values,
+                                        'eta_rho': ds_raw['eta_rho'].values,
+                                        'xi_rho': ds_raw['xi_rho'].values},
+                                dims=['ocean_time','eta_rho', 'xi_rho'])
+    
+    # bottom NH4
+    ds['botNH4'] = xr.DataArray(ds_raw['NH4'].values[:,0,:,:],
                                 coords={'ocean_time': ds_raw['ocean_time'].values,
                                         'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
