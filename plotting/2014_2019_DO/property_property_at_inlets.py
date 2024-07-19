@@ -144,19 +144,17 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
         # get scale and units
         scale =  pinfo.fac_dict[vn]
         vlims = pinfo.vlims_dict[vn]
-        vmin = vlims[0] / scale
-        vmax = vlims[1] /scale
+        vmin = vlims[0]
+        vmax = vlims[1]
         cmap = pinfo.cmap_dict[vn]
 
         # convert to correct units
         if vn == 'oxygen': # already in uM
-            ds['DO (uM)'] = ds[vn]
-            val = ds['DO (uM)'].transpose()
+            ds['DO (mg/L)'] = ds[vn] * scale
+            val = ds['DO (mg/L)'].transpose()
         if vn == 'phytoplankton': # need to multiply by 2.5
             ds['Chl (mg m-3)'] = ds[vn] * scale
             val = ds['Chl (mg m-3)'].transpose()
-            vmin = vmin * scale
-            vmax = vmax * scale
         if vn == 'temp': # convert to conservative temprature
             ds['SA'] = gsw.conversions.SA_from_SP(ds['salt'], ds['z_rho'], lon, lat)
             ds['CT'] = gsw.conversions.CT_from_pt(ds['SA'], ds['temp'])
@@ -190,8 +188,8 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
             var = 'Chl (mg m-3)'
             name = r'Chl ($mg\ m^{-3}$)'
         if vn == 'oxygen':
-            var = 'DO (uM)'
-            name = r'DO ($\mu M$)'
+            var = 'DO (mg/L)'
+            name = r'DO ($mg L^{-1}$)'
 
         axis.text(0.02, 0.96, letter[i] + ' ' + name, fontweight='bold',
                 verticalalignment='top', horizontalalignment='left',
@@ -217,8 +215,12 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
             col = 2
             axis = ax[i,col]
             # get obs and model values
-            obsvals = df_ob_stn[var].values
-            modvals = df_mo_stn[var].values
+            if var == 'DO (mg/L)':
+                obsvals = df_ob_stn['DO (uM)'].values * scale
+                modvals = df_mo_stn['DO (uM)'].values * scale
+            else:
+                obsvals = df_ob_stn[var].values 
+                modvals = df_mo_stn[var].values
             # calculate bias and rmse
             bias = np.nanmean(modvals-obsvals)
             rmse = np.sqrt(np.nanmean((modvals-obsvals)**2))
@@ -294,8 +296,12 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
                 surf_obs_df = df_ob_stn.where(z >= -(d/2))
                 bott_obs_df = df_ob_stn.where(z <= (-1*h) + (d/2))
                 # get average value
-                surf_obs_avg = surf_obs_df.groupby('time')[var].mean()
-                bott_obs_avg = bott_obs_df.groupby('time')[var].mean()
+                if var == 'DO (mg/L)':
+                    surf_obs_avg = surf_obs_df.groupby('time')['DO (uM)'].mean() * scale
+                    bott_obs_avg = bott_obs_df.groupby('time')['DO (uM)'].mean() * scale
+                else:
+                    surf_obs_avg = surf_obs_df.groupby('time')[var].mean()
+                    bott_obs_avg = bott_obs_df.groupby('time')[var].mean()
                 # plot observations
                 unique_time = [pd.Timestamp(x) for x in df_ob_stn['time'].unique()] # one point per timestampe
                 axis.scatter(unique_time, surf_obs_avg, color='deeppink', s=20,zorder=10)
@@ -333,7 +339,10 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
                 # observation
                 obs_df = df_ob_stn
                 # get average value
-                obs_avg = obs_df.groupby('time')[var].mean()
+                if var == 'DO (mg/L)':
+                    obs_avg = obs_df.groupby('time')['DO (uM)'].mean() * scale
+                else:
+                    obs_avg = obs_df.groupby('time')[var].mean()
                 # plot observations
                 unique_time = [pd.Timestamp(x) for x in df_ob_stn['time'].unique()]
                 # axis.scatter(time, obs_df[var], color='k',s=3)
