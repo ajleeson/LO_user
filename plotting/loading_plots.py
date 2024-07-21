@@ -323,3 +323,4 @@ print('---------------------------')
 print(avgload_allrivs.loc['fraser'])
 print('---------------------------')
 print(avgload_allrivs.loc['puyallup'])
+
