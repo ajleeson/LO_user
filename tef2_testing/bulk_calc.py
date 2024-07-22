@@ -36,7 +36,7 @@ Lfun.make_dir(out_dir, clean=True)
 
 sect_list = [item.name for item in in_dir.glob('*.nc')]
 if Ldir['testing']:
-    sect_list = ['budd.nc']
+    sect_list = ['crescent.nc']
 
 # ---------
 
@@ -102,7 +102,7 @@ for snp in sect_list:
         Q_dict[vn][:,:-1] = np.fliplr(np.cumsum(np.fliplr(TEF_lp[vn]), axis=1))
 
     # prepare arrays to hold multi-layer output
-    nlay = 30
+    nlay = 50
     nmat = np.nan * np.ones((NT, nlay))
     MLO = dict()
     for vn in vn_list:
@@ -110,7 +110,7 @@ for snp in sect_list:
     
     if Ldir['testing']:
         plt.close('all')
-        dd_list = [0]
+        dd_list = [76]
         print_info = True
     else:
         dd_list = range(NT)
@@ -165,6 +165,11 @@ for snp in sect_list:
             for vn in vn_list:
                 bulk_dict[vn] = bulk_dict[vn][ii]
                 NL = len(ii)
+                # print('=========================================')
+                # print(dd)
+                # print(NL)
+                # print(np.shape(MLO[vn]))#[dd, :NL]))
+                # print(np.shape(bulk_dict[vn]))
                 MLO[vn][dd, :NL] = bulk_dict[vn]
                 
     for vn in vec_list:
