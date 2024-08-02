@@ -44,6 +44,17 @@ fs = 12 # figure font size
 ls = 11 # label size
 ts = 14 # title size
 
+# initialize arrays for all obs and model values
+# to calculate summary bias and rmse
+allobsvals_SA = np.array([])
+allmodvals_SA = np.array([])
+allobsvals_CT = np.array([])
+allmodvals_CT = np.array([])
+allobsvals_Chl = np.array([])
+allmodvals_Chl = np.array([])
+allobsvals_DO = np.array([])
+allmodvals_DO = np.array([])
+
 ##########################################################
 ##              Get stations and gtagexes               ##
 ##########################################################
@@ -221,6 +232,21 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
             else:
                 obsvals = df_ob_stn[var].values 
                 modvals = df_mo_stn[var].values
+
+            # save all obs and mod values for combined bias and rmse calculation
+            if vn == 'temp':
+                allobsvals_CT = np.append(allobsvals_CT,obsvals)
+                allmodvals_CT = np.append(allmodvals_CT,modvals)
+            if vn == 'salt':
+                allobsvals_SA = np.append(allobsvals_SA,obsvals)
+                allmodvals_SA = np.append(allmodvals_SA,modvals)
+            if vn == 'phytoplankton':
+                allobsvals_Chl = np.append(allobsvals_Chl,obsvals)
+                allmodvals_Chl = np.append(allmodvals_Chl,modvals)
+            if vn == 'oxygen':
+                allobsvals_DO = np.append(allobsvals_DO,obsvals)
+                allmodvals_DO = np.append(allmodvals_DO,modvals)
+
             # calculate bias and rmse
             bias = np.nanmean(modvals-obsvals)
             rmse = np.sqrt(np.nanmean((modvals-obsvals)**2))
@@ -402,3 +428,32 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
     plt.tight_layout
     plt.subplots_adjust(hspace = 0.2, wspace=0.3, top=0.9, left=0.08, right=0.98, bottom = 0.08) # wspace=0.02, 
     plt.savefig(out_dir / (station + '(' + str(round(lon,2)) + ',' + str(round(lat,2)) + ').png'))
+
+
+# calculate bias and rmse of all terminal inlets
+bias_all_CT =          np.nanmean(allmodvals_CT-allobsvals_CT)
+rmse_all_CT = np.sqrt(np.nanmean((allmodvals_CT-allobsvals_CT)**2))
+bias_all_SA =          np.nanmean(allmodvals_SA-allobsvals_SA)
+rmse_all_SA = np.sqrt(np.nanmean((allmodvals_SA-allobsvals_SA)**2))
+bias_all_Chl =          np.nanmean(allmodvals_Chl-allobsvals_Chl)
+rmse_all_Chl = np.sqrt(np.nanmean((allmodvals_Chl-allobsvals_Chl)**2))
+bias_all_DO =          np.nanmean(allmodvals_DO-allobsvals_DO)
+rmse_all_DO = np.sqrt(np.nanmean((allmodvals_DO-allobsvals_DO)**2))
+print('=================================')
+print('SUMMARY OF ALL 21 INLETS')
+print('=================================')
+print('temperature')
+print('bias: {}'.format(bias_all_CT))
+print('rmse: {}'.format(rmse_all_CT))
+print('=================================')
+print('salinity')
+print('bias: {}'.format(bias_all_SA))
+print('rmse: {}'.format(rmse_all_SA))
+print('=================================')
+print('chlorophyll (mg/m3)')
+print('bias: {}'.format(bias_all_Chl))
+print('rmse: {}'.format(rmse_all_Chl))
+print('=================================')
+print('DO (mg/L)')
+print('bias: {}'.format(bias_all_DO))
+print('rmse: {}'.format(rmse_all_DO))

@@ -249,7 +249,7 @@ tt0 = time()
 seg_info_dict = {}
 for sn in sn_list:
         
-    for pm in [-1, 1]:
+    for pm in [1]: #[-1, 1]:
         if pm == 1:
             pm_str = 'p'
         elif pm == -1:

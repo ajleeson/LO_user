@@ -181,33 +181,13 @@ if region == 'Puget Sound':
     ymax = 48.93
 
 # set axes range for different state variables
-if vn == 'NO3':
-    vmin = 0
-    vmax = 40
-    cmap = cmocean.cm.matter
-elif vn == 'NH4':
-    vmin = 0
-    vmax = 6
-    cmap = cmocean.cm.matter
-elif vn == 'phytoplankton':
-    vmin = 0
-    vmax = 30
-    cmap = cmocean.cm.algae
-elif vn == 'oxygen':
+if vn == 'oxygen':
     vmin = 0
     vmax = 10
     cmap = plt.cm.get_cmap('rainbow_r', 10)
     stext = 'bottom'
     slev = '0'
     var = 'DO_bot'
-elif vn == 'SdetritusN':
-    vmin = 0
-    vmax = 5
-    cmap = cmocean.cm.matter
-elif vn == 'LdetritusN':
-    vmin = 0
-    vmax = 0.1
-    cmap = cmocean.cm.matter
 
 # scale variable & get units
 # scale =  pinfo.fac_dict[vn]
@@ -215,9 +195,13 @@ units = pinfo.units_dict[vn]
 
 # Initialize figure
 fs = 10
-pfun.start_plot(fs=fs, figsize=(51,21))
-fig,axes = plt.subplots(1,len(years)+1)
-ax = axes.ravel()
+plt.close('all')
+pfun.start_plot(fs=fs, figsize=(24,24))
+fig = plt.figure()
+# ax = axes.ravel()
+
+gs = fig.add_gridspec(2,6)
+ax0 = fig.add_subplot(gs[:, 0:3])
 
 # get lat and lon
 fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
@@ -240,23 +224,22 @@ for year in years:
 
 # calculate average of all of the arrays
 v_avg = sum(val_dict.values())/len(val_dict)
-cs = ax[0].pcolormesh(px,py,v_avg, vmin=vmin, vmax=vmax, cmap=cmap)
-cbar = fig.colorbar(cs, location='left', anchor=(-1,0.5),
-                     ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
-cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+cs = ax0.pcolormesh(px,py,v_avg, vmin=vmin, vmax=vmax, cmap=cmap)
+cbar = fig.colorbar(cs, location='left')
+cbar.ax.tick_params(labelsize=28)#,length=10, width=2)
 cbar.outline.set_visible(False)
-ax[0].set_title(letters[0] + ' Average', fontsize=38, loc='left')
+ax0.set_title(letters[0] + ' six-year avg.', fontsize=28, loc='left')
 
  # add wwtp locations
 if WWTP_loc == True:
-    ax[0].scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
+    ax0.scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
     leg_szs = [100, 1000, 10000]
     szs = [0.3*(leg_sz) for leg_sz in leg_szs]
     l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=3)
     l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=3)
     l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=3)
     labels = ['< 100', '1,000', '10,000']
-    legend = ax[0].legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
+    legend = ax0.legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
         title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
     plt.setp(legend.get_title(),fontsize=20)
 
@@ -267,40 +250,46 @@ lat1 = lat0
 lon1 = -122.91825
 distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
 x_dist_km = round(distances_m[0]/1000)
-ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
-ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
+ax0.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
+ax0.text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
 
 # format figure
-ax[0].set_xlim([xmin,xmax])
-ax[0].set_ylim([ymin,ymax])
-ax[0].set_yticklabels([])
-ax[0].set_xticklabels([])
-ax[0].axis('off')
-pfun.dar(ax[0])
+ax0.set_xlim([xmin,xmax])
+ax0.set_ylim([ymin,ymax])
+ax0.set_yticklabels([])
+ax0.set_xticklabels([])
+ax0.axis('off')
+pfun.dar(ax0)
 
 
 # loop through and plot both conditions
 for j,year in enumerate(years):
 
     i = j+1
+
+    if i in [1,2,3]:
+        ax = fig.add_subplot(gs[0,i+2])
+    elif i in [4,5,6]:
+        ax = fig.add_subplot(gs[1,i-1])
                 
     v = val_dict[year]
-    cs = ax[i].pcolormesh(px,py,v-v_avg, vmin=-1.5, vmax=1.5, cmap=cmocean.cm.balance_r)
+    cs = ax.pcolormesh(px,py,v-v_avg, vmin=-1.5, vmax=1.5, cmap=cmocean.cm.balance_r)
 
-    if i == 6:
-        cbar = fig.colorbar(cs, location='right', anchor=(1.8,0.5),
-                     ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
-        cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+    if i == 5:#6:
+        fig.subplots_adjust(right=0.8)
+        cbar_ax = fig.add_axes([0.90, 0.15, 0.02, 0.7])
+        cbar = fig.colorbar(cs, cax=cbar_ax)
+        cbar.ax.tick_params(labelsize=28)#,length=10, width=2)
         cbar.outline.set_visible(False)
 
     # format figure
-    ax[i].set_xlim([xmin,xmax])
-    ax[i].set_ylim([ymin,ymax])
-    ax[i].set_yticklabels([])
-    ax[i].set_xticklabels([])
-    ax[i].axis('off')
-    pfun.dar(ax[i])
-    ax[i].set_title(letters[i] + ' ' + year + ' - Avg', fontsize=38, loc = 'left')
+    ax.set_xlim([xmin,xmax])
+    ax.set_ylim([ymin,ymax])
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.axis('off')
+    pfun.dar(ax)
+    ax.set_title(letters[i] + ' ' + year + ' - avg', fontsize=28, loc = 'left')
                                 
 # Add colormap title
 plt.suptitle(start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,
@@ -308,5 +297,5 @@ plt.suptitle(start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,
 
 # Generate plot
 plt.tight_layout
-plt.subplots_adjust(left=0.05, right=0.95, top=0.85, wspace=0.02)
+plt.subplots_adjust(left=0.05, right=0.90, top=0.85, wspace=0.02)
 plt.savefig(out_dir / (vn+'_'+stext+'_avg_'+ start + 'THRU'+end+'.png'))
