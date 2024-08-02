@@ -1,0 +1,62 @@
+import pandas as pd
+import pickle
+import csv
+import os
+
+def convert_p_to_multisheet_excel(p_file_path, excel_file_path):
+    """
+    Convert a .p (pickle) file to a multi-sheet Excel file.
+    
+    Parameters:
+    - p_file_path: str, path to the input .p file
+    - excel_file_path: str, path to save the output Excel file
+    """
+    # Load the pickle file
+    with open(p_file_path, 'rb') as file:
+        data = pickle.load(file)
+    
+    # Create a Pandas Excel writer using openpyxl as the engine
+    with pd.ExcelWriter(excel_file_path, engine='openpyxl') as writer:
+        if isinstance(data, dict):
+            # If data is a dictionary, treat each key as a separate sheet
+            i = 0
+            for key, value in data.items():
+                if isinstance(value, pd.DataFrame):
+                    if i ==0: 
+                        df_obs = value
+                        if 'SiO4 (uM)' in df_obs.columns:
+                            df_obs = df_obs.drop(columns=['PO4 (uM)', 'SiO4 (uM)'])
+                        else:
+                            df_obs = df_obs.drop(columns=['PO4 (uM)'])
+                        value = df_obs
+                        i += 1
+                    else:
+                        value = value[df_obs.columns]
+                    # print(key)
+                    # print(value.head(15))
+                    # print('\n=====================================\n')
+                    # Directly save DataFrame to a sheet
+                    value.to_excel(writer, sheet_name=str(key), index=False)
+                elif isinstance(value, list):
+                    print('not Dataframe')
+                    # Convert list of lists to DataFrame and save to a sheet
+                    df = pd.DataFrame(value)
+                    df.to_excel(writer, sheet_name=str(key), index=False)
+                else:
+                    # Convert other data types to DataFrame and save to a sheet
+                    df = pd.DataFrame([value])
+                    df.to_excel(writer, sheet_name=str(key), index=False)
+        elif isinstance(data, list):
+            # If data is a list of lists, save to a single sheet
+            df = pd.DataFrame(data)
+            df.to_excel(writer, sheet_name='Sheet1', index=False)
+        else:
+            raise ValueError("Unsupported data type. The data should be either a dictionary or a list of lists.")
+    
+    print(f"Converted {p_file_path} to {excel_file_path}")
+
+# Example usage
+for year in ['2014','2015','2016','2017','2018']:
+    p_file_path = 'multi_bottle_'+year+'.p'
+    csv_file_path = 'multi_bottle_'+year+'.xlsx'
+    convert_p_to_multisheet_excel(p_file_path, csv_file_path)

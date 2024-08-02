@@ -239,9 +239,12 @@ if region == 'Puget Sound':
 
 # Initialize figure
 fs = 10
-pfun.start_plot(fs=fs, figsize=(51,21))
-fig,axes = plt.subplots(1,len(years)+1)
-ax = axes.ravel()
+pfun.start_plot(fs=fs, figsize=(24,24))
+fig = plt.figure()
+# ax = axes.ravel()
+
+gs = fig.add_gridspec(2,6)
+ax0 = fig.add_subplot(gs[:, 0:3])
 
 # get lat and lon
 fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
@@ -258,23 +261,23 @@ for i,year in enumerate(['avg'] + years):
     DO_bot = DO_days[year]
                 
     if i == 0:
-        cs = ax[i].pcolormesh(px,py,DO_bot, vmin=0, vmax=np.nanmax(DO_bot), cmap='rainbow')
-        cbar = fig.colorbar(cs, location='left', anchor=(-1,0.5),
-                            ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
-        cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+        ax = ax0
+        cs = ax.pcolormesh(px,py,DO_bot, vmin=0, vmax=np.nanmax(DO_bot), cmap='rainbow')
+        cbar = fig.colorbar(cs, location='left')
+        cbar.ax.tick_params(labelsize=28)#,length=10, width=2)
         cbar.outline.set_visible(False)
-        ax[i].set_title(letters[0] + ' Average', fontsize=38, loc='left')
+        ax.set_title(letters[0] + ' six-year avg.', fontsize=28, loc='left')
 
         # add wwtp locations
         if WWTP_loc == True:
-            ax[i].scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
+            ax.scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
             leg_szs = [100, 1000, 10000]
             szs = [0.3*(leg_sz) for leg_sz in leg_szs]
             l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=3)
             l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=3)
             l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=3)
             labels = ['< 100', '1,000', '10,000']
-            legend = ax[i].legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
+            legend = ax.legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
                 title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
             plt.setp(legend.get_title(),fontsize=20)
 
@@ -285,26 +288,33 @@ for i,year in enumerate(['avg'] + years):
         lon1 = -122.91825
         distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
         x_dist_km = round(distances_m[0]/1000)
-        ax[i].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
-        ax[i].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
+        ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
+        ax.text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
 
     else: 
-        cs = ax[i].pcolormesh(px,py,DO_bot, vmin=-60, vmax=60, cmap=cmocean.cm.balance)
+        if i in [1,2,3]:
+            ax = fig.add_subplot(gs[0,i+2])
+        elif i in [4,5,6]:
+            ax = fig.add_subplot(gs[1,i-1])
+        cs_all = ax.pcolormesh(px,py,DO_bot, vmin=-60, vmax=60, cmap=cmocean.cm.balance)
         if i == 5:#6:
-            cbar = fig.colorbar(cs, location='right', anchor=(2,0.5), #anchor=(1.8,0.5),
-                        ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
-            cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+            fig.subplots_adjust(right=0.8)
+            cbar_ax = fig.add_axes([0.90, 0.15, 0.02, 0.7])
+            cbar = fig.colorbar(cs_all, cax=cbar_ax)
+        #     cbar = fig.colorbar(cs, location='right', anchor=(2,0.5), #anchor=(1.8,0.5),
+        #                 ax=[ax[0],ax[1],ax[2],ax[3],ax[4],ax[5],ax[6]])
+            cbar.ax.tick_params(labelsize=28)#,length=10, width=2)
             cbar.outline.set_visible(False)
-        ax[i].set_title(letters[i] + ' ' + year + ' - Avg', fontsize=38, loc = 'left')
+        ax.set_title(letters[i] + ' ' + year + ' - avg.', fontsize=24, loc = 'left')
 
     # format figure
-    ax[i].set_xlim([xmin,xmax])
-    ax[i].set_ylim([ymin,ymax])
-    ax[i].set_yticklabels([])
-    ax[i].set_xticklabels([])
-    ax[i].axis('off')
-    pfun.dar(ax[i])
-    pfun.add_coast(ax[i])
+    ax.set_xlim([xmin,xmax])
+    ax.set_ylim([ymin,ymax])
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.axis('off')
+    pfun.dar(ax)
+    pfun.add_coast(ax)
                                 
 # Add colormap title
 plt.suptitle('Days with bottom DO < {} [mg/L]'.format(str(DO_thresh)),
@@ -312,7 +322,7 @@ plt.suptitle('Days with bottom DO < {} [mg/L]'.format(str(DO_thresh)),
 
 # Generate plot
 plt.tight_layout
-plt.subplots_adjust(left=0.05, right=0.95, top=0.85, wspace=0.02)
+plt.subplots_adjust(left=0.05, right=0.90, top=0.85, wspace=0.02)
 plt.savefig(out_dir / ('days_DO_less_than_{}.png'.format(str(DO_thresh))))
 
 ##############################################################
