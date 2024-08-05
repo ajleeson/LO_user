@@ -118,7 +118,7 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
     max_DO = np.max(val)
     max_i = np.argmax(val)
     max_time = dates_local[max_i]
-    ax.scatter(max_time,max_DO,color=color,s=70,edgecolor='k',zorder=3)
+    # ax.scatter(max_time,max_DO,color=color,s=70,edgecolor='k',zorder=3)
 
 # FORMATTING ---------------------------------------------------------
 ax.set_ylim([0,14])
