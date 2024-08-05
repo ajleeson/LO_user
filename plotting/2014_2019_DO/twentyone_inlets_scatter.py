@@ -1039,10 +1039,6 @@ ax.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
     ax.spines[border].set_visible(False)
 
-# add inlet label
-if inlet_label:
-    for i, txt in enumerate(sta_dict):
-        ax.annotate(txt, (Tflush[i],bott_DO[i]), fontsize=10)
 
 plt.savefig(out_dir / 'botDO_vs_pbloomday.png')
 
@@ -1077,11 +1073,6 @@ ax.grid(True,color='white',linewidth=1)
 ax.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
     ax.spines[border].set_visible(False)
-
-# add inlet label
-if inlet_label:
-    for i, txt in enumerate(sta_dict):
-        ax.annotate(txt, (Tflush[i],bott_DO[i]), fontsize=10)
 
 plt.savefig(out_dir / 'depth_v_Urms.png')
 
@@ -1118,11 +1109,6 @@ ax.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
     ax.spines[border].set_visible(False)
 
-# add inlet label
-if inlet_label:
-    for i, txt in enumerate(sta_dict):
-        ax.annotate(txt, (Tflush[i],bott_DO[i]), fontsize=10)
-
 plt.savefig(out_dir / 'deltarho_v_Urms.png')
 
 ##########################################################
@@ -1156,12 +1142,124 @@ ax.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
     ax.spines[border].set_visible(False)
 
-# add inlet label
-if inlet_label:
-    for i, txt in enumerate(sta_dict):
-        ax.annotate(txt, (Tflush[i],bott_DO[i]), fontsize=10)
-
 plt.savefig(out_dir / 'depth_v_deltarho.png')
+
+##########################################################
+##            Tflushing   vs. Tidal currents            ##
+##########################################################
+
+plt.close('all')
+
+pfun.start_plot(figsize=(5.5,5))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+cmap_oxy = plt.cm.get_cmap('rainbow_r', 10)
+cs = ax.scatter(tcurr,Tflush,c=bott_DO,edgecolor='k',s=75,cmap=cmap_oxy,zorder=5)
+cbar = fig.colorbar(cs)
+cbar.ax.tick_params(labelsize=ls)
+cbar.ax.set_ylabel('Aug/Sep Bottom DO [mg/L]', rotation=90, fontsize=ls)
+cbar.outline.set_visible(False)
+
+# format labels
+ax.set_title(r'$T_{flush}$ vs. Tidal Currents',
+             fontsize=ts)
+ax.set_xlabel('Annual avg. ' + r'$U_{rms}$ [m s$^{-1}$]', fontsize=ls)
+ax.set_ylabel(r'Annual avg $T_{flush} = V/Q_{prism}$ [days]',fontsize=ls)
+
+# format grid
+ax.tick_params(axis='both', which='major', labelsize=ls)
+ax.grid(True,color='white',linewidth=1)
+# format colors
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+
+plt.savefig(out_dir / 'Tflush_v_Urms.png')
+
+##########################################################
+##          stratification vs. tidal flushing           ##
+##########################################################
+
+plt.close('all')
+
+pfun.start_plot(figsize=(5.5,5))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+cmap_oxy = plt.cm.get_cmap('rainbow_r')
+cs = ax.scatter(Tflush,strat,c=bott_DO,edgecolor='k',s=75,cmap=cmap_oxy,zorder=5)
+cbar = fig.colorbar(cs)
+cbar.ax.tick_params(labelsize=ls)
+cbar.ax.set_ylabel('Aug/Sep Bottom DO [mg/L]', rotation=90, fontsize=ls)
+cbar.outline.set_visible(False)
+
+
+# calculate correlation coefficient (Pearson)
+r,p = pearsonr(Tflush,strat)
+rLdetN = r
+ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+                        verticalalignment='bottom', horizontalalignment='left',
+                        transform=ax.transAxes, fontsize=ts, fontweight='bold')
+ax.text(0.1, 0.79, r'$p =$' + str(round(p,4)) ,color='black',
+                        verticalalignment='bottom', horizontalalignment='left',
+                        transform=ax.transAxes, fontsize=ts, fontweight='bold')
+
+# format labels
+ax.set_title(r'$\Delta\rho$ vs. $T_{flush}$',
+             fontsize=ts)
+ax.set_xlabel(r'Annual avg $T_{flush} = V/Q_{prism}$ [days]',fontsize=ls)
+ax.set_ylabel(r'Aug/Sep $\rho_{bottom} - \rho_{surface}$ [kg m$^{-3}$]',fontsize=ls)
+
+# format grid
+ax.tick_params(axis='both', which='major', labelsize=ls)
+ax.grid(True,color='white',linewidth=1)
+# format colors
+ax.set_facecolor('#EEEEEE')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+
+
+plt.savefig(out_dir / 'deltarho_v_Tflush.png')
+
+##########################################################
+##                 Scatter matrix                       ##
+##########################################################
+
+plt.close('all')
+fig, axes = plt.subplots(1,1,figsize = (8,8))
+
+# put all variables in pandas dataframe
+d = {'Depth [m]': depth,
+    r'$\Delta\rho$ [kg m$^{-3}$]': strat,
+    r'$U_{rms}$ [m s$^{-1}$]': tcurr,
+    r'$T_{flush}$ [days]': Tflush}
+df = pd.DataFrame(data=d)
+
+pd.plotting.scatter_matrix(df[['Depth [m]', r'$\Delta\rho$ [kg m$^{-3}$]',
+                            r'$U_{rms}$ [m s$^{-1}$]', r'$T_{flush}$ [days]']],
+                           figsize=(8,8), range_padding=0.2,
+                           ax = axes,
+                           hist_kwds={'ec':'gray',
+                                      'facecolor':'silver',
+                                      'alpha':0.5,
+                                     'bins':8},
+                           c=bott_DO, marker='.',s=180, #edgecolors='k'
+                           alpha=1,cmap=cmap_oxy)
+
+plt.suptitle('Physical Characteristic Scatter Matrix')
+
+# add colorbar
+fig.subplots_adjust(right=0.85)
+cbar_ax = fig.add_axes([0.88, 0.12, 0.03, 0.74])
+cbar = fig.colorbar(cs, cax=cbar_ax)
+cbar.outline.set_visible(False)
+cbar.ax.set_ylabel('Aug/Sep Bottom DO [mg/L]', rotation=90, fontsize=ls)
+
+plt.savefig(out_dir / 'scatter_matrix.png')
 
 ##########################################################
 ##               Plot all in subplots                   ##
@@ -1255,7 +1353,6 @@ plt.suptitle(r'Aug/Sep DO$_{Bot}$ vs. physical characteristics',fontsize=ts+1)
 
 plt.subplots_adjust(wspace=0.05,top=0.82, bottom=0.16,right=0.99,left=0.06)
 plt.savefig(out_dir / 'physics_summary.png')
-
 
 # --------------------------------------------------------
 
