@@ -57,6 +57,6 @@ def convert_p_to_multisheet_excel(p_file_path, excel_file_path):
 
 # Example usage
 for year in ['2014','2015','2016','2017','2018']:
-    p_file_path = 'multi_bottle_'+year+'.p'
-    csv_file_path = 'multi_bottle_'+year+'.xlsx'
+    p_file_path = 'multi_bottle_w_ecology_nc_'+year+'.p'
+    csv_file_path = 'multi_bottle_NEW'+year+'.xlsx'
     convert_p_to_multisheet_excel(p_file_path, csv_file_path)
