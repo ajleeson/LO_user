@@ -205,18 +205,19 @@ for year in years:
     hyp_area_timeseries = np.nansum(hyp_area_timeseries,axis=1)
     hyp_area[year] = hyp_area_timeseries
 
+# get grid cell area
+fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
+ds_2013 = xr.open_dataset(fp)
+DX = (ds_2013.pm.values)**-1
+DY = (ds_2013.pn.values)**-1
+DA = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
+
 # initialize dictionary for hypoxic volume [km3]
 hyp_vol = {}
 for year in years:
     # get hypoxic thickness
-    hyp_thick = hyp_thick_dict[year] # [m]
-    # get timeseries of hypoxic volume (by summing over spatial dimensions)
-    hyp_thick_timeseries = np.nansum(hyp_thick,axis=1)
-    hyp_thick_timeseries = np.nansum(hyp_thick_timeseries,axis=1)
-    # calculate hypoxic volume
-    # area of grid cell = 0.5 km by 0.5 km times thickness of hypoxic layer (converted from m to km)
-    hyp_vol_timeseries = 0.5 * 0.5 * (hyp_thick_timeseries/1000) 
-    print('FIX HYPOXIC VOLUME AREA MEASUREMENTS!!!!!!!!!!!!!')
+    hyp_thick = hyp_thick_dict[year]/1000 # [km]
+    hyp_vol_timeseries = np.sum(hyp_thick * DA, axis=(1, 2)) # km^3
     hyp_vol[year] = hyp_vol_timeseries
 
 ##############################################################
@@ -233,8 +234,8 @@ letters= ['(a)','(b)','(c)',
 if region == 'Puget Sound':
     # box extracion limits: [-123.29, -122.1, 46.95, 48.93]
     xmin = -123.29
-    xmax = -122.1 + 0.1 # to make room for legend key
-    ymin = 46.95 - 0.1 # to make room for legend key
+    xmax = -122.1
+    ymin = 46.95
     ymax = 48.93
 
 # Initialize figure
@@ -368,17 +369,17 @@ colors = ['red','darkorange','gold','green','blue','purple','deeppink']
 
 # initialize figure
 plt.close('all)')
-pfun.start_plot(figsize=(16,8))
-f, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 3]})
+pfun.start_plot(figsize=(12,4))
+f, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 4]})
 
 # format figure
 ax0.set_xlim([xmin,xmax])
 ax0.set_ylim([ymin,ymax])
 ax0.set_yticklabels([])
 ax0.set_xticklabels([])
-# ax0.axis('off')
+ax0.axis('off')
 pfun.dar(ax0)
-pfun.add_coast(ax0)
+pfun.add_coast(ax0, color='gray')
 # Create a Rectangle patch to omit Straits
 if remove_straits:
     # get lat and lon
@@ -406,7 +407,8 @@ if remove_straits:
                             edgecolor='none', facecolor='gray', alpha=0.5)
     # Add the patch to the Axes
     ax0.add_patch(rect)
-    ax0.text(-123.2,48.25,'Straits\nomitted')
+    ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontweight='bold')
+    ax0.set_title('(a) Region', fontsize = 14)
 
 # create time vector
 startdate = '2020.01.01'
@@ -427,8 +429,9 @@ ax1.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
     ax1.spines[border].set_visible(False)
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-plt.legend(loc='best')
-plt.title('Puget Sound hypoxic volume (DO < 2 mg/L) ' + r'[km$^3$]')
+ax1.set_ylabel(r'Hypoxic volume [km$^3$]')
+plt.legend(loc='best', fontsize=12)
+plt.title('(b) Puget Sound hypoxic volume (DO < 2 mg/L)', fontsize = 14)
 ax1.set_xlim([dates_local[0],dates_local[-1]])
 
 plt.savefig(out_dir / ('volume_with_DO_lt2_'+straits+'.png'))
