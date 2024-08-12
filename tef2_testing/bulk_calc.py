@@ -36,7 +36,7 @@ Lfun.make_dir(out_dir, clean=True)
 
 sect_list = [item.name for item in in_dir.glob('*.nc')]
 if Ldir['testing']:
-    sect_list = ['crescent.nc']
+    sect_list = ['budd.nc']
 
 # ---------
 
