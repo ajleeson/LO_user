@@ -59,8 +59,8 @@ ax.set_ylim([46.5,50])
 ax.set_xlim([-125,-122])
 ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-ax.tick_params(axis='x', labelcolor='#EEEEEE', labelsize=14,color='#EEEEEE')
-ax.tick_params(axis='y', labelcolor='#EEEEEE', labelsize=14,color='#EEEEEE')
+ax.tick_params(axis='x')#, labelcolor='#EEEEEE', labelsize=14,color='#EEEEEE')
+ax.tick_params(axis='y')#, labelcolor='#EEEEEE', labelsize=14,color='#EEEEEE')
 pfun.dar(ax)
 
 # draw box around Puget Sound
