@@ -17,11 +17,13 @@ tt0 = time()
 
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
-Ldir['roms_out'] = Ldir['roms_out2']
+# Ldir['roms_out'] = Ldir['roms_out2']
+Ldir['roms_out'] = Ldir['roms_out5']
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
 ds0 = '2014.01.01'
-ds1 = '2014.01.31'
+ds0 = '2014.01.02'
+# ds1 = '2014.01.31'
 Ldir['ds0'] = ds0
 in_dir = Ldir['roms_out'] / Ldir['gtagex']
 G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
@@ -43,7 +45,8 @@ dt1 = datetime.strptime(ds1, Lfun.ds_fmt)
 dt00 = dt0
 
 #% load salish sea j,i
-seg_name = 'seg_info_dict_cas7_c2_noriv.p'
+# seg_name = 'seg_info_dict_cas7_c2_noriv.p'
+seg_name = 'seg_info_dict_cas7_c21_traps00.p'
 seg_df = pd.read_pickle(seg_name)
 ji_list = seg_df['sog6_m']['ji_list']
 jj = [x[0] for x in ji_list]
