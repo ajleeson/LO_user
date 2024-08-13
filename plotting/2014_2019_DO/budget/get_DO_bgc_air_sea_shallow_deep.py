@@ -18,12 +18,12 @@ tt0 = time()
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
 # Ldir['roms_out'] = Ldir['roms_out2']
-Ldir['roms_out'] = Ldir['roms_out5']
+# Ldir['roms_out'] = Ldir['roms_out1']
+Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
 ds0 = '2014.01.01'
-ds0 = '2014.01.02'
-# ds1 = '2014.01.31'
+ds1 = '2014.01.31'
 Ldir['ds0'] = ds0
 in_dir = Ldir['roms_out'] / Ldir['gtagex']
 G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
@@ -46,9 +46,9 @@ dt00 = dt0
 
 #% load salish sea j,i
 # seg_name = 'seg_info_dict_cas7_c2_noriv.p'
-seg_name = 'seg_info_dict_cas7_c21_traps00.p'
+seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
 seg_df = pd.read_pickle(seg_name)
-ji_list = seg_df['sog6_m']['ji_list']
+ji_list = seg_df['lynchcove_p']['ji_list']
 jj = [x[0] for x in ji_list]
 ii = [x[1] for x in ji_list]
 
@@ -180,8 +180,10 @@ while dt00 <= dt1:  # loop each day and every history file
         vol = np.diff(z_w,axis=0) * area # grid cell volume
         
         tmp_zrho = zrho[:,jj,ii] # in domain
-        ix_shallow = tmp_zrho>=-20 # shallower than 20 m
-        ix_deep = tmp_zrho<-20  # deeper than 20m
+        # ix_shallow = tmp_zrho>=-20 # shallower than 20 m
+        # ix_deep = tmp_zrho<-20  # deeper than 20m
+        ix_shallow = tmp_zrho>=-6 # shallower than 20 m
+        ix_deep = tmp_zrho<-6  # deeper than 20m
         
         #Oxy_vol = Oxy * vol * stat # only account for Salish Sea
         #Oxy_vol_sum.append(np.nansum(Oxy_vol))
@@ -351,7 +353,7 @@ while dt00 <= dt1:  # loop each day and every history file
         
 # save netcdf
 from netCDF4 import Dataset
-nc = Dataset('O2_bgc_shallow_deep_'+ds0+'.nc','w')
+nc = Dataset('O2_bgc_shallow_deep_'+ds0+'_'+ds1+'.nc','w')
 time = nc.createDimension('time', len(t))
 eta_rho = nc.createDimension('eta_rho', NX)
 xi_rho = nc.createDimension('xi_rho', NY)
