@@ -61,6 +61,7 @@ except KeyError:
     
 if str(HOME) == '/Users/aleeson':
     lo_env = 'al_mac'
+    roms_out1 = parent / 'Documents' / 'Research' / 'LO_roms'
 
 elif str(HOME) == '/home/aleeson':
     lo_env = 'al_pc'
