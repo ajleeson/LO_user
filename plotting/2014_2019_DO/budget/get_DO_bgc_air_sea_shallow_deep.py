@@ -22,8 +22,8 @@ Ldir = Lfun.Lstart()
 Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
-ds0 = '2014.06.01'
-ds1 = '2014.06.30'
+ds0 = '2014.07.01'
+ds1 = '2014.07.31'
 Ldir['ds0'] = ds0
 in_dir = Ldir['roms_out'] / Ldir['gtagex']
 G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
