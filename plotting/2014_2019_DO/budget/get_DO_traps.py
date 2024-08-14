@@ -31,8 +31,8 @@ Ldir = Lfun.Lstart()
 gtagex = 'cas7_t0_x4b'
 jobname = 'twentyoneinlets'
 startdate = '2014.01.01'
-enddate = '2014.01.02'
-# enddate = '2014.12.31'
+# enddate = '2014.01.02'
+enddate = '2014.12.31'
 enddate_hrly = '2015.01.01 00:00:00'
 year = '2014' # for making a date label
 
@@ -153,7 +153,7 @@ with open(river_info, 'r') as f:
 # ##########################################################
 
 frc = 'traps00'
-frc_fn = '/dat1/parker/LO_output/forcing' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc'
+frc_fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc'
 
 # list of variables to extract
 vn_list = ['transport', 'Oxyg']
@@ -174,7 +174,7 @@ while mdt <= dt1:
 # to be arrays of characters)
 mds = mds_list[0]
 # fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
-fn = '/dat1/parker/LO_output/forcing' + gridname + '/f' + mds + '/' +  frc + '/rivers.nc'
+fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + mds + '/' +  frc + '/rivers.nc'
 ds = xr.open_dataset(fn)
 rn = ds['river_name'].values
 NR = rn.shape[0]
