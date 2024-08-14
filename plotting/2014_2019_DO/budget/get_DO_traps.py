@@ -125,7 +125,7 @@ print('\n')
 ##########################################################
 
 # prep info for rivers
-seg_name = Ldir['parent'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
+seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
 seg_dict = pd.read_pickle(seg_name)
 # get list of all rivers and all wwtps in LiveOcean
 LOrivs = []
