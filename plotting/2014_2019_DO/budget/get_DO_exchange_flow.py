@@ -88,7 +88,7 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
     oxygen = ds['oxygen'] # convert to mmol/m3 (time,z,p)
     velocity = ds['vel'] # m/s (time,z,p)
     area = ds['DZ'] * ds['dd'] # m^2 (time,z,p)
-    exchange = oxygen * velocity * area * (1/1000) # mmol/s * 1/1000 = mol/s (time,z,p)
+    exchange = oxygen * velocity * area * (1/1000) * (1/1000) # mmol/s * 1/1000 * 1/1000 = kmol/s (time,z,p)
 
 
     # manage one or two layers
@@ -131,14 +131,10 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
         exchange_surf_total = exchange_surf.sum(axis=1).sum(axis=1)
         exchange_deep_total = exchange_deep.sum(axis=1).sum(axis=1)
         exchange_total = exchange.sum(axis=1).sum(axis=1)
-        # 10-day hanning window filter (10 days = 240 hours)
-        exchange_surf_filtered = zfun.lowpass(exchange_surf_total.values, f='hanning', n=240)
-        exchange_deep_filtered = zfun.lowpass(exchange_deep_total.values, f='hanning', n=240)
-        exchange_total_filtered = zfun.lowpass(exchange_total.values, f='hanning', n=240)
 
         # create dataframe of values
-        df['surface [mol/s]'] = exchange_surf_filtered
-        df['deep [mol/s]'] = exchange_deep_filtered
-        df['total [mol/s]'] = exchange_total_filtered
+        df['surface [kmol/s]'] = exchange_surf_total
+        df['deep [kmol/s]'] = exchange_deep_total
+        df['total [kmol/s]'] = exchange_total
         # save to pickle file
         df.to_pickle(out_dir / (station + '.p'))

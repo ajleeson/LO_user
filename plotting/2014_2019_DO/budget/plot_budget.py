@@ -72,12 +72,16 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
                 inlet, z_interface = line.strip().split(',')
         z_interface = float(z_interface)
 
-        # one or two layers?
+##########################################################
+##                      One layer                       ##
+##########################################################
         if math.isnan(z_interface):
             # one layer
             print('One layer....make code to deal with this case')
         
-        # two layers -----------------------------------------------
+##########################################################
+##                    Two layers                        ##
+##########################################################
         else:
 
             # initialize figure
@@ -86,10 +90,10 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             # format figure
             plt.suptitle(station + ': DO Budget (10-day hanning window)',size=14)
             for axis in [ax[0],ax[1]]:
-                axis.plot([dates_local[0],dates_local[-1]],[0,0],color='k')
+                # axis.plot([dates_local[0],dates_local[-1]],[0,0],color='k')
                 axis.set_xlim([dates_local[0],dates_local[-1]])
-                axis.set_ylim([-120,120])
-                axis.set_ylabel(r'DO transport [$mol \ O_2 \ s^{-1}$]')
+                axis.set_ylim([-4,4])
+                axis.set_ylabel(r'DO transport [kmol O$_2$ s$^{-1}$]')
                 axis.set_facecolor('#EEEEEE')
                 axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
                 axis.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
@@ -102,15 +106,126 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             ax[1].set_title('(b) Bottom [deeper than {} m]'.format(-1*z_interface),
                             loc='left')
 
-            # get exchange flow terms
+# --------------------------- get exchange flow terms ----------------------------------------
             fn = Ldir['LOo'] / 'pugetsound_DO' / ('budget_' + startdate + '_' + enddate) / 'DO_exchange_flow' / (station + '.p')
             df_exchange = pd.read_pickle(fn)
-            exchange_surf = df_exchange['surface [mol/s]']
-            exchange_deep = df_exchange['deep [mol/s]']
-            exchange_color = 'mediumorchid'
+            exchange_surf_unfiltered = df_exchange['surface [kmol/s]'].values
+            exchange_deep_unfiltered = df_exchange['deep [kmol/s]'].values
+            # 10-day hanning window filter (10 days = 240 hours)
+            exchange_surf = zfun.lowpass(exchange_surf_unfiltered, f='hanning', n=240)
+            exchange_deep = zfun.lowpass(exchange_deep_unfiltered, f='hanning', n=240)
+            exchange_color = 'turquoise'
 
+# ---------------------------------- get BGC terms --------------------------------------------
+            bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / ('budget_' + startdate + '_' + enddate) / 'DO_bgc' / station
+            # get months
+            months = ['2014.01.01_2014.01.31',
+                      '2014.02.01_2014.02.28',
+                      '2014.03.01_2014.03.31',
+                      '2014.04.01_2014.04.30',
+                      '2014.05.01_2014.05.31',
+                      '2014.06.01_2014.06.30',
+                      '2014.07.01_2014.07.31',
+                      '2014.08.01_2014.08.31',
+                      '2014.09.01_2014.09.30',
+                      '2014.10.01_2014.10.31',
+                      '2014.11.01_2014.11.30',
+                      '2014.12.01_2014.12.31',]
+            
+            # initialize arrays to save values
+            photo_surf_unfiltered = []
+            photo_deep_unfiltered = []
+            photo_color = 'forestgreen'
+            cons_surf_unfiltered = [] # nitrification, respiration
+            cons_deep_unfiltered = [] # nitrification, respiration, sediment oxygen demand
+            cons_color = 'black'
+            airsea_surf_unfiltered = []
+            airsea_color = 'deeppink'
+            o2vol_surf_unfiltered = []
+            o2vol_deep_unfiltered = []
+            ddtDOV_color = 'mediumpurple'
+
+            # combine all months
+            for month in months:
+                fn = 'O2_bgc_shallow_deep_' + month + '.nc'
+                ds = xr.open_dataset(bgc_dir/fn, decode_times=False)
+                # conversion factor to go from mmol O2/hr to kmol O2/s
+                conv = (1/1000) * (1/1000) * (1/60) # 1 mol/1000 mmol and 1 kmol/1000 mol and 1 hr/60 sec
+                # get photosynthesis
+                photo_surf_unfiltered = np.concatenate((photo_surf_unfiltered, ds['Oxy_pro_sum_shallow'].values * conv)) # kmol/s
+                photo_deep_unfiltered = np.concatenate((photo_deep_unfiltered, ds['Oxy_pro_sum_deep'].values * conv)) # kmol/s
+                # get consumption
+                surf_cons_terms = ds['Oxy_nitri_sum_shallow'].values + ds['Oxy_remi_sum_shallow'].values
+                deep_cons_terms = ds['Oxy_nitri_sum_deep'].values + ds['Oxy_remi_sum_deep'].values + ds['Oxy_sed_sum2'].values
+                cons_surf_unfiltered = np.concatenate((cons_surf_unfiltered, surf_cons_terms * conv * -1)) # kmol/s; multiply by -1 b/c loss term
+                cons_deep_unfiltered = np.concatenate((cons_deep_unfiltered, deep_cons_terms * conv * -1)) # kmol/s; multiply by -1 b/c loss term
+                # get air-sea gas exchange
+                airsea_surf_unfiltered = np.concatenate((airsea_surf_unfiltered, ds['Oxy_air_flux_sum'].values * conv)) # kmol/s
+                # get (DO*V)
+                o2vol_surf_unfiltered = np.concatenate((o2vol_surf_unfiltered, ds['Oxy_vol_sum_shallow'].values)) # mmol
+                o2vol_deep_unfiltered = np.concatenate((o2vol_deep_unfiltered, ds['Oxy_vol_sum_deep'].values)) # mmol
+
+            # take time derivative of (DO*V) to get d/dt (DO*V)
+            ddtDOV_surf_unfiltered = np.diff(o2vol_surf_unfiltered) * conv # diff gets us d(DO*V) dt, where t=1 hr (mmol/hr). Then * conv to get kmol/s
+            ddtDOV_deep_unfiltered = np.diff(o2vol_deep_unfiltered) * conv # diff gets us d(DO*V) dt, where t=1 hr (mmol/hr). Then * conv to get kmol/s
+
+            # apply 10-day hanning window
+            photo_surf = zfun.lowpass(photo_surf_unfiltered, f='hanning', n=240)
+            photo_deep = zfun.lowpass(photo_deep_unfiltered, f='hanning', n=240)
+            cons_surf = zfun.lowpass(cons_surf_unfiltered, f='hanning', n=240)
+            cons_deep = zfun.lowpass(cons_deep_unfiltered, f='hanning', n=240)
+            airsea_surf = zfun.lowpass(airsea_surf_unfiltered, f='hanning', n=240)
+            ddtDOV_surf = zfun.lowpass(ddtDOV_surf_unfiltered, f='hanning', n=240)
+            ddtDOV_deep = zfun.lowpass(ddtDOV_deep_unfiltered, f='hanning', n=240)
+
+# ------------------------------- get rivers and WWTPs ----------------------------------------
+            # fn = Ldir['LOo'] / 'pugetsound_DO' / ('budget_' + startdate + '_' + enddate) / 'DO_traps' / (station + '.p')
+            # df_traps = pd.read_pickle(fn)
+            # rivers_surf_unfiltered = df_traps['surface [kmol/s]'].values
+            # wwtps_deep_unfiltered = df_traps['deep [kmol/s]'].values
+            # # 10-day hanning window filter (10 days = 240 hours)
+            # traps_surf = zfun.lowpass(rivers_surf_unfiltered, f='hanning', n=240)
+            # traps_deep = zfun.lowpass(wwtps_deep_unfiltered, f='hanning', n=240)
+            # traps_color = 'blue'
+
+
+# ------------------------------- get vertical exchange ----------------------------------------
+
+            # pick color
+            vertX_color = 'sandybrown'
+
+            # calculate raw error term, and acribe that the the vertical exchange
+            vertX_surf_unfiltered = ddtDOV_surf_unfiltered - (exchange_surf_unfiltered[1:-1]
+                                                              + photo_surf_unfiltered[0:-1]
+                                                              + cons_surf_unfiltered[0:-1]
+                                                              + airsea_surf_unfiltered[0:-1]) # + rivers
+            vertX_deep_unfiltered = ddtDOV_deep_unfiltered - (exchange_deep_unfiltered[1:-1]
+                                                              + photo_deep_unfiltered[0:-1]
+                                                              + cons_deep_unfiltered[0:-1]) # + WWTPs
+            
+            # apply 10-day hanning window
+            vertX_surf = zfun.lowpass(vertX_surf_unfiltered, f='hanning', n=240)
+            vertX_deep = zfun.lowpass(vertX_deep_unfiltered, f='hanning', n=240)
+
+# ---------------------------------- plot and save --------------------------------------------
             # plot surface
-            ax[0].plot(dates_local,exchange_surf,color=exchange_color,label='Exchange Flow')
-            ax[0].legend(loc='upper right')
+            ax[0].plot(dates_local,exchange_surf,color=exchange_color,linewidth=3,alpha=0.6,label='Exchange Flow')
+            ax[0].plot(dates_local[1::],photo_surf,color=photo_color,linewidth=2,label='Photosynthesis')
+            ax[0].plot(dates_local[1::],cons_surf,color=cons_color,linewidth=2,linestyle=':',label='Bio Consumption')
+            ax[0].plot(dates_local[1::],airsea_surf,color=airsea_color,linewidth=1,label='Air-Sea Transfer')
+            ax[0].plot(dates_local[1:-1],ddtDOV_surf,color=ddtDOV_color,linewidth=2,alpha=0.6,
+                       label=r'$\frac{\mathrm{d}}{\mathrm{dt}}(\mathrm{DO}\cdot V)$')
+            
+            ax[0].plot(dates_local[1:-1],vertX_surf,color=vertX_color,linewidth=2,label='Vertical Exchange')
+            ax[0].legend(loc='upper right',ncol=2)
+            
             # plot deep
-            ax[1].plot(dates_local,exchange_deep,color=exchange_color)
+            ax[1].plot(dates_local,exchange_deep,color=exchange_color,linewidth=3,alpha=0.6)
+            ax[1].plot(dates_local[1::],photo_deep,color=photo_color,linewidth=2,)
+            ax[1].plot(dates_local[1::],cons_deep,color=cons_color,linewidth=2,linestyle=':')
+            ax[1].plot(dates_local[1:-1],ddtDOV_deep,color=ddtDOV_color,linewidth=2,alpha=0.6)
+
+            ax[1].plot(dates_local[1:-1],vertX_deep,color=vertX_color,linewidth=2)
+
+            print('    (?) I multiplied consumption by -1, because all values were positive')
+            print('    (?) I think O2 vol had units of mmol, so took time derivative then converted to kmol/s')
