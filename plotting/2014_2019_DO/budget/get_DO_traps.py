@@ -125,7 +125,7 @@ print('\n')
 ##########################################################
 
 # prep info for rivers
-seg_name = Ldir['roms_out5'] / '..' / 'LO_output' / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
+seg_name = Ldir['parent'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
 seg_dict = pd.read_pickle(seg_name)
 # get list of all rivers and all wwtps in LiveOcean
 LOrivs = []
@@ -153,7 +153,7 @@ with open(river_info, 'r') as f:
 # ##########################################################
 
 frc = 'traps00'
-frc_fn = 'dat1' / 'parker' / 'LO_output' / 'forcing' / gridname / ('f' + startdate) / frc / 'rivers.nc'
+frc_fn = '/dat1/parker/LO_output/forcing' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc'
 
 # list of variables to extract
 vn_list = ['transport', 'Oxyg']
