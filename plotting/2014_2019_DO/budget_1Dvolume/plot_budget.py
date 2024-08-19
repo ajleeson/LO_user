@@ -156,15 +156,13 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
 #         ddtDOV_surf = zfun.lowpass(ddtDOV_surf_unfiltered, f='hanning', n=240)
 #         ddtDOV_deep = zfun.lowpass(ddtDOV_deep_unfiltered, f='hanning', n=240)
 
-# # ------------------------------- get rivers and WWTPs ----------------------------------------
-#         fn = Ldir['LOo'] / 'pugetsound_DO' / ('budget_' + startdate + '_' + enddate) / 'DO_traps' / (station + '.p')
-#         df_traps = pd.read_pickle(fn)
-#         rivers_surf_unfiltered = df_traps['surface [kmol/s]'].values
-#         wwtps_deep_unfiltered = df_traps['deep [kmol/s]'].values
-#         # 10-day hanning window filter (10 days = 240 hours)
-#         traps_surf = zfun.lowpass(rivers_surf_unfiltered, f='hanning', n=240)
-#         traps_deep = zfun.lowpass(wwtps_deep_unfiltered, f='hanning', n=240)
-#         traps_color = 'turquoise'
+# ------------------------------- get rivers and WWTPs ----------------------------------------
+        fn = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_' + startdate + '_' + enddate) / 'traps' / (station + '.p')
+        df_traps = pd.read_pickle(fn)
+        traps_unfiltered = df_traps['total [m3/s]'].values
+        # 10-day hanning window filter (10 days = 240 hours)
+        traps = zfun.lowpass(traps_unfiltered, f='hanning', n=240)
+        traps_color = 'turquoise'
 
 # # ------------------------------- get vertical exchange ----------------------------------------
 
@@ -194,11 +192,14 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
         # ax[0].plot(dates_local[1::],airsea_surf,color=airsea_color,linewidth=1,label='Air-Sea Transfer')
         # ax[0].plot(dates_local[1:-1],ddtDOV_surf,color=ddtDOV_color,linewidth=2,alpha=0.6,
         #             label=r'$\frac{\mathrm{d}}{\mathrm{dt}}(\mathrm{DO}\cdot V)$')
-        # ax[0].plot(dates_local[1::],traps_surf,color=traps_color,linewidth=3,alpha=0.6,label='TRAPS')
+        ax[0].plot(dates_local[1::],traps,color=traps_color,linewidth=3,alpha=0.6,label='TRAPS')
         # ax[0].plot(dates_local[1:-1],vertX_surf,color=vertX_color,linewidth=2,label='Vertical Exchange')
         ax[0].legend(loc='upper right')
         
         # plot deep
+        print(np.nanmax(traps))
+        error = exchange + traps
+        ax[1].plot(dates_local,error)
         # ax[1].plot(dates_local,exchange_deep,color=exchange_color,linewidth=1,linestyle='--')
         # ax[1].plot(dates_local[1::],photo_deep,color=photo_color,linewidth=2,)
         # ax[1].plot(dates_local[1::],cons_deep,color=cons_color,linewidth=2,linestyle=':')

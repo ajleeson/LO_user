@@ -53,7 +53,7 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 sta_dict = job_lists.get_sta_dict(jobname)
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_'+startdate+'_'+enddate) / 'DO_traps'
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_'+startdate+'_'+enddate) / 'traps'
 Lfun.make_dir(out_dir)
 
 # create time_vecotr
@@ -235,7 +235,7 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
         # create dataframe of values
         df['surface [m3/s]'] = traps_surf_hrly
         df['deep [m3/s]'] = traps_deep_hrly
-        df['total [m3/s]'] = traps_deep_hrly
+        df['total [m3/s]'] = traps_total_hrly
         # save to pickle file
         df.to_pickle(out_dir / (station + '.p'))
 
