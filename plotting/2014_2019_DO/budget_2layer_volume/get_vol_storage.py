@@ -63,14 +63,11 @@ while dt00 <= dt1:  # loop each day and every history file
     fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
     #%%
     for fn in fn_list[0:-1]: 
+        print('     '+fn)
         ds = xr.open_dataset(fn)
-        swrad = ds.swrad.values.squeeze()
-        chl = ds.chlorophyll.values.squeeze()
         zeta = ds.zeta.values.squeeze()
         h = ds.h.values
-        zw = zrfun.get_z(h, zeta, S, only_w=True)
         zrho = zrfun.get_z(h, zeta, S, only_rho=True)
-        dz = np.diff(zw, axis=0)
         
         z_w = zrfun.get_z(h, zeta, S, only_rho=False, only_w=True)
         vol = np.diff(z_w,axis=0) * area # grid cell volume
@@ -94,9 +91,6 @@ while dt00 <= dt1:  # loop each day and every history file
 from netCDF4 import Dataset
 nc = Dataset('O2_bgc_shallow_deep_'+ds0+'_'+ds1+'.nc','w')
 time = nc.createDimension('time', len(t))
-eta_rho = nc.createDimension('eta_rho', NX)
-xi_rho = nc.createDimension('xi_rho', NY)
-s_rho = nc.createDimension('s_rho', 30)
 
 times = nc.createVariable('time','f8',('time',))
 times.units = 'seconds*1e9 since 1970-01-01 00:00:00'
