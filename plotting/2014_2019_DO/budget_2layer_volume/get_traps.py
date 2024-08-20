@@ -214,7 +214,7 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
 
         # add rivers to surface layer
         for i,river in enumerate(riv_list):
-            print(river)
+            print('      '+river)
             # calculate river load
             flow_m3s = x.loc[dict(riv=river)]['transport'].values
             # start list of daily river load
@@ -226,7 +226,7 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
 
         # add wwtps to bottom layer
         for i,wwtp in enumerate(wwtp_list):
-            print(wwtp)
+            print('      '+wwtp)
             # calculate wwtp load
             flow_m3s = x.loc[dict(riv=wwtp)]['transport'].values
             # start list of daily river load
