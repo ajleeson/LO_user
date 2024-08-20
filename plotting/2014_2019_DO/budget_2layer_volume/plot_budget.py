@@ -18,6 +18,8 @@ import matplotlib.pylab as plt
 import gsw
 import pickle
 import get_two_layer
+from importlib import reload
+reload(get_two_layer)
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -50,7 +52,7 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 sta_dict = job_lists.get_sta_dict(jobname)
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('budget_'+startdate+'_'+enddate) / 'figures'
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('2layer_VOLUME_budget_'+startdate+'_'+enddate) / 'figures'
 Lfun.make_dir(out_dir)
 
 # create time_vecotr
@@ -65,15 +67,20 @@ print('\n')
 ##              Plot DO budget of every inlet           ##
 ##########################################################
 
-for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
+stations = ['lynchcove','penn','budd','case','carr']
+# create dictionaries with interface depths
+interface_dict = dict()
+
+for i,station in enumerate(stations): # enumerate(sta_dict):
         # print status
         print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
 
         # get interface depth from csv file
         with open('interface_depths.csv', 'r') as f:
             for line in f:
-                inlet, z_interface = line.strip().split(',')
-        z_interface = float(z_interface)
+                inlet, interface_depth = line.strip().split(',')
+                interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
+        z_interface = float(interface_dict[station])
 
 ##########################################################
 ##                      One layer                       ##
@@ -91,11 +98,11 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             plt.close('all')
             fig, ax = plt.subplots(3,1,figsize = (12,7),sharex=True)
             # format figure
-            plt.suptitle(station + ': DO Budget (Godin filter)',size=14)
+            plt.suptitle(station + ': Volume Budget (Godin filter)',size=14)
             for axis in [ax[0],ax[1],ax[2]]:
                 axis.plot([dates_local[0],dates_local[-1]],[0,0],linewidth=0.5,color='k')
                 axis.set_xlim([dates_local[0],dates_local[-1]])
-                axis.set_ylim([-1200,1200])
+                # axis.set_ylim([-1200,1200])
                 axis.set_ylabel(r'Q [m$^3$ s$^{-1}$]')
                 axis.set_facecolor('#EEEEEE')
                 axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
@@ -108,28 +115,32 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
                             loc='left')
             ax[1].set_title('(b) Bottom [deeper than {} m]'.format(-1*z_interface),
                             loc='left')
-            ax[2].set_title(r'(c) Error = $\frac{\mathrm{dV}}{\mathrm{dt}}$ - (Exchange + TRAPS)',
+            ax[2].set_title(r'(c) Error',
                             loc='left')
 
 # # --------------------------- get exchange flow terms ----------------------------------------
-#             fn = Ldir['LOo'] / 'pugetsound_DO' / ('budget_' + startdate + '_' + enddate) / 'DO_exchange_flow' / (station + '.p')
-#             df_exchange = pd.read_pickle(fn)
-#             exchange_surf_unfiltered = df_exchange['surface [kmol/s]'].values 
-#             exchange_deep_unfiltered = df_exchange['deep [kmol/s]'].values
-#             # 10-day hanning window filter (10 days = 240 hours)
-#             exchange_surf = zfun.lowpass(exchange_surf_unfiltered, f='hanning', n=240) 
-#             exchange_deep = zfun.lowpass(exchange_deep_unfiltered, f='hanning', n=240)
-            exchange_color = 'blue'
+            fn = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_' + startdate + '_' + enddate) / '2layerEU_exchange_flow' / (station + '.p')
+            df_exchange = pd.read_pickle(fn)
+            exchange_surf_unfiltered = df_exchange['surface [m3/s]'].values 
+            exchange_deep_unfiltered = df_exchange['deep [m3/s]'].values
+            # 10-day hanning window filter (10 days = 240 hours)
+            # exchange_surf = zfun.lowpass(exchange_surf_unfiltered, f='hanning', n=240) 
+            # exchange_deep = zfun.lowpass(exchange_deep_unfiltered, f='hanning', n=240)
+            # Godin filter
+            EU_surf = zfun.lowpass(exchange_surf_unfiltered, f='godin')[36:-34:24]
+            EU_deep = zfun.lowpass(exchange_deep_unfiltered, f='godin')[36:-34:24]
+            EU_color = 'royalblue'
 
 # --------------------------- get TEF exchange flow terms ----------------------------------------
-            # TODO: need to multiply by DO
-            in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / 'bulk_2014.01.01_2014.12.31' / 'lynchcove.nc'
+            in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / 'bulk_2014.01.01_2014.12.31' / (station+ '.nc')
             bulk = xr.open_dataset(in_dir)
             tef_df, vn_list, vec_list = get_two_layer.get_two_layer(bulk)
             Q_p = tef_df['q_p'] # Qout
             Q_m = tef_df['q_m'] # Qin
             TEF_surf = Q_m.values
             TEF_deep = Q_p.values
+            print(TEF_surf[0:5])
+            TEF_color = 'blue'
 
 # # ---------------------------------- get BGC terms --------------------------------------------
 #             bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / ('budget_' + startdate + '_' + enddate) / 'DO_bgc' / station
@@ -196,7 +207,6 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
 # ------------------------------- get rivers and WWTPs ----------------------------------------
             fn = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_' + startdate + '_' + enddate) / '2layer_traps' / (station + '.p')
             df_traps = pd.read_pickle(fn)
-            print(df_traps)
             rivers_surf_unfiltered = df_traps['surface [m3/s]'].values
             wwtps_deep_unfiltered = df_traps['deep [m3/s]'].values
             # 10-day hanning window filter (10 days = 240 hours)
@@ -229,8 +239,8 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
 
 # ---------------------------------- plot and save --------------------------------------------
             # plot surface
-            # ax[0].plot(dates_local,exchange_surf,color=exchange_color,linewidth=1,linestyle='--',label='EU Exchange Flow')
-            ax[0].plot(dates_local_daily[1:-1],TEF_surf,color=exchange_color,linewidth=1,linestyle='--',label='EU Exchange Flow')
+            ax[0].plot(dates_local_daily[1:-1],EU_surf,color=EU_color,linewidth=2,alpha=0.5,label='EU Exchange Flow')
+            ax[0].plot(dates_local_daily[1:-1],TEF_surf,color=TEF_color,linewidth=1,linestyle='--',label='TEF Exchange Flow')
             # ax[0].plot(dates_local[0:-1],photo_surf,color=photo_color,linewidth=2,label='Photosynthesis')
             # ax[0].plot(dates_local[0:-1],cons_surf,color=cons_color,linewidth=2,linestyle=':',label='Bio Consumption')
             # ax[0].plot(dates_local[0:-1],airsea_surf,color=airsea_color,linewidth=1,label='Air-Sea Transfer')
@@ -241,8 +251,8 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             ax[0].legend(loc='best',ncol=3)
             
             # plot deep
-            # ax[1].plot(dates_local,exchange_deep,color=exchange_color,linewidth=1,linestyle='--')
-            ax[1].plot(dates_local_daily[1:-1],TEF_deep,color=exchange_color,linewidth=1,linestyle='--')
+            ax[1].plot(dates_local_daily[1:-1],EU_deep,color=EU_color,linewidth=2,alpha=0.5)
+            ax[1].plot(dates_local_daily[1:-1],TEF_deep,color=TEF_color,linewidth=1,linestyle='--')
             # ax[1].plot(dates_local[0:-1],photo_deep,color=photo_color,linewidth=2,)
             # ax[1].plot(dates_local[0:-1],cons_deep,color=cons_color,linewidth=2,linestyle=':')
             # ax[1].plot(dates_local[0:-2],ddtDOV_deep,color=ddtDOV_color,linewidth=2,alpha=0.6)
@@ -251,3 +261,5 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
 
             # plot error
             # ax.plot(dates_local[1:-1],vertX_surf+vertX_deep)
+
+            plt.savefig(out_dir / (station+'.png'))
