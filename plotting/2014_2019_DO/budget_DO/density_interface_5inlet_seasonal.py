@@ -90,7 +90,7 @@ zm[np.transpose(mask_rho) != 0] = -1
 fig, ax = plt.subplots(5,4,figsize = (10,8), sharex=True)
 # ax = axes.ravel()
 
-stations = ['lynchcove', 'elliot', 'penn', 'case', 'budd']
+stations = ['lynchcove', 'carr', 'penn', 'case', 'budd']
 seasons = ['Win (Jan-Mar)','Spr (Apr-Jun)','Sum (Jul-Sep)','Aut (Oct-Dec)']
 season_start = ['01-01','04-01','07-01','10-01']
 season_end = ['03-31','06-30','09-30','12-31']
