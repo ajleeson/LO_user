@@ -194,12 +194,12 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             vertX_color = 'sandybrown'
 
             # calculate raw error term, and acribe that the the vertical exchange
-            vertX_surf_unfiltered = ddtDOV_surf_unfiltered - (exchange_surf_unfiltered[1:-1]
+            vertX_surf_unfiltered = ddtDOV_surf_unfiltered - (exchange_surf_unfiltered[0:-2]
                                                               + photo_surf_unfiltered[0:-1]
                                                               + cons_surf_unfiltered[0:-1]
                                                               + airsea_surf_unfiltered[0:-1]
                                                               + traps_surf[0:-1])
-            vertX_deep_unfiltered = ddtDOV_deep_unfiltered - (exchange_deep_unfiltered[1:-1]
+            vertX_deep_unfiltered = ddtDOV_deep_unfiltered - (exchange_deep_unfiltered[0:-2]
                                                               + photo_deep_unfiltered[0:-1]
                                                               + cons_deep_unfiltered[0:-1]
                                                               + traps_deep[0:-1])
@@ -211,27 +211,28 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
 # ---------------------------------- plot and save --------------------------------------------
             # plot surface
             ax[0].plot(dates_local,exchange_surf,color=exchange_color,linewidth=1,linestyle='--',label='Exchange Flow')
-            ax[0].plot(dates_local[1::],photo_surf,color=photo_color,linewidth=2,label='Photosynthesis')
-            ax[0].plot(dates_local[1::],cons_surf,color=cons_color,linewidth=2,linestyle=':',label='Bio Consumption')
-            ax[0].plot(dates_local[1::],airsea_surf,color=airsea_color,linewidth=1,label='Air-Sea Transfer')
-            ax[0].plot(dates_local[1:-1],ddtDOV_surf,color=ddtDOV_color,linewidth=2,alpha=0.6,
+            ax[0].plot(dates_local[0:-1],photo_surf,color=photo_color,linewidth=2,label='Photosynthesis')
+            ax[0].plot(dates_local[0:-1],cons_surf,color=cons_color,linewidth=2,linestyle=':',label='Bio Consumption')
+            ax[0].plot(dates_local[0:-1],airsea_surf,color=airsea_color,linewidth=1,label='Air-Sea Transfer')
+            ax[0].plot(dates_local[0:-2],ddtDOV_surf,color=ddtDOV_color,linewidth=2,alpha=0.6,
                        label=r'$\frac{\mathrm{d}}{\mathrm{dt}}(\mathrm{DO}\cdot V)$')
-            ax[0].plot(dates_local[1::],traps_surf,color=traps_color,linewidth=3,alpha=0.6,label='TRAPS')
-            ax[0].plot(dates_local[1:-1],vertX_surf,color=vertX_color,linewidth=2,label='Vertical Exchange')
+            ax[0].plot(dates_local[0:-1],traps_surf,color=traps_color,linewidth=3,alpha=0.6,label='TRAPS')
+            ax[0].plot(dates_local[0:-2],vertX_surf,color=vertX_color,linewidth=2,label='Vertical Exchange')
             ax[0].legend(loc='upper right',ncol=4)
             
             # plot deep
             ax[1].plot(dates_local,exchange_deep,color=exchange_color,linewidth=1,linestyle='--')
-            ax[1].plot(dates_local[1::],photo_deep,color=photo_color,linewidth=2,)
-            ax[1].plot(dates_local[1::],cons_deep,color=cons_color,linewidth=2,linestyle=':')
-            ax[1].plot(dates_local[1:-1],ddtDOV_deep,color=ddtDOV_color,linewidth=2,alpha=0.6)
-            ax[1].plot(dates_local[1::],traps_deep,color=traps_color,linewidth=3,alpha=0.6)
-            ax[1].plot(dates_local[1:-1],vertX_deep,color=vertX_color,linewidth=2)
+            ax[1].plot(dates_local[0:-1],photo_deep,color=photo_color,linewidth=2,)
+            ax[1].plot(dates_local[0:-1],cons_deep,color=cons_color,linewidth=2,linestyle=':')
+            ax[1].plot(dates_local[0:-2],ddtDOV_deep,color=ddtDOV_color,linewidth=2,alpha=0.6)
+            ax[1].plot(dates_local[0:-1],traps_deep,color=traps_color,linewidth=3,alpha=0.6)
+            ax[1].plot(dates_local[0:-2],vertX_deep,color=vertX_color,linewidth=2)
 
             print('    (?) I multiplied consumption by -1, because all values were positive')
             print('    (?) I think O2 vol had units of mmol, so took time derivative then converted to kmol/s')
             print('    (?) What is the sign of the exchange flow term??')
             print('    (?) I used sed_sum2, because there was a comment that said it was more rigorous..is that correct?')
+            print('    (?) Double check the indices for plotting...I think I fixed it now??')
 
 
             fig, ax = plt.subplots(1,1,figsize = (8,4))
@@ -239,3 +240,4 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             ax.set_title('Error (sum of vertical exchange)')
             ax.grid('True')
             ax.set_ylabel('[kmol O$_2$ s$^{-1}$]')
+            ax.set_ylim([-0.15,0.15])
