@@ -89,6 +89,7 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
     velocity = ds['vel'] # m/s (time,z,p)
     area = ds['DZ'] * ds['dd'] # m^2 (time,z,p)
     exchange = velocity * area # m3/s (time,z,p)
+    print(ds['time'])
 
 
     # manage one or two layers
