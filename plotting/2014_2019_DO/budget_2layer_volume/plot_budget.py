@@ -17,6 +17,7 @@ import cmocean
 import matplotlib.pylab as plt
 import gsw
 import pickle
+import get_two_layer
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -55,6 +56,8 @@ Lfun.make_dir(out_dir)
 # create time_vecotr
 dates_hrly = pd.date_range(start= startdate, end=enddate_hrly, freq= 'h')
 dates_local = [pfun.get_dt_local(x) for x in dates_hrly]
+dates_daily = pd.date_range(start= startdate, end=enddate, freq= 'd')
+dates_local_daily = [pfun.get_dt_local(x) for x in dates_daily]
 
 print('\n')
 
@@ -115,6 +118,16 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             exchange_surf = zfun.lowpass(exchange_surf_unfiltered, f='hanning', n=240) 
             exchange_deep = zfun.lowpass(exchange_deep_unfiltered, f='hanning', n=240)
             exchange_color = 'blue'
+
+# # --------------------------- get TEF exchange flow terms ----------------------------------------
+#             # TODO: need to multiply by DO
+#             in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / 'bulk_2014.01.01_2014.12.31' / 'lynchcove.nc'
+#             bulk = xr.open_dataset(in_dir)
+#             tef_df, vn_list, vec_list = get_two_layer.get_two_layer(bulk)
+#             Q_p = tef_df['q_p'] # Qout
+#             Q_m = tef_df['q_m'] # Qin
+#             TEF_surf = Q_m.values
+#             TEF_deep = Q_p.values
 
 # ---------------------------------- get BGC terms --------------------------------------------
             bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / ('budget_' + startdate + '_' + enddate) / 'DO_bgc' / station
@@ -210,8 +223,9 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
 
 # ---------------------------------- plot and save --------------------------------------------
             # plot surface
-            ax[0].plot(dates_local,exchange_surf,color=exchange_color,linewidth=1,linestyle='--',label='Exchange Flow')
+            ax[0].plot(dates_local,exchange_surf,color=exchange_color,linewidth=1,linestyle='--',label='EU Exchange Flow')
             ax[0].plot(dates_local[0:-1],photo_surf,color=photo_color,linewidth=2,label='Photosynthesis')
+            # ax[0].plot(dates_local_daily[1:-1],TEF_surf,color=exchange_color,linewidth=1,linestyle=':',label='TEF Exchange Flow')
             ax[0].plot(dates_local[0:-1],cons_surf,color=cons_color,linewidth=2,linestyle=':',label='Bio Consumption')
             ax[0].plot(dates_local[0:-1],airsea_surf,color=airsea_color,linewidth=1,label='Air-Sea Transfer')
             ax[0].plot(dates_local[0:-2],ddtDOV_surf,color=ddtDOV_color,linewidth=2,alpha=0.6,
@@ -222,6 +236,7 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             
             # plot deep
             ax[1].plot(dates_local,exchange_deep,color=exchange_color,linewidth=1,linestyle='--')
+            # ax[1].plot(dates_local_daily[1:-1],TEF_deep,color=exchange_color,linewidth=1,linestyle=':')
             ax[1].plot(dates_local[0:-1],photo_deep,color=photo_color,linewidth=2,)
             ax[1].plot(dates_local[0:-1],cons_deep,color=cons_color,linewidth=2,linestyle=':')
             ax[1].plot(dates_local[0:-2],ddtDOV_deep,color=ddtDOV_color,linewidth=2,alpha=0.6)
