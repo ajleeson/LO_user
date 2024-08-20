@@ -63,7 +63,7 @@ while dt00 <= dt1:  # loop each day and every history file
     fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
     #%%
     for fn in fn_list[0:-1]: 
-        print('     '+fn)
+        print(fn)
         ds = xr.open_dataset(fn)
         zeta = ds.zeta.values.squeeze()
         h = ds.h.values
