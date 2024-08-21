@@ -1,7 +1,4 @@
-# Volume terms, separated into 2 layers
-
-# Original file from Jilian: https://github.com/Jilian0717/LO_user/blob/main/tracer_budget/two_layer/get_DO_bgc_air_sea_shallow_deep.py
-# modified by me
+# Get volume of terminal inlets using previous lowpass box extraction I have created for Puget Sound
 
 import xarray as xr
 import numpy as np
@@ -16,92 +13,170 @@ tt0 = time()
 
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
-# Ldir['roms_out'] = Ldir['roms_out2']
-# Ldir['roms_out'] = Ldir['roms_out1']
-Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
 ds0 = '2014.01.01'
-ds1 = '2014.01.03'
+ds1 = '2014.12.31'
+year = '2014'
 Ldir['ds0'] = ds0
 in_dir = Ldir['roms_out'] / Ldir['gtagex']
 G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
 
 fn0 = xr.open_dataset(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
-dx = 1/fn0.pm.values
-dy = 1/fn0.pn.values
 lonr = fn0.lon_rho.values
 latr = fn0.lat_rho.values
-area = dx * dy
-NX, NY = dx.shape
+# NX, NY = dx.shape
+
+# where to put output figures
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_'+ds0+'_'+ds1) / '2layer_volume_storage'
+Lfun.make_dir(out_dir)
 
 dt0 = datetime.strptime(ds0, Lfun.ds_fmt)
 dt1 = datetime.strptime(ds1, Lfun.ds_fmt)
 dt00 = dt0
 
-#% load salish sea j,i
-seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
-seg_df = pd.read_pickle(seg_name)
-ji_list = seg_df['lynchcove_p']['ji_list']
-jj = [x[0] for x in ji_list]
-ii = [x[1] for x in ji_list]
+#########################################################
+# Get lowpass Godin filter box extraction for pugetsoundDO
+#########################################################
 
-inDomain = np.zeros([NX, NY])
-inDomain[jj,ii] = 1 # inside domain, the index=1, outside domian, the index =0, this step is to reduce the size of spatial variable (hopefully)
+# open box extraction
+box_fn = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_'+year+'.01.01_'+year+'.12.31.nc')
+ds_box = xr.open_dataset(box_fn)
 
-Vol_sum_shallow = []
-Vol_sum_deep = []
-t = []
+print('Extracting volume throughout Puget Sound')
+
+# # get grid cell area
+dx = 1/ds_box.pm.values
+dy = 1/ds_box.pn.values
+area = dx * dy
+z_w = ds_box['z_w'].values
+# get grid cell volumes
+volume_all = area * np.diff(z_w,axis=1) # m3 (time,s_rho,y,x)
+
+# get grid cell depths
+zrho = ds_box['z_rho'].values
+
+#########################################################
+#          Calculate shallow and deep volume           ##
+#########################################################
+
+stations = ['lynchcove','penn','budd','case','carr']
+# create dictionaries with interface depths
+interface_dict = dict()
 
 
-cnt = 0
-#%%
-while dt00 <= dt1:  # loop each day and every history file
-    print(dt00)
-    sys.stdout.flush()
-    ds00 = dt00.strftime(Lfun.ds_fmt)
-    fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
-    #%%
-    for fn in fn_list[0:-1]: 
-        print(fn)
-        ds = xr.open_dataset(fn)
-        zeta = ds.zeta.values.squeeze()
-        h = ds.h.values
-        zrho = zrfun.get_z(h, zeta, S, only_rho=True)
+for i,station in enumerate(stations): # enumerate(sta_dict):
+    # print status
+    print('({}/{}) Working on {}...'.format(i+1,len(stations),station))
+
+    # get interface depth from csv file
+    with open('interface_depths.csv', 'r') as f:
+        for line in f:
+            inlet, interface_depth = line.strip().split(',')
+            interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
+    z_interface = float(interface_dict[station])
+
+    # initialize empty dataframe for saving
+    df = pd.DataFrame()
+
+    #% Get indices of inlet
+    seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
+    seg_df = pd.read_pickle(seg_name)
+    ji_list = seg_df[station+'_p']['ji_list']
+    jj_LO = [x[0] for x in ji_list] # y; lat; jj
+    ii_LO = [x[1] for x in ji_list] # x; lon; ii
+    # get lat and lon corresponding to ii and jj indices
+    lat_LO = latr[jj_LO,0]
+    lon_LO = lonr[0,ii_LO]
+    # get corresponding ii and jj indices in box extraction
+    lat_box_all = ds_box['lat_rho'].values[:,0]
+    lon_box_all = ds_box['lon_rho'].values[0,:]
+    jj = np.zeros(len(jj_LO))
+    ii = np.zeros(len(ii_LO))
+    for j,lat in enumerate(lat_LO):
+        jj[j] = np.where(lat_box_all==lat)[0][0]
+    for i,lon in enumerate(lon_LO):
+        ii[i] = np.where(lon_box_all==lon)[0][0]
+    # convert to array of ints
+    jj = jj.astype(int)
+    ii = ii.astype(int)
+    
+    # create boolean arrays for shallow and deep layers
+    tmp_zrho = zrho[:,:,jj,ii] # in domain
+    ix_shallow = tmp_zrho >= z_interface # shallower than interface
+    ix_deep = tmp_zrho < z_interface  # deeper than interface
+
+    # convert from boolean array to int
+    ix_shallow = ix_shallow.astype(int)
+    ix_deep = ix_deep.astype(int)
+    
+    # crop volume to shallow and deep layer within inlet
+    tmp_V = volume_all[:,:,jj,ii]
+    surf_vol = np.nansum(np.nansum(tmp_V*ix_shallow,axis=1),axis=1)
+    deep_vol = np.nansum(np.nansum(tmp_V*ix_deep,axis=1),axis=1)
+
+    # create dataframe of values
+    df['surface [m3]'] = surf_vol
+    df['deep [m3]'] = deep_vol
+    # save to pickle file
+    df.to_pickle(out_dir / (station + '.p'))
+
+# ------------------------------------------------------------------------
+
+
+# Vol_sum_shallow = []
+# Vol_sum_deep = []
+# t = []
+
+
+# cnt = 0
+# #%%
+# while dt00 <= dt1:  # loop each day and every history file
+#     print(dt00)
+#     sys.stdout.flush()
+#     ds00 = dt00.strftime(Lfun.ds_fmt)
+#     fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
+#     #%%
+#     for fn in fn_list[0:-1]: 
+#         print(fn)
+#         ds = xr.open_dataset(fn)
+#         zeta = ds.zeta.values.squeeze()
+#         h = ds.h.values
+#         zrho = zrfun.get_z(h, zeta, S, only_rho=True)
         
-        z_w = zrfun.get_z(h, zeta, S, only_rho=False, only_w=True)
-        vol = np.diff(z_w,axis=0) * area # grid cell volume
+#         z_w = zrfun.get_z(h, zeta, S, only_rho=False, only_w=True)
+#         vol = np.diff(z_w,axis=0) * area # grid cell volume
         
-        tmp_zrho = zrho[:,jj,ii] # in domain
-        ix_shallow = tmp_zrho>=-6 # shallower than 20 m
-        ix_deep = tmp_zrho<-6  # deeper than 20m
+#         tmp_zrho = zrho[:,jj,ii] # in domain
+#         ix_shallow = tmp_zrho>=-6 # shallower than 20 m
+#         ix_deep = tmp_zrho<-6  # deeper than 20m
         
-        #Oxy_vol = Oxy * vol * stat # only account for Salish Sea
-        #Oxy_vol_sum.append(np.nansum(Oxy_vol))
-        tmp_DOV = vol[:,jj,ii]
-        Vol_sum_shallow.append(np.nansum(tmp_DOV[ix_shallow]))
-        Vol_sum_deep.append(   np.nansum(tmp_DOV[ix_deep]))
+#         #Oxy_vol = Oxy * vol * stat # only account for Salish Sea
+#         #Oxy_vol_sum.append(np.nansum(Oxy_vol))
+#         tmp_DOV = vol[:,jj,ii]
+#         Vol_sum_shallow.append(np.nansum(tmp_DOV[ix_shallow]))
+#         Vol_sum_deep.append(   np.nansum(tmp_DOV[ix_deep]))
         
-        cnt += 1
-        t.append(ds.ocean_time.values)
-        ds.close()       
-    dt00 = dt00 + timedelta(days=1)
+#         cnt += 1
+#         t.append(ds.ocean_time.values)
+#         ds.close()       
+#     dt00 = dt00 + timedelta(days=1)
         
-# save netcdf
-from netCDF4 import Dataset
-nc = Dataset('O2_bgc_shallow_deep_'+ds0+'_'+ds1+'.nc','w')
-time = nc.createDimension('time', len(t))
+# # save netcdf
+# from netCDF4 import Dataset
+# nc = Dataset('O2_bgc_shallow_deep_'+ds0+'_'+ds1+'.nc','w')
+# time = nc.createDimension('time', len(t))
 
-times = nc.createVariable('time','f8',('time',))
-times.units = 'seconds*1e9 since 1970-01-01 00:00:00'
-Vol_sum_shallow_tmp = nc.createVariable('Vol_sum_shallow','f4', ('time',),compression='zlib',complevel=9)
-Vol_sum_shallow_tmp.units = 'm3'
-Vol_sum_deep_tmp = nc.createVariable('Vol_sum_deep','f4', ('time',),compression='zlib',complevel=9)
-Vol_sum_deep_tmp.units = 'm3'
+# times = nc.createVariable('time','f8',('time',))
+# times.units = 'seconds*1e9 since 1970-01-01 00:00:00'
+# Vol_sum_shallow_tmp = nc.createVariable('Vol_sum_shallow','f4', ('time',),compression='zlib',complevel=9)
+# Vol_sum_shallow_tmp.units = 'm3'
+# Vol_sum_deep_tmp = nc.createVariable('Vol_sum_deep','f4', ('time',),compression='zlib',complevel=9)
+# Vol_sum_deep_tmp.units = 'm3'
 
-times[:] = t
+# times[:] = t
 
-Vol_sum_shallow_tmp[:] = Vol_sum_shallow
-Vol_sum_deep_tmp[:] = Vol_sum_deep
+# Vol_sum_shallow_tmp[:] = Vol_sum_shallow
+# Vol_sum_deep_tmp[:] = Vol_sum_deep
 
-nc.close()
+# nc.close()
