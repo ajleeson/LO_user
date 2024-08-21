@@ -203,9 +203,10 @@ def calc_bulk_values(s, thisQ_dict, vn_list, print_info=False, min_trans=1):
         for vn in vn_list_short:
             F_i =-(thisQ_dict[vn][ind[i+1]] - thisQ_dict[vn][ind[i]])
             vn_i=np.abs(F_i)/np.abs(Q_i)
-            if Q_i<0 and np.abs(Q_i)>1:
+            tiny_transport = 0.5
+            if Q_i<0 and np.abs(Q_i)>tiny_transport:
                 out_dict[vn].append(vn_i)
-            elif Q_i > 0 and np.abs(Q_i)>1:
+            elif Q_i > 0 and np.abs(Q_i)>tiny_transport:
                 in_dict[vn].append(vn_i)
         i+=1
     # remove clipped div_sal values
