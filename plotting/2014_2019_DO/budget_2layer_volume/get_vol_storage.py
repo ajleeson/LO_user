@@ -20,7 +20,7 @@ ds1 = '2014.12.31'
 year = '2014'
 Ldir['ds0'] = ds0
 in_dir = Ldir['roms_out'] / Ldir['gtagex']
-G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
+# G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
 
 fn0 = xr.open_dataset(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
 lonr = fn0.lon_rho.values
