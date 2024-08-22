@@ -52,7 +52,7 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 sta_dict = job_lists.get_sta_dict(jobname)
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('2layer_VOLUME_budget_'+startdate+'_'+enddate) / 'figures'
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_'+startdate+'_'+enddate) / '2layer_figures'
 Lfun.make_dir(out_dir)
 
 # create time_vecotr
@@ -135,8 +135,8 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
             in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / 'bulk_2014.01.01_2014.12.31' / (station+ '.nc')
             bulk = xr.open_dataset(in_dir)
             tef_df, vn_list, vec_list = get_two_layer.get_two_layer(bulk)
-            Q_p = tef_df['q_p'] # Qout
-            Q_m = tef_df['q_m'] # Qin
+            Q_p = tef_df['q_p'] # Qin
+            Q_m = tef_df['q_m'] # Qout
             TEF_surf = Q_m.values
             TEF_deep = Q_p.values
             TEF_color = 'blue'

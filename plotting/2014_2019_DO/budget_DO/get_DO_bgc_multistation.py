@@ -361,4 +361,4 @@ for station in stations:
     # get dataframe for saving
     df = df_dict[station]
     # save to pickle file
-    df.to_pickle(out_dir / (station + '_' + ds0 + '_' + ds1 + '.p'))
+    df.to_pickle(out_dir / station / (station + '_' + ds0 + '_' + ds1 + '.p'))

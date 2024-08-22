@@ -37,62 +37,6 @@ enddate_hrly = '2015.01.01 00:00:00'
 year = '2014' # for making a date label
 
 dsf = Ldir['ds_fmt']
-# dt0 = datetime.strptime(startdate,dsf)
-# dt1 = datetime.strptime(enddate,dsf)
-# # days = (dt0, dt1)
-    
-# # pandas Index objects
-# dt_ind = pd.date_range(start=dt0, end=dt1)
-# yd_ind = pd.Index(dt_ind.dayofyear)
-
-# ##########################################################
-# ##                 Helper functions                     ##
-# ##########################################################
-
-# # helper function to convert Ecology name to LO name
-# def SSM2LO_name(rname):
-#     """
-#     Given a river name in LiveOcean, find corresponding river name in SSM
-#     """
-#     # repeatrivs_fn = '../../LO_data/trapsD00/LiveOcean_SSM_rivers.xlsx'
-#     repeatrivs_fn = Ldir['data'] / 'trapsD00' / 'LiveOcean_SSM_rivers.xlsx'
-#     repeatrivs_df = pd.read_excel(repeatrivs_fn)
-#     rname_LO = repeatrivs_df.loc[repeatrivs_df['SSM_rname'] == rname, 'LO_rname'].values[0]
-
-#     return rname_LO
-
-# def LO2SSM_name(rname):
-#     """
-#     Given a river name in LiveOcean, find corresponding river name in SSM
-#     """
-#     repeatrivs_fn = Ldir['data'] / 'trapsD00' / 'LiveOcean_SSM_rivers.xlsx'
-#     repeatrivs_df = pd.read_excel(repeatrivs_fn)
-#     rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
-
-#     return rname_SSM
-
-# # riv fun function to get biology
-# def get_bio_vec(vn, rn, yd_ind):
-#     ndt = len(yd_ind)
-#     yd = yd_ind.values
-#     ovec = np.ones(ndt)
-#     if vn == 'NO3':
-#         if rn == 'fraser':
-#             vv = 2 + (13/2) + (13/2)*np.cos(2*np.pi*((yd-30)/366))
-#         elif rn == 'columbia':
-#             vv = 5 + (35/2) + (35/2)*np.cos(2*np.pi*((yd)/366))
-#         else:
-#             vv = 5 * ovec
-#     elif vn == 'Oxyg':
-#         vv = 350 * ovec
-#     elif vn in ['TAlk', 'TIC']:
-#         if rn in ['columbia', 'deschutes', 'duwamish']:
-#             vv = 1000 * ovec
-#         else:
-#             vv = 300 * ovec
-#     else:
-#         vv = 0 * ovec # all others filled with zeros
-#     return vv
 
 ##########################################################
 ##              Get stations and gtagexes               ##
@@ -109,7 +53,7 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 sta_dict = job_lists.get_sta_dict(jobname)
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('budget_'+startdate+'_'+enddate) / 'DO_traps'
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+startdate+'_'+enddate) / '2layer_traps'
 Lfun.make_dir(out_dir)
 
 # create time_vecotr
@@ -223,53 +167,15 @@ for vn in vn_list:
     v = v_dict[vn]
     x[vn] = (('time','riv'), v)
 
-# # get flow and DO values for wwtps --------------------------------------------------
-# fp_wwtps = Ldir['LOo'] / 'pre' / 'trapsP00' / 'point_sources' / 'lo_base' / 'Data_historical'
-# flowdf_wwtps = pd.read_pickle(fp_wwtps / 'CLIM_flow.p')    # m3/s
-# DOdf_wwtps = pd.read_pickle(fp_wwtps / 'CLIM_DO.p')      # mmol/m3
-
-# # calculate daily loading timeseries in kmol/s
-# DOload_wwtps = DOdf_wwtps * flowdf_wwtps * (1/1000) * (1/1000) # mmol/m3 * m3/s * (1/1000) * (1/1000) = kmol/s
-
-# # get flow and DO values for rivers --------------------------------------------------
-# fp_trivs = Ldir['LOo'] / 'pre' / 'trapsP00' / 'tiny_rivers' / 'lo_base' / 'Data_historical'
-# fp_LOrivs = Ldir['LOo'] / 'pre' / 'river1' / 'lo_base' / 'Data_historical'
-# fp_LObio = Ldir['LOo'] / 'pre' / 'trapsP00' / 'LO_rivbio' / 'lo_base' / 'Data_historical'
-# # tiny rivers
-# flowdf_rivs = pd.read_pickle(fp_trivs / 'CLIM_flow.p')    # m3/s
-# DOdf_rivs = pd.read_pickle(fp_trivs / 'CLIM_DO.p')      # mmol/m3
-# # pre-existing LO rivers
-# flowdf_LOrivs = pd.read_pickle(fp_LOrivs / 'CLIM_flow.p')    # m3/s
-# flowdf_LOrivs = flowdf_LOrivs.reset_index(drop=True)
-# # Ecology data for pre-existing LO rivers
-# DOdf_LOrivs_ecol = pd.read_pickle(fp_LObio / 'CLIM_DO.p')      # mmol/m3
-# # get names of all pre-existing rivers for which Ecology has data (use LO naming convention)
-# LObio_names = [SSM2LO_name(riv) for riv in DOdf_LOrivs_ecol.columns]
-
-# # get biology data for pre-existing rivers
-# DOdf_LOrivs = pd.DataFrame()
-# for rn in flowdf_LOrivs:
-#     # Use ecology data if there exists any
-#     if rn in LObio_names:
-#         DOdf_LOrivs[rn] = DOdf_LOrivs_ecol[LO2SSM_name(rn)]
-#     # Otherwise use the rivfun method to guess
-#     else:
-#         DOdf_LOrivs[rn] = get_bio_vec('Oxyg', rn, yd_ind)
-
-# # calculate daily loading timeseries in kmol/s
-# DOload_trivs = DOdf_rivs * flowdf_rivs * (1/1000) * (1/1000) # mmol/m3 * m3/s * (1/1000) * (1/1000) = kmol/s
-# DOload_LOrivs = DOdf_LOrivs * flowdf_LOrivs * (1/1000) * (1/1000)  # mmol/m3 * m3/s * (1/1000) * (1/1000) = kmol/s
-
-# # get oxygen inflow for all rivers
-# DOload_rivs = pd.concat([DOload_trivs, DOload_LOrivs], axis=1) # kmol/s
-
 ##########################################################
 ##        Calculate shallow and deep exchange flow      ##
 ##########################################################
 
-for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
+stations = ['lynchcove','penn','budd','case','carr']
+
+for i,station in enumerate(stations): # enumerate(sta_dict):
     # print status
-    print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
+    print('({}/{}) Working on {}...'.format(i+1,len(stations),station))
 
     # initialize empty dataframe for saving
     df = pd.DataFrame()
