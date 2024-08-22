@@ -115,7 +115,7 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
                             loc='left')
             ax[1].set_title('(b) Bottom [deeper than {} m]'.format(-1*z_interface),
                             loc='left')
-            ax[2].set_title(r'(c) Error',
+            ax[2].set_title(r'(c) Error [sum of surface and bottom vertical exchange]',
                             loc='left')
 
 # # --------------------------- get exchange flow terms ----------------------------------------

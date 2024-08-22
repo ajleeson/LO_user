@@ -15,6 +15,10 @@ import pandas as pd
 from time import time
 tt0 = time()
 
+#-----------------------------------------------
+station = 'budd'
+z_interface = -6
+
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
 # Ldir['roms_out'] = Ldir['roms_out2']
@@ -22,8 +26,8 @@ Ldir = Lfun.Lstart()
 Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
-ds0 = '2014.12.01'
-ds1 = '2014.12.31'
+ds0 = '2014.01.01'
+ds1 = '2014.01.31'
 Ldir['ds0'] = ds0
 in_dir = Ldir['roms_out'] / Ldir['gtagex']
 G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
@@ -48,7 +52,7 @@ dt00 = dt0
 # seg_name = 'seg_info_dict_cas7_c2_noriv.p'
 seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
 seg_df = pd.read_pickle(seg_name)
-ji_list = seg_df['lynchcove_p']['ji_list']
+ji_list = seg_df[station+'_p']['ji_list']
 jj = [x[0] for x in ji_list]
 ii = [x[1] for x in ji_list]
 
@@ -182,8 +186,8 @@ while dt00 <= dt1:  # loop each day and every history file
         tmp_zrho = zrho[:,jj,ii] # in domain
         # ix_shallow = tmp_zrho>=-20 # shallower than 20 m
         # ix_deep = tmp_zrho<-20  # deeper than 20m
-        ix_shallow = tmp_zrho>=-6 # shallower than 20 m
-        ix_deep = tmp_zrho<-6  # deeper than 20m
+        ix_shallow = tmp_zrho>=z_interface # shallower than 20 m
+        ix_deep = tmp_zrho<z_interface  # deeper than 20m
         
         #Oxy_vol = Oxy * vol * stat # only account for Salish Sea
         #Oxy_vol_sum.append(np.nansum(Oxy_vol))
