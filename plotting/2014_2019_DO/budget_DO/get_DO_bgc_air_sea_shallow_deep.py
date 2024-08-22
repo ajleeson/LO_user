@@ -26,10 +26,16 @@ Ldir = Lfun.Lstart()
 Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
+# mar
 # ds0 = '2014.03.01'
 # ds1 = '2014.03.31'
-ds0 = '2014.04.01'
-ds1 = '2014.04.30'
+# apr
+# ds0 = '2014.04.01'
+# ds1 = '2014.04.30'
+# may
+ds0 = '2014.05.01'
+ds1 = '2014.05.31'
+
 
 Ldir['ds0'] = ds0
 in_dir = Ldir['roms_out'] / Ldir['gtagex']
