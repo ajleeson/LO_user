@@ -16,19 +16,25 @@ from time import time
 tt0 = time()
 
 #-----------------------------------------------
-station = 'budd'
-z_interface = -6
+
+stations = ['lynchcove','penn','budd','case','carr']
+# create dictionaries with interface depths
+interface_dict = dict()
 
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
 # Ldir['roms_out'] = Ldir['roms_out2']
 # Ldir['roms_out'] = Ldir['roms_out1']
 Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
+# Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
-# jan
 # ds0 = '2014.01.01'
-# ds1 = '2014.01.31'
+# ds1 = '2014.01.02'
+
+# jan
+ds0 = '2014.01.01'
+ds1 = '2014.01.31'
 # feb
 # ds0 = '2014.02.01'
 # ds1 = '2014.02.28'
@@ -42,8 +48,12 @@ Ldir['gtagex'] = 'cas7_t0_x4b'
 # ds0 = '2014.05.01'
 # ds1 = '2014.05.31'
 # jun
-ds0 = '2014.06.01'
-ds1 = '2014.06.30'
+# ds0 = '2014.06.01'
+# ds1 = '2014.06.30'
+
+# where to put output figures
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+ds0+'_'+ds1) / '2layer_bgc'
+Lfun.make_dir(out_dir)
 
 
 Ldir['ds0'] = ds0
@@ -66,16 +76,6 @@ dt0 = datetime.strptime(ds0, Lfun.ds_fmt)
 dt1 = datetime.strptime(ds1, Lfun.ds_fmt)
 dt00 = dt0
 
-#% load salish sea j,i
-seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
-seg_df = pd.read_pickle(seg_name)
-ji_list = seg_df[station+'_p']['ji_list']
-jj = [x[0] for x in ji_list]
-ii = [x[1] for x in ji_list]
-
-inDomain = np.zeros([NX, NY])
-inDomain[jj,ii] = 1 # inside domain, the index=1, outside domian, the index =0, this step is to reduce the size of spatial variable (hopefully)
-
 #% air-sea flux related parameters
 dtdays = 3600 * (1.0/86400) / 1
 cff2_air = dtdays * 0.31 * 24 / 100
@@ -92,18 +92,25 @@ OC0 = -0.000000488682
 
 #%%
 
-Oxy_sed_sum = []
-Oxy_sed_sum2 = []
-Oxy_pro_sum_shallow = []
-Oxy_pro_sum_deep = []
-Oxy_nitri_sum_shallow = []
-Oxy_nitri_sum_deep = []
-Oxy_remi_sum_shallow = []
-Oxy_remi_sum_deep = []
-Oxy_vol_sum_shallow = []
-Oxy_vol_sum_deep = []
-Oxy_air_flux_sum = []
-t = []
+# create dictionary of empty dataframes
+df_dict = {'lynchcove': pd.DataFrame(),
+           'penn': pd.DataFrame(),
+           'budd': pd.DataFrame(),
+           'carr': pd.DataFrame(),
+           'case': pd.DataFrame()}
+
+
+# ret_sod = []
+# ret_photo_surf = []
+# ret_photo_deep = []
+# ret_nitri_surf = []
+# ret_nitri_deep = []
+# ret_respi_surf = []
+# ret_respi_deep = []
+# ret_DOvol_surf = []
+# ret_DOvol_deep = []
+# ret_airsea = []
+# t = []
 
 cnt = 0
 #%%
@@ -114,6 +121,8 @@ while dt00 <= dt1:  # loop each day and every history file
     fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
     #%%
     for fn in fn_list[0:-1]: 
+        print(fn)
+
         ds = xr.open_dataset(fn)
         swrad = ds.swrad.values.squeeze()
         chl = ds.chlorophyll.values.squeeze()
@@ -145,14 +154,6 @@ while dt00 <= dt1:  # loop each day and every history file
         
         z_w = zrfun.get_z(h, zeta, S, only_rho=False, only_w=True)
         vol = np.diff(z_w,axis=0) * area # grid cell volume
-        
-        tmp_zrho = zrho[:,jj,ii] # in domain
-        ix_shallow = tmp_zrho>=z_interface # shallower than interface
-        ix_deep = tmp_zrho<z_interface  # deeper than interface
-        
-        tmp_DOV = Oxy[:,jj,ii] * vol[:,jj,ii]
-        Oxy_vol_sum_shallow.append(np.nansum(tmp_DOV[ix_shallow]))
-        Oxy_vol_sum_deep.append(   np.nansum(tmp_DOV[ix_deep]))
         
         #if np.nanmin(PARsur) > 0: # doing photosysnthesis
         if np.nanmin(0.43*swrad) > 0: # doing photosysnthesis
@@ -198,23 +199,16 @@ while dt00 <= dt1:  # loop each day and every history file
         Oxy_nitri = Oxy_nitri * vol # 
         Oxy_remi = Oxy_remi * vol #
         
-        Oxy_pro_sum_shallow.append(np.nansum(Oxy_pro[:,jj,ii][ix_shallow]))
-        Oxy_pro_sum_deep.append(np.nansum(Oxy_pro[:,jj,ii][ix_deep]))
-        Oxy_nitri_sum_shallow.append(np.nansum(Oxy_nitri[:,jj,ii][ix_shallow]))
-        Oxy_nitri_sum_deep.append(np.nansum(Oxy_nitri[:,jj,ii][ix_deep]))
-        Oxy_remi_sum_shallow.append(np.nansum(Oxy_remi[:,jj,ii][ix_shallow]))
-        Oxy_remi_sum_deep.append(np.nansum(Oxy_remi[:,jj,ii][ix_deep]))
         
+        # #---------- sediment SOD ----------
+        # # refer to Parker's code https://github.com/parkermac/LPM/blob/main/extract/moor/benthic_flux.py
+        # F_Det = LDeN[0,:,:] * 80 + SDeN[0,:,:] * 8 # mmol N/m2/d
+        # F_NO3 = F_Det.copy()
+        # F_NO3[F_Det > 1.2] = 1.2 # 1.2 mmol N/m2/d
+        # F_NH4 = F_Det - F_NO3
+        # F_NH4[F_NH4<0] = 0
         
-        #---------- sediment SOD ----------
-        # refer to Parker's code https://github.com/parkermac/LPM/blob/main/extract/moor/benthic_flux.py
-        F_Det = LDeN[0,:,:] * 80 + SDeN[0,:,:] * 8 # mmol N/m2/d
-        F_NO3 = F_Det.copy()
-        F_NO3[F_Det > 1.2] = 1.2 # 1.2 mmol N/m2/d
-        F_NH4 = F_Det - F_NO3
-        F_NH4[F_NH4<0] = 0
-        
-        Oxy_sed_sum.append(np.nansum(F_NH4[jj,ii] * 106/16 * area[jj,ii]))       
+        # Oxy_sed_sum.append(np.nansum(F_NH4[jj,ii] * 106/16 * area[jj,ii]))       
 
         #---------- sediment SOD: a more strict way ----------
         # LdetritusN decomposition in sediment
@@ -235,7 +229,6 @@ while dt00 <= dt1:  # loop each day and every history file
         NH4_gain_flux_S = NH4_gain_S * area * dz[0,:,:] # mmol but the actual unit is mmol/hr
         
         NH4_gain_flux = NH4_gain_flux_L + NH4_gain_flux_S
-        Oxy_sed_sum2.append(np.nansum(NH4_gain_flux[jj,ii] * 106/16))    # mmol O2/hr  
                 
         #---------- air-sea flux ----------
         Uwind = ds.Uwind.values.squeeze()
@@ -253,60 +246,101 @@ while dt00 <= dt1:  # loop each day and every history file
         AA = OA0 + TS*(OA1+TS*(OA2+TS*(OA3+TS*(OA4+TS*OA5)))) + salt_surf*(OB0+TS*(OB1+TS*(OB2+TS*OB3))) + OC0*salt_surf*salt_surf
          # Convert from ml/l to mmol/m3
         O2satu = 1000./22.3916 * np.exp(AA) # mmol/m3
-        
-        #  O2 gas exchange
-        Oxy_air_flux_sum.append(np.nansum(cff3[jj,ii] * (O2satu[jj,ii]-Oxy_surf[jj,ii]) * area[jj,ii])) #
-        
+
+        ###################################################################
+        ## GET VALUES IN EACH TERMINAL INLET AND SAVE IN INDIVIDUAL FILE ##
+        ###################################################################
+
+        for station in stations:
+
+            # get interface depth from csv file
+            with open('interface_depths.csv', 'r') as f:
+                for line in f:
+                    inlet, interface_depth = line.strip().split(',')
+                    interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
+            z_interface = float(interface_dict[station])
+
+            # get segment information
+            seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
+            seg_df = pd.read_pickle(seg_name)
+            ji_list = seg_df[station+'_p']['ji_list']
+            jj = [x[0] for x in ji_list]
+            ii = [x[1] for x in ji_list]
+
+            # get storage term
+            tmp_zrho = zrho[:,jj,ii] # in domain
+            ix_shallow = tmp_zrho>=z_interface # shallower than interface
+            ix_deep = tmp_zrho<z_interface  # deeper than interface
+            tmp_DOV = Oxy[:,jj,ii] * vol[:,jj,ii]
+            # ret_DOvol_surf.append(np.nansum(tmp_DOV[ix_shallow]))
+            # ret_DOvol_deep.append(   np.nansum(tmp_DOV[ix_deep]))
+            ret_DOvol_surf = np.nansum(tmp_DOV[ix_shallow])
+            ret_DOvol_deep = np.nansum(tmp_DOV[ix_deep])
+
+            # get photosynthesis, nitrification, and respiration terms
+            # ret_photo_surf.append(np.nansum(Oxy_pro[:,jj,ii][ix_shallow]))
+            # ret_photo_deep.append(np.nansum(Oxy_pro[:,jj,ii][ix_deep]))
+            # ret_nitri_surf.append(np.nansum(Oxy_nitri[:,jj,ii][ix_shallow]))
+            # ret_nitri_deep.append(np.nansum(Oxy_nitri[:,jj,ii][ix_deep]))
+            # ret_respi_surf.append(np.nansum(Oxy_remi[:,jj,ii][ix_shallow]))
+            # ret_respi_deep.append(np.nansum(Oxy_remi[:,jj,ii][ix_deep]))
+            ret_photo_surf = np.nansum(Oxy_pro[:,jj,ii][ix_shallow])
+            ret_photo_deep = np.nansum(Oxy_pro[:,jj,ii][ix_deep])
+            ret_nitri_surf = np.nansum(Oxy_nitri[:,jj,ii][ix_shallow])
+            ret_nitri_deep = np.nansum(Oxy_nitri[:,jj,ii][ix_deep])
+            ret_respi_surf = np.nansum(Oxy_remi[:,jj,ii][ix_shallow])
+            ret_respi_deep = np.nansum(Oxy_remi[:,jj,ii][ix_deep])
+
+            # get sediment oxygen demand
+            # ret_sod.append(np.nansum(NH4_gain_flux[jj,ii] * 106/16))    # mmol O2/hr  
+            ret_sod = np.nansum(NH4_gain_flux[jj,ii] * 106/16)    # mmol O2/hr  
+
+            # get O2 gas exchange
+            # ret_airsea.append(np.nansum(cff3[jj,ii] * (O2satu[jj,ii]-Oxy_surf[jj,ii]) * area[jj,ii]))
+            ret_airsea = np.nansum(cff3[jj,ii] * (O2satu[jj,ii]-Oxy_surf[jj,ii]) * area[jj,ii])
+
+            # get dataframe for saving
+            if cnt == 0:
+                # start data
+                df_dict[station]['surf DO*V [mmol]'] = [ret_DOvol_surf]
+                df_dict[station]['deep DO*V [mmol]'] = [ret_DOvol_deep]
+                df_dict[station]['surf photo [mmol/hr]'] = [ret_photo_surf]
+                df_dict[station]['deep photo [mmol/hr]'] = [ret_photo_deep]
+                df_dict[station]['surf nitri [mmol/hr]'] = [ret_nitri_surf]
+                df_dict[station]['deep nitri [mmol/hr]'] = [ret_nitri_deep]
+                df_dict[station]['surf respi [mmol/hr]'] = [ret_respi_surf]
+                df_dict[station]['deep respi [mmol/hr]'] = [ret_respi_deep]
+                df_dict[station]['SOD [mmol/hr]'] = [ret_sod]
+                df_dict[station]['airsea [mmol/hr]'] = [ret_airsea]
+            else:
+                # get temp dataframe
+                df_tmp = pd.DataFrame()
+                df_tmp['surf DO*V [mmol]'] = [ret_DOvol_surf]
+                df_tmp['deep DO*V [mmol]'] = [ret_DOvol_deep]
+                df_tmp['surf photo [mmol/hr]'] = [ret_photo_surf]
+                df_tmp['deep photo [mmol/hr]'] = [ret_photo_deep]
+                df_tmp['surf nitri [mmol/hr]'] = [ret_nitri_surf]
+                df_tmp['deep nitri [mmol/hr]'] = [ret_nitri_deep]
+                df_tmp['surf respi [mmol/hr]'] = [ret_respi_surf]
+                df_tmp['deep respi [mmol/hr]'] = [ret_respi_deep]
+                df_tmp['SOD [mmol/hr]'] = [ret_sod]
+                df_tmp['airsea [mmol/hr]'] = [ret_airsea]
+                # append data
+                df_dict[station] = pd.concat([df_dict[station],df_tmp])
+                # reset index
+                df_dict[station].reset_index(drop=True, inplace=True)
+
+            if station == 'budd':
+                print(df_dict[station])
+                print('\n')
+
         cnt += 1
-        t.append(ds.ocean_time.values)
+        # t.append(ds.ocean_time.values)
         ds.close()       
     dt00 = dt00 + timedelta(days=1)
-        
-# save netcdf
-from netCDF4 import Dataset
-nc = Dataset('O2_bgc_shallow_deep_'+ds0+'_'+ds1+'.nc','w')
-time = nc.createDimension('time', len(t))
-eta_rho = nc.createDimension('eta_rho', NX)
-xi_rho = nc.createDimension('xi_rho', NY)
-s_rho = nc.createDimension('s_rho', 30)
 
-times = nc.createVariable('time','f8',('time',))
-times.units = 'seconds*1e9 since 1970-01-01 00:00:00'
-Oxy_pro_sum_shallow_tmp = nc.createVariable('Oxy_pro_sum_shallow','f4',('time',),compression='zlib',complevel=9)
-Oxy_pro_sum_shallow_tmp.units = 'mmol O2/hr'
-Oxy_pro_sum_deep_tmp = nc.createVariable('Oxy_pro_sum_deep','f4',('time',),compression='zlib',complevel=9)
-Oxy_pro_sum_deep_tmp.units = 'mmol O2/hr'
-Oxy_nitri_sum_shallow_tmp = nc.createVariable('Oxy_nitri_sum_shallow','f4',('time',),compression='zlib',complevel=9)
-Oxy_nitri_sum_shallow_tmp.units = 'mmol O2/hr'
-Oxy_nitri_sum_deep_tmp = nc.createVariable('Oxy_nitri_sum_deep','f4',('time',),compression='zlib',complevel=9)
-Oxy_nitri_sum_deep_tmp.units = 'mmol O2/hr'
-Oxy_remi_sum_shallow_tmp = nc.createVariable('Oxy_remi_sum_shallow','f4',('time',),compression='zlib',complevel=9)
-Oxy_remi_sum_shallow_tmp.units = 'mmol O2/hr'
-Oxy_remi_sum_deep_tmp = nc.createVariable('Oxy_remi_sum_deep','f4',('time',),compression='zlib',complevel=9)
-Oxy_remi_sum_deep_tmp.units = 'mmol O2/hr'
-Oxy_sed_sum_tmp = nc.createVariable('Oxy_sed_sum','f4',('time',),compression='zlib',complevel=9)
-Oxy_sed_sum_tmp.units = 'mmol O2/day'
-Oxy_sed_sum_tmp2 = nc.createVariable('Oxy_sed_sum2','f4',('time',),compression='zlib',complevel=9)
-Oxy_sed_sum_tmp2.units = 'mmol O2/hr'
-Oxy_vol_sum_shallow_tmp = nc.createVariable('Oxy_vol_sum_shallow','f4', ('time',),compression='zlib',complevel=9)
-Oxy_vol_sum_shallow_tmp.units = 'mmol O2'
-Oxy_vol_sum_deep_tmp = nc.createVariable('Oxy_vol_sum_deep','f4', ('time',),compression='zlib',complevel=9)
-Oxy_vol_sum_deep_tmp.units = 'mmol O2'
-Oxy_air_flux_sum_tmp = nc.createVariable('Oxy_air_flux_sum','f4', ('time',),compression='zlib',complevel=9)
-Oxy_air_flux_sum_tmp.units = 'mmol O2/hr'
-
-
-times[:] = t
-Oxy_pro_sum_shallow_tmp[:] = Oxy_pro_sum_shallow
-Oxy_pro_sum_deep_tmp[:] = Oxy_pro_sum_deep
-Oxy_nitri_sum_shallow_tmp[:] = Oxy_nitri_sum_shallow
-Oxy_nitri_sum_deep_tmp[:] = Oxy_nitri_sum_deep
-Oxy_remi_sum_shallow_tmp[:] = Oxy_remi_sum_shallow
-Oxy_remi_sum_deep_tmp[:] = Oxy_remi_sum_deep
-Oxy_sed_sum_tmp[:] = Oxy_sed_sum
-Oxy_sed_sum_tmp2[:] = Oxy_sed_sum2
-Oxy_vol_sum_shallow_tmp[:] = Oxy_vol_sum_shallow
-Oxy_vol_sum_deep_tmp[:] = Oxy_vol_sum_deep
-Oxy_air_flux_sum_tmp[:] = Oxy_air_flux_sum
-
-nc.close()
+for station in stations:
+    # get dataframe for saving
+    df = df_dict[station]
+    # save to pickle file
+    df.to_pickle(out_dir / (station + '.p'))
