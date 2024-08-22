@@ -45,11 +45,11 @@ Ldir['gtagex'] = 'cas7_t0_x4b'
 # ds0 = '2014.04.01'
 # ds1 = '2014.04.30'
 # may
-ds0 = '2014.05.01'
-ds1 = '2014.05.31'
+# ds0 = '2014.05.01'
+# ds1 = '2014.05.31'
 # jun
-# ds0 = '2014.06.01'
-# ds1 = '2014.06.30'
+ds0 = '2014.06.01'
+ds1 = '2014.06.30'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+ds0+'_'+ds1) / '2layer_bgc'
