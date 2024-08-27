@@ -240,6 +240,10 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
         traps_surf_hrly = np.repeat(traps_surf, 24)
         traps_deep_hrly = np.repeat(traps_deep, 24)
 
+        # clear traps_surf and traps_deep for next iteration
+        traps_surf = traps_surf * 0
+        traps_deep = traps_deep * 0
+
         # create dataframe of values
         df['surface [m3/s]'] = traps_surf_hrly
         df['deep [m3/s]'] = traps_deep_hrly
