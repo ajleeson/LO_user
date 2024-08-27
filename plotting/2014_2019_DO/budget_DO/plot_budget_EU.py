@@ -223,22 +223,33 @@ for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
             vertX_color = 'sandybrown'
 
             # calculate raw error term, and acribe that the the vertical exchange
-            vertX_surf_unfiltered = ddtDOV_surf_unfiltered - (exchange_surf_unfiltered[0:-2]
-                                                              + photo_surf_unfiltered[0:-1]
-                                                              + cons_surf_unfiltered[0:-1]
-                                                              + airsea_surf_unfiltered[0:-1]
-                                                              + traps_surf[0:-1])
-            vertX_deep_unfiltered = ddtDOV_deep_unfiltered - (exchange_deep_unfiltered[0:-2]
-                                                              + photo_deep_unfiltered[0:-1]
-                                                              + cons_deep_unfiltered[0:-1]
-                                                              + traps_deep[0:-1])
+            # vertX_surf_unfiltered = ddtDOV_surf_unfiltered - (exchange_surf_unfiltered[0:-2]
+            #                                                   + photo_surf_unfiltered[0:-1]
+            #                                                   + cons_surf_unfiltered[0:-1]
+            #                                                   + airsea_surf_unfiltered[0:-1]
+            #                                                   + rivers_surf_unfiltered[0:-1])
+            # vertX_deep_unfiltered = ddtDOV_deep_unfiltered - (exchange_deep_unfiltered[0:-2]
+            #                                                   + photo_deep_unfiltered[0:-1]
+            #                                                   + cons_deep_unfiltered[0:-1]
+            #                                                   + wwtps_deep_unfiltered[0:-1])
             
             # apply 10-day hanning window
             # vertX_surf = zfun.lowpass(vertX_surf_unfiltered, f='hanning', n=240)
             # vertX_deep = zfun.lowpass(vertX_deep_unfiltered, f='hanning', n=240)
             # Godin filter
-            vertX_surf = zfun.lowpass(vertX_surf_unfiltered, f='godin')
-            vertX_deep = zfun.lowpass(vertX_deep_unfiltered, f='godin')
+            # vertX_surf = zfun.lowpass(vertX_surf_unfiltered, f='godin')
+            # vertX_deep = zfun.lowpass(vertX_deep_unfiltered, f='godin')
+
+            vertX_surf = ddtDOV_surf - (exchange_surf[0:-2]
+                                        + photo_surf[0:-1]
+                                        + cons_surf[0:-1]
+                                        + airsea_surf[0:-1]
+                                        + traps_surf[0:-1])
+            vertX_deep = ddtDOV_deep - (exchange_deep[0:-2]
+                                        + photo_deep[0:-1]
+                                        + cons_deep[0:-1]
+                                        + traps_deep[0:-1])
+            
 
 # ---------------------------------- plot and save --------------------------------------------
             # plot surface

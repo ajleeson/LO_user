@@ -24,6 +24,9 @@ from lo_tools import plotting_functions as pfun
 
 Ldir = Lfun.Lstart()
 
+residual = True # recirculation
+show_EU = False
+
 ##########################################################
 ##                    Define inputs                     ##
 ##########################################################
@@ -65,13 +68,25 @@ print('\n')
 ##              Plot DO budget of every inlet           ##
 ##########################################################
 
-stations = ['lynchcove','penn','budd','case','carr']
+# stations = ['lynchcove','penn','case','carr','budd']
+stations = ['lynchcove','case','carr','budd','penn']
+
 # create dictionaries with interface depths
 interface_dict = dict()
 
+# create dictionaries to save dataframe of budget terms for each station
+bottomlay_dict = {'lynchcove': pd.DataFrame(),
+                'penn': pd.DataFrame(),
+                'budd': pd.DataFrame(),
+                'carr': pd.DataFrame(),
+                'case': pd.DataFrame()}
+surfacelay_dict = {'lynchcove': pd.DataFrame(),
+                'penn': pd.DataFrame(),
+                'budd': pd.DataFrame(),
+                'carr': pd.DataFrame(),
+                'case': pd.DataFrame()}
+
 for i,station in enumerate(stations): # enumerate(sta_dict):
-        # print status
-        print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
 
         # get interface depth from csv file
         with open('interface_depths.csv', 'r') as f:
@@ -94,26 +109,41 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
 
             # initialize figure
             plt.close('all')
-            fig, ax = plt.subplots(3,1,figsize = (10,8),sharex=True)
+            fig, ax = plt.subplots(4,1,figsize = (13,10),sharex=True)
             # format figure
             plt.suptitle(station + ': DO Budget (Godin Filter)',size=14)
-            for axis in [ax[0],ax[1],ax[2]]:
+            for axis in [ax[0],ax[1],ax[2],ax[3]]:
                 # axis.plot([dates_local[0],dates_local[-1]],[0,0],color='k')
                 axis.set_xlim([dates_local[0],dates_local[-1]])
-                axis.set_ylabel(r'DO transport [kmol O$_2$ s$^{-1}$]')
+                if axis == ax[3]:
+                    axis.set_ylabel(r'DO [mg L$^{-1}$]')
+                else:
+                    axis.set_ylabel(r'DO transport [kmol O$_2$ s$^{-1}$]')
                 axis.set_facecolor('#EEEEEE')
                 axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
                 axis.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
                 axis.tick_params(axis='x', labelrotation=30)
                 for border in ['top','right','bottom','left']:
                     axis.spines[border].set_visible(False)
-            ax[2].set_xlabel(year)
-            ax[0].set_title('(a) Surface [shallower than {} m]'.format(-1*z_interface),
-                            loc='left')
-            ax[1].set_title('(b) Bottom [deeper than {} m]'.format(-1*z_interface),
-                            loc='left')
-            ax[2].set_title(r'(c) Error [sum of surface and bottom vertical exchange]',
-                            loc='left')
+            ax[3].set_xlabel(year)
+            ax[0].text(0.02,0.9,'(a) Surface [shallower than {} m]'.format(-1*z_interface),
+                            ha='left', va='top', transform=ax[0].transAxes, fontsize=12)
+            ax[1].text(0.02,0.9,'(b) Bottom [deeper than {} m]'.format(-1*z_interface),
+                            ha='left', va='top', transform=ax[1].transAxes, fontsize=12)
+            ax[2].text(0.02,0.9,r'(c) Error [sum of surface and bottom vertical exchange]',
+                            ha='left', va='top', transform=ax[2].transAxes, fontsize=12)
+            ax[3].text(0.02,0.9,'(d) Average DO concentrations',
+                            ha='left', va='top', transform=ax[3].transAxes, fontsize=12)
+            
+# --------------------------- get EU exchange flow terms ----------------------------------------
+            fn = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_EU_exchange' / (station + '.p')
+            df_exchange = pd.read_pickle(fn)
+            exchange_surf_unfiltered = df_exchange['surface [kmol/s]'].values 
+            exchange_deep_unfiltered = df_exchange['deep [kmol/s]'].values
+            # Godin filter
+            EU_surf = zfun.lowpass(exchange_surf_unfiltered, f='godin')[36:-34:24] 
+            EU_deep = zfun.lowpass(exchange_deep_unfiltered, f='godin')[36:-34:24]
+            exchange_color = 'cornflowerblue'
 
 # --------------------------- get TEF exchange flow terms ----------------------------------------
             in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / 'bulk_2014.01.01_2014.12.31' / (station + '.nc')
@@ -126,7 +156,6 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
             # convert from mmol/s to kmol/s
             TEF_surf = (Q_m.values * DO_m.values) * (1/1000) * (1/1000) # Qout * DOout
             TEF_deep = (Q_p.values * DO_p.values) * (1/1000) * (1/1000) # Qout * DOout
-            exchange_color = 'blue'
 
 # ---------------------------------- get BGC terms --------------------------------------------
             bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
@@ -136,26 +165,26 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
                       '2014.03.01_2014.03.31',
                       '2014.04.01_2014.04.30',
                       '2014.05.01_2014.05.31',
-                      '2014.06.01_2014.06.30',]
-                    #   '2014.07.01_2014.07.31',
-                    #   '2014.08.01_2014.08.31',
-                    #   '2014.09.01_2014.09.30',
-                    #   '2014.10.01_2014.10.31',
-                    #   '2014.11.01_2014.11.30',
-                    #   '2014.12.01_2014.12.31',]
+                      '2014.06.01_2014.06.30',
+                      '2014.07.01_2014.07.31',
+                      '2014.08.01_2014.08.31',
+                      '2014.09.01_2014.09.30',
+                      '2014.10.01_2014.10.31',
+                      '2014.11.01_2014.11.30',
+                      '2014.12.01_2014.12.31',]
             
             # initialize arrays to save values
             photo_surf_unfiltered = []
             photo_deep_unfiltered = []
-            photo_color = 'forestgreen'
+            photo_color = 'turquoise'
             cons_surf_unfiltered = [] # nitrification, respiration
             cons_deep_unfiltered = [] # nitrification, respiration, sediment oxygen demand
-            cons_color = 'black'
+            cons_color = 'deeppink'
             airsea_surf_unfiltered = []
-            airsea_color = 'deeppink'
+            airsea_color = 'plum'
             o2vol_surf_unfiltered = []
             o2vol_deep_unfiltered = []
-            ddtDOV_color = 'plum'
+            ddtDOV_color = 'gray'
 
             # combine all months
             for month in months:
@@ -191,82 +220,438 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
             ddtDOV_deep = zfun.lowpass(ddtDOV_deep_unfiltered, f='godin')[36:-34:24]
 
 # ------------------------------- get rivers and WWTPs ----------------------------------------
-            # fn = Ldir['LOo'] / 'pugetsound_DO' / ('budget_' + startdate + '_' + enddate) / 'DO_traps' / (station + '.p')
-            # df_traps = pd.read_pickle(fn)
-            # rivers_surf_unfiltered = df_traps['surface [kmol/s]'].values
-            # wwtps_deep_unfiltered = df_traps['deep [kmol/s]'].values
-            # # 10-day hanning window filter (10 days = 240 hours)
-            # # traps_surf = zfun.lowpass(rivers_surf_unfiltered, f='hanning', n=240)
-            # # traps_deep = zfun.lowpass(wwtps_deep_unfiltered, f='hanning', n=240)
-            # # Godin filter
-            # traps_surf = zfun.lowpass(rivers_surf_unfiltered, f='godin')
-            # traps_deep =  zfun.lowpass(wwtps_deep_unfiltered, f='godin')
-            # traps_color = 'turquoise'
+            fn = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_traps' / (station + '.p')
+            df_traps = pd.read_pickle(fn)
+            rivers_surf_unfiltered = df_traps['surface [kmol/s]'].values
+            wwtps_deep_unfiltered = df_traps['deep [kmol/s]'].values
+            # Godin filter
+            traps_surf = zfun.lowpass(rivers_surf_unfiltered, f='godin')[36:-34:24]
+            traps_deep =  zfun.lowpass(wwtps_deep_unfiltered, f='godin')[36:-34:24]
+            traps_color = 'black'
 
 # ------------------------------- get vertical exchange ----------------------------------------
 
-            # # pick color
-            # vertX_color = 'sandybrown'
+            # pick color
+            vertX_color = 'mediumorchid'
 
-            # # calculate raw error term, and acribe that the the vertical exchange
-            # vertX_surf_unfiltered = ddtDOV_surf_unfiltered - (exchange_surf_unfiltered[0:-2]
-            #                                                   + photo_surf_unfiltered[0:-1]
-            #                                                   + cons_surf_unfiltered[0:-1]
-            #                                                   + airsea_surf_unfiltered[0:-1]
-            #                                                   + traps_surf[0:-1])
-            # vertX_deep_unfiltered = ddtDOV_deep_unfiltered - (exchange_deep_unfiltered[0:-2]
-            #                                                   + photo_deep_unfiltered[0:-1]
-            #                                                   + cons_deep_unfiltered[0:-1]
-            #                                                   + traps_deep[0:-1])
+            # calculate error term, and ascribe to the vertical exchange
+            vertX_surf_TEF = ddtDOV_surf - (TEF_surf 
+                                        + photo_surf
+                                        + cons_surf
+                                        + airsea_surf
+                                        + traps_surf)
             
-            # # apply 10-day hanning window
-            # # vertX_surf = zfun.lowpass(vertX_surf_unfiltered, f='hanning', n=240)
-            # # vertX_deep = zfun.lowpass(vertX_deep_unfiltered, f='hanning', n=240)
-            # # Godin filter
-            # vertX_surf = zfun.lowpass(vertX_surf_unfiltered, f='godin')
-            # vertX_deep = zfun.lowpass(vertX_deep_unfiltered, f='godin')
+            vertX_deep_TEF = ddtDOV_deep - (TEF_deep 
+                                        + photo_deep
+                                        + cons_deep
+                                        + traps_deep)
+            
+            # calculate error term, and ascribe to the vertical exchange
+            vertX_surf_EU = ddtDOV_surf - (EU_surf 
+                                        + photo_surf
+                                        + cons_surf
+                                        + airsea_surf
+                                        + traps_surf)
+            
+            vertX_deep_EU = ddtDOV_deep - (EU_deep 
+                                        + photo_deep
+                                        + cons_deep
+                                        + traps_deep)
+        
 
-# ---------------------------------- plot and save --------------------------------------------
+# ---------------------------------- plot budgets --------------------------------------------
             # plot surface
-            ax[0].plot(dates_local_daily[1:-1],TEF_surf,color=exchange_color,
-                       linewidth=1,linestyle='--',label='TEF Exchange Flow')
-            ax[0].plot(dates_local_daily[0:179],photo_surf,color=photo_color,
+            if residual == False:
+                ax[0].plot(dates_local_daily[1:-1],TEF_surf,color=exchange_color,
+                        linewidth=1,label='TEF Exchange Flow')
+                if show_EU:
+                    ax[0].plot(dates_local_daily[1:-1],EU_surf,color=exchange_color,
+                            linewidth=3,alpha=0.2,label='EU Exchange Flow')
+            else:
+                ax[0].plot(dates_local_daily[1:-1],TEF_surf + vertX_surf_TEF,color=exchange_color,
+                        linewidth=2,label='Recirculation TEF')
+                if show_EU:
+                    ax[0].plot(dates_local_daily[1:-1],EU_surf + vertX_surf_EU,color=exchange_color,
+                            linewidth=3,alpha=0.2,label='Recirculation EU')
+            ax[0].plot(dates_local_daily[1:-1],traps_surf,color=traps_color,
+                       linewidth=3,zorder=2,label='TRAPS')
+            ax[0].plot(dates_local_daily[1:-1],photo_surf,color=photo_color,
                        linewidth=2,label='Photosynthesis')
-            ax[0].plot(dates_local_daily[0:179],cons_surf,color=cons_color,
-                       linewidth=2,linestyle=':',label='Bio Consumption')
-            ax[0].plot(dates_local_daily[0:179],airsea_surf,color=airsea_color,
+            ax[0].plot(dates_local_daily[1:-1],cons_surf,color=cons_color,
+                       linewidth=2,linestyle=':',zorder=9,label='Bio Consumption')
+            ax[0].plot(dates_local_daily[1:-1],airsea_surf,color=airsea_color,
                        linewidth=1,zorder=8,label='Air-Sea Transfer')
-            ax[0].plot(dates_local_daily[0:179],ddtDOV_surf,color=ddtDOV_color,
-                       linewidth=2,zorder=7,alpha=0.6,
+            ax[0].plot(dates_local_daily[1:-1],ddtDOV_surf,color=ddtDOV_color,
+                       linewidth=1,zorder=7,#alpha=0.6,
                        label=r'$\frac{\mathrm{d}}{\mathrm{dt}}(\mathrm{DO}\cdot V)$')
-            # ax[0].plot(dates_local[0:-1],traps_surf,color=traps_color,linewidth=3,alpha=0.6,label='TRAPS')
-            # ax[0].plot(dates_local[0:-2],vertX_surf,color=vertX_color,linewidth=2,label='Vertical Exchange')
-            ax[0].legend(loc='upper right',ncol=4)
+            if residual == False:
+                ax[0].plot(dates_local_daily[1:-1],vertX_surf_TEF,color=vertX_color,
+                       linewidth=1,label='TEF Vertical')
+                if show_EU:
+                    ax[0].plot(dates_local_daily[1:-1],vertX_surf_EU,color=vertX_color,
+                            linewidth=3,alpha=0.2,label='EU Vertical')
+            ax[0].legend(loc='lower center',ncol=6)
             
             # plot deep
-            ax[1].plot(dates_local_daily[1:-1],TEF_deep,color=exchange_color,
-                       linewidth=1,linestyle='--')
-            ax[1].plot(dates_local_daily[0:179],photo_deep,color=photo_color,
-                       linewidth=2,)
-            ax[1].plot(dates_local_daily[0:179],cons_deep,color=cons_color,
-                       linewidth=2,linestyle=':')
-            ax[1].plot(dates_local_daily[0:179],ddtDOV_deep,color=ddtDOV_color,
-                       linewidth=2,zorder=7,alpha=0.6)
-            # ax[1].plot(dates_local[0:-1],traps_deep,color=traps_color,linewidth=3,alpha=0.6)
-            # ax[1].plot(dates_local[0:-2],vertX_deep,color=vertX_color,linewidth=2)
+            if residual == False:
+                ax[1].plot(dates_local_daily[1:-1],TEF_deep,color=exchange_color,
+                        linewidth=1)
+                if show_EU:
+                    ax[1].plot(dates_local_daily[1:-1],EU_deep,color=exchange_color,
+                            linewidth=3,alpha=0.5)
+            else:
+                ax[1].plot(dates_local_daily[1:-1],TEF_deep + vertX_deep_TEF,color=exchange_color,
+                        linewidth=2)
+                if show_EU:
+                    ax[1].plot(dates_local_daily[1:-1],EU_deep + vertX_deep_EU,color=exchange_color,
+                            linewidth=3,alpha=0.2)
+            ax[1].plot(dates_local_daily[1:-1],traps_deep,color=traps_color,
+                       linewidth=3,zorder=2)
+            ax[1].plot(dates_local_daily[1:-1],photo_deep,color=photo_color,
+                       linewidth=2)
+            ax[1].plot(dates_local_daily[1:-1],cons_deep,color=cons_color,
+                       linewidth=2,linestyle=':',zorder=9)
+            ax[1].plot(dates_local_daily[1:-1],ddtDOV_deep,color=ddtDOV_color,
+                       linewidth=1,zorder=7)#,alpha=0.6)
+            if residual == False:
+                ax[1].plot(dates_local_daily[1:-1],vertX_deep_TEF,color=vertX_color,
+                        linewidth=1)
+                if show_EU:
+                    ax[1].plot(dates_local_daily[1:-1],vertX_deep_EU,color=vertX_color,
+                            linewidth=3,alpha=0.5)
 
-            # # plot error
-            # # error_TEF = vertXTEF_surf + vertXTEF_deep
-            # error_EU = vertX_surf+vertX_deep
-            # ax[2].plot(dates_local[0:-2],error_EU,color='olivedrab',
-            #            linewidth=3,alpha=0.5,label='EU Error')
-            # # ax[2].plot(dates_local_daily[1:-1],error_TEF,color='darkgreen',
-            # #            linewidth=1,linestyle='--',label='TEF Error')
-            # ax[2].legend(loc='best')
+            # plot error
+            error_TEF = vertX_surf_TEF+vertX_deep_TEF
+            error_EU = vertX_surf_EU+vertX_deep_EU
+            ax[2].plot(dates_local_daily[1:-1],error_TEF,color='crimson',
+                       linewidth=2,label='TEF')
+            if show_EU:
+                ax[2].plot(dates_local_daily[1:-1],error_EU,color='k',
+                        linewidth=1,linestyle='--',label='EU')
+                ax[2].legend(loc='best')
 
+            if station == 'penn':
+                ax[2].plot(dates_local_daily[1:-1],error_TEF + traps_surf,color='slateblue')
+                ax[2].text(0.1,0.6,'Error + river discharge', color='slateblue',
+                            ha='left', va='top', transform=ax[2].transAxes)
+                # print variable at each timestep
+                ind = 25
+                print('Surface:')
+                print('    Exchange: {}'.format(100*round(TEF_surf[ind],3)))
+                print('    Photosyn: {}'.format(100*round(photo_surf[ind],3)))
+                print('    Bio Cons: {}'.format(100*round(cons_surf[ind],3)))
+                print('    Air-SeaX: {}'.format(100*round(airsea_surf[ind],3)))
+                print('    TRAPSnet: {}'.format(100*round(traps_surf[ind],3)))
+                print('    Storages: {}'.format(100*round(ddtDOV_surf[ind],3)))
+                print('    Vertical: {}'.format(100*round(vertX_surf_TEF[ind],3)))
+                print('Deep:')
+                print('    Exchange: {}'.format(100*round(TEF_deep[ind],3)))
+                print('    Photosyn: {}'.format(100*round(photo_deep[ind],3)))
+                print('    Bio Cons: {}'.format(100*round(cons_deep[ind],3)))
+                print('    TRAPSnet: {}'.format(100*round(traps_deep[ind],3)))
+                print('    Storages: {}'.format(100*round(ddtDOV_deep[ind],3)))
+                print('    Vertical: {}'.format(100*round(vertX_deep_TEF[ind],3)))
+                print('Error:')
+                print('    SumVertX: {}'.format(100*round(vertX_deep_TEF[ind] + vertX_surf_TEF[ind],3)))
+                print('    ErrorCod: {}'.format(100*round(error_TEF[ind],3)))
+                print('    Err+Rivs: {}'.format(100*round(error_TEF[ind]+traps_surf[ind],3)))
+
+            # ax[2].plot(dates_local_daily[1:-1],error_TEF + traps_surf,color='slateblue')
+            # ax[2].text(0.1,0.6,'Error + river discharge', color='slateblue',
+            #             ha='left', va='top', transform=ax[2].transAxes)
+                
             for axis in [ax[0],ax[1],ax[2]]:
-                ylimval = np.nanmax(np.abs(TEF_surf))*1.1
+                if residual == False:
+                    ylimval = np.nanmax(np.abs(TEF_surf))*1.1
+                else:
+                    ylimval = np.nanmax(np.abs(TEF_surf + vertX_surf_TEF))*1.2
                 axis.set_ylim([-1*ylimval,ylimval])
 
+# ---------------------------------- DO concentrations --------------------------------------------
 
+            # get average V of each layer
+            fn = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_' + startdate + '_' + enddate) / '2layer_volume_storage' / (station + '.p')
+            df_V = pd.read_pickle(fn)
+            # Godin filter already applied earlier in workflow
+            surf_V = df_V['surface [m3]'].values[1:-1]
+            deep_V = df_V['deep [m3]'].values[1:-1]
+
+            # apply Godin filter to DO*V (mmol)
+            o2vol_surf = zfun.lowpass(o2vol_surf_unfiltered, f='godin')[36:-34:24]
+            o2vol_deep = zfun.lowpass(o2vol_deep_unfiltered, f='godin')[36:-34:24]
+
+            # get average DO of each layer by calculating (DO*V)/V
+            # and convert from mmol/m3 to mg/L
+            o2_surf = o2vol_surf / surf_V * 32/1000
+            o2_deep = o2vol_deep / deep_V * 32/1000
+
+            # get average inflowing DO concentration (Qin concentration)
+            DO_in = DO_p * 32/1000
+
+            # plot DO
+            ax[3].plot(dates_local_daily[1:-1],o2_surf,color='royalblue',
+                       linewidth=2,label='Avg. Surface')
+            ax[3].plot(dates_local_daily[1:-1],o2_deep,color='tomato',
+                       linewidth=2,label='Avg. Deep')
+            ax[3].plot(dates_local_daily[1:-1],DO_in,color='black',
+                       linewidth=1,linestyle=':',label='Avg. Qin')
+            ax[3].legend(loc='lower left',ncol=3)
+
+
+            ax[3].set_ylim([0,12])
+
+
+# ---------------------------------- save figure --------------------------------------------
+
+            plt.subplots_adjust(hspace=0.06, bottom=0.06, top=0.94)
             plt.savefig(out_dir / (station+'.png'))
+
+
+# # ------------------------- save data in dataframe dict -----------------------------------
+#             # Note: everything is in units of kmol O2 /s
+
+#             # surface layer
+#             if residual == False:
+#                 if show_EU:
+#                     surfacelay_dict[station]['EU Exchange Flow'] = EU_surf
+#                 else:
+#                     surfacelay_dict[station]['TEF Exchange Flow'] = TEF_surf
+#             else:
+#                 if show_EU:
+#                     surfacelay_dict[station]['Residual'] = EU_surf + vertX_surf_EU
+#                 else:
+#                     surfacelay_dict[station]['Residual'] = TEF_surf + vertX_surf_TEF
+#             surfacelay_dict[station]['TRAPS'] = traps_surf
+#             surfacelay_dict[station]['Photosynthesis'] = photo_surf
+#             surfacelay_dict[station]['Bio Consumption'] = cons_surf
+#             surfacelay_dict[station]['Air-Sea Transfer'] = airsea_surf
+#             if residual == False:
+#                 if show_EU:
+#                     surfacelay_dict[station]['EU Vertical'] = vertX_surf_EU
+#                 else:
+#                     surfacelay_dict[station]['TEF Vertical'] = vertX_surf_TEF
+#             surfacelay_dict[station]['Storage'] = ddtDOV_surf
+
+#             # bottom layer
+#             if residual == False:
+#                 if show_EU:
+#                     bottomlay_dict[station]['EU Exchange Flow'] = EU_deep
+#                 else:
+#                     bottomlay_dict[station]['TEF Exchange Flow'] = TEF_deep
+#             else:
+#                 if show_EU:
+#                     bottomlay_dict[station]['Recirculation'] = EU_deep + vertX_deep_EU
+#                 else:
+#                     bottomlay_dict[station]['Recirculation'] = TEF_deep + vertX_deep_TEF
+#             bottomlay_dict[station]['TRAPS'] = traps_deep
+#             bottomlay_dict[station]['Photosynthesis'] = photo_deep
+#             bottomlay_dict[station]['Bio Consumption'] = cons_deep
+#             if residual == False:
+#                 if show_EU:
+#                     bottomlay_dict[station]['EU Vertical'] = vertX_deep_EU
+#                 else:
+#                     bottomlay_dict[station]['TEF Vertical'] = vertX_deep_TEF
+#             bottomlay_dict[station]['Storage'] = ddtDOV_deep
+
+print('Penn Cove error term is problematic-- and it is off by the river term.\nBut none of the other inlets have this issue!!\n')
+
+# ##########################################################
+# ##                Create bar charts                     ##
+# ##########################################################
+
+# # annual average summer bottom DO
+# stations_w_DO = ['Lynch Cove\n0.0 mg/L','Penn Cove\n1.8 mg/L',
+#                  'Case Inlet\n1.9 mg/L','Carr Inlet\n4.0 mg/L',
+#                  'Budd Inlet\n5.8 mg/L']
+
+# # initialize figure
+# plt.close('all')
+# fig, ax = plt.subplots(5,2,figsize = (13,10), sharey=True, sharex='col')
+# # format figure
+# if show_EU:
+#     exchange = 'Eulerian'
+# else:
+#     exchange = 'TEF'
+# plt.suptitle('Volume-averaged DO transport rates ({})'.format(exchange),size=14)
+# for axis in [ax[0,0],ax[0,1],ax[1,0],ax[1,1],ax[2,0],ax[2,1],ax[3,0],ax[3,1],ax[4,0],ax[4,1]]:
+#     axis.set_facecolor('#EEEEEE')
+#     axis.grid(True,color='w',linewidth=1,linestyle='-',axis='y')
+#     for border in ['top','right','bottom','left']:
+#         axis.spines[border].set_visible(False)
+# # label y-axis
+# ax[0,0].set_ylabel('Vol-avg DO transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+# ax[1,0].set_ylabel('Vol-avg DO transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+# ax[2,0].set_ylabel('Vol-avg DO transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+# ax[3,0].set_ylabel('Vol-avg DO transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+# ax[4,0].set_ylabel('Vol-avg DO transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+# # add surface and bottom layer label
+# ax[0,0].set_title('Surface Layer',fontweight='bold')
+# ax[0,1].set_title('Bottom Layer',fontweight='bold')
+# # add subpanel labels
+# ax[0,0].text(0.02,0.93,'(a) Annual Average'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[0,0].transAxes, fontsize=12)
+# ax[0,1].text(0.02,0.93,'(b) Annual Average'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[0,1].transAxes, fontsize=12)
+# ax[1,0].text(0.02,0.93,'(c) Winter Average\n    Jan/Feb/Mar'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[1,0].transAxes, fontsize=12)
+# ax[1,1].text(0.02,0.93,'(d) Winter Average\n    Jan/Feb/Mar'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[1,1].transAxes, fontsize=12)
+# ax[2,0].text(0.02,0.93,'(e) Spring Average\n    Apr/May/Jun'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[2,0].transAxes, fontsize=12)
+# ax[2,1].text(0.02,0.93,'(f) Spring Average\n    Apr/May/Jun'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[2,1].transAxes, fontsize=12)
+# ax[3,0].text(0.02,0.93,'(g) Summer Average\n    Jul/Aug/Sep'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[3,0].transAxes, fontsize=12)
+# ax[3,1].text(0.02,0.93,'(h) Summer Average\n    Jul/Aug/Sep'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[3,1].transAxes, fontsize=12)
+# ax[4,0].text(0.02,0.93,'(i) Fall Average\n    Oct/Nov/Dec'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[4,0].transAxes, fontsize=12)
+# ax[4,1].text(0.02,0.93,'(j) Fall Average\n    Oct/Nov/Dec'.format(-1*z_interface),zorder=6,
+#                 ha='left', va='top', transform=ax[4,1].transAxes, fontsize=12)
+
+# # Annual averages
+# x = np.arange(len(stations))  # the label locations
+# print(x)
+# width = 0.2  # the width of the bars
+
+# seasons = ['Annual','Winter','Spring','Summer','Fall']
+
+# # loop through different time intervals
+# for j,season in enumerate(seasons):
+#     if season == 'Annual':
+#         minday = 0
+#         maxday = 363
+#     elif season == 'Winter':
+#         minday = 0
+#         maxday = 91
+#     elif season == 'Spring':
+#         minday = 91
+#         maxday = 182
+#     elif season == 'Summer':
+#         minday = 182
+#         maxday = 274
+#     elif season == 'Fall':
+#         minday = 274
+#         maxday = 363
+
+#     multiplier_surf = 0
+#     multiplier_deep = 0
+
+#     for i,station in enumerate(stations):
+        
+#         # get volume of two layers
+#         fn = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_' + startdate + '_' + enddate) / '2layer_volume_storage' / (station + '.p')
+#         df_V = pd.read_pickle(fn)
+#         # Godin filter already applied earlier in workflow
+#         surf_V = df_V['surface [m3]'].values[1:-1]
+#         deep_V = df_V['deep [m3]'].values[1:-1]
+
+#         for attribute, measurement in surfacelay_dict[station].items():
+#             # calculate annual average
+#             time_avg = np.nanmean(measurement[minday:maxday])
+#             # get volume average
+#             avg = time_avg/(np.nanmean(surf_V[minday:maxday])) # kmol O2 /s /m3
+#             # convert to umol
+#             avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
+#             # plot
+#             offset = width * multiplier_surf
+#             if attribute == 'Residual':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = exchange_color, label=attribute)
+#             if attribute == 'TEF Exchange Flow':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = exchange_color, label=attribute)
+#             if attribute == 'EU Exchange Flow':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = exchange_color, label=attribute)
+#             if attribute == 'TRAPS':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = traps_color, label=attribute)
+#             if attribute == 'Photosynthesis':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = photo_color, label=attribute)
+#             if attribute == 'Bio Consumption':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = cons_color, label=attribute)
+#             if attribute == 'Air-Sea Transfer':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = airsea_color, label=attribute)
+#             if attribute == 'TEF Vertical':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = vertX_color, label=attribute)
+#             if attribute == 'EU Vertical':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = vertX_color, label=attribute)
+#             if attribute == 'Storage':
+#                 rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+#                                     color = ddtDOV_color, label=attribute)
+#             multiplier_surf += 1
+
+#         for attribute, measurement in bottomlay_dict[station].items():
+#             # calculate annual average
+#             time_avg = np.nanmean(measurement[minday:maxday])
+#             # get volume average
+#             avg = time_avg/(np.nanmean(surf_V[minday:maxday]))
+#             # convert to umol
+#             avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
+#             # plot
+#             offset = width * multiplier_deep
+#             if attribute == 'Residual':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = exchange_color, label=attribute)
+#             if attribute == 'TEF Exchange Flow':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = exchange_color, label=attribute)
+#             if attribute == 'EU Exchange Flow':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = exchange_color, label=attribute)
+#             if attribute == 'TRAPS':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = traps_color, label=attribute)
+#             if attribute == 'Photosynthesis':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = photo_color, label=attribute)
+#             if attribute == 'Bio Consumption':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = cons_color, label=attribute)
+#             if attribute == 'Air-Sea Transfer':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = airsea_color, label=attribute)
+#             if attribute == 'TEF Vertical':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = vertX_color, label=attribute)
+#             if attribute == 'EU Vertical':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = vertX_color, label=attribute)
+#             if attribute == 'Storage':
+#                 rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+#                                     color = ddtDOV_color, label=attribute)
+#             multiplier_deep += 1
+
+#         if i == 0 and j == 0:
+#             ax[j,0].legend(loc='lower right', ncols=2, fontsize=9)
+
+# # label x axis
+# if residual == False:
+#     ax[0,0].set_xticks(x*(1 + width*7) + 0.3, stations_w_DO)
+#     ax[0,1].set_xticks(x*(1 + width*6) + 0.3, stations_w_DO)
+# else:
+#     ax[0,0].set_xticks(x*(1 + width*6) + 0.3, stations_w_DO)
+#     ax[0,1].set_xticks(x*(1 + width*5) + 0.3, stations_w_DO)
+
+# # format figure
+# plt.subplots_adjust(wspace=0.02, hspace=0.04, top=0.92)
+# # save figure
+# out_dir_barcharts = out_dir / 'bar_charts'
+# Lfun.make_dir(out_dir_barcharts)
+# if residual == True:
+#     if show_EU:
+#         plt.savefig(out_dir_barcharts / 'barchart_residual_EU.png')
+#     else:
+#         plt.savefig(out_dir_barcharts / 'barchart_residual_TEF.png')
+# else:
+#     if show_EU:
+#         plt.savefig(out_dir_barcharts / 'barchart_total_EU.png')
+#     else:
+#         plt.savefig(out_dir_barcharts / 'barchart_total_TEF.png')
+

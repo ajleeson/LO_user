@@ -50,7 +50,7 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 sta_dict = job_lists.get_sta_dict(jobname)
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('budget_'+startdate+'_'+enddate) / 'DO_exchange_flow'
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+startdate+'_'+enddate) / '2layer_EU_exchange'
 Lfun.make_dir(out_dir)
 
 # create time_vecotr
@@ -65,7 +65,9 @@ print('\n')
 ##        Calculate shallow and deep exchange flow      ##
 ##########################################################
 
-for i,station in enumerate(['lynchcove']): # enumerate(sta_dict):
+stations = ['lynchcove','penn','budd','case','carr']
+
+for i,station in enumerate(stations): # enumerate(sta_dict):
     # print status
     print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
 
