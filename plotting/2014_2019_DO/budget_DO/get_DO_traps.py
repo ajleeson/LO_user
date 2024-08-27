@@ -207,7 +207,8 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
 
         # add rivers to surface layer
         for i,river in enumerate(riv_list):
-            print('    Rivers')
+            if i == 0:
+                print('    Rivers')
             print('        '+river)
             # calculate river load
             flow_m3s = x.loc[dict(riv=river)]['transport'].values
@@ -222,7 +223,8 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
 
         # add wwtps to bottom layer
         for i,wwtp in enumerate(wwtp_list):
-            print('    WWTPs')
+            if i == 0:
+                print('    WWTPs')
             print('        '+wwtp)
             # calculate wwtp load
             flow_m3s = x.loc[dict(riv=wwtp)]['transport'].values
@@ -242,6 +244,11 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
         # create dataframe of values
         df['surface [kmol/s]'] = traps_surf_hrly
         df['deep [kmol/s]'] = traps_deep_hrly
+
+        # debug
+        if station == 'penn':
+            print(df)
+
         # save to pickle file
         df.to_pickle(out_dir / (station + '.p'))
 
