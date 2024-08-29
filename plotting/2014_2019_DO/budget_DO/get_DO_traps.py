@@ -249,10 +249,6 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
         df['surface [kmol/s]'] = traps_surf_hrly
         df['deep [kmol/s]'] = traps_deep_hrly
 
-        # debug
-        if station == 'penn':
-            print(df)
-
         # save to pickle file
         df.to_pickle(out_dir / (station + '.p'))
 
