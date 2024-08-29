@@ -156,7 +156,7 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
             exchange_color = 'cornflowerblue'
 
 # --------------------------- get TEF exchange flow terms ----------------------------------------
-            in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / ('bulk_'+year+'.01.01_'+year+'.12.31') / (station + '.nc')
+            in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / 'bulk_2014.01.01_2014.12.31' / (station + '.nc')
             bulk = xr.open_dataset(in_dir)
             tef_df, vn_list, vec_list = get_two_layer.get_two_layer(bulk)
             Q_p = tef_df['q_p'] # Qin [m3/s]
@@ -170,18 +170,18 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
 # ---------------------------------- get BGC terms --------------------------------------------
             bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
             # get months
-            months = [year+'.01.01_'+year+'.01.31',
-                      year+'.02.01_'+year+'.02.28',
-                      year+'.03.01_'+year+'.03.31',
-                      year+'.04.01_'+year+'.04.30',
-                      year+'.05.01_'+year+'.05.31',
-                      year+'.06.01_'+year+'.06.30',
-                      year+'.07.01_'+year+'.07.31',
-                      year+'.08.01_'+year+'.08.31',
-                      year+'.09.01_'+year+'.09.30',
-                      year+'.10.01_'+year+'.10.31',
-                      year+'.11.01_'+year+'.11.30',
-                      year+'.12.01_'+year+'.12.31',]
+            months = ['2014.01.01_2014.01.31',
+                      '2014.02.01_2014.02.28',
+                      '2014.03.01_2014.03.31',
+                      '2014.04.01_2014.04.30',
+                      '2014.05.01_2014.05.31',
+                      '2014.06.01_2014.06.30',
+                      '2014.07.01_2014.07.31',
+                      '2014.08.01_2014.08.31',
+                      '2014.09.01_2014.09.30',
+                      '2014.10.01_2014.10.31',
+                      '2014.11.01_2014.11.30',
+                      '2014.12.01_2014.12.31',]
             
             # initialize arrays to save values
             photo_surf_unfiltered = []
@@ -461,17 +461,251 @@ for i,station in enumerate(stations): # enumerate(sta_dict):
             DOconcen_dict[station]['Minimum DO'] = oxygen_min
             DOconcen_dict[station]['Qin DO'] = DO_in
 
+##########################################################
+##           Create seasonal bar charts                 ##
+##########################################################
+
+# annual average summer bottom DO
+stations_looped = ['Lynch\nCove','Penn\nCove',
+                 'Case\nInlet','Carr\nInlet',
+                 'Budd\nInlet']
+
+# initialize figure
+plt.close('all')
+fig, ax = plt.subplots(5,2,figsize = (11,8), sharey=True,sharex='col')
+# format figure
+if show_EU:
+    exchange = 'Eulerian'
+else:
+    exchange = 'TEF'
+plt.suptitle('Volume-averaged DO transport rates ({}) and DO concentrations'.format(exchange),size=14)
+for axis in [ax[0,0],ax[0,1],ax[1,0],ax[1,1],ax[2,0],ax[2,1],ax[3,0],ax[3,1],ax[4,0],ax[4,1]]:
+    axis.set_facecolor('#EEEEEE')
+    axis.grid(True,color='w',linewidth=1,linestyle='-',axis='y')
+    for border in ['top','right','bottom','left']:
+        axis.spines[border].set_visible(False)
+# label y-axis
+ax[0,0].set_ylabel('Transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+ax[1,0].set_ylabel('Transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+ax[2,0].set_ylabel('Transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+ax[3,0].set_ylabel('Transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+ax[4,0].set_ylabel('Transport\n'+ r'[$\mu$mol O$_2$ s$^{-1}$ m$^{-3}$]')
+# ax[0,2].set_ylabel(r'DO [mg L$^{-1}$]')
+# ax[1,2].set_ylabel(r'DO [mg L$^{-1}$]')
+# ax[2,2].set_ylabel(r'DO [mg L$^{-1}$]')
+# ax[3,2].set_ylabel(r'DO [mg L$^{-1}$]')
+# ax[4,2].set_ylabel(r'DO [mg L$^{-1}$]')
+# add surface and bottom layer label
+ax[0,0].set_title('Surface Layer',fontweight='bold')
+ax[0,1].set_title('Bottom Layer',fontweight='bold')
+# ax[0,2].set_title('DO Concentrations',fontweight='bold')
+# add subpanel labels
+ax[0,0].text(0.02,0.93,'(a) Annual Average'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[0,0].transAxes, fontsize=12)
+ax[0,1].text(0.02,0.93,'(b) Annual Average'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[0,1].transAxes, fontsize=12)
+ax[1,0].text(0.02,0.93,'(c) Winter Average\n    Jan/Feb/Mar'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[1,0].transAxes, fontsize=12)
+ax[1,1].text(0.02,0.93,'(d) Winter Average\n    Jan/Feb/Mar'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[1,1].transAxes, fontsize=12)
+ax[2,0].text(0.02,0.93,'(e) Spring Average\n    Apr/May/Jun'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[2,0].transAxes, fontsize=12)
+ax[2,1].text(0.02,0.93,'(f) Spring Average\n    Apr/May/Jun'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[2,1].transAxes, fontsize=12)
+ax[3,0].text(0.02,0.93,'(g) Summer Average\n    Jul/Aug/Sep'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[3,0].transAxes, fontsize=12)
+ax[3,1].text(0.02,0.93,'(h) Summer Average\n    Jul/Aug/Sep'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[3,1].transAxes, fontsize=12)
+ax[4,0].text(0.02,0.93,'(i) Fall Average\n    Oct/Nov/Dec'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[4,0].transAxes, fontsize=12)
+ax[4,1].text(0.02,0.93,'(j) Fall Average\n    Oct/Nov/Dec'.format(-1*z_interface),zorder=6,
+                ha='left', va='top', transform=ax[4,1].transAxes, fontsize=12)
+
+# Annual averages
+x = np.arange(len(stations))  # the label locations
+width = 0.2  # the width of the bars
+
+seasons = ['Annual','Winter','Spring','Summer','Fall']
+
+# loop through different time intervals
+for j,season in enumerate(seasons):
+
+    # print('========================='+season+'==========================')
+
+    if season == 'Annual':
+        minday = 0
+        maxday = 363
+    elif season == 'Winter':
+        minday = 0
+        maxday = 91
+    elif season == 'Spring':
+        minday = 91
+        maxday = 182
+    elif season == 'Summer':
+        minday = 182
+        maxday = 274
+    elif season == 'Fall':
+        minday = 274
+        maxday = 363
+
+    multiplier_surf = 0
+    multiplier_deep = 0
+    multiplier_DO = 0
+
+    for i,station in enumerate(stations):
+
+        # print('\n' + station)
+        
+        # get volume of two layers
+        fn = Ldir['LOo'] / 'pugetsound_DO' / ('VOLUME_budget_' + startdate + '_' + enddate) / '2layer_volume_storage' / (station + '.p')
+        df_V = pd.read_pickle(fn)
+        # Godin filter already applied earlier in workflow
+        surf_V = df_V['surface [m3]'].values[1:-1]
+        deep_V = df_V['deep [m3]'].values[1:-1]
+
+        # Surface layer -----------------------------------------------
+        for attribute, measurement in surfacelay_dict[station].items():
+            # calculate annual average
+            time_avg = np.nanmean(measurement[minday:maxday])
+            # get volume average
+            avg = time_avg/(np.nanmean(surf_V[minday:maxday])) # kmol O2 /s /m3
+            # avg = time_avg # skip volume averaging
+            # convert to umol
+            avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
+            # plot
+            offset = width * multiplier_surf
+            if attribute == 'Recirculation':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = exchange_color, label=attribute)
+            if attribute == 'TEF Exchange Flow':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = exchange_color, label=attribute)
+            if attribute == 'EU Exchange Flow':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = exchange_color, label=attribute)
+            if attribute == 'TRAPS':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = traps_color, label=attribute)
+            if attribute == 'Photosynthesis':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = photo_color, label=attribute)
+            if attribute == 'Bio Consumption':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = cons_color, label=attribute)
+            if attribute == 'Air-Sea Transfer':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = airsea_color, label=attribute)
+            if attribute == 'TEF Vertical':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = vertX_color, label=attribute)
+            if attribute == 'EU Vertical':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = vertX_color, label=attribute)
+            if attribute == 'Storage':
+                rects = ax[j,0].bar(i + offset, avg, width, zorder=5,
+                                    color = ddtDOV_color, label=attribute)
+            multiplier_surf += 1
+
+        # Bottom layer ----------------------------------------------
+        for attribute, measurement in bottomlay_dict[station].items():
+            # calculate annual average
+            time_avg = np.nanmean(measurement[minday:maxday])
+            # get volume average
+            avg = time_avg/(np.nanmean(deep_V[minday:maxday]))
+            # avg = time_avg # skip volume averaging
+            # convert to umol
+            avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
+            # plot
+            offset = width * multiplier_deep
+            if attribute == 'Recirculation':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = exchange_color, label=attribute)
+                # print('Recirculation: {}'.format(round(avg,3)))
+            if attribute == 'TEF Exchange Flow':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = exchange_color, label=attribute)
+            if attribute == 'EU Exchange Flow':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = exchange_color, label=attribute)
+            if attribute == 'TRAPS':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = traps_color, label=attribute)
+            if attribute == 'Photosynthesis':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = photo_color, label=attribute)
+                # print('Photosynthesis: {}'.format(round(avg,3)))
+            if attribute == 'Bio Consumption':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = cons_color, label=attribute)
+                # print('Bio Consumption: {}'.format(round(avg,3)))
+            if attribute == 'Air-Sea Transfer':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = airsea_color, label=attribute)
+            if attribute == 'TEF Vertical':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = vertX_color, label=attribute)
+            if attribute == 'EU Vertical':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = vertX_color, label=attribute)
+            if attribute == 'Storage':
+                rects = ax[j,1].bar(i + offset, avg, width, zorder=5,
+                                    color = ddtDOV_color, label=attribute)
+            multiplier_deep += 1
+
+        # # DO concentrations ----------------------------------------
+        # for attribute, measurement in DOconcen_dict[station].items():
+        #     # calculate annual average
+        #     avg = np.nanmean(measurement[minday:maxday])
+        #     # plot
+        #     offset = width * multiplier_DO
+        #     if attribute == 'Surface Layer':
+        #         rects = ax[j,2].bar(i + offset, avg, width, zorder=5,
+        #                             color='deepskyblue', alpha=0.7, label=attribute)
+        #     if attribute == 'Deep Layer':
+        #         rects = ax[j,2].bar(i + offset, avg, width, zorder=5,
+        #                             color = 'blueviolet', alpha=0.6, label=attribute)
+        #     if attribute == 'Bottom DO':
+        #         rects = ax[j,2].bar(i + offset, avg, width, zorder=5,
+        #                             color = 'deeppink', alpha=0.7, label=attribute)
+        #     if attribute == 'Qin DO':
+        #         rects = ax[j,2].bar(i + offset, avg, width, zorder=5,
+        #                             color = 'black', alpha=0.5, label=attribute)
+        #     multiplier_DO += 1
+
+        if i == 0 and j == 0:
+            ax[j,0].legend(loc='lower right', ncols=2, fontsize=9)
+            # ax[j,2].legend(loc='upper right', fontsize=9)
+
+# label x axis
+if residual == False:
+    ax[0,0].set_xticks(x*(1 + width*7) + 0.3, stations_looped)
+    ax[0,1].set_xticks(x*(1 + width*6) + 0.3, stations_looped)
+else:
+    ax[0,0].set_xticks(x*(1 + width*6) + 0.3, stations_looped)
+    ax[0,1].set_xticks(x*(1 + width*5) + 0.3, stations_looped)
+# ax[0,2].set_xticks(x*(1 + width*4) + 0.3, stations_looped)
+
+# format figure
+plt.subplots_adjust(wspace=0.02, hspace=0.1, top=0.92, right=0.98)
+# save figure
+out_dir_barcharts = out_dir / 'bar_charts'
+Lfun.make_dir(out_dir_barcharts)
+if residual == True:
+    if show_EU:
+        plt.savefig(out_dir_barcharts / 'barchart_residual_EU.png')
+    else:
+        plt.savefig(out_dir_barcharts / 'barchart_residual_TEF.png')
+else:
+    if show_EU:
+        plt.savefig(out_dir_barcharts / 'barchart_total_EU.png')
+    else:
+        plt.savefig(out_dir_barcharts / 'barchart_total_TEF.png')
 
 ##########################################################
-##          DO rate budget summary bar chart           ## 
+##             Ratio of sinks to sources                ## ######################################################################
 ##########################################################
-
-seasons = ['Annual','Jan/Feb','Mar/Apr','May/Jun','Jul/Aug',
-           'Sep/Oct','Nov/Dec']
 
 stations = ['lynchcove','penn','case','carr','budd']
-
-x = np.arange(len(seasons))
 
 # create list of station colors
 # station_color = ['hotpink','orange','gold','limegreen','deepskyblue'] # rainbow basic
@@ -488,10 +722,10 @@ hatch_dict = {'Recirculation': 'OO',
 
 # initialize figure
 plt.close('all')
-fig, ax = plt.subplots(4,1,figsize = (13,8.6),sharex=True)
+fig, ax = plt.subplots(4,1,figsize = (12,8.6),sharex=True)
 
 # format figure
-plt.suptitle('Bottom Layer DO Processes ('+year+')',size=16,fontweight='bold')
+plt.suptitle('Bottom Layer DO Processes (2014)',size=16,fontweight='bold')
 # subtitles
 ax[0].set_title('(a) DO concentration',loc='left', fontsize=12, fontweight='bold')
 ax[1].set_title('(b) Average DO transport rate (volume-integrated)',loc='left', fontsize=12, fontweight='bold')
@@ -527,35 +761,17 @@ for i,station in enumerate(stations):
         if season == 'Annual':
             minday = 0
             maxday = 363
-        # elif season == 'Winter':
-        #     minday = 0
-        #     maxday = 91
-        # elif season == 'Spring':
-        #     minday = 91
-        #     maxday = 182
-        # elif season == 'Summer':
-        #     minday = 182
-        #     maxday = 274
-        # elif season == 'Fall':
-        #     minday = 274
-        #     maxday = 363
-        elif season == 'Jan/Feb':
+        elif season == 'Winter':
             minday = 0
-            maxday = 60
-        elif season == 'Mar/Apr':
-            minday = 60
-            maxday = 121
-        elif season == 'May/Jun':
-            minday = 121
+            maxday = 91
+        elif season == 'Spring':
+            minday = 91
             maxday = 182
-        elif season == 'Jul/Aug':
+        elif season == 'Summer':
             minday = 182
-            maxday = 244
-        elif season == 'Oct/Sep':
-            minday = 244
-            maxday = 305
-        elif season == 'Nov/Dec':
-            minday = 305
+            maxday = 274
+        elif season == 'Fall':
+            minday = 274
             maxday = 363
 
         # calculate average DO over time interval, and calculate standard deviation
@@ -605,35 +821,17 @@ for i,station in enumerate(stations):
         if season == 'Annual':
             minday = 0
             maxday = 363
-        # elif season == 'Winter':
-        #     minday = 0
-        #     maxday = 91
-        # elif season == 'Spring':
-        #     minday = 91
-        #     maxday = 182
-        # elif season == 'Summer':
-        #     minday = 182
-        #     maxday = 274
-        # elif season == 'Fall':
-        #     minday = 274
-        #     maxday = 363
-        elif season == 'Jan/Feb':
+        elif season == 'Winter':
             minday = 0
-            maxday = 60
-        elif season == 'Mar/Apr':
-            minday = 60
-            maxday = 121
-        elif season == 'May/Jun':
-            minday = 121
+            maxday = 91
+        elif season == 'Spring':
+            minday = 91
             maxday = 182
-        elif season == 'Jul/Aug':
+        elif season == 'Summer':
             minday = 182
-            maxday = 244
-        elif season == 'Oct/Sep':
-            minday = 244
-            maxday = 305
-        elif season == 'Nov/Dec':
-            minday = 305
+            maxday = 274
+        elif season == 'Fall':
+            minday = 274
             maxday = 363
         
         bottom = np.zeros(5)
@@ -694,35 +892,17 @@ for i,station in enumerate(stations):
         if season == 'Annual':
             minday = 0
             maxday = 363
-        # elif season == 'Winter':
-        #     minday = 0
-        #     maxday = 91
-        # elif season == 'Spring':
-        #     minday = 91
-        #     maxday = 182
-        # elif season == 'Summer':
-        #     minday = 182
-        #     maxday = 274
-        # elif season == 'Fall':
-        #     minday = 274
-        #     maxday = 363
-        elif season == 'Jan/Feb':
+        elif season == 'Winter':
             minday = 0
-            maxday = 60
-        elif season == 'Mar/Apr':
-            minday = 60
-            maxday = 121
-        elif season == 'May/Jun':
-            minday = 121
+            maxday = 91
+        elif season == 'Spring':
+            minday = 91
             maxday = 182
-        elif season == 'Jul/Aug':
+        elif season == 'Summer':
             minday = 182
-            maxday = 244
-        elif season == 'Oct/Sep':
-            minday = 244
-            maxday = 305
-        elif season == 'Nov/Dec':
-            minday = 305
+            maxday = 274
+        elif season == 'Fall':
+            minday = 274
             maxday = 363
         
         bottom = np.zeros(5)
@@ -784,35 +964,17 @@ for i,station in enumerate(stations):
         if season == 'Annual':
             minday = 0
             maxday = 363
-        # elif season == 'Winter':
-        #     minday = 0
-        #     maxday = 91
-        # elif season == 'Spring':
-        #     minday = 91
-        #     maxday = 182
-        # elif season == 'Summer':
-        #     minday = 182
-        #     maxday = 274
-        # elif season == 'Fall':
-        #     minday = 274
-        #     maxday = 363
-        elif season == 'Jan/Feb':
+        elif season == 'Winter':
             minday = 0
-            maxday = 60
-        elif season == 'Mar/Apr':
-            minday = 60
-            maxday = 121
-        elif season == 'May/Jun':
-            minday = 121
+            maxday = 91
+        elif season == 'Spring':
+            minday = 91
             maxday = 182
-        elif season == 'Jul/Aug':
+        elif season == 'Summer':
             minday = 182
-            maxday = 244
-        elif season == 'Oct/Sep':
-            minday = 244
-            maxday = 305
-        elif season == 'Nov/Dec':
-            minday = 305
+            maxday = 274
+        elif season == 'Fall':
+            minday = 274
             maxday = 363
 
         # # calculate average ratio of sources to sinks over time interval
@@ -858,7 +1020,7 @@ for i,station in enumerate(stations):
     multiplier_ratio += 1
 
 # add legend
-ax[0].legend(loc='upper right', fontsize=10, ncol=2)
+ax[0].legend(loc='upper right', fontsize=10)
 ax[1].legend(loc='lower right', fontsize=10)
 ax[3].legend(loc='upper center', ncol=5, fontsize=12,handletextpad=0.1,
              bbox_to_anchor=(0.64, 4.86), frameon=False)
@@ -868,7 +1030,7 @@ ax[0].set_ylim([0,12])
 # ax[3].set_ylim([-0.5,0.5])
 
 # add description
-ax[1].text(0.82,0.94,'*WWTP input is negligible',zorder=6,
+ax[1].text(0.8,0.94,'*WWTP input is negligible',zorder=6,
                 ha='left', va='top', transform=ax[1].transAxes, fontsize=10)
 # ax[3].text(0.01,0.94,
 #            r'ratio = $\frac{\mathrm{Sources}}{\mathrm{Sinks}}$ = $\frac{\mathrm{Photo + Recirc + WWTPs}}{\mathrm{Cons.}}$',
@@ -882,15 +1044,11 @@ ax[1].axhline(0,0,5, linewidth=2, linestyle=':', color='k', zorder=6) # zero
 ax[2].axhline(0,0,5, linewidth=2, linestyle=':', color='k', zorder=6) # zero
 ax[3].axhline(0,0,5, linewidth=2, linestyle=':', color='k', zorder=6) # one
 # vertical lines
-for addit in [0,1,2,3,4,5]:
-    if addit == 0:
-        color = 'gray'
-    else:
-        color = 'white'
-    ax[0].axvline(0.8+addit,0,12, linewidth=1, color=color)
-    ax[1].axvline(0.8+addit,-0.3,1, linewidth=1, color=color)
-    ax[2].axvline(0.8+addit,-0.3,1, linewidth=1, color=color)
-    ax[3].axvline(0.8+addit,0,5, linewidth=1, color=color)
+for addit in [0,1,2,3]:
+    ax[0].axvline(0.8+addit,0,12, linewidth=1, color='white')
+    ax[1].axvline(0.8+addit,-0.3,1, linewidth=1, color='white')
+    ax[2].axvline(0.8+addit,-0.3,1, linewidth=1, color='white')
+    ax[3].axvline(0.8+addit,0,5, linewidth=1, color='white')
 
 # add category labels on x-axis
 ax[3].set_xticks(x*(0.25 + width*5) + 0.3, seasons, fontsize=14)
