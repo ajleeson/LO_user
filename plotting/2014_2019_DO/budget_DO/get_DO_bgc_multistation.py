@@ -33,10 +33,11 @@ Ldir['gtagex'] = 'cas7_t0_x4b'
 
 # ds0 = '2014.01.01'
 # ds1 = '2014.01.02'
+year = '2017'
 
 # jan
-# ds0 = '2017.01.01'
-# ds1 = '2017.01.31'
+ds0 = '2017.01.01'
+ds1 = '2017.01.31'
 # feb
 # ds0 = '2017.02.01'
 # ds1 = '2017.02.28'
@@ -50,8 +51,8 @@ Ldir['gtagex'] = 'cas7_t0_x4b'
 # ds0 = '2017.05.01'
 # ds1 = '2017.05.31'
 # jun
-ds0 = '2017.06.01'
-ds1 = '2017.06.30'
+# ds0 = '2017.06.01'
+# ds1 = '2017.06.30'
 
 # jul
 # ds0 = '2017.07.01'
@@ -73,7 +74,7 @@ ds1 = '2017.06.30'
 # ds1 = '2017.12.31'
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+ds0+'_'+ds1) / '2layer_bgc'
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+year+'.01.01_'+year+'.12.31') / '2layer_bgc'
 Lfun.make_dir(out_dir)
 
 
@@ -157,7 +158,7 @@ df_dict = {'lynchcove': pd.DataFrame(),
 cnt = 0
 #%%
 while dt00 <= dt1:  # loop each day and every history file
-    print(dt00)
+    # print(dt00)
     sys.stdout.flush()
     ds00 = dt00.strftime(Lfun.ds_fmt)
     fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
@@ -381,7 +382,7 @@ while dt00 <= dt1:  # loop each day and every history file
         ds.close()       
     dt00 = dt00 + timedelta(days=1)
 
-for station in stations:
+for station in sta_dict: #for station in stations:
     # get dataframe for saving
     df = df_dict[station]
     # save to pickle file
