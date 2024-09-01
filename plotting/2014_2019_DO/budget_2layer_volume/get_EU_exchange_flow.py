@@ -30,10 +30,10 @@ Ldir = Lfun.Lstart()
 
 gtagex = 'cas7_t0_x4b'
 jobname = 'twentyoneinlets'
-startdate = '2014.01.01'
-enddate = '2014.12.31'
-enddate_hrly = '2015.01.01 00:00:00'
-year = '2014' # for making a date label
+startdate = '2017.01.01'
+enddate = '2017.12.31'
+enddate_hrly = '2018.01.01 00:00:00'
+year = '2017' # for making a date label
 
 ##########################################################
 ##              Get stations and gtagexes               ##
@@ -67,7 +67,7 @@ print('\n')
 
 stations = ['lynchcove','penn','budd','case','carr']
 
-for i,station in enumerate(stations): # enumerate(sta_dict):
+for i,station in enumerate(sta_dict): # enumerate(stations): 
     # print status
     print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
 

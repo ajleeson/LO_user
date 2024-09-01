@@ -24,7 +24,7 @@ from lo_tools import plotting_functions as pfun
 
 Ldir = Lfun.Lstart()
 
-residual = True
+residual = False
 show_EU = False
 
 ##########################################################
@@ -502,7 +502,7 @@ for j,season in enumerate(seasons):
             # calculate annual average
             time_avg = np.nanmean(measurement[minday:maxday])
             # get volume average
-            avg = time_avg/(np.nanmean(surf_V[minday:maxday]))
+            avg = time_avg/(np.nanmean(deep_V[minday:maxday]))
             # convert to umol
             avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
             # plot
