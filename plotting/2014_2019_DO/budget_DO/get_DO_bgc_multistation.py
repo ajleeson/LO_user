@@ -17,9 +17,11 @@ tt0 = time()
 
 #-----------------------------------------------
 
-stations = ['lynchcove','penn','budd','case','carr']
+# stations = ['lynchcove','penn','budd','case','carr']
 # create dictionaries with interface depths
 interface_dict = dict()
+
+jobname = 'twentyoneinlets'
 
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
@@ -33,41 +35,41 @@ Ldir['gtagex'] = 'cas7_t0_x4b'
 # ds1 = '2014.01.02'
 
 # jan
-# ds0 = '2014.01.01'
-# ds1 = '2014.01.31'
+ds0 = '2017.01.01'
+ds1 = '2017.01.31'
 # feb
-# ds0 = '2014.02.01'
-# ds1 = '2014.02.28'
+# ds0 = '2017.02.01'
+# ds1 = '2017.02.28'
 # mar
-# ds0 = '2014.03.01'
-# ds1 = '2014.03.31'
+# ds0 = '2017.03.01'
+# ds1 = '2017.03.31'
 # apr
-# ds0 = '2014.04.01'
-# ds1 = '2014.04.30'
+# ds0 = '2017.04.01'
+# ds1 = '2017.04.30'
 # may
-# ds0 = '2014.05.01'
-# ds1 = '2014.05.31'
+# ds0 = '2017.05.01'
+# ds1 = '2017.05.31'
 # jun
-# ds0 = '2014.06.01'
-# ds1 = '2014.06.30'
+# ds0 = '2017.06.01'
+# ds1 = '2017.06.30'
 # jul
-# ds0 = '2014.07.01'
-# ds1 = '2014.07.31'
+# ds0 = '2017.07.01'
+# ds1 = '2017.07.31'
 # aug
-# ds0 = '2014.08.01'
-# ds1 = '2014.08.31'
+# ds0 = '2017.08.01'
+# ds1 = '2017.08.31'
 # sep
-# ds0 = '2014.09.01'
-# ds1 = '2014.09.30'
+# ds0 = '2017.09.01'
+# ds1 = '2017.09.30'
 # oct
-# ds0 = '2014.10.01'
-# ds1 = '2014.10.31'
+# ds0 = '2017.10.01'
+# ds1 = '2017.10.31'
 # nov
-# ds0 = '2014.11.01'
-# ds1 = '2014.11.30'
+# ds0 = '2017.11.01'
+# ds1 = '2017.11.30'
 # dec
-ds0 = '2014.12.01'
-ds1 = '2014.12.31'
+# ds0 = '2017.12.01'
+# ds1 = '2017.12.31'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+ds0+'_'+ds1) / '2layer_bgc'
@@ -110,13 +112,34 @@ OC0 = -0.000000488682
 
 #%%
 
+# find job lists from the extract moor
+job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' / 'job_lists.py')
+
+# Get mooring stations:
+sta_dict = job_lists.get_sta_dict(jobname)
+
 # create dictionary of empty dataframes
 df_dict = {'lynchcove': pd.DataFrame(),
            'penn': pd.DataFrame(),
            'budd': pd.DataFrame(),
            'carr': pd.DataFrame(),
-           'case': pd.DataFrame()}
-
+           'case': pd.DataFrame(),
+           'commencement': pd.DataFrame(),
+           'crescent': pd.DataFrame(),
+           'dabob': pd.DataFrame(),
+           'dyes': pd.DataFrame(),
+           'eld': pd.DataFrame(),
+           'elliot': pd.DataFrame(),
+           'hammersley': pd.DataFrame(),
+           'henderson': pd.DataFrame(),
+           'holmes': pd.DataFrame(),
+           'killsut': pd.DataFrame(),
+           'oak': pd.DataFrame(),
+           'portsusan': pd.DataFrame(),
+           'quartermaster': pd.DataFrame(),
+           'similk': pd.DataFrame(),
+           'sinclair': pd.DataFrame(),
+           'totten': pd.DataFrame()}
 
 # ret_sod = []
 # ret_photo_surf = []
@@ -269,7 +292,7 @@ while dt00 <= dt1:  # loop each day and every history file
         ## GET VALUES IN EACH TERMINAL INLET AND SAVE IN INDIVIDUAL FILE ##
         ###################################################################
 
-        for station in stations:
+        for station in sta_dict: # stations: 
 
             # get interface depth from csv file
             with open('interface_depths.csv', 'r') as f:
