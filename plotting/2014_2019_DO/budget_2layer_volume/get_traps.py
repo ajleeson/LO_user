@@ -180,6 +180,9 @@ for vn in vn_list:
 
 stations = ['lynchcove','penn','budd','case','carr']
 
+traps_surf = []
+traps_deep = []
+
 for i,station in enumerate(sta_dict): # enumerate(stations): 
     # print status
     print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
