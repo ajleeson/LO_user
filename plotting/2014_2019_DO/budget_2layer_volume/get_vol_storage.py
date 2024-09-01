@@ -15,10 +15,15 @@ tt0 = time()
 Ldir = Lfun.Lstart()
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
-ds0 = '2014.01.01'
-ds1 = '2014.12.31'
-year = '2014'
+ds0 = '2017.01.01'
+ds1 = '2017.12.31'
+year = '2017'
+jobname = 'twentyoneinlets'
 Ldir['ds0'] = ds0
+
+Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
+# Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc
+
 in_dir = Ldir['roms_out'] / Ldir['gtagex']
 # G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
 
@@ -34,6 +39,12 @@ Lfun.make_dir(out_dir)
 dt0 = datetime.strptime(ds0, Lfun.ds_fmt)
 dt1 = datetime.strptime(ds1, Lfun.ds_fmt)
 dt00 = dt0
+
+# find job lists from the extract moor
+job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' / 'job_lists.py')
+
+# Get mooring stations:
+sta_dict = job_lists.get_sta_dict(jobname)
 
 #########################################################
 # Get lowpass Godin filter box extraction for pugetsoundDO
@@ -65,7 +76,7 @@ stations = ['lynchcove','penn','budd','case','carr']
 interface_dict = dict()
 
 
-for i,station in enumerate(stations): # enumerate(sta_dict):
+for i,station in enumerate(sta_dict): # enumerate(stations): 
     # print status
     print('({}/{}) Working on {}...'.format(i+1,len(stations),station))
 

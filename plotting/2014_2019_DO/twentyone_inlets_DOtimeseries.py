@@ -111,8 +111,11 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
 
     bott_ox_raw = ds['oxygen'].values[:,0] # 0 = bottom layer
     val = bott_ox_raw *  pinfo.fac_dict['oxygen'] # convert to mg/L
+
+    val = zfun.lowpass(val-np.nanmean(val),f='hanning',n=30)
+
     # plot
-    ax.plot(dates_local,val,linewidth=3,color=color,alpha=0.3)
+    ax.plot(dates_local,val,linewidth=1,color=color,alpha=0.6)
 
     # plot time and location of max bott_DO
     max_DO = np.max(val)
@@ -121,9 +124,9 @@ for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
     # ax.scatter(max_time,max_DO,color=color,s=70,edgecolor='k',zorder=3)
 
 # FORMATTING ---------------------------------------------------------
-ax.set_ylim([0,14])
 ax.set_ylabel(r'DO$_{bot}$ [mg $L^{-1}$]',fontsize=ls+2)
-ax.set_yticks(np.arange(0, 16, 2))
+# ax.set_ylim([0,14])
+# ax.set_yticks(np.arange(0, 16, 2))
 ax.set_xlim([dates_local[0],dates_local[-1]])
 ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
 ax.tick_params(axis='both', which='major', labelsize=ls)
