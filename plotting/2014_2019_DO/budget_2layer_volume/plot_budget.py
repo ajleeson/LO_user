@@ -149,6 +149,11 @@ for i,station in enumerate(sta_dict): # enumerate(stations):
             # 10-day hanning window filter (10 days = 240 hours)
             # traps_surf = zfun.lowpass(rivers_surf_unfiltered, f='hanning', n=240)
             # traps_deep = zfun.lowpass(wwtps_deep_unfiltered, f='hanning', n=240)
+            # Pad with zeros if no rivers or WWTPs
+            if rivers_surf_unfiltered.size == 0:
+                 rivers_surf_unfiltered = np.zeros(8761)
+            if wwtps_deep_unfiltered.size == 0:
+                 wwtps_deep_unfiltered = np.zeros(8761)
             # Godin filter
             traps_surf = zfun.lowpass(rivers_surf_unfiltered, f='godin')[36:-34:24]
             traps_deep = zfun.lowpass(wwtps_deep_unfiltered, f='godin')[36:-34:24]
