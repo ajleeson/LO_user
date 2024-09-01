@@ -103,7 +103,7 @@ with open(river_info, 'r') as f:
 # ##     calculate all river and wwtp DO transports       ##
 # ##########################################################
 
-frc = 'traps00'
+frc = 'trapsF00'
 frc_fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc'
 
 # list of variables to extract
