@@ -171,11 +171,14 @@ for vn in vn_list:
 ##        Calculate shallow and deep exchange flow      ##
 ##########################################################
 
-stations = ['lynchcove','penn','budd','case','carr']
+# stations = ['lynchcove','penn','budd','case','carr']
 
-for i,station in enumerate(stations): # enumerate(sta_dict):
+traps_surf = []
+traps_deep = []
+
+for i,station in enumerate(sta_dict): #enumerate(stations): 
     # print status
-    print('({}/{}) Working on {}...'.format(i+1,len(stations),station))
+    print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
 
     # initialize empty dataframe for saving
     df = pd.DataFrame()
