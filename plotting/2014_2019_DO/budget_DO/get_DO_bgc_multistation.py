@@ -31,8 +31,8 @@ Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
 # Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
-ds0 = '2014.01.01'
-ds1 = '2014.01.02'
+ds0 = '2017.01.01'
+ds1 = '2017.01.02'
 year = '2017'
 
 # jan
@@ -386,4 +386,5 @@ for station in sta_dict: #for station in stations:
     # get dataframe for saving
     df = df_dict[station]
     # save to pickle file
+    Lfun.make_dir(out_dir/station)
     df.to_pickle(out_dir / station / (station + '_' + ds0 + '_' + ds1 + '.p'))
