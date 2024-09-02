@@ -39,8 +39,8 @@ year = '2017'
 # ds0 = '2017.01.01'
 # ds1 = '2017.01.31'
 # feb
-# ds0 = '2017.02.01'
-# ds1 = '2017.02.28'
+ds0 = '2017.02.01'
+ds1 = '2017.02.28'
 # mar
 # ds0 = '2017.03.01'
 # ds1 = '2017.03.31'
@@ -51,8 +51,8 @@ year = '2017'
 # ds0 = '2017.05.01'
 # ds1 = '2017.05.31'
 # jun
-ds0 = '2017.06.01'
-ds1 = '2017.06.30'
+# ds0 = '2017.06.01'
+# ds1 = '2017.06.30'
 
 # jul
 # ds0 = '2017.07.01'
@@ -158,13 +158,13 @@ df_dict = {'lynchcove': pd.DataFrame(),
 cnt = 0
 #%%
 while dt00 <= dt1:  # loop each day and every history file
-    # print(dt00)
+    print(dt00)
     sys.stdout.flush()
     ds00 = dt00.strftime(Lfun.ds_fmt)
     fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
     #%%
     for fn in fn_list[0:-1]: 
-        print(fn)
+        # print(fn)
 
         ds = xr.open_dataset(fn)
         swrad = ds.swrad.values.squeeze()
