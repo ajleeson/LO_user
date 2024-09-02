@@ -31,16 +31,16 @@ Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
 # Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc
 Ldir['gtagex'] = 'cas7_t0_x4b'
 
-# ds0 = '2014.01.01'
-# ds1 = '2014.01.02'
+ds0 = '2014.01.01'
+ds1 = '2014.01.02'
 year = '2017'
 
 # jan
 # ds0 = '2017.01.01'
 # ds1 = '2017.01.31'
 # feb
-ds0 = '2017.02.01'
-ds1 = '2017.02.28'
+# ds0 = '2017.02.01'
+# ds1 = '2017.02.28'
 # mar
 # ds0 = '2017.03.01'
 # ds1 = '2017.03.31'
