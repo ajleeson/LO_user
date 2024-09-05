@@ -929,35 +929,35 @@ if meanDO_bottsigDO == True:
     plt.savefig(out_dir / 'scatter_meanDO_bottsigDO.png' )
 
 
-# Annual mean DO and summer DO ------------------------------------------------
-# initialize figure
-plt.close('all')
-fig, ax = plt.subplots(1,1,figsize = (5,5))
-# format figure
-plt.suptitle('Aug/Sep mean deep DO vs. annual mean inflowing DO', size=12)
-# format grid
-ax.set_facecolor('#EEEEEE')
-ax.tick_params(axis='x', labelrotation=30)
-ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
-for border in ['top','right','bottom','left']:
-    ax.spines[border].set_visible(False)
-ax.tick_params(axis='y', labelsize=12)
-ax.set_xlabel('Mean annual inflowing DO [mg/L]')
-ax.set_ylabel('Mean Aug/Sep deep layer DO [mg/L]')
-ax.set_xlim([0,11])
-ax.set_ylim([0,11])
-# plot
-ax.scatter(mean_DOin,deep_lay_DO,alpha=0.5,s=100,zorder=5,
-        color=colors)
-# calculate correlation coefficient (Pearson)
-r,p = pearsonr(mean_DOin,deep_lay_DO)
-ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
-                        verticalalignment='bottom', horizontalalignment='left',
-                        transform=ax.transAxes, fontsize=12, fontweight='bold')
-ax.text(0.1, 0.79, r'$p =$' + str(round(p,3)) ,color='black',
-                        verticalalignment='bottom', horizontalalignment='left',
-                        transform=ax.transAxes, fontsize=12, fontweight='bold')
-plt.show()
+# # Annual mean DO and summer DO ------------------------------------------------
+# # initialize figure
+# plt.close('all')
+# fig, ax = plt.subplots(1,1,figsize = (5,5))
+# # format figure
+# plt.suptitle('Aug/Sep mean deep DO vs. annual mean inflowing DO', size=12)
+# # format grid
+# ax.set_facecolor('#EEEEEE')
+# ax.tick_params(axis='x', labelrotation=30)
+# ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+# for border in ['top','right','bottom','left']:
+#     ax.spines[border].set_visible(False)
+# ax.tick_params(axis='y', labelsize=12)
+# ax.set_xlabel('Mean annual inflowing DO [mg/L]')
+# ax.set_ylabel('Mean Aug/Sep deep layer DO [mg/L]')
+# ax.set_xlim([0,11])
+# ax.set_ylim([0,11])
+# # plot
+# ax.scatter(mean_DOin,deep_lay_DO,alpha=0.5,s=100,zorder=5,
+#         color=colors)
+# # calculate correlation coefficient (Pearson)
+# r,p = pearsonr(mean_DOin,deep_lay_DO)
+# ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+#                         verticalalignment='bottom', horizontalalignment='left',
+#                         transform=ax.transAxes, fontsize=12, fontweight='bold')
+# ax.text(0.1, 0.79, r'$p =$' + str(round(p,3)) ,color='black',
+#                         verticalalignment='bottom', horizontalalignment='left',
+#                         transform=ax.transAxes, fontsize=12, fontweight='bold')
+# plt.show()
 
 # # physical dimensions ------------------------------------------------
 # # initialize figure
@@ -987,105 +987,114 @@ plt.show()
 #                         transform=ax.transAxes, fontsize=12, fontweight='bold')
 # plt.show()
 
-# ##########################################################
-# ##                  Bottom DO time series               ## 
-# ##########################################################
+##########################################################
+##                  Bottom DO time series               ## 
+##########################################################
 
-# # initialize figure
-# plt.close('all')
-# fig, ax = plt.subplots(2,1,figsize = (10,8),sharex=True)
-# # format figure
-# plt.suptitle(year + ' deep layer DO time series [mg/L]\ncolored by aspect ration (L/W)',
-#                 size=16)
-# # format grid
-# for axis in [ax[0],ax[1]]:
-#     axis.set_facecolor('#EEEEEE')
-#     axis.tick_params(axis='x', labelrotation=30)
-#     axis.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-#     axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
-#     for border in ['top','right','bottom','left']:
-#         axis.spines[border].set_visible(False)
-#     axis.tick_params(axis='y', labelsize=12)
+# initialize figure
+plt.close('all')
+fig, ax = plt.subplots(2,1,figsize = (10,8),sharex=True)
+# format figure
+plt.suptitle(year + ' deep layer DO time series [mg/L]\ncolored by aspect ration (L/W)',
+                size=16)
+# format grid
+for axis in [ax[0],ax[1]]:
+    axis.set_facecolor('#EEEEEE')
+    axis.tick_params(axis='x', labelrotation=30)
+    axis.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+    axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        axis.spines[border].set_visible(False)
+    axis.tick_params(axis='y', labelsize=12)
 
-# ax[0].set_title('(a) Average deep-layer DO',
-#                 fontsize=12,loc='left')
-# ax[1].set_title('(b) Average deep-layer DO with annual mean subtracted',
-#                 fontsize=12,loc='left')
+ax[0].set_title('(a) Average deep-layer DO',
+                fontsize=12,loc='left')
+ax[1].set_title('(b) Average deep-layer DO with annual mean subtracted',
+                fontsize=12,loc='left')
 
-# n = 67#106#67
-# # colors = plt.cm.bwr_r(np.linspace(0,1,n))
-# # colors = plt.cm.rainbow_r(np.linspace(0,1,n))
-# # colors = plt.cm.coolwarm_r(np.linspace(0,1,n))
-# # colors = plt.cm.nipy_spectral(np.linspace(0,1,n))
-# colors = plt.cm.magma_r(np.linspace(0,1,n))
+n = 67#106#67
+# colors = plt.cm.bwr_r(np.linspace(0,1,n))
+# colors = plt.cm.rainbow_r(np.linspace(0,1,n))
+# colors = plt.cm.coolwarm_r(np.linspace(0,1,n))
+# colors = plt.cm.nipy_spectral(np.linspace(0,1,n))
+colors = plt.cm.magma_r(np.linspace(0,1,n))
         
-# # loop through stations
-# for i,station in enumerate(sta_dict):
+# loop through stations
+for i,station in enumerate(sta_dict):
 
-#     # get average deep layer DO
-#     deep_lay_DO = DOconcen_dict[station]['Deep Layer']
+    # get average deep layer DO
+    deep_lay_DO = DOconcen_dict[station]['Deep Layer']
 
-#     # get the minimum deep layer DO
-#     mindeepDO = np.nanmin(DOconcen_dict[station]['Deep Layer'])
-#     # print(round(mindeepDO))
+    # get the minimum deep layer DO
+    mindeepDO = np.nanmin(DOconcen_dict[station]['Deep Layer'])
+    # print(round(mindeepDO))
 
-#     # get annual mean deep layer DO
-#     ann_mean_DO = np.nanmean(DOconcen_dict[station]['Deep Layer'])
+    # get annual mean deep layer DO
+    ann_mean_DO = np.nanmean(DOconcen_dict[station]['Deep Layer'])
 
-#     # subtract annual mean
-#     deep_lay_no_mean = deep_lay_DO - ann_mean_DO
+    # subtract annual mean
+    deep_lay_no_mean = deep_lay_DO - ann_mean_DO
 
-#     # get mean depth
-#     mean_depth = dimensions_dict[station]['Mean depth'].values[0]
+    # get mean depth
+    mean_depth = dimensions_dict[station]['Mean depth'].values[0]
 
-#     # get volume
-#     inlet_vol = dimensions_dict[station]['Inlet volume'].values[0]
+    # get volume
+    inlet_vol = dimensions_dict[station]['Inlet volume'].values[0]
 
-#     # get aspect ratio
-#     aspect_ratio = dimensions_dict[station]['L/W aspect ratio'].values[0]
+    # get aspect ratio
+    aspect_ratio = dimensions_dict[station]['L/W aspect ratio'].values[0]
 
-#     # # 30 day hanning window
-#     # deep_lay_DO = zfun.lowpass(deep_lay_DO.values,f='hanning',n=30)
-#     # deep_lay_no_mean = zfun.lowpass(deep_lay_no_mean.values,f='hanning',n=90)
+    # # 30 day hanning window
+    # deep_lay_DO = zfun.lowpass(deep_lay_DO.values,f='hanning',n=30)
+    # deep_lay_no_mean = zfun.lowpass(deep_lay_no_mean.values,f='hanning',n=90)
 
-#     # plot DO colored by mean depth
-#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
-#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(mean_depth)-1])
-#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
-#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(mean_depth)-1])
+    # plot DO colored by mean depth
+    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
+    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(mean_depth)-1])
+    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
+    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(mean_depth)-1])
 
-#     # # plot DO colored by inlet volume
-#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
-#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(inlet_vol/10000000)-1])
-#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
-#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(inlet_vol/10000000)-1])
+    # # plot DO colored by inlet volume
+    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
+    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(inlet_vol/10000000)-1])
+    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
+    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(inlet_vol/10000000)-1])
 
-#     # plot DO colored by aspect ratio
-#     # if station == 'dyes':
-#     #     continue # dyes inlet aspect ratio is large, and likely an overestimate, given geometry
-#     ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
-#     ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(aspect_ratio)-1])
-#     ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
-#     ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(aspect_ratio)-1])
+    # # plot DO colored by aspect ratio
+    # # if station == 'dyes':
+    # #     continue # dyes inlet aspect ratio is large, and likely an overestimate, given geometry
+    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
+    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(aspect_ratio)-1])
+    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
+    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(aspect_ratio)-1])
 
-#     # # plot raw deep layer DO colored by basin
-#     # if basin_dict[station] == 'Admiralty Inlet':
-#     #     ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8,zorder=24)
-#     #     ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
-#     #     # plot deep layer DO with annual mean subtracted out colored by min deep layer DO
-#     #     ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8, zorder=24)
-#     #     ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
-#     # else:
-#     #     ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color=basin_color_dict[basin_dict[station]], alpha=0.3)
-#     #     ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color=basin_color_dict[basin_dict[station]], alpha=0.3)
+    # plot raw deep layer DO colored by basin
+    if basin_dict[station] == 'Whidbey':
+        ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8,zorder=24)
+        ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
+        # plot deep layer DO with annual mean subtracted out colored by min deep layer DO
+        ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8, zorder=24)
+        ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
+        # add Skagit river hydrograph
+        fp_LOrivs = Ldir['LOo'] / 'pre' / 'river1' / 'lo_base' / 'Data_historical' / 'CLIM_flow.p'
+        # pre-existing LO river flowrates
+        flowdf_LOrivs = pd.read_pickle(fp_LOrivs)    # m3/s
+        flowdf_LOrivs = flowdf_LOrivs.reset_index(drop=True)
+        print(list(flowdf_LOrivs.keys()))
+        flow = flowdf_LOrivs['skagit'].values
+        ax2=ax[1].twinx()
+        ax2.plot(dates_local_daily,flow[1:-2],color='black',zorder=30)
+    else:
+        ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color=basin_color_dict[basin_dict[station]], alpha=0.3)
+        ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color=basin_color_dict[basin_dict[station]], alpha=0.3)
 
-#     # format labels
-#     ax[0].set_xlim([dates_local[0],dates_local[-1]])
-#     # ax.set_ylim([-5,5])
+    # format labels
+    ax[0].set_xlim([dates_local[0],dates_local[-1]])
+    # ax.set_ylim([-5,5])
 
-# # ax.legend(loc='upper right', ncol=5)
+# ax.legend(loc='upper right', ncol=5)
 
-# plt.show()
+plt.show()
 
 
 # # # # ##########################################################
