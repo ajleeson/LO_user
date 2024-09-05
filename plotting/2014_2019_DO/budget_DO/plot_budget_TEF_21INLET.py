@@ -14,6 +14,7 @@ import pandas as pd
 import matplotlib.patches as mpatches
 import math
 import matplotlib.patches as patches
+from matplotlib.colors import ListedColormap
 import csv
 import cmocean
 from scipy.stats import pearsonr
@@ -344,6 +345,8 @@ for i,station in enumerate(sta_dict):
         v_count = uv_list.count('v')
         mouth_width = 500 * np.sqrt(u_count**2 + v_count**2)
         est_aspect_ratio = inlet_area / mouth_width**2
+        # get mouth area, for calculating fluxes 
+
         
 # ------------------------- save data in dataframe dict -----------------------------------
         # Note: everything is in units of kmol O2 /s
@@ -374,6 +377,7 @@ for i,station in enumerate(sta_dict):
         bottomlay_dict[station]['TEF Vertical'] = vertX_deep_TEF
         bottomlay_dict[station]['Storage'] = ddtDOV_deep
         bottomlay_dict[station]['Volume'] = deep_V
+        bottomlay_dict[station]['Qin m3/s'] = Q_p.values 
 
 # ------------------------- save DO concentrations in dataframe dict -----------------------------------
 
@@ -390,6 +394,7 @@ for i,station in enumerate(sta_dict):
 
         dimensions_dict[station]['Inlet volume'] = [inlet_vol] # m3
         dimensions_dict[station]['Mean depth'] = [mean_depth] # m
+        dimensions_dict[station]['Mouth width'] = mouth_width
         dimensions_dict[station]['L/W aspect ratio'] = [est_aspect_ratio] # dimensionless
 
         # print keys
@@ -414,6 +419,13 @@ if DO_budget == True:
 
     for i,station in enumerate(sta_dict):
             
+            # get interface depth from csv file
+            with open('interface_depths.csv', 'r') as f:
+                for line in f:
+                    inlet, interface_depth = line.strip().split(',')
+                    interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
+            z_interface = float(interface_dict[station])
+
             # initialize figure
             plt.close('all')
             fig, ax = plt.subplots(4,1,figsize = (12,9),sharex=True)
@@ -792,7 +804,7 @@ if budget_barchart == True:
             storage_surf = storage_surf * 1000 * 1000 * 1000 # umol O2 /s /m3
             storage_deep = storage_deep * 1000 * 1000 * 1000 # umol O2 /s /m3
             # convert to mg/L per day
-            storage_surf = storage_surf * (32/1000/1000) * (60*60*24)
+            storage_surf = storage_surf * (32/1000/1000) * (60*60*24) 
             storage_surf = storage_deep * (32/1000/1000) * (60*60*24)
             # decide where to start next bar
             if storage_surf > 0 and storage_deep > 0:
@@ -870,39 +882,117 @@ if budget_barchart == True:
 ##########################################################
 
 # initialize arrays for plotting
-deep_lay_DO = np.zeros(len(sta_dict))
-bott_sig_DO = np.zeros(len(sta_dict))
-annual_mean_DO = np.zeros(len(sta_dict))
-mean_DOin = np.zeros(len(sta_dict))
-mean_depth = np.zeros(len(sta_dict))
-inlet_vol = np.zeros(len(sta_dict))
-aspect_ratio = np.zeros(len(sta_dict))
+deep_lay_DO = np.zeros(len(sta_dict)*12)
+bott_sig_DO = np.zeros(len(sta_dict)*12)
+annual_mean_DO = np.zeros(len(sta_dict)*12)
+mean_DOin = np.zeros(len(sta_dict)*12)
+mean_Tflush = np.zeros(len(sta_dict)*12)
+mean_TEFin = np.zeros(len(sta_dict)*12)
+mean_recirc = np.zeros(len(sta_dict)*12)
+mean_cons = np.zeros(len(sta_dict)*12)
+mean_depth = np.zeros(len(sta_dict)*12)
+inlet_vol = np.zeros(len(sta_dict)*12)
+aspect_ratio = np.zeros(len(sta_dict)*12)
+
+# deep_lay_DO = np.zeros(len(sta_dict))
+# bott_sig_DO = np.zeros(len(sta_dict))
+# annual_mean_DO = np.zeros(len(sta_dict))
+# mean_DOin = np.zeros(len(sta_dict))
+# mean_Tflush = np.zeros(len(sta_dict))
+# mean_TEFin = np.zeros(len(sta_dict))
+# mean_recirc = np.zeros(len(sta_dict))
+# mean_cons = np.zeros(len(sta_dict))
+# mean_depth = np.zeros(len(sta_dict))
+# inlet_vol = np.zeros(len(sta_dict))
+# aspect_ratio = np.zeros(len(sta_dict))
 colors = []
 
 # get values for plotting and calculating r value
 for i,station in enumerate(sta_dict):
-    # get minday and maxday for aug 1 sep 30:
-    minday = 212
-    maxday = 243
-    # save values
-    deep_lay_DO[i] =  np.nanmean(DOconcen_dict[station]['Deep Layer'][minday:maxday])
-    bott_sig_DO[i] =  np.nanmean(DOconcen_dict[station]['Bottom Sigma DO'][minday:maxday])
-    annual_mean_DO[i] = np.nanmean(DOconcen_dict[station]['Deep Layer'])
-    mean_DOin[i] = np.nanmean(DOconcen_dict[station]['Qin DO'])
-    mean_depth[i] = dimensions_dict[station]['Mean depth'][0]
-    inlet_vol[i] = dimensions_dict[station]['Inlet volume'][0]
-    aspect_ratio[i] = dimensions_dict[station]['L/W aspect ratio'][0]
-    colors.append(basin_color_dict[basin_dict[station]])
+    # get interface depth from csv file
+    with open('interface_depths.csv', 'r') as f:
+        for line in f:
+            inlet, interface_depth = line.strip().split(',')
+            interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
+    z_interface = float(interface_dict[station])
+    fn = '../../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_2014.01.01_2014.12.31.nc'
+    ds = xr.open_dataset(fn)
+    moor_depth = ds.h.values
     
-meanDO_bottsigDO = False
+    for month in range(12):
+        if month == 0:
+            minday = 1
+            maxday = 32
+        elif month == 1:
+            minday = 32
+            maxday = 60
+        elif month == 2:
+            minday = 60
+            maxday = 91
+        elif month == 3:
+            minday = 91
+            maxday = 121
+        elif month == 4:
+            minday = 121
+            maxday = 152
+        elif month == 5:
+            minday = 152
+            maxday = 182
+        elif month == 6:
+            minday = 182
+            maxday = 213
+        elif month == 7:
+            minday = 213
+            maxday = 244
+        elif month == 8:
+            minday = 244
+            maxday = 274
+        elif month == 9:
+            minday = 274
+            maxday = 305
+        elif month == 10:
+            minday = 305
+            maxday = 335
+        elif month == 11:
+            minday = 335
+            maxday = 363
+        # save values
+        deep_lay_DO[i*12+month] =  np.nanmean(DOconcen_dict[station]['Deep Layer'][minday:maxday])
+        bott_sig_DO[i*12+month] =  np.nanmean(DOconcen_dict[station]['Bottom Sigma DO'][minday:maxday])
+        annual_mean_DO[i*12+month] = np.nanmean(DOconcen_dict[station]['Deep Layer'])
+        mean_DOin[i*12+month] = np.nanmean(DOconcen_dict[station]['Qin DO'][minday:maxday])
+        mean_Tflush[i*12+month] = np.nanmean(dimensions_dict[station]['Inlet volume'][0]/bottomlay_dict[station]['Qin m3/s'][minday:maxday]) / (60*60*24)
+        mean_TEFin[i*12+month] = np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/bottomlay_dict[station]['Volume'][minday:maxday]) * (
+                                32 * 1000) * (60*60*24)
+        # TESTING ------------- TESTING ------------- TESTING ------------- TESTING ------------- TESTING ------------- TESTING ------------- TESTING 
+        # normalize by total inlet volume, rather than just bottom layer volume
+        # mean_TEFin[i*12+month] = np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/dimensions_dict[station]['Inlet volume'][0]) * (
+        #                         32 * 1000) * (60*60*24)
+        # TESTING ------------- TESTING ------------- TESTING ------------- TESTING ------------- TESTING ------------- TESTING ------------- TESTING
+        mean_recirc[i*12+month] = np.nanmean(bottomlay_dict[station]['TEF Recirculation'][minday:maxday]/bottomlay_dict[station]['Volume'][minday:maxday]) * (
+                                32 * 1000) * (60*60*24)
+        mean_cons[i*12+month] = np.nanmean(bottomlay_dict[station]['Bio Consumption'][minday:maxday]/bottomlay_dict[station]['Volume'][minday:maxday]) * (
+                                32 * 1000) * (60*60*24)
+        mean_depth[i*12+month] = dimensions_dict[station]['Mean depth'][0]
+        inlet_vol[i*12+month] = dimensions_dict[station]['Inlet volume'][0]
+        aspect_ratio[i*12+month] = dimensions_dict[station]['L/W aspect ratio'][0]
+        colors.append(basin_color_dict[basin_dict[station]])
+    
+    # # if annnual average
+    # deep_lay_DO[i] =  np.nanmean(DOconcen_dict[station]['Deep Layer'])
+    # mean_DOin[i] = np.nanmean(DOconcen_dict[station]['Qin DO'])
+    # mean_Tflush[i] = np.nanmean(dimensions_dict[station]['Inlet volume'][0]/bottomlay_dict[station]['Qin m3/s']) / (60*60*24)
+    # colors.append(basin_color_dict[basin_dict[station]])
+    
+meanDOdeep_bottsigDO = False
 # COLLLAPSE
-if meanDO_bottsigDO == True:
+if meanDOdeep_bottsigDO == True:
     # initialize figure
     plt.close('all')
     fig, ax = plt.subplots(1,1,figsize = (5,5))
     # format figure
-    plt.suptitle(year + ' Aug/Sep \n' + r'Mean bottom $\sigma$ layer DO vs. mean deep layer DO',
-                    size=12)
+    plt.suptitle(year + ' monthly mean \n' + r'bottom $\sigma$ layer DO vs. deep layer DO',
+                    size=14)
     # format grid
     ax.set_facecolor('#EEEEEE')
     ax.tick_params(axis='x', labelrotation=30)
@@ -910,14 +1000,13 @@ if meanDO_bottsigDO == True:
     for border in ['top','right','bottom','left']:
         ax.spines[border].set_visible(False)
     ax.tick_params(axis='y', labelsize=12)
-    ax.set_xlabel('Mean deep layer DO [mg/L]')
-    ax.set_ylabel(r'Mean bottom $\sigma$ layer DO [mg/L]')
+    ax.set_xlabel('Monthly mean deep layer DO [mg/L]', fontsize=12)
+    ax.set_ylabel(r'Monthly mean bottom $\sigma$ layer DO [mg/L]', fontsize=12)
     # plot
-    ax.plot([0,11],[0,11],color='gray')
-    ax.scatter(deep_lay_DO,bott_sig_DO,alpha=0.5,s=100,zorder=5,
+    ax.scatter(deep_lay_DO,bott_sig_DO,alpha=0.5,s=10,zorder=5,
             color=colors)
-    ax.set_xlim([0,11])
-    ax.set_ylim([0,11])
+    ax.set_xlim([0,12])
+    ax.set_ylim([0,12])
     # calculate correlation coefficient (Pearson)
     r,p = pearsonr(deep_lay_DO,bott_sig_DO)
     ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
@@ -926,7 +1015,296 @@ if meanDO_bottsigDO == True:
     ax.text(0.1, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
                             verticalalignment='bottom', horizontalalignment='left',
                             transform=ax.transAxes, fontsize=12, fontweight='bold')
+    # create legend
+    whidbey = mpatches.Patch(color='limegreen', label='Whidbey Basin', alpha=0.5)
+    hoodcanal = mpatches.Patch(color='hotpink', label='Hood Canal', alpha=0.5)
+    mainbasin = mpatches.Patch(color='deepskyblue', label='Main Basin', alpha=0.5)
+    southsound = mpatches.Patch(color='blueviolet', label='South Sound', alpha=0.5)
+    admiralty = mpatches.Patch(color='black', label='Admiralty Inlet', alpha=0.5)
+    ax.legend(handles=[whidbey,hoodcanal,mainbasin,southsound,admiralty],loc='lower right')
+    # save figure
     plt.savefig(out_dir / 'scatter_meanDO_bottsigDO.png' )
+
+QinDO_meanDOdeep = False
+# COLLLAPSE
+if QinDO_meanDOdeep == True:
+    # initialize figure
+    plt.close('all')
+    fig, ax = plt.subplots(1,1,figsize = (5,5))
+    # format figure
+    plt.suptitle(year + ' monthly mean \ndeep layer DO vs. inflowing TEF DO',
+                    size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.set_xlabel('Monthly mean inflowing TEF DO [mg/L]', fontsize=12)
+    ax.set_ylabel('Monthly mean deep layer DO [mg/L]', fontsize=12)
+    # plot
+    ax.scatter(mean_DOin,deep_lay_DO,alpha=0.5,s=10,zorder=5,
+            color=colors)
+    ax.set_xlim([0,12])
+    ax.set_ylim([0,12])
+    # calculate correlation coefficient (Pearson)
+    r,p = pearsonr(mean_DOin,deep_lay_DO)
+    ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    ax.text(0.1, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    # create legend
+    whidbey = mpatches.Patch(color='limegreen', label='Whidbey Basin', alpha=0.5)
+    hoodcanal = mpatches.Patch(color='hotpink', label='Hood Canal', alpha=0.5)
+    mainbasin = mpatches.Patch(color='deepskyblue', label='Main Basin', alpha=0.5)
+    southsound = mpatches.Patch(color='blueviolet', label='South Sound', alpha=0.5)
+    admiralty = mpatches.Patch(color='black', label='Admiralty Inlet', alpha=0.5)
+    ax.legend(handles=[whidbey,hoodcanal,mainbasin,southsound,admiralty],loc='lower right')
+    # save figure
+    plt.savefig(out_dir / 'scatter_TEFDOin_meanDO.png' )
+
+TEFDO_meanDOdeep = False
+# COLLLAPSE
+if TEFDO_meanDOdeep == True:
+    # initialize figure
+    plt.close('all')
+    fig, ax = plt.subplots(1,1,figsize = (5,5))
+    # format figure
+    plt.suptitle(year + ' monthly mean \ndeep layer DO vs. TEF transport rate (vol-avg)',
+                    size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.set_xlabel('Monthly mean TEF transport rate [mg/L per day]', fontsize=12)
+    ax.set_ylabel('Monthly mean deep layer DO [mg/L]', fontsize=12)
+    # plot
+    ax.scatter(mean_TEFin,deep_lay_DO,alpha=0.5,s=10,zorder=5,
+            color=colors)
+    # ax.set_xlim([0,12])
+    ax.set_ylim([0,12])
+    # calculate correlation coefficient (Pearson)
+    r,p = pearsonr(mean_TEFin,deep_lay_DO)
+    ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    ax.text(0.1, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    # create legend
+    whidbey = mpatches.Patch(color='limegreen', label='Whidbey Basin', alpha=0.5)
+    hoodcanal = mpatches.Patch(color='hotpink', label='Hood Canal', alpha=0.5)
+    mainbasin = mpatches.Patch(color='deepskyblue', label='Main Basin', alpha=0.5)
+    southsound = mpatches.Patch(color='blueviolet', label='South Sound', alpha=0.5)
+    admiralty = mpatches.Patch(color='black', label='Admiralty Inlet', alpha=0.5)
+    ax.legend(handles=[whidbey,hoodcanal,mainbasin,southsound,admiralty],loc='lower right')
+    plt.tight_layout()
+    # save figure
+    plt.savefig(out_dir / 'scatter_TEFin_meanDO.png' )
+
+recirc_meanDOdeep = False
+# COLLLAPSE
+if recirc_meanDOdeep == True:
+    # initialize figure
+    plt.close('all')
+    fig, ax = plt.subplots(1,1,figsize = (5,5))
+    # format figure
+    plt.suptitle(year + ' monthly mean \ndeep layer DO vs. recirculation rate (vol-avg)',
+                    size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.set_xlabel('Monthly mean recirculation transport rate [mg/L per day]', fontsize=12)
+    ax.set_ylabel('Monthly mean deep layer DO [mg/L]', fontsize=12)
+    # plot
+    ax.scatter(mean_recirc,deep_lay_DO,alpha=0.5,s=10,zorder=5,
+            color=colors)
+    # ax.set_xlim([0,12])
+    ax.set_ylim([0,12])
+    # calculate correlation coefficient (Pearson)
+    r,p = pearsonr(mean_recirc,deep_lay_DO)
+    ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    ax.text(0.1, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    # create legend
+    whidbey = mpatches.Patch(color='limegreen', label='Whidbey Basin', alpha=0.5)
+    hoodcanal = mpatches.Patch(color='hotpink', label='Hood Canal', alpha=0.5)
+    mainbasin = mpatches.Patch(color='deepskyblue', label='Main Basin', alpha=0.5)
+    southsound = mpatches.Patch(color='blueviolet', label='South Sound', alpha=0.5)
+    admiralty = mpatches.Patch(color='black', label='Admiralty Inlet', alpha=0.5)
+    ax.legend(handles=[whidbey,hoodcanal,mainbasin,southsound,admiralty],loc='lower right')
+    plt.tight_layout()
+    # save figure
+    plt.savefig(out_dir / 'scatter_recirc_meanDO.png' )
+
+cons_meanDOdeep = False
+# COLLLAPSE
+if cons_meanDOdeep == True:
+    # initialize figure
+    plt.close('all')
+    fig, ax = plt.subplots(1,1,figsize = (5,5))
+    # format figure
+    plt.suptitle(year + ' monthly mean \ndeep layer DO vs. bio consumption rate (vol-avg)',
+                    size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.set_xlabel('Monthly mean bio consumption rate [mg/L per day]', fontsize=12)
+    ax.set_ylabel('Monthly mean deep layer DO [mg/L]', fontsize=12)
+    # plot
+    ax.scatter(mean_cons,deep_lay_DO,alpha=0.5,s=10,zorder=5,
+            color=colors)
+    # ax.set_xlim([0,12])
+    ax.set_ylim([0,12])
+    # calculate correlation coefficient (Pearson)
+    r,p = pearsonr(mean_cons,deep_lay_DO)
+    ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    ax.text(0.1, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    # create legend
+    whidbey = mpatches.Patch(color='limegreen', label='Whidbey Basin', alpha=0.5)
+    hoodcanal = mpatches.Patch(color='hotpink', label='Hood Canal', alpha=0.5)
+    mainbasin = mpatches.Patch(color='deepskyblue', label='Main Basin', alpha=0.5)
+    southsound = mpatches.Patch(color='blueviolet', label='South Sound', alpha=0.5)
+    admiralty = mpatches.Patch(color='black', label='Admiralty Inlet', alpha=0.5)
+    ax.legend(handles=[whidbey,hoodcanal,mainbasin,southsound,admiralty],loc='lower right')
+    plt.tight_layout()
+    # save figure
+    plt.savefig(out_dir / 'scatter_cons_meanDO.png' )
+
+
+# results!!!
+results_scatter = True
+# COLLAPSE
+if results_scatter == True:
+
+    # DOin vs. Tflush colored by mean deep layer DO
+    # initialize figure
+    plt.close('all')
+    fig, ax = plt.subplots(1,1,figsize = (5,5))
+    # format figure
+    plt.suptitle(year + ' monthly mean \ninflowing TEF DO vs. Tflush\ncolored by mean deep layer DO',
+                    size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.set_xlabel('Monthly mean Tflush = Vinlet/Qin [days]', fontsize=12)
+    ax.set_ylabel('Monthly mean inflowing TEF DO [mg/L]', fontsize=12)
+    # plot
+    cmap_oxy = plt.cm.get_cmap('rainbow_r')
+    cs = ax.scatter(mean_Tflush,mean_DOin,s=30,zorder=5, c=deep_lay_DO, cmap=cmap_oxy)
+    # create colorbarlegend
+    cbar = fig.colorbar(cs)
+    cbar.ax.tick_params(labelsize=12)
+    cbar.ax.set_ylabel('Monthly mean deep layer DO [mg/L]', rotation=90, fontsize=12)
+    cbar.outline.set_visible(False)
+    plt.tight_layout()
+    # save figure
+    plt.show()
+
+    # mean deep layer DO vs. DO in colored by Tflush !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! money plot?
+    # initialize figure
+    fig, ax = plt.subplots(1,1,figsize = (6,6))
+    # format figure
+    plt.suptitle(year + ' monthly mean \ndeep layer DO vs. inflowing TEF DO\ncolored by mean flushing time',
+                    size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.set_xlabel('Monthly mean inflowing TEF DO [mg/L]', fontsize=12)
+    ax.set_ylabel('Monthly mean deep layer DO [mg/L]', fontsize=12)
+    # plot
+    cmap_temp = plt.cm.get_cmap('cubehelix_r', 256)
+    cmap_oxy = ListedColormap(cmap_temp(np.linspace(0.2, 1, 256)))# get range of colormap
+    ax.plot([0,11],[0,11],color='gray')
+    ax.text(0.8,0.8,'unity',rotation=45,va='center',ha='center',backgroundcolor='#EEEEEE',zorder=4)
+    cs = ax.scatter(mean_DOin,deep_lay_DO,s=20, zorder=5, c=mean_Tflush, cmap=cmap_oxy)
+    # get correlation
+    r,p = pearsonr(mean_DOin,deep_lay_DO)
+    ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    ax.text(0.1, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    # create colorbarlegend
+    cbar = fig.colorbar(cs)
+    cbar.ax.tick_params(labelsize=12)
+    cbar.ax.set_ylabel('Monthly mean Tflush = Vinlet/Qin [days]', rotation=90, fontsize=12)
+    cbar.outline.set_visible(False)
+    ax.set_xlim([0,11])
+    ax.set_ylim([0,11])
+    plt.tight_layout()
+    # save figure
+    plt.show()
+
+    # bottom sigma layer DO vs. DO in colored by Tflush
+    # initialize figure
+    fig, ax = plt.subplots(1,1,figsize = (6,6))
+    # format figure
+    plt.suptitle(year + ' monthly mean \nbottom DO vs. inflowing TEF DO\ncolored by mean flushing time',
+                    size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.set_xlabel('Monthly mean inflowing TEF DO [mg/L]', fontsize=12)
+    ax.set_ylabel(r'Monthly mean bottom $\sigma$-layer DO [mg/L]', fontsize=12)
+    # plot
+    cmap_temp = plt.cm.get_cmap('cubehelix_r', 256)
+    cmap_oxy = ListedColormap(cmap_temp(np.linspace(0.2, 1, 256)))# get range of colormap
+    ax.plot([0,11],[0,11],color='gray')
+    ax.text(0.8,0.8,'unity',rotation=45,va='center',ha='center',backgroundcolor='#EEEEEE',zorder=4)
+    cs = ax.scatter(mean_DOin,bott_sig_DO,s=20, zorder=5, c=mean_Tflush, cmap=cmap_oxy)
+    # get correlation
+    r,p = pearsonr(mean_DOin,bott_sig_DO)
+    ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    ax.text(0.1, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    # create colorbarlegend
+    cbar = fig.colorbar(cs)
+    cbar.ax.tick_params(labelsize=12)
+    cbar.ax.set_ylabel('Monthly mean Tflush = Vinlet/Qin [days]', rotation=90, fontsize=12)
+    cbar.outline.set_visible(False)
+    ax.set_xlim([0,11])
+    ax.set_ylim([0,11])
+    plt.tight_layout()
+    # save figure
+    plt.show()
 
 
 # # Annual mean DO and summer DO ------------------------------------------------
@@ -987,114 +1365,135 @@ if meanDO_bottsigDO == True:
 #                         transform=ax.transAxes, fontsize=12, fontweight='bold')
 # plt.show()
 
-##########################################################
-##                  Bottom DO time series               ## 
-##########################################################
+# ##########################################################
+# ##                  Bottom DO time series               ## 
+# ##########################################################
 
-# initialize figure
-plt.close('all')
-fig, ax = plt.subplots(2,1,figsize = (10,8),sharex=True)
-# format figure
-plt.suptitle(year + ' deep layer DO time series [mg/L]\ncolored by aspect ration (L/W)',
-                size=16)
-# format grid
-for axis in [ax[0],ax[1]]:
-    axis.set_facecolor('#EEEEEE')
-    axis.tick_params(axis='x', labelrotation=30)
-    axis.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-    axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
-    for border in ['top','right','bottom','left']:
-        axis.spines[border].set_visible(False)
-    axis.tick_params(axis='y', labelsize=12)
+# # initialize figure
+# plt.close('all')
+# fig, ax = plt.subplots(2,1,figsize = (10,8),sharex=True)
+# # format figure
+# plt.suptitle(year + ' deep layer DO time series [mg/L]\ncolored by basin',
+#                 size=16)
+# # format grid
+# for axis in [ax[0],ax[1]]:
+#     axis.set_facecolor('#EEEEEE')
+#     axis.tick_params(axis='x', labelrotation=30)
+#     axis.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+#     axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+#     for border in ['top','right','bottom','left']:
+#         axis.spines[border].set_visible(False)
+#     axis.tick_params(axis='y', labelsize=12)
 
-ax[0].set_title('(a) Average deep-layer DO',
-                fontsize=12,loc='left')
-ax[1].set_title('(b) Average deep-layer DO with annual mean subtracted',
-                fontsize=12,loc='left')
+# ax[0].set_title('(a) Average deep-layer DO',
+#                 fontsize=12,loc='left')
+# ax[1].set_title('(b) Average deep-layer DO with annual mean subtracted',
+#                 fontsize=12,loc='left')
 
-n = 67#106#67
-# colors = plt.cm.bwr_r(np.linspace(0,1,n))
-# colors = plt.cm.rainbow_r(np.linspace(0,1,n))
-# colors = plt.cm.coolwarm_r(np.linspace(0,1,n))
-# colors = plt.cm.nipy_spectral(np.linspace(0,1,n))
-colors = plt.cm.magma_r(np.linspace(0,1,n))
+# n = 67#106#67
+# # colors = plt.cm.bwr_r(np.linspace(0,1,n))
+# # colors = plt.cm.rainbow_r(np.linspace(0,1,n))
+# # colors = plt.cm.coolwarm_r(np.linspace(0,1,n))
+# # colors = plt.cm.nipy_spectral(np.linspace(0,1,n))
+# colors = plt.cm.magma_r(np.linspace(0,1,n))
         
-# loop through stations
-for i,station in enumerate(sta_dict):
+# # loop through stations
+# for i,station in enumerate(sta_dict):
 
-    # get average deep layer DO
-    deep_lay_DO = DOconcen_dict[station]['Deep Layer']
+#     # get average deep layer DO
+#     deep_lay_DO = DOconcen_dict[station]['Deep Layer']
 
-    # get the minimum deep layer DO
-    mindeepDO = np.nanmin(DOconcen_dict[station]['Deep Layer'])
-    # print(round(mindeepDO))
+#     # get the minimum deep layer DO
+#     mindeepDO = np.nanmin(DOconcen_dict[station]['Deep Layer'])
+#     # print(round(mindeepDO))
 
-    # get annual mean deep layer DO
-    ann_mean_DO = np.nanmean(DOconcen_dict[station]['Deep Layer'])
+#     # get annual mean deep layer DO
+#     ann_mean_DO = np.nanmean(DOconcen_dict[station]['Deep Layer'])
 
-    # subtract annual mean
-    deep_lay_no_mean = deep_lay_DO - ann_mean_DO
+#     # subtract annual mean
+#     deep_lay_no_mean = deep_lay_DO - ann_mean_DO
 
-    # get mean depth
-    mean_depth = dimensions_dict[station]['Mean depth'].values[0]
+#     # get mean depth
+#     mean_depth = dimensions_dict[station]['Mean depth'].values[0]
 
-    # get volume
-    inlet_vol = dimensions_dict[station]['Inlet volume'].values[0]
+#     # get volume
+#     inlet_vol = dimensions_dict[station]['Inlet volume'].values[0]
 
-    # get aspect ratio
-    aspect_ratio = dimensions_dict[station]['L/W aspect ratio'].values[0]
+#     # get aspect ratio
+#     aspect_ratio = dimensions_dict[station]['L/W aspect ratio'].values[0]
 
-    # # 30 day hanning window
-    # deep_lay_DO = zfun.lowpass(deep_lay_DO.values,f='hanning',n=30)
-    # deep_lay_no_mean = zfun.lowpass(deep_lay_no_mean.values,f='hanning',n=90)
+#     # # 30 day hanning window
+#     # deep_lay_DO = zfun.lowpass(deep_lay_DO.values,f='hanning',n=30)
+#     # deep_lay_no_mean = zfun.lowpass(deep_lay_no_mean.values,f='hanning',n=90)
 
-    # plot DO colored by mean depth
-    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
-    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(mean_depth)-1])
-    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
-    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(mean_depth)-1])
+#     # plot DO colored by mean depth
+#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
+#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(mean_depth)-1])
+#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
+#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(mean_depth)-1])
 
-    # # plot DO colored by inlet volume
-    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
-    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(inlet_vol/10000000)-1])
-    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
-    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(inlet_vol/10000000)-1])
+#     # # plot DO colored by inlet volume
+#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
+#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(inlet_vol/10000000)-1])
+#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
+#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(inlet_vol/10000000)-1])
 
-    # # plot DO colored by aspect ratio
-    # # if station == 'dyes':
-    # #     continue # dyes inlet aspect ratio is large, and likely an overestimate, given geometry
-    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
-    # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(aspect_ratio)-1])
-    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
-    # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(aspect_ratio)-1])
+#     # # plot DO colored by aspect ratio
+#     # # if station == 'dyes':
+#     # #     continue # dyes inlet aspect ratio is large, and likely an overestimate, given geometry
+#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8)
+#     # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=colors[round(aspect_ratio)-1])
+#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8)
+#     # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=colors[round(aspect_ratio)-1])
 
-    # plot raw deep layer DO colored by basin
-    if basin_dict[station] == 'Whidbey':
-        ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8,zorder=24)
-        ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
-        # plot deep layer DO with annual mean subtracted out colored by min deep layer DO
-        ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8, zorder=24)
-        ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
-        # add Skagit river hydrograph
-        fp_LOrivs = Ldir['LOo'] / 'pre' / 'river1' / 'lo_base' / 'Data_historical' / 'CLIM_flow.p'
-        # pre-existing LO river flowrates
-        flowdf_LOrivs = pd.read_pickle(fp_LOrivs)    # m3/s
-        flowdf_LOrivs = flowdf_LOrivs.reset_index(drop=True)
-        print(list(flowdf_LOrivs.keys()))
-        flow = flowdf_LOrivs['skagit'].values
-        ax2=ax[1].twinx()
-        ax2.plot(dates_local_daily,flow[1:-2],color='black',zorder=30)
-    else:
-        ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color=basin_color_dict[basin_dict[station]], alpha=0.3)
-        ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color=basin_color_dict[basin_dict[station]], alpha=0.3)
+#     # plot raw deep layer DO colored by basin
+#     # if basin_dict[station] == 'Hood Canal':
+#         # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8,zorder=24)
+#         # ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
+#         # # plot deep layer DO with annual mean subtracted out colored by min deep layer DO
+#         # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8, zorder=24)
+#         # ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
+#     if station == 'penn':
+#         ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.8,zorder=24)
+#         ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
+#         # plot deep layer DO with annual mean subtracted out colored by min deep layer DO
+#         ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color='black', alpha=0.8, zorder=24)
+#         ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=2,color=basin_color_dict[basin_dict[station]],zorder=25)#colors[round(mindeepDO)-1])
+#         in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / ('bulk_'+year+'.01.01_'+year+'.12.31') / (station + '.nc')
+#         bulk = xr.open_dataset(in_dir)
+#         tef_df, vn_list, vec_list = get_two_layer.get_two_layer(bulk)
+#         Qin =  tef_df['q_p'] # Qin [m3/s]
+#         ax2=ax[1].twinx()
+#         ax2.plot(dates_local_daily,Qin,linewidth=2,color='black',zorder=26, label='Qin')
+#         ax2.set_ylim(0,3000)
+#         ax2.set_ylabel('TEF inflow [m3/s]')
+#         ax2.legend(loc='upper right', ncol=2)
+#         for border in ['top','right','bottom','left']:
+#             ax2.spines[border].set_visible(False)
+#         # if station == 'penn':
+#         #     # add Skagit river hydrograph
+#         #     ds = xr.open_dataset('2017rivflow.nc')
+#         #     flow_snohomish = ds.sel(riv='skagit')['transport'].values
+#         #     flow_skagit = ds.sel(riv='snohomish')['transport'].values
+#         #     ax2=ax[1].twinx()
+#         #     ax2.plot(dates_local_daily,flow_skagit[1:-1],color='black',zorder=30,linestyle=':', label='Skagit')
+#         #     ax2.plot(dates_local_daily,flow_snohomish[1:-1],color='black',zorder=30, label='Snohomish')
+#         #     ax2.set_ylim(0,6000)
+#         #     ax2.set_ylabel('Hydrograph [m3/s]')
+#         #     ax2.legend(loc='upper right', ncol=2)
+#         #     for border in ['top','right','bottom','left']:
+#         #         ax2.spines[border].set_visible(False)
+#     else:
+#         ax[0].plot(dates_local_daily,deep_lay_DO,linewidth=3,color=basin_color_dict[basin_dict[station]], alpha=0.3)
+#         ax[1].plot(dates_local_daily,deep_lay_no_mean,linewidth=3,color=basin_color_dict[basin_dict[station]], alpha=0.3)
 
-    # format labels
-    ax[0].set_xlim([dates_local[0],dates_local[-1]])
-    # ax.set_ylim([-5,5])
+#     # format labels
+#     ax[0].set_xlim([dates_local[0],dates_local[-1]])
+#     # ax.set_ylim([-5,5])
 
-# ax.legend(loc='upper right', ncol=5)
+# # ax.legend(loc='upper right', ncol=5)
 
-plt.show()
+# plt.show()
 
 
 # # # # ##########################################################
@@ -1212,5 +1611,56 @@ plt.show()
 #     # ax.set_ylim([-5,5])
 
 # ax.legend(loc='upper right')
+
+# plt.show()
+
+# ##################################################
+# ##          What's up with dabob????            ##
+# ##################################################
+
+# # initialize figure
+# plt.close('all')
+# fig, ax = plt.subplots(1,1,figsize = (14,6),sharex=True)
+# # format figure
+# plt.suptitle(year + ' Dabob Bay analysis', size=16)
+# # format grid
+# ax.set_facecolor('#EEEEEE')
+# ax.tick_params(axis='x', labelrotation=30)
+# ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+# ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+# for border in ['top','right','bottom','left']:
+#     ax.spines[border].set_visible(False)
+# ax.tick_params(axis='y', labelsize=12)
+
+# # plot DO concentration in bottom layer (normalize by max value)
+# vals = DOconcen_dict['dabob']['Deep Layer']
+# ax.plot(dates_local_daily,vals/np.nanmax(vals),label='Deep Layer DO')
+
+# # plot inflowing DO concentration (normalize by max value)
+# vals = DOconcen_dict['dabob']['Qin DO']
+# ax.plot(dates_local_daily,vals/np.nanmax(vals),label='Inflowing DO')
+
+# # plot recirculation term (normalize by max value)
+# vals = bottomlay_dict['dabob']['TEF Recirculation']
+# ax.plot(dates_local_daily,vals/np.nanmax(vals),label='Recirculation')
+
+# # plot Qin*DO (normalize by max value)
+# vals = bottomlay_dict['dabob']['TEF Exchange Flow']
+# ax.plot(dates_local_daily,vals/np.nanmax(vals),label='Qin * DO')
+
+# # plot Qin (normalize by max value)
+# in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / ('bulk_'+year+'.01.01_'+year+'.12.31') / ('dabob' + '.nc')
+# bulk = xr.open_dataset(in_dir)
+# tef_df, vn_list, vec_list = get_two_layer.get_two_layer(bulk)
+# vals = tef_df['q_p'] # Qin [m3/s]
+# ax.plot(dates_local_daily,vals/np.nanmax(vals),label='Qin')
+
+# # plot reconstructed Qin*DO (normalize by max value)
+# vals = tef_df['q_p'].values * DOconcen_dict['dabob']['Qin DO'].values
+# ax.plot(dates_local_daily,vals/np.nanmax(vals),color='k',linestyle='--',label='reconstructed Qin * DO')
+
+
+# # legend
+# ax.legend(loc='best')
 
 # plt.show()
