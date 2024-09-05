@@ -132,7 +132,7 @@ for i,station in enumerate(sta_dict): # enumerate(stations):
             EU_color = 'royalblue'
 
 # --------------------------- get TEF exchange flow terms ----------------------------------------
-            in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / 'bulk_2014.01.01_2014.12.31' / (station+ '.nc')
+            in_dir = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'tef2' / ('bulk_'+year+'.01.01_'+year+'.12.31') / (station+ '.nc')
             bulk = xr.open_dataset(in_dir)
             tef_df, vn_list, vec_list = get_two_layer.get_two_layer(bulk)
             Q_p = tef_df['q_p'] # Qin
