@@ -3,7 +3,9 @@ This is the main program for making the RIVER and TRAPS forcing file, for the
 updated ROMS
 
 Test on pc in ipython:
-run make_forcing_main.py -g cas6 -r backfill -d 2021.01.01 -f TRAPS3 -test True
+run make_forcing_main.py -g cas6 -r backfill -d 2021.01.01 -f traps3 -test True
+
+2023.05.30 Updated to work with pre/river1 data format.
 
 """
 
@@ -65,20 +67,20 @@ G = zrfun.get_basic_info(grid_fn, only_G=True)
 # LIVEOCEAN PRE-EXISTING RIVERS
 
 # Load a dataframe with info for rivers to get
-gtag = 'cas6_v3'
-ri_dir = Ldir['LOo'] / 'pre' / 'river' / gtag
-ri_fn = ri_dir / 'river_info.csv'
-ri_df = pd.read_csv(ri_fn, index_col='rname')
+if Ldir['gridname'] == 'cas6':
+    ctag = 'lo_base'
+else:
+    print('You need to specify a gridname for this ctag.')
+    sys.exit()
+
+ri_dir = Ldir['LOo'] / 'pre' / 'river1' / ctag
+ri_df_fn = ri_dir / 'river_info.p'
+ri_df = pd.read_pickle(ri_df_fn)
 
 # get historical and climatological data files
-year0 = 1980
-year1 = 2021
-clim_temp_year0 = 1980
-clim_temp_year1 = 2020
-# historical and climatological data
-Ldir['Hflow_fn'] = ri_dir / 'Data_historical' / ('ALL_flow_' + str(year0) + '_' + str(year1) + '.p')
-Ldir['Cflow_fn'] = ri_dir / 'Data_historical' / ('CLIM_flow_' + str(year0) + '_' + str(year1) + '.p')
-Ldir['Ctemp_fn'] = ri_dir / 'Data_historical' / ('CLIM_temp_' + str(clim_temp_year0) + '_' + str(clim_temp_year1) + '.p')
+Ldir['Hflow_fn'] = ri_dir / 'Data_historical' / ('ALL_flow.p')
+Ldir['Cflow_fn'] = ri_dir / 'Data_historical' / ('CLIM_flow.p')
+Ldir['Ctemp_fn'] = ri_dir / 'Data_historical' / ('CLIM_temp.p')
 
 # get biologeochem data for rivers for which Ecology has data
 LObio_dir = Ldir['LOo'] / 'pre' / 'traps' / 'LO_rivbio'
@@ -543,22 +545,26 @@ if enable_pointsources == True:
     for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
         vinfo = zrfun.get_varinfo(vn, vartype='climatology')
         if vn == 'river_direction':
-            # set point source diretion to enter vertically (2)
-            wwtp_direction = 2 * np.ones(NWWTP) 
-            wwtp_ds[vn] = (('river',), wwtp_direction)
+            wwtp_ds[vn] = (('river',), gri_df_no_ovrlp.idir.to_numpy())
         elif vn == 'river_Xposition':
             X_vec = np.nan * np.ones(NWWTP)
-            for ii,wn in enumerate(gri_df_no_ovrlp.index):
-                X_vec[ii] = gri_df_no_ovrlp.loc[wn, 'col_py']
+            ii = 0
+            for rn in gri_df_no_ovrlp.index:
+                if gri_df_no_ovrlp.loc[rn, 'idir'] == 0:
+                    X_vec[ii] = gri_df_no_ovrlp.loc[rn, 'col_py'] + 1
+                elif gri_df_no_ovrlp.loc[rn, 'idir'] == 1:
+                    X_vec[ii] = gri_df_no_ovrlp.loc[rn, 'col_py']
+                ii += 1
             wwtp_ds[vn] = (('river',), X_vec)
         elif vn == 'river_Eposition':
             E_vec = np.nan * np.ones(NWWTP)
-            # ii = 0
-            for ii,wn in enumerate(gri_df_no_ovrlp.index):
-                E_vec[ii] = gri_df_no_ovrlp.loc[wn, 'row_py']
-                # ii += 1
-            wwtp_ds[vn] = (('river',), E_vec)
-                # ii += 1
+            ii = 0
+            for rn in gri_df_no_ovrlp.index:
+                if gri_df_no_ovrlp.loc[rn, 'idir'] == 0:
+                    E_vec[ii] = gri_df_no_ovrlp.loc[rn, 'row_py']
+                elif gri_df_no_ovrlp.loc[rn, 'idir'] == 1:
+                    E_vec[ii] = gri_df_no_ovrlp.loc[rn, 'row_py'] + 1
+                ii += 1
             wwtp_ds[vn] = (('river',), E_vec)
         wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
 
@@ -583,7 +589,7 @@ if enable_pointsources == True:
         else:
             qtbio_wwtp_df = qtbio_wwtp_df_dict[rn]
             flow = qtbio_wwtp_df['flow'].values
-        Q_mat[:,rr] = flow
+        Q_mat[:,rr] = flow * gri_df_no_ovrlp.loc[rn, 'isign']
         rr += 1
     wwtp_ds[vn] = (dims, Q_mat)
     wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
@@ -618,10 +624,23 @@ if enable_pointsources == True:
             sys.exit()
         wwtp_ds[vn] = (dims, TS_mat)
         wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
+        wwtp_ds[vn].attrs['units'] = vinfo['units'] 
+
+    # Zero Nitrate/Nitrite and Ammonium
+    for var in ['NO3', 'NH4']:
+        vn = 'river_' + var
+        vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+        dims = (vinfo['time'],) + ('s_rho', 'river')
+        B_mat = np.zeros((NT, N, NWWTP))
+        if np.isnan(TS_mat).any():
+            print('Error from traps: nans in tiny river bio!')
+            sys.exit()
+        wwtp_ds[vn] = (dims, B_mat)
+        wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
         wwtp_ds[vn].attrs['units'] = vinfo['units']
 
     # Add biology that have existing climatology
-    for var in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
+    for var in ['TIC', 'TAlk', 'Oxyg']:
         vn = 'river_' + var
         vinfo = zrfun.get_varinfo(vn, vartype='climatology')
         dims = (vinfo['time'],) + ('s_rho', 'river')

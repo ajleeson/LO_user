@@ -120,7 +120,7 @@ dates_hrly = pd.date_range(start= startdate, end=enddate_hrly, freq= 'h')
 dates_local_hrly = [pfun.get_dt_local(x) for x in dates_hrly]
 
 # Loop through all of the mooring stations
-for i,station in enumerate(['lynchcove']): #enumerate(sta_dict): # enumerate(['commencement']): #
+for i,station in enumerate(sta_dict): # enumerate(['commencement']): #
     plt.close('all')
 
     print(station)

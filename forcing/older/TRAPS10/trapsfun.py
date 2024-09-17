@@ -16,7 +16,6 @@ from lo_tools import plotting_functions as pfun
 Ldir = ffun.intro() # this handles all the argument passing
 
 def in_domain(x, y, X, Y):
-    # Note: code borrowed from pgrid/carve_rivers.py
     # Utility function to make sure that a point (x, y) is
     # in a domain specified by vectors X and Y.
     # We actually require the point to be 'pad' in from the edge.
@@ -64,7 +63,7 @@ def get_cell_info_riv(I_ind,J_ind,X,Y,x,y,mask_rho):
     idir_list = []
     isign_list = []
     uv_list = []
-    # if cell is in domain and it is a water cell (mask = 1),
+    # if cell is in domain and it is a water cell (mask = 0),
     # then check if it is coastal
     if cell_in_domain(I_ind,J_ind,len(X)-1,len(Y)-1):
         if mask_rho[I_ind,J_ind]: # is water cell
@@ -87,30 +86,30 @@ def get_cell_info_riv(I_ind,J_ind,X,Y,x,y,mask_rho):
             is_coastal = False
             coastal_type = []
 
-            # check if north cell is land
+            # check if north cell is coastal
             if cell_in_domain(NI,NJ,len(X)-1,len(Y)-1):
-                # check if north cell is land (meaning original cell is coastal)
+                # check if cell is land (meaning original cell is coastal)
                 if not mask_rho[NI,NJ]:
                     # original cell is coastal
                     is_coastal = True
                     coastal_type = coastal_type + ['N']
-            # check if south cell is land
+            # check if south cell is coastal
             if cell_in_domain(SI,SJ,len(X)-1,len(Y)-1):
-                # check if south cell is land (meaning original cell is coastal)
+                # check if cell is land (meaning original cell is coastal)
                 if not mask_rho[SI,SJ]:
                     # original cell is coastal
                     is_coastal = True
                     coastal_type = coastal_type + ['S']
-            # check if west cell is land
+            # check if west cell is coastal
             if cell_in_domain(WI,WJ,len(X)-1,len(Y)-1):
-                # check if west cell is land (meaning original cell is coastal)
+                # check if cell is land (meaning original cell is coastal)
                 if not mask_rho[WI,WJ]:
                     # original cell is coastal
                     is_coastal = True
                     coastal_type = coastal_type + ['W']
-            # check if east cell is land
+            # check if east cell is coastal
             if cell_in_domain(EI,EJ,len(X)-1,len(Y)-1):
-                # check if east cell is land (meaning original cell is coastal)
+                # check if cell is land (meaning original cell is coastal)
                 if not mask_rho[EI,EJ]:
                     # original cell is coastal
                     is_coastal = True
@@ -124,7 +123,7 @@ def get_cell_info_riv(I_ind,J_ind,X,Y,x,y,mask_rho):
 
                 # Figure out which adjacent land cell to use
                 if len(coastal_type) == 1: # easy if there is only one land cell
-                    source_side = coastal_type[0]
+                    riv_direction = coastal_type[0]
                 # if there's more than one land cell, pick the one that is closest to the original source
                 else:
                     dist2land = []
@@ -145,7 +144,7 @@ def get_cell_info_riv(I_ind,J_ind,X,Y,x,y,mask_rho):
                     # index of minimum distance
                     ind_dist2land = dist2land.index(min_dist2land)
                     # corresponding river direction
-                    source_side = coastal_type[ind_dist2land]
+                    riv_direction = coastal_type[ind_dist2land]
 
                 # get river direction values
                 xoff = 0
@@ -154,21 +153,21 @@ def get_cell_info_riv(I_ind,J_ind,X,Y,x,y,mask_rho):
                 # print('Adjacent Land = {}'.format(coastal_type))
                 # print('Selected Dir = {}'.format(riv_direction))
 
-                if source_side == 'N':
+                if riv_direction == 'N':
                         idir = 1
                         isign = -1
                         uv = 'v'
-                elif source_side == 'S':
+                elif riv_direction == 'S':
                         idir = 1
                         isign = 1
                         uv = 'v'
                         yoff = -1
-                elif source_side == 'W':
+                elif riv_direction == 'W':
                         idir = 0
                         isign = 1
                         uv = 'u'
                         xoff = -1
-                elif source_side == 'E':
+                elif riv_direction == 'E':
                         idir = 0
                         isign = -1
                         uv = 'u'
@@ -188,12 +187,16 @@ def get_cell_info_riv(I_ind,J_ind,X,Y,x,y,mask_rho):
 def get_nearest_coastal_cell_wwtp(sname,x,y,X,Y,mask_rho):
     """
     algorithm that calculates the nearest coastal grid cell (row/col)
-    to a point source,
+    to a rivermouth or point source,
     given its lat/lon coordinates, the lat/lon coordinates of the grid,
     and the mask of the rho-cells (to identify water vs land)
     """
+    # separation so it's easy to read print statements
+    # print('----------------------------------')
 
     if in_domain(x, y, X, Y):
+        # we only consider dischargers in the domain
+        # print('including ' + sname + ', Marine Point Source')
 
         # initialize a boolean to track whether a grid cell has been selected for point source
         ps_located = False
@@ -311,12 +314,16 @@ def get_nearest_coastal_cell_wwtp(sname,x,y,X,Y,mask_rho):
 def get_nearest_coastal_cell_riv(sname,x,y,X,Y,mask_rho):
     """
     algorithm that calculates the nearest coastal grid cell (row/col)
-    to a rivermouth,
+    to a rivermouth or point source,
     given its lat/lon coordinates, the lat/lon coordinates of the grid,
     and the mask of the rho-cells (to identify water vs land)
     """
+    # separation so it's easy to read print statements
+    # print('----------------------------------')
 
     if in_domain(x, y, X, Y):
+        # we only consider dischargers in the domain
+        # print('including ' + sname + ', River Mouth')
 
         # initialize a boolean to track whether a grid cell has been selected for point source
         rm_located = False
@@ -478,12 +485,22 @@ def traps_placement(source_type):
     in the LiveOcean grid. 
     '''
 
+    # list of rivers that are not in SSM and have weird biogeochemistry values
+    weird_rivers = ['Alberni Inlet', 'Brooks Peninsula', 'Campbell River',
+                    'Chehalis  R', 'Clayoquot', 'Gold River', 'Holberg',
+                    'Homathco River', 'Klinaklini River', 'Knight Inlet',
+                    'Neil Creek', 'Nimpkish River', 'North East Vancouver Island',
+                    'Owikeno Lake', 'Salmon River', 'Seymour Inlet', 'Tahsis',
+                    'Toba Inlet', 'Tsitika River', 'Willamette R', 'Willapa R']
+
     if source_type == 'wwtp':
         output_fn = 'wwtp_info.csv'
         inflow_type = 'Point Source'
     elif source_type == 'riv':
         output_fn = 'triv_info.csv'
         inflow_type = 'River'
+    else:
+        False # TODO: throw error
 
     # get the grid data
     grid_fn = Ldir['grid'] / 'grid.nc'
@@ -530,9 +547,15 @@ def traps_placement(source_type):
             if SSM_repeats.str.contains(checkname).any():
                 # print('{} already in LiveOcean'.format(sname))
                 continue 
+            
+            # don't add rivers with weird biogeochem that aren't in SSM
+            elif checkname in weird_rivers:
+                print('{} is a weird river!'.format(sname))
+                continue
 
             # add river to LiveOcean if not already present
-            if '1' in sname: # some large river mouths have two lat/lon coords
+
+            elif '1' in sname: # some large river mouths have two lat/lon coords
                 x1 = latlon_df._get_value(source,'Lon')
                 y1 = latlon_df._get_value(source,'Lat')
                 # search for corresponding source containing '2' in its name
@@ -595,21 +618,21 @@ def traps_placement(source_type):
         # update name of index column
         rowcol_df.index.name = 'rname'
 
-        # if sname == 'Whidbey east' or sname == 'Oak Harbor Lagoon':
-        #     print('{} coordinates:({},{})'.format(sname,x,y))
-
-    # save the source info
+    # TODO: save the dataframe! 
+    # & make sure to delete all rows that have nans!! 
+    # (check in the rivers file that I've done this correction)
+    # save the river info
     out_rfn = Ldir['grid'] / output_fn
     print('\nCreating ' + str(out_rfn))
-    # drop any sources that were outside of the domain, and had values padded with nans
-    rowcol_df = rowcol_df.dropna()
     rowcol_df.to_csv(out_rfn)
 
-    plotting = True
+    plotting = False
 
     if plotting == True:
         # PLOTTING FOR TESTING ------------------------------------------------------------------------
         plon, plat = pfun.get_plon_plat(lon,lat)
+        pad = 0.05*(plat[-1,0]-plat[0,0])
+        ax_lims = (plon[0,0]-pad, plon[0,-1]+pad, plat[0,0]-pad, plat[-1,0]+pad)
 
         # make a version of z with nans where masked
         zm = z.copy()
@@ -619,16 +642,15 @@ def traps_placement(source_type):
         # bathymetry
         fig = plt.figure(figsize=(5,9))
         ax = fig.add_subplot(111)
-        pfun.add_coast(ax,color='black')
-        ax.pcolormesh(plon, plat, zm, edgecolor='aliceblue', linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+        # pfun.add_coast(ax,color='lightgrey')
+        ax.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
         # ax.set_xlim(-123.5,-122) # Puget Sound
         # ax.set_ylim(46.7,49.3) # Puget Sound
-        # ax.set_xlim(-125,-122) # Salish Sea
-        # ax.set_ylim(46.7,49.7) # Salish Sea
-        ax.set_xlim(-130,-121.5) # Full Grid
-        ax.set_ylim(42,52) # Full Grid
-
+        ax.set_xlim(-125,-122) # Salish Sea
+        ax.set_ylim(46.7,49.7) # Salish Sea
+        # ax.set_xlim(-130,-121.5) # Full Grid
+        # ax.set_ylim(42,52) # Full Grid
 
         # plot original sources
         if inflow_type == 'Point Source':
@@ -647,10 +669,12 @@ def traps_placement(source_type):
             lat_v = ds.lat_v.values
 
             # label counters
-            first_label = True
-            first_label_LO = True
+            Nflow = 0
+            Sflow = 0
+            Wflow = 0
+            Eflow = 0
 
-            for i,rn in enumerate(rri_df.index):
+            for rn in rri_df.index:
                 # These are indices (python, zero-based) into either the
                 # u or v grids.
                 ii = int(rri_df.loc[rn,'col_py'])
@@ -662,33 +686,36 @@ def traps_placement(source_type):
                 
                 if uv == 'u' and isign == 1:
                     # River source on W side of rho cell
-                    ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
-                    if first_label:
-                        ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='purple', marker='o',
-                         linestyle = 'None', label='Placed river mouth')
-                        first_label = False
+                    if Eflow == 0:
+                        ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r', label='Placed river mouth (E-flowing)')
+                        Eflow += 1
                     else:
-                        ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='purple', marker='o', linestyle = 'None')
-                    # plot tracks
-                    ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii+1]],[SSMrivll_df['Lat'][i], lat[jj,ii+1]],color='hotpink', linewidth=0.5)
+                        ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
+                    # ax.plot(lon[jj,ii+1], lat[jj,ii+1],'oc')
                 if uv == 'u' and isign == -1:
                     # River source on E side of rho cell
-                    ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
-                    ax.plot(lon[jj,ii], lat[jj,ii],color='purple', marker='o', linestyle = 'None')
-                    # plot tracks
-                    ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii]],[SSMrivll_df['Lat'][i], lat[jj,ii]],color='hotpink', linewidth=0.5)
+                    if Wflow == 0:
+                        ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r', label='Placed river mouth (W-flowing)')
+                        Wflow += 1
+                    else:
+                        ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
+                    # ax.plot(lon[jj,ii], lat[jj,ii],'oc')
                 if uv == 'v' and isign == 1:
                     # River source on S side of rho cell
-                    ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
-                    ax.plot(lon[jj+1,ii], lat[jj+1,ii],color='purple', marker='o', linestyle = 'None')
-                    # plot tracks
-                    ax.plot([SSMrivll_df['Lon'][i], lon[jj+1,ii]],[SSMrivll_df['Lat'][i], lat[jj+1,ii]],color='hotpink', linewidth=0.5)
+                    if Nflow == 0:
+                        ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b', label='Placed river mouth (N-flowing)')
+                        Nflow += 1
+                    else:
+                        ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
+                    # ax.plot(lon[jj+1,ii], lat[jj+1,ii],'oc')
                 if uv == 'v' and isign == -1:
                     # River source on N side of rho cell
-                    ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
-                    ax.plot(lon[jj,ii], lat[jj,ii],color='purple', marker='o', linestyle = 'None')
-                    # plot tracks
-                    ax.plot([SSMrivll_df['Lon'][i], lon[jj,ii]],[SSMrivll_df['Lat'][i], lat[jj,ii]],color='hotpink', linewidth=0.5)
+                    if Sflow == 0:
+                        ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb', label='Placed river mouth (S-flowing)')
+                        Sflow += 1
+                    else:
+                        ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
+                    # ax.plot(lon[jj,ii], lat[jj,ii],'oc')
 
         # -----------------------------------------------------
 
@@ -722,56 +749,30 @@ def traps_placement(source_type):
             LOriv_col = LOrivs_df['col_py']
             LOrivs_lat = [Y[int(ind)] for ind in LOriv_row]
             LOrivs_lon = [X[int(ind)] for ind in LOriv_col]
-            for rn in LOrivs_df.index:
-                # These are indices (python, zero-based) into either the
-                # u or v grids.
-                ii = int(LOrivs_df.loc[rn,'col_py'])
-                jj = int(LOrivs_df.loc[rn,'row_py'])
-                
-                uv = LOrivs_df.loc[rn,'uv']
-                isign = LOrivs_df.loc[rn,'isign']
-                idir = LOrivs_df.loc[rn,'idir']
+            ax.scatter(LOrivs_lon,LOrivs_lat, color='purple', marker='*', s=20, label='pre-existing LiveOcean River')
 
-                if uv == 'u' and isign == 1:
-                    # River source on W side of rho cell
-                    ax.plot(lon_u[jj,ii], lat_u[jj,ii],'>r')
-                    if first_label_LO:
-                       ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='darkorange', marker='*', linestyle = 'None', label='pre-existing LiveOcean River')
-                       first_label_LO = False
-                    else:
-                        ax.plot(lon[jj,ii+1], lat[jj,ii+1],color='darkorange', marker='*')
-                if uv == 'u' and isign == -1:
-                    # River source on E side of rho cell
-                    ax.plot(lon_u[jj,ii], lat_u[jj,ii],'<r')
-                    ax.plot(lon[jj,ii], lat[jj,ii],color='darkorange', marker='*')
-                if uv == 'v' and isign == 1:
-                    # River source on S side of rho cell
-                    ax.plot(lon_v[jj,ii], lat_v[jj,ii],'^b')
-                    ax.plot(lon[jj+1,ii], lat[jj+1,ii],color='darkorange', marker='*')
-                if uv == 'v' and isign == -1:
-                    # River source on N side of rho cell
-                    ax.plot(lon_v[jj,ii], lat_v[jj,ii],'vb')
-                    ax.plot(lon[jj,ii], lat[jj,ii],color='darkorange', marker='*') 
+        # plot tracks
+        for i in range(len(ps_lon)):
+            if inflow_type == 'River':
+                ax.plot([SSMrivll_df['Lon'][i], ps_lon[i]],
+                [SSMrivll_df['Lat'][i], ps_lat[i]],
+                color='hotpink', linewidth=0.5)
+            # this doesn't work for point sources for some reason?
+            # elif inflow_type == 'Point Source':
+            #     ax.plot([latlon_df['Lon'][i], ps_lon[i]],
+            #     [latlon_df['Lat'][i], ps_lat[i]],
+            #     color='hotpink', linewidth=0.8)
 
-        # # print labels ---------------------------------------
-        # # get list of sources that discharge to the same cell (overlapping)
-        # duplicate_df = rowcol_df[rowcol_df.duplicated(['row_py','col_py'], keep=False) == True]
-        # for i,sn in enumerate(snames):
-        #     # merge names of overlapping sources (actual handling of overlap is dealt with in make_forcing_main)
-        #     if sn == 'Purdy Cr' or sn == 'Burley Cr':
-        #         sn = 'Purdy Cr & Burley Cr'
-        #     elif sn == 'Deer Cr' or sn == 'Mable Taylor Cr':
-        #         sn = 'Deer Cr & Mable Taylor Cr'
-        #     elif sn == 'Perry Cr' or sn == 'McLane Cr':
-        #         sn = 'Perry Cr & McLane Cr'
-        #     sn_lon = ps_lon[i]
-        #     sn_lat = ps_lat[i]+0.003
-        #     ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=10, horizontalalignment='center')
-        # if inflow_type == 'River':
-        #     for i,rn in enumerate(LOrivns):
-        #         rn_lon = LOrivs_lon[i]
-        #         rn_lat = LOrivs_lat[i]+0.003
-        #         ax.text(rn_lon, rn_lat, rn, color = 'darkorange', fontsize=10, horizontalalignment='center')
+        # print labels ---------------------------------------
+        for i,sn in enumerate(snames):
+            sn_lon = ps_lon[i]
+            sn_lat = ps_lat[i]+0.003
+            ax.text(sn_lon, sn_lat, sn, color = 'purple', fontsize=10, horizontalalignment='center')
+        if inflow_type == 'River':
+            for i,rn in enumerate(LOrivns):
+                rn_lon = LOrivs_lon[i]
+                rn_lat = LOrivs_lat[i]+0.003
+                ax.text(rn_lon, rn_lat, rn, color = 'royalblue', fontsize=10, horizontalalignment='center')
 
         # finalize plot
         ax.set_title('Algorithm Placement of {}s'.format(inflow_type), fontsize = 18)
@@ -785,53 +786,27 @@ def traps_placement(source_type):
     return
 
 def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
-
-    # Only add biology to pre-existing LO river if Ecology has data
-    if traps_type == 'LOriv':
-        # get names of duplicate rivers
-        repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
-        repeatrivs_df = pd.read_excel(repeatrivs_fn)
-        LObio_names_all = list(repeatrivs_df.loc[repeatrivs_df['in_both'] == 1, 'LO_rname'])
-        # remove the weird rivers
-        weird_duplicate_rivers = ['Alberni Inlet', 'Chehalis R', 'Gold River', 'Willapa R', 'Columbia R', 'Comox']
-        # Note that these are the names that LO calls the rivers
-        LObio_names = [rname for rname in LObio_names_all if LO2SSM_name(rname) not in weird_duplicate_rivers]
-
     # load climatological data
-    if traps_type != 'LOriv':
-        # don't need flow and temp for pre-existing LO rivers
-        Cflow_df = pd.read_pickle(Ldir['Cflow_'+traps_type+'_fn'])
-        Ctemp_df = pd.read_pickle(Ldir['Ctemp_'+traps_type+'_fn'])
+    Cflow_df = pd.read_pickle(Ldir['Cflow_'+traps_type+'_fn'])
+    Ctemp_df = pd.read_pickle(Ldir['Ctemp_'+traps_type+'_fn'])
     CDO_df   = pd.read_pickle(Ldir['CDO_'+traps_type+'_fn'])
     CNH4_df  = pd.read_pickle(Ldir['CNH4_'+traps_type+'_fn'])
     CNO3_df  = pd.read_pickle(Ldir['CNO3_'+traps_type+'_fn'])
     CTalk_df = pd.read_pickle(Ldir['CTalk_'+traps_type+'_fn'])
     CTIC_df  = pd.read_pickle(Ldir['CTIC_'+traps_type+'_fn'])
 
-    # year day index starts from 1. Convert to start from 0 to work with python
-    yd_ind = yd_ind - 1
-
     # initialize output dict
     qtbio_df_dict = dict()
     for rn in gri_df.index:
-
-        # convert LO river name to SSM river name
-        if traps_type == 'LOriv':
-            if rn in LObio_names:
-                rn = LO2SSM_name(rn)
-            else:
-                # skips rivers for which Ecology does not have data
-                continue    
         
         # initialize screen output
-        sout = '-- ' + str(rn) + ': '
+        sout = '-- ' + rn + ': '
         
         # initialize a qtbio (flow and temperature vs. time) DataFrame for this river
         qtbio_df = pd.DataFrame(index=dt_ind, columns=['flow','temp','Oxyg','NH4','NO3','TAlk','TIC'])
         # fill with climatological fields
-        if traps_type != 'LOriv':
-            qtbio_df.loc[:, 'flow'] = Cflow_df.loc[yd_ind,rn].values
-            qtbio_df.loc[:, 'temp'] = Ctemp_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'flow'] = Cflow_df.loc[yd_ind,rn].values
+        qtbio_df.loc[:, 'temp'] = Ctemp_df.loc[yd_ind,rn].values
         qtbio_df.loc[:, 'Oxyg']   = CDO_df.loc[yd_ind,rn].values
         qtbio_df.loc[:, 'NH4']  = CNH4_df.loc[yd_ind,rn].values
         qtbio_df.loc[:, 'NO3']  = CNO3_df.loc[yd_ind,rn].values
@@ -847,35 +822,3 @@ def get_qtbio(gri_df, dt_ind, yd_ind, Ldir, traps_type):
         sys.stdout.flush()
         
     return qtbio_df_dict
-
-def combine_adjacent(lst):
-    """
-    Given a list, e.g. ['a','b','c','d']
-    returns: ['a+b', 'c+d']
-    """
-    combined = [x + '+' + y for x, y in zip(lst[::2],lst[1::2])]
-    return combined
-
-def weighted_average(vn,qtbio_df_1, qtbio_df_2):
-    '''
-    Calculate the weighted average properties based on flowrate of two overlapping sources
-    '''
-    # get flowrates
-    flow1 = qtbio_df_1['flow'].values
-    flow2 = qtbio_df_2['flow'].values
-    # get variable
-    var1 = qtbio_df_1[vn].values
-    var2 = qtbio_df_2[vn].values
-    # calculate weighted average based on flowrate
-    waverage = [np.average([var1[i], var2[i]], weights = [flow1[i], flow2[i]]) for i in range(len(flow1))]
-    return waverage
-
-def LO2SSM_name(rname):
-    """
-    Given a river name in LiveOcean, find corresponding river name in SSM
-    """
-    repeatrivs_fn = Ldir['data'] / 'traps' / 'LiveOcean_SSM_rivers.xlsx'
-    repeatrivs_df = pd.read_excel(repeatrivs_fn)
-    rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
-
-    return rname_SSM
