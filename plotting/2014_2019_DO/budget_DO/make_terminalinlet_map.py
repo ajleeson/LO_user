@@ -43,7 +43,7 @@ zm[np.transpose(mask_rho) != 0] = -1
 plt.close('all')
 fig = plt.figure(figsize=(8,9))
 ax = fig.add_subplot(1,1,1)
-plt.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+plt.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.5, vmax=0, cmap=plt.get_cmap('Greys'))
 
 # get terminal inlet locations
 for stn,station in enumerate(sta_dict): # stations: 
@@ -57,9 +57,9 @@ for stn,station in enumerate(sta_dict): # stations:
     # first make everything a nan
     inlet_loc = np.full(zm.shape, np.nan) 
     # set values of 1 for everything that is in the inlet
-    inlet_loc[jj,ii] = 40
+    inlet_loc[jj,ii] = 20
     # add inlet locations
-    plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=100, cmap=plt.get_cmap('spring'))
+    plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=100, cmap=plt.get_cmap('winter'))
 
 # format
 ax.axes.xaxis.set_visible(False)
