@@ -988,6 +988,55 @@ if budget_comparison == True:
     plt.show()
 
        
+    # scatter plot of aug/sep bottom DO vs. dDO/dt during jun/jul
+    jjdDOdt_asbotDO = True
+    # COLLLAPSE
+    if jjdDOdt_asbotDO == True:
+        # get values
+        dDOdt = np.zeros(len(sta_dict))
+        augsep_DO = np.zeros(len(sta_dict))
+        for i,station in enumerate(sta_dict):
+            # jun/jul d(DO)/dt -----------------
+            time_avg = np.nanmean(bottomlay_dict[station]['Storage'][150:211])
+            # get volume average
+            avg = time_avg/(np.nanmean(bottomlay_dict[station]['Volume'][150:211])) # kmol O2 /s /m3
+            # convert to umol O2 /s /m3
+            avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
+            # convert to mg/L per day
+            dDOdt[i] = avg * (32/1000/1000) * (60*60*24)
+            # aug/sep deep DO ----------------
+            augsep_DO[i] = np.nanmean(DOconcen_dict[station]['Deep Layer'][211:272])
+        
+        # plot
+        # initialize figure
+        plt.close('all')
+        fig, ax = plt.subplots(1,1,figsize = (6,6))
+        # format figure
+        plt.suptitle('Aug/Sep deep DO vs. Jun/Jul d(DO)/dt', size=14)
+        # format grid
+        ax.set_facecolor('#EEEEEE')
+        ax.tick_params(axis='x', labelrotation=30)
+        ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+        for border in ['top','right','bottom','left']:
+            ax.spines[border].set_visible(False)
+        ax.tick_params(axis='y', labelsize=12)
+        ax.set_xlabel('Jun/Jul d(DO)/dt [mg/L per day]', fontsize=12)
+        ax.set_ylabel('Aug/Sep deep DO [mg/L]', fontsize=12)
+        # plot
+        ax.scatter(dDOdt,augsep_DO,alpha=0.5,s=100,zorder=5)
+        ax.set_xlim([-0.06,0])
+        ax.set_ylim([0,8])
+        # calculate correlation coefficient (Pearson)
+        r,p = pearsonr(dDOdt,augsep_DO)
+        ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) + r'; $r^2 =$' + str(round(r**2,2)) ,color='black',
+                                verticalalignment='bottom', horizontalalignment='left',
+                                transform=ax.transAxes, fontsize=12, fontweight='bold')
+        ax.text(0.1, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
+                                verticalalignment='bottom', horizontalalignment='left',
+                                transform=ax.transAxes, fontsize=12, fontweight='bold')
+        # save figure
+        plt.show()
+
 ##########################################################
 ##                   DO scatterplots                    ## 
 ##########################################################
@@ -1311,7 +1360,7 @@ if DO_analysis == True:
 
 
     # results!!!
-    results_scatter = True
+    results_scatter = False
     # COLLAPSE
     if results_scatter == True:
 
@@ -1520,7 +1569,7 @@ if DO_analysis == True:
 ##           Deep DO and Tflush time series             ## 
 ##########################################################
 
-timeseries = True
+timeseries = False
 if timeseries == True:
     for i,station in enumerate(sta_dict):
         plt.close('all')
