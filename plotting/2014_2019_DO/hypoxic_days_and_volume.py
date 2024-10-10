@@ -156,6 +156,19 @@ if remove_straits:
 else:
     straits = 'withStraits'
 
+# get the grid data
+ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
+z = -ds.h.values
+mask_rho = np.transpose(ds.mask_rho.values)
+lon = ds.lon_rho.values
+lat = ds.lat_rho.values
+X = lon[0,:] # grid cell X values
+Y = lat[:,0] # grid cell Y values
+plon, plat = pfun.get_plon_plat(lon,lat)
+# make a version of z with nans where masked
+zm = z.copy()
+zm[np.transpose(mask_rho) == 0] = np.nan
+zm[np.transpose(mask_rho) != 0] = -1
 
 # initialize empty dictionaries
 DO_bot_dict = {} # dictionary with DO_bot values
@@ -263,6 +276,7 @@ for i,year in enumerate(['avg'] + years):
                 
     if i == 0:
         ax = ax0
+        ax.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.25, vmax=0, cmap=plt.get_cmap('Greys'))
         cs = ax.pcolormesh(px,py,DO_bot, vmin=0, vmax=np.nanmax(DO_bot), cmap='rainbow')
         cbar = fig.colorbar(cs, location='left')
         cbar.ax.tick_params(labelsize=28)#,length=10, width=2)
@@ -297,6 +311,8 @@ for i,year in enumerate(['avg'] + years):
             ax = fig.add_subplot(gs[0,i+2])
         elif i in [4,5,6]:
             ax = fig.add_subplot(gs[1,i-1])
+        # Create map
+        ax.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.25, vmax=0, cmap=plt.get_cmap('Greys'))
         cs_all = ax.pcolormesh(px,py,DO_bot, vmin=-60, vmax=60, cmap=cmocean.cm.balance)
         if i == 5:#6:
             fig.subplots_adjust(right=0.8)
@@ -315,7 +331,7 @@ for i,year in enumerate(['avg'] + years):
     ax.set_xticklabels([])
     ax.axis('off')
     pfun.dar(ax)
-    pfun.add_coast(ax)
+    # pfun.add_coast(ax)
                                 
 # Add colormap title
 plt.suptitle('Days with bottom DO < {} [mg/L]'.format(str(DO_thresh)),
@@ -342,7 +358,8 @@ enddate = '2020.12.31'
 dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 dates_local = [pfun.get_dt_local(x) for x in dates]
 
-colors = ['red','darkorange','gold','green','blue','purple','deeppink']
+# colors = ['red','darkorange','gold','green','blue','purple','deeppink']
+colors = ['#F9627D','#62B6CB','#A8C256','#96031A','#957FEF','#476ad1','darkorange']
 
 # # plot timeseries
 # for i,year in enumerate(years):
@@ -378,8 +395,9 @@ ax0.set_ylim([ymin,ymax])
 ax0.set_yticklabels([])
 ax0.set_xticklabels([])
 ax0.axis('off')
+ax0.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 pfun.dar(ax0)
-pfun.add_coast(ax0, color='gray')
+# pfun.add_coast(ax0, color='gray')
 # Create a Rectangle patch to omit Straits
 if remove_straits:
     # get lat and lon
@@ -404,10 +422,10 @@ if remove_straits:
     diff = np.absolute(lat-latmax)
     etamax = diff.argmin()
     rect = patches.Rectangle((lon[ximin], lat[etamin]), lon[ximax]-lon[ximin], lat[etamax]-lat[etamin],
-                            edgecolor='none', facecolor='gray', alpha=0.5)
+                            edgecolor='none', facecolor='white', alpha=0.9)
     # Add the patch to the Axes
     ax0.add_patch(rect)
-    ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontweight='bold')
+    ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontsize=12)
     ax0.set_title('(a) Region', fontsize = 14)
 
 # create time vector
@@ -419,8 +437,12 @@ dates_local = [pfun.get_dt_local(x) for x in dates]
 # plot timeseries
 for i,year in enumerate(years):
     # plot hypoxic area timeseries
+    # ax1.plot(dates_local,hyp_vol[year],color=colors[i],
+    #          linewidth=3,alpha=0.5,label=year)
+    ax1.plot(dates_local,hyp_vol[year],color='white',
+             linewidth=3.5)
     ax1.plot(dates_local,hyp_vol[year],color=colors[i],
-             linewidth=3,alpha=0.5,label=year)
+             linewidth=3,label=year)
 
 # format figure
 ax1.grid(visible=True, color='w')
