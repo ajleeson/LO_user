@@ -91,15 +91,15 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 # Get stations:
 if stations == 'all':
     sta_dict = job_lists.get_sta_dict(jobname)
-    # # remove shallow inlets (< 10 m deep)
-    # del sta_dict['hammersley']
-    # del sta_dict['henderson']
-    # del sta_dict['oak']
-    # del sta_dict['totten']
-    # del sta_dict['similk']
-    # del sta_dict['budd']
-    # del sta_dict['eld']
-    # del sta_dict['killsut']
+    # remove shallow inlets (< 10 m deep)
+    del sta_dict['hammersley']
+    del sta_dict['henderson']
+    del sta_dict['oak']
+    del sta_dict['totten']
+    del sta_dict['similk']
+    del sta_dict['budd']
+    del sta_dict['eld']
+    del sta_dict['killsut']
 else:
     sta_dict = stations
 
@@ -1170,7 +1170,7 @@ if hypinlet_budget_comparison == True:
     plt.show()
 
 
-hypinlet_budget_comparison_v2 = True # ------------------------------------------- MONEY BAR CHART
+hypinlet_budget_comparison_v2 = True # ------------------------------------------- MONEY BAR CHART & t-tests
 # COLLAPSE
 if hypinlet_budget_comparison_v2 == True:
 
@@ -1345,7 +1345,15 @@ if hypinlet_budget_comparison_v2 == True:
         print(attribute)
         a = oxy_dict[attribute]
         b = hyp_dict[attribute]
-        ttest = ttest_ind(a, b, axis=0, equal_var=False)
+        if attribute == 'Photosynthesis & Consumption':
+            print('one-sided')
+            # one-sided t-test 
+            # alternative hypothesis: a < b (drawdown of oxygenated is more negative than drawdown of hypoxic)
+            # the null hypothesis is thus that drawdown of hypoxic is more negative
+            ttest = ttest_ind(a, b, axis=0, equal_var=False, alternative='less')
+        else:
+            # two-sided t-test with null hypothesis that they are the same
+            ttest = ttest_ind(a, b, axis=0, equal_var=False)
         print(ttest)
 
     print('\n')
@@ -1727,7 +1735,7 @@ if DO_analysis == True:
         # plt.close('all')
         fig, ax = plt.subplots(1,1,figsize = (5,5))
         # format figure
-        plt.suptitle(year + ' monthly mean \n' + r'% hypoxic volume vs. deep layer DO',
+        plt.suptitle(year + ' monthly mean \n' + r'% hypoxic volume vs. DO$_{deep}$',
                         size=14)
         # format grid
         ax.set_facecolor('#EEEEEE')
@@ -1736,7 +1744,7 @@ if DO_analysis == True:
         for border in ['top','right','bottom','left']:
             ax.spines[border].set_visible(False)
         ax.tick_params(axis='both', labelsize=12)
-        ax.set_xlabel('Monthly mean deep layer DO [mg/L]', fontsize=14)
+        ax.set_xlabel(r'Monthly mean DO$_{deep}$ [mg/L]', fontsize=14)
         ax.set_ylabel('Monthly mean % hypoxic volume', fontsize=14)
         # plot
         ax.scatter(deep_lay_DO,perc_hyp_vol,alpha=0.3,s=80,zorder=5,color='k')
@@ -1744,10 +1752,10 @@ if DO_analysis == True:
         ax.set_xlim([0,12])
         ax.set_ylim([0,100])
         # calculate correlation coefficient (Pearson)
-        r,p = pearsonr(deep_lay_DO,perc_hyp_vol)
-        ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) + r'; $r^2 =$' + str(round(r**2,2)) ,color='black',
-                                verticalalignment='bottom', horizontalalignment='left',
-                                transform=ax.transAxes, fontsize=12)
+        # r,p = pearsonr(deep_lay_DO,perc_hyp_vol)
+        # ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) + r'; $r^2 =$' + str(round(r**2,2)) ,color='black',
+        #                         verticalalignment='bottom', horizontalalignment='left',
+        #                         transform=ax.transAxes, fontsize=12)
         # ax.text(0.1, 0.79, r'$p =$' + str(round(p,10)) ,color='black',
         #                         verticalalignment='bottom', horizontalalignment='left',
         #                         transform=ax.transAxes, fontsize=12, fontweight='bold')
@@ -1759,6 +1767,7 @@ if DO_analysis == True:
         # admiralty = mpatches.Patch(color='black', label='Admiralty Inlet', alpha=0.5)
         # ax.legend(handles=[whidbey,hoodcanal,mainbasin,southsound,admiralty],loc='upper right',fontsize=14)
         # save figure
+        plt.tight_layout()
         plt.show()
         # plt.savefig(out_dir / 'scatter_meanDO_bottsigDO.png' )
 
@@ -1971,34 +1980,56 @@ if DO_analysis == True:
         plt.savefig(out_dir / 'scatter_cons_meanDO.png' )
 
 
-    # DOin vs. Tflush colored by percent hypoxic volume
+    # DOin vs. Tflush colored by percent hypoxic volume ============== 2PART MONEY PLOT SCATTER ================================
     percent_hypoxic = True
     if percent_hypoxic == True:
         # initialize figure
-        fig, ax = plt.subplots(1,1,figsize = (8,5))
+        fig, ax = plt.subplots(1,2,figsize = (10,5))
+
         # format figure
-        plt.suptitle(year + ' monthly mean '+r' TEF DO$_{in}$ vs. T$_{flush}$'+' colored by % hypoxic volume',
-                        size=16)
+        ax[0].set_title('(a) ' + year + r' monthly mean DO$_{deep}$ vs. DO$_{in}$' + '\n' + r'colored by mean T$_{flush}$',
+                        size=16, loc='left')
         # format grid
-        ax.set_facecolor('#EEEEEE')
-        ax.tick_params(axis='x', labelrotation=30)
-        ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+        ax[0].set_facecolor('#EEEEEE')
+        ax[0].tick_params(axis='x', labelrotation=30)
+        ax[0].grid(True,color='w',linewidth=1,linestyle='-',axis='both')
         for border in ['top','right','bottom','left']:
-            ax.spines[border].set_visible(False)
-        ax.tick_params(axis='both', labelsize=14)
-        ax.set_xlabel(r'Monthly mean T$_{flush}$ [days]', fontsize=14)
-        ax.set_ylabel(r'Monthly mean TEF DO$_{in}$ [mg/L]', fontsize=14)
+            ax[0].spines[border].set_visible(False)
+        ax[0].tick_params(axis='both', labelsize=14)
+        ax[0].set_xlabel(r'Monthly mean DO$_{in}$ [mg/L]', fontsize=14)
+        ax[0].set_ylabel(r'Monthly mean DO$_{deep}$ [mg/L]', fontsize=14)
+        # plot
+        cmap_temp = plt.cm.get_cmap('cubehelix_r', 256)
+        cmap_oxy = ListedColormap(cmap_temp(np.linspace(0.2, 1, 256)))# get range of colormap
+        ax[0].plot([0,12],[0,12],color='gray')
+        ax[0].text(0.9,0.9,'unity',rotation=45,va='center',ha='center',backgroundcolor='#EEEEEE',zorder=4, fontsize=12)
+        cs = ax[0].scatter(mean_DOin,deep_lay_DO,s=60, zorder=5, c=mean_Tflush, cmap=cmap_oxy)
+        # create colorbarlegend
+        cbar = fig.colorbar(cs)
+        cbar.ax.tick_params(labelsize=14)
+        cbar.ax.set_ylabel(r'Monthly mean T$_{flush}$ [days]', rotation=90, fontsize=14)
+        cbar.outline.set_visible(False)
+        ax[0].set_xlim([0,12])
+        ax[0].set_ylim([0,12])
+
+
+        # format figure
+        ax[1].set_title('(b) ' + year + ' monthly mean '+r'DO$_{in}$ vs. T$_{flush}$'+'\ncolored by % hypoxic volume',
+                        size=16, loc='left')
+        # format grid
+        ax[1].set_facecolor('#EEEEEE')
+        ax[1].tick_params(axis='x', labelrotation=30)
+        ax[1].grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+        for border in ['top','right','bottom','left']:
+            ax[1].spines[border].set_visible(False)
+        ax[1].tick_params(axis='both', labelsize=14)
+        ax[1].set_xlabel(r'Monthly mean T$_{flush}$ [days]', fontsize=14)
+        ax[1].set_ylabel(r'Monthly mean DO$_{in}$ [mg/L]', fontsize=14)
+        ax[1].set_ylim([0,11])
+        ax[1].set_xlim([0,85])
         # plot
         cmap_hyp = plt.cm.get_cmap('gist_heat_r')
-        cs_DO = ax.scatter(mean_Tflush,mean_DOin,s=70,zorder=5,edgecolor='gray',c=perc_hyp_vol,cmap=cmap_hyp)
-        # # get correlation
-        # r,p = pearsonr(mean_Tflush,mean_DOin)
-        # ax.text(0.6, 0.85, r'$r =$' + str(round(r,2)) + r'; $r^2 =$' + str(round(r**2,2)),color='black',
-        #                         verticalalignment='bottom', horizontalalignment='left',
-        #                         transform=ax.transAxes, fontsize=12, fontweight='bold')
-        # ax.text(0.7, 0.79, r'$p =$' + str(round(p,8)) ,color='black',
-        #                         verticalalignment='bottom', horizontalalignment='left',
-        #                         transform=ax.transAxes, fontsize=12, fontweight='bold')
+        cs_DO = ax[1].scatter(mean_Tflush,mean_DOin,s=60,zorder=5,edgecolor='gray',c=perc_hyp_vol,cmap=cmap_hyp)
         # create colorbarlegend
         cbar = fig.colorbar(cs_DO)
         cbar.ax.tick_params(labelsize=12)
@@ -2041,7 +2072,7 @@ if DO_analysis == True:
         plt.show()
 
     # results!!!
-    results_scatter = True
+    results_scatter = False
     # COLLAPSE
     if results_scatter == True:
 
@@ -2406,11 +2437,13 @@ if DO_analysis == True:
 # initialize figure
 fig, ax = plt.subplots(1,1,figsize = (12,5))
 # format figure
-plt.suptitle(year + r' DO$_{deep}$ time series [mg/L]',
+plt.suptitle(year + r' DO$_{deep}$ time series [mg/L] (30-day Hanning Window)',
                 size=16)
 # format grid
 ax.set_facecolor('#EEEEEE')
 ax.tick_params(axis='x', labelrotation=30)
+loc = mdates.MonthLocator(interval=1)
+ax.xaxis.set_major_locator(loc)
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
 ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
 for border in ['top','right','bottom','left']:
@@ -2423,13 +2456,16 @@ for i,station in enumerate(sta_dict):
     # get average deep layer DO
     deep_lay_DO = DOconcen_dict[station]['Deep Layer']
 
+    # 30-day hanning windwo
+    deep_lay_DO = zfun.lowpass(deep_lay_DO.values,n=30)
+
     # plot DO colored by flushing time
-    ax.plot(dates_local_daily,deep_lay_DO,linewidth=3,color='black', alpha=0.5)
-    ax.plot(dates_local_daily,deep_lay_DO,linewidth=1.7,color='plum')
+    ax.plot(dates_local_daily,deep_lay_DO,linewidth=3.5,color='black', alpha=0.8)
+    ax.plot(dates_local_daily,deep_lay_DO,linewidth=1.7,color='silver')
 
 # format labels
-ax.set_xlim([dates_local[0],dates_local[-1]])
-ax.set_ylabel(r'DO$_{deep}$ [mg/L]')
+ax.set_xlim([dates_local[0],dates_local[-2]])
+ax.set_ylabel(r'DO$_{deep}$ [mg/L]',fontsize=12)
 
 plt.show()
 
