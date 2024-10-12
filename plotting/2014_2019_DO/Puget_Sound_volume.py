@@ -50,6 +50,7 @@ gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
 # get percent hypoxic volume
 fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
 ds = xr.open_dataset(fp)
+print()
 if remove_straits:
         print('    Removing Straits...')
         lat_threshold = 48.14
@@ -59,31 +60,32 @@ if remove_straits:
         # Expand mask dimensions to match 'oxygen' dimensions
         expanded_mask = mask.expand_dims(ocean_time=len(ds['ocean_time']), s_rho=len(ds['s_rho']))
         # Apply the mask
+        ds['h'] = xr.where(expanded_mask, np.nan, ds['h'])
         ds['pm'] = xr.where(expanded_mask, np.nan, ds['pm'])
         ds['pn'] = xr.where(expanded_mask, np.nan, ds['pn'])
-        expanded_mask = mask.expand_dims(ocean_time=len(ds['ocean_time']), s_w=len(ds['s_w']))
-        ds['z_w'] = xr.where(expanded_mask, np.nan, ds['z_w'])
-print('calculating vertical thickness')
-# get S for the whole grid
-Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
-reader = csv.DictReader(open(Sfp))
-S_dict = {}
-for row in reader:
-    S_dict[row['ITEMS']] = row['VALUES']
-S = zrfun.get_S(S_dict)
-# get cell thickness
-h = ds['h'].values # height of water column
-z_rho, z_w = zrfun.get_z(h, 0*h, S) 
-dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]
-print(dzr.shape)
+# print('calculating vertical thickness')
+# # get S for the whole grid
+# Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
+# reader = csv.DictReader(open(Sfp))
+# S_dict = {}
+# for row in reader:
+#     S_dict[row['ITEMS']] = row['VALUES']
+# S = zrfun.get_S(S_dict)
+# # get cell thickness
+# h = ds['h'].values # height of water column
+# z_rho, z_w = zrfun.get_z(h, 0*h, S) 
+# dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]
+# print(dzr.shape)
 
-DZ = dzr/1000
+h = ds['h'].values # height of water column
+print(h.shape)
+
+Z = h/1000 # water depth in km
 DX = (ds.pm.values)**-1
 DY = (ds.pn.values)**-1
 DA = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
 
 # calculate volume of Puget Sound
 print('Puget Sound volume with straits omitted [km^3]')
-vol_timeseries = np.sum(DZ * DA, axis=(1, 2))
-vol = np.nanmean(vol_timeseries)
+vol = np.sum(h * DA)
 print(vol)
