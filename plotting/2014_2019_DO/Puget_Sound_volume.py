@@ -57,12 +57,10 @@ if remove_straits:
         lon_threshold = -122.76
         # Create a mask for latitudes and longitudes in the Straits
         mask = (ds['lat_rho'] > lat_threshold) & (ds['lon_rho'] < lon_threshold)
-        # Expand mask dimensions to match 'oxygen' dimensions
-        expanded_mask = mask.expand_dims(ocean_time=len(ds['ocean_time']), s_rho=len(ds['s_rho']))
         # Apply the mask
-        ds['h'] = xr.where(expanded_mask, np.nan, ds['h'])
-        ds['pm'] = xr.where(expanded_mask, np.nan, ds['pm'])
-        ds['pn'] = xr.where(expanded_mask, np.nan, ds['pn'])
+        ds['h'] = xr.where(mask, np.nan, ds['h'])
+        ds['pm'] = xr.where(mask, np.nan, ds['pm'])
+        ds['pn'] = xr.where(mask, np.nan, ds['pn'])
 # print('calculating vertical thickness')
 # # get S for the whole grid
 # Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
@@ -84,6 +82,7 @@ Z = h/1000 # water depth in km
 DX = (ds.pm.values)**-1
 DY = (ds.pn.values)**-1
 DA = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
+print(DA.shape)
 
 # calculate volume of Puget Sound
 print('Puget Sound volume with straits omitted [km^3]')
