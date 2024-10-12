@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import xarray as xr
+from matplotlib.ticker import MaxNLocator
 import cmocean
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -43,7 +44,7 @@ zm[np.transpose(mask_rho) == 0] = np.nan
 # Initialize figure
 plt.close('all')
 fs = 10
-pfun.start_plot(fs=fs, figsize=(10,7))
+pfun.start_plot(fs=fs, figsize=(11,7))
 fig = plt.figure()
 plt.subplots_adjust(wspace=0, hspace=0)
 # create colormap
@@ -60,12 +61,12 @@ newcmap.set_bad(background,1.) # background color
 ax0 = fig.add_subplot(1,2,1)
 # cs = ax0.pcolormesh(plon, plat, zm, vmin=-5, vmax=0, cmap=newcmap)
 cs = ax0.pcolormesh(plon, plat, zm, vmin=-500, vmax=0, cmap=newcmap)
-cbar = plt.colorbar(cs,ax=ax0, location='left', pad=0.05)
-cbar.ax.tick_params(labelsize=11, color='#EEEEEE')#, rotation=30)
-cbar.ax.set_ylabel('Depth [m]', fontsize=11, color='#EEEEEE')
+cbar = plt.colorbar(cs,ax=ax0, location='left', pad=0.1)#pad=0.05)
+cbar.ax.tick_params(labelsize=11)#, color='#EEEEEE')#, rotation=30)
+cbar.ax.set_ylabel('Depth [m]', fontsize=11)#, color='#EEEEEE')
 cbar.outline.set_visible(False)
 cbar_yticks = plt.getp(cbar.ax.axes, 'yticklabels')
-plt.setp(cbar_yticks, color='#EEEEEE')
+plt.setp(cbar_yticks)#, color='#EEEEEE')
 # format figure
 pfun.dar(ax0)
 # pfun.add_coast(ax0, color='gray')
@@ -79,11 +80,15 @@ print('Lon={},{}'.format(X[i1],-122))
 print('Lat={},{}'.format(Y[j1],Y[j2]))
 
 # plt.xticks(rotation=30, color='gray')
+plt.xticks(rotation=30,horizontalalignment='right',color='gray',fontsize=12)
+plt.yticks(color='gray',fontsize=12)
+ax0.xaxis.set_major_locator(MaxNLocator(integer=True))
+ax0.yaxis.set_major_locator(MaxNLocator(integer=True))
 # plt.yticks(color='gray')
-ax0.set_yticklabels([])
-ax0.set_xticklabels([])
+# ax0.set_yticklabels([])
+# ax0.set_xticklabels([])
 # add title
-ax0.set_title('Salish Sea',fontsize=16,color='#EEEEEE')
+ax0.set_title('(a) Salish Sea',fontsize=14, loc='left')#,color='#EEEEEE')
 # add 10 km bar
 lat0 = 47
 lon0 = -124.63175
@@ -96,24 +101,24 @@ ax0.text((lon0+lon1)/2,lat0+0.05,'{} km'.format(x_dist_km),color='k',fontsize=12
          horizontalalignment='center')
 # draw box around Puget Sound
 bordercolor = '#EEEEEE'
-ax0.add_patch(Rectangle((-123.2, 46.93), 1.1, 1.52,
+ax0.add_patch(Rectangle((-123.3, 46.93), 1.2, 1.52,
              edgecolor = bordercolor, facecolor='none', lw=2))
 
 # add major cities
 # Seattle
-ax0.scatter([-122.3328],[47.6061],s=[250],color='lightpink',
+ax0.scatter([-122.3328],[47.6061],s=[250],color='pink',
             marker='*',edgecolors='darkred')
-ax0.text(-122.3328 + 0.1,47.6061,'Seattle',color='lightpink', rotation=90,
+ax0.text(-122.3328 + 0.1,47.6061,'Seattle',color='pink', rotation=90,
          horizontalalignment='left',verticalalignment='center', size=12)
 # Vancouver
-ax0.scatter([-123.1207],[49.2827],s=[250],color='lightpink',
+ax0.scatter([-123.1207],[49.2827],s=[250],color='pink',
             marker='*',edgecolors='darkred')
-ax0.text(-123.1207 + 0.1,49.2827,'Vancouver',color='lightpink', rotation=0,
+ax0.text(-123.1207 + 0.1,49.2827,'Vancouver',color='pink', rotation=0,
          horizontalalignment='left',verticalalignment='center', size=12)
 
 # add major water bodies
-ax0.text(-124.937095,47.827238,'Pacific Ocean',color='black', rotation=-75,
-         horizontalalignment='left',verticalalignment='center', size=12)
+ax0.text(-124.937095,47.782238,'Pacific Ocean',color='black', rotation=-75,
+         horizontalalignment='left',verticalalignment='center', size=12,fontweight='bold')
 
 # Puget Sound ----------------------------------------------------------
 ax1 = fig.add_subplot(1,2,2)
@@ -125,11 +130,11 @@ ax1 = fig.add_subplot(1,2,2)
 # cs = ax1.pcolormesh(plon, plat, zm, vmin=-5, vmax=0, cmap=newcmap)
 cs = ax1.pcolormesh(plon, plat, zm, vmin=-250, vmax=0, cmap=newcmap)
 cbar = plt.colorbar(cs,ax=ax1, location='right', pad=0.05)
-cbar.ax.tick_params(labelsize=11, color='#EEEEEE')#, rotation=30)
-cbar.ax.set_ylabel('Depth [m]', fontsize=11, color='#EEEEEE')
+cbar.ax.tick_params(labelsize=11)#, color='#EEEEEE')#, rotation=30)
+cbar.ax.set_ylabel('Depth [m]', fontsize=11)#, color='#EEEEEE')
 cbar.outline.set_visible(False)
 cbar_yticks = plt.getp(cbar.ax.axes, 'yticklabels')
-plt.setp(cbar_yticks, color='#EEEEEE')
+plt.setp(cbar_yticks)#, color='#EEEEEE')
 # format figure
 pfun.dar(ax1)
 # pfun.add_coast(ax1, color='gray')
@@ -142,10 +147,13 @@ ax1.set_xlim([-123.3,-122.1])
 ax1.set_ylim([46.93,48.45])
 ax1.set_yticklabels([])
 ax1.set_xticklabels([])
+# plt.xticks(rotation=30,horizontalalignment='right',color='gray')
+# ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
+# ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
 # plt.xticks(rotation=30, color='gray')
 # plt.yticks(color='gray')
 # add title
-ax1.set_title('Puget Sound',fontsize=16, color='#EEEEEE')
+ax1.set_title('(b) Puget Sound',fontsize=14,loc='left')# color='#EEEEEE')
 # add 10 km bar
 lat0 = 47
 lon0 = -123.2
@@ -158,4 +166,4 @@ ax1.text((lon0+lon1)/2,lat0+0.015,'{} km'.format(x_dist_km),color='w',fontsize=1
          horizontalalignment='center')
 
 plt.subplots_adjust(hspace = 0.01)
-plt.savefig(out_dir / ('model_bathy.png'),transparent='True')
+plt.savefig(out_dir / ('model_bathy.png'))#,transparent='True')

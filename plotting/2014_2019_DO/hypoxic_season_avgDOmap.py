@@ -43,7 +43,7 @@ Ldir = Lfun.Lstart()
 ##############################################################
 
 # Show WWTP locations?
-WWTP_loc = True
+WWTP_loc = False
 
 remove_straits = False
 
@@ -244,7 +244,7 @@ if WWTP_loc == True:
     plt.setp(legend.get_title(),fontsize=20)
 
 # add 10 km bar
-lat0 = 46.94
+lat0 = 47.0
 lon0 = -123.05
 lat1 = lat0
 lon1 = -122.91825
@@ -292,8 +292,8 @@ for j,year in enumerate(years):
     ax.set_title(letters[i] + ' ' + year + ' - avg', fontsize=28, loc = 'left')
                                 
 # Add colormap title
-plt.suptitle(start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,
-            fontsize=44, fontweight='bold', y=0.95)
+plt.suptitle(start+' to '+end+' average ' + stext + ' ' + vn + ' [mg/L]',
+            fontsize=36, y=0.95)
 
 # Generate plot
 plt.tight_layout
