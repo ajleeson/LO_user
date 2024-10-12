@@ -77,6 +77,9 @@ if remove_straits:
 
 h = ds['h'].values # height of water column
 print(h.shape)
+# replace 4m water height with nan
+h[h==4]=np.nan
+
 
 Z = h/1000 # water depth in km
 DX = (ds.pm.values)**-1
@@ -86,5 +89,5 @@ print(DA.shape)
 
 # calculate volume of Puget Sound
 print('Puget Sound volume with straits omitted [km^3]')
-vol = np.nansum(h * DA)
+vol = np.nansum(Z * DA)
 print(vol)
