@@ -2605,11 +2605,14 @@ for i,station in enumerate(sta_dict):
     deep_lay_DO = zfun.lowpass(deep_lay_DO.values,n=30)
 
     # plot DO colored by flushing time
-    ax.plot(dates_local_daily,deep_lay_DO,linewidth=3.5,color='black', alpha=0.8)
-    ax.plot(dates_local_daily,deep_lay_DO,linewidth=1.7,color='silver')
+    # ax.plot(dates_local_daily,deep_lay_DO,linewidth=3.5,color='black', alpha=0.8)
+    # ax.plot(dates_local_daily,deep_lay_DO,linewidth=1.7,color='silver')
+
+    ax.plot(dates_local_daily,deep_lay_DO,linewidth=1,color='black',alpha=0.5)
 
 # format labels
 ax.set_xlim([dates_local[0],dates_local[-2]])
+ax.set_ylim([0,12])
 ax.set_ylabel(r'DO$_{deep}$ [mg/L]',fontsize=12)
 
 plt.show()

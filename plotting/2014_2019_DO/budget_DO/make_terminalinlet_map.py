@@ -44,10 +44,15 @@ zm[np.transpose(mask_rho) != 0] = -1
 plt.close('all')
 fig = plt.figure(figsize=(7.7,8.7))
 ax = fig.add_subplot(1,1,1)
-ax.tick_params(axis='both', labelsize=10)
+lon_low = -123.42
+lon_high =  -122
+lat_low = 46.93
+lat_high = 48.46
+ax.add_patch(Rectangle((lon_low, lat_low), lon_high-lon_low,lat_high-lat_low, facecolor='#EEEEEE'))
+ax.tick_params(axis='both', labelsize=12)
 plt.xticks(rotation=30)
 # plt.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.2, vmax=0, cmap=plt.get_cmap('Greys'))
-plt.pcolormesh(plon, plat, zm, vmin=-15, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+plt.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
 # get terminal inlet locations
 for stn,station in enumerate(sta_dict): # stations: 
@@ -64,19 +69,21 @@ for stn,station in enumerate(sta_dict): # stations:
     inlet_loc[jj,ii] = 20
     # add inlet locations
     # plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=65, cmap=plt.get_cmap('coolwarm'))
-    plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=28, cmap=plt.get_cmap(cmocean.cm.ice))
+    plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=35, cmap=plt.get_cmap(cmocean.cm.ice))
 
 # format
 # ax.axes.xaxis.set_visible(False)
 # ax.axes.yaxis.set_visible(False)
-ax.set_xlim(-123.42, -122) # Puget Sound
-ax.set_ylim(46.93, 48.46) # Puget Sound
+# ax.set_xlim(-123.42, -122) # Puget Sound
+# ax.set_ylim(46.93, 48.46) # Puget Sound
+ax.set_xlim(lon_low, lon_high) # Puget Sound
+ax.set_ylim(lat_low, lat_high) # Puget Sound
 
 pfun.dar(ax)
 
-# # remove border
-# for border in ['top','right','bottom','left']:
-#     ax.spines[border].set_visible(False)
+# remove border
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
 
 ##########################################################
 ##                 Plot station locations               ##
@@ -152,8 +159,8 @@ ax.add_patch(Rectangle((-123.39, 48.27), 0.6,0.15, facecolor='white',alpha=0.7,e
 ax.text(-123.37,48.37,'Ecology monitoring\nstation (ID)',va='center',ha='left',fontweight='bold',color='mediumorchid',fontsize = 12)
 ax.text(-123.37,48.3,'No observations',va='center',ha='left',fontweight='bold',color='k',fontsize = 12)
 
-plt.title('Inlet Locations',fontsize = 16)
-fig.tight_layout
+plt.title('Inlet Locations',fontsize = 14)
+plt.tight_layout()
 
 
 # where to put output figures

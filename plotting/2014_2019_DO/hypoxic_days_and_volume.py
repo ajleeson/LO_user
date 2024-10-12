@@ -11,6 +11,7 @@ from matplotlib.markers import MarkerStyle
 import matplotlib.dates as mdates
 import numpy as np
 import xarray as xr
+import csv
 from datetime import datetime, timedelta
 from matplotlib.dates import DateFormatter
 from matplotlib.dates import MonthLocator
@@ -47,7 +48,7 @@ Ldir = Lfun.Lstart()
 DO_thresh = 2 # [mg/L]
 
 # Show WWTP locations?
-WWTP_loc = True
+WWTP_loc = False
 
 remove_straits = True
 
@@ -297,7 +298,7 @@ for i,year in enumerate(['avg'] + years):
             plt.setp(legend.get_title(),fontsize=20)
 
         # add 10 km bar
-        lat0 = 46.94
+        lat0 = 47.0
         lon0 = -123.05
         lat1 = lat0
         lon1 = -122.91825
@@ -335,7 +336,7 @@ for i,year in enumerate(['avg'] + years):
                                 
 # Add colormap title
 plt.suptitle('Days with bottom DO < {} [mg/L]'.format(str(DO_thresh)),
-            fontsize=44, fontweight='bold', y=0.95)
+            fontsize=36, y=0.95)
 
 # Generate plot
 plt.tight_layout
@@ -439,10 +440,16 @@ for i,year in enumerate(years):
     # plot hypoxic area timeseries
     # ax1.plot(dates_local,hyp_vol[year],color=colors[i],
     #          linewidth=3,alpha=0.5,label=year)
-    ax1.plot(dates_local,hyp_vol[year],color='white',
-             linewidth=3.5)
-    ax1.plot(dates_local,hyp_vol[year],color=colors[i],
-             linewidth=3,label=year)
+    if year == '2017':
+        ax1.plot(dates_local,hyp_vol[year],color='white',
+                linewidth=4,zorder=4)
+        ax1.plot(dates_local,hyp_vol[year],color='black',
+                linewidth=3.5,label=year,zorder=4)
+    else:
+        ax1.plot(dates_local,hyp_vol[year],color='white',
+                linewidth=2.5)
+        ax1.plot(dates_local,hyp_vol[year],color=colors[i],
+                linewidth=2,label=year)
 
 # format figure
 ax1.grid(visible=True, color='w')
