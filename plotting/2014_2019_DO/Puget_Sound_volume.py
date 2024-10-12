@@ -87,5 +87,5 @@ DA = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
 
 # calculate volume of Puget Sound
 print('Puget Sound volume with straits omitted [km^3]')
-vol = np.sum(h * DA)
+vol = np.nansum(h * DA)
 print(vol)
