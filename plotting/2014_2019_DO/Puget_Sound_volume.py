@@ -48,7 +48,7 @@ gtagex = 'cas7_t0_x4b' # long hindcast (anthropogenic)
 ##############################################################
 
 # get percent hypoxic volume
-fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
+fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
 ds = xr.open_dataset(fp)
 if remove_straits:
         print('    Removing Straits...')
@@ -58,10 +58,11 @@ if remove_straits:
         mask = (ds['lat_rho'] > lat_threshold) & (ds['lon_rho'] < lon_threshold)
         # Expand mask dimensions to match 'oxygen' dimensions
         expanded_mask = mask.expand_dims(ocean_time=len(ds['ocean_time']), s_rho=len(ds['s_rho']))
-        # Apply the mask to the 'oxygen' variable
-        ds['z_w'] = xr.where(expanded_mask, np.nan, ds['z_w'])
+        # Apply the mask
         ds['pm'] = xr.where(expanded_mask, np.nan, ds['pm'])
         ds['pn'] = xr.where(expanded_mask, np.nan, ds['pn'])
+        expanded_mask = mask.expand_dims(ocean_time=len(ds['ocean_time']), s_w=len(ds['s_w']))
+        ds['z_w'] = xr.where(expanded_mask, np.nan, ds['z_w'])
 print('calculating vertical thickness')
 # get S for the whole grid
 Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
