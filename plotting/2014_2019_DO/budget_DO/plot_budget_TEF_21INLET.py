@@ -91,15 +91,15 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 # Get stations:
 if stations == 'all':
     sta_dict = job_lists.get_sta_dict(jobname)
-    # remove shallow inlets (< 10 m deep)
-    del sta_dict['hammersley']
-    del sta_dict['henderson']
-    del sta_dict['oak']
-    del sta_dict['totten']
-    del sta_dict['similk']
-    del sta_dict['budd']
-    del sta_dict['eld']
-    del sta_dict['killsut']
+    # # remove shallow inlets (< 10 m deep)
+    # del sta_dict['hammersley']
+    # del sta_dict['henderson']
+    # del sta_dict['oak']
+    # del sta_dict['totten']
+    # del sta_dict['similk']
+    # del sta_dict['budd']
+    # del sta_dict['eld']
+    # del sta_dict['killsut']
 else:
     sta_dict = stations
 
@@ -1265,8 +1265,12 @@ if hypinlet_budget_comparison_v2 == True:
                 wiggle = -0.6
             # plot
             offset = width * multiplier_deep1
+            if attribute == 'Storage':
+                hatchcolor = 'white'
+            else:
+                hatchcolor = 'black'
             if i == 0:
-                rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor='white',color=color, hatch='xx')
+                rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
                 rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
                 # ax[1].errorbar(offset, avg, yerr=std, capsize=5, color="k",zorder=6)
                 # ax[0].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
@@ -1387,8 +1391,12 @@ if hypinlet_budget_comparison_v2 == True:
                 wiggle = -0.1
             # plot
             offset = width * multiplier_deep1
+            if attribute == 'Storage':
+                hatchcolor = 'white'
+            else:
+                hatchcolor = 'black'
             if i == 0:
-                rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor='white',color=color, hatch='xx')
+                rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
                 rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
                 # ax[1].errorbar(offset, avg, yerr=std, capsize=5, color="k",zorder=6)
                 # ax[1].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
@@ -1481,93 +1489,93 @@ if jjdDOdt_asbotDO == True:
     plt.show()
 
 
-##########################################################
-##                Seasonal cycle analysis               ## 
-##########################################################
+# ##########################################################
+# ##                Seasonal cycle analysis               ## 
+# ##########################################################
 
-seasonal_cycle = True
-if seasonal_cycle == True:
+# seasonal_cycle = True
+# if seasonal_cycle == True:
 
-    # initialize figure
-    fig, ax = plt.subplots(1,1,figsize = (10,5))
-    # format figure
-    # plt.suptitle(year + r' DO$_{in}$-DO$_{deep}$ vs.' +
-    #               '\nExpected difference based on drawdown and flushing time',
-    #                 size=16)
-    plt.suptitle(year + r' (DO$_{in}$-DO$_{deep}$) vs. T$_{flush,ex}$ [60-day Hanning Window]',
-                    size=16)
-    # format grid
-    ax.set_facecolor('#EEEEEE')
-    ax.tick_params(axis='x', labelrotation=30)
-    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
-    for border in ['top','right','bottom','left']:
-        ax.spines[border].set_visible(False)
-    ax.tick_params(axis='both', labelsize=14)
-    ax.set_xlabel(r'T$_{flush,ex}$ [days]', fontsize=14)
-    ax.set_ylabel(r'DO$_{in}$-DO$_{deep}$ [mg/L]', fontsize=14)
-    # # colormap
-    # cmap_hyp = plt.cm.get_cmap('gist_heat_r')
-    # colors = plt.cm.gist_heat_r(np.linspace(0,1,80))
-    colors = plt.cm.tab20(np.linspace(0,1,20))
-    for i,station in enumerate(sta_dict):
-        # calculate flushing time
-        Tflush = dimensions_dict[station]['Inlet volume'][0]/bottomlay_dict[station]['Qin m3/s'] / (60*60*24)
-        # calculate DOin - DOdeep
-        deltaDO = DOconcen_dict[station]['Qin DO'] - DOconcen_dict[station]['Deep Layer']
+#     # initialize figure
+#     fig, ax = plt.subplots(1,1,figsize = (10,5))
+#     # format figure
+#     # plt.suptitle(year + r' DO$_{in}$-DO$_{deep}$ vs.' +
+#     #               '\nExpected difference based on drawdown and flushing time',
+#     #                 size=16)
+#     plt.suptitle(year + r' (DO$_{in}$-DO$_{deep}$) vs. T$_{flush,ex}$ [60-day Hanning Window]',
+#                     size=16)
+#     # format grid
+#     ax.set_facecolor('#EEEEEE')
+#     ax.tick_params(axis='x', labelrotation=30)
+#     ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+#     for border in ['top','right','bottom','left']:
+#         ax.spines[border].set_visible(False)
+#     ax.tick_params(axis='both', labelsize=14)
+#     ax.set_xlabel(r'T$_{flush,ex}$ [days]', fontsize=14)
+#     ax.set_ylabel(r'DO$_{in}$-DO$_{deep}$ [mg/L]', fontsize=14)
+#     # # colormap
+#     # cmap_hyp = plt.cm.get_cmap('gist_heat_r')
+#     # colors = plt.cm.gist_heat_r(np.linspace(0,1,80))
+#     colors = plt.cm.tab20(np.linspace(0,1,20))
+#     for i,station in enumerate(sta_dict):
+#         # calculate flushing time
+#         Tflush = dimensions_dict[station]['Inlet volume'][0]/bottomlay_dict[station]['Qin m3/s'] / (60*60*24)
+#         # calculate DOin - DOdeep
+#         deltaDO = DOconcen_dict[station]['Qin DO'] - DOconcen_dict[station]['Deep Layer']
 
-        # get average DO consumption rate in mg/L per day
-        # get volume average
-        storage = bottomlay_dict[station]['Storage']
-        avg = storage/(np.nanmean(bottomlay_dict[station]['Volume'])) # kmol O2 /s /m3
-        # convert to umol O2 /s /m3
-        avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
-        # convert to mg/L per day
-        avg = avg * (32/1000/1000) * (60*60*24)
-        drawdown = avg
+#         # get average DO consumption rate in mg/L per day
+#         # get volume average
+#         storage = bottomlay_dict[station]['Storage']
+#         avg = storage/(np.nanmean(bottomlay_dict[station]['Volume'])) # kmol O2 /s /m3
+#         # convert to umol O2 /s /m3
+#         avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
+#         # convert to mg/L per day
+#         avg = avg * (32/1000/1000) * (60*60*24)
+#         drawdown = avg
 
-        # get DO consumption
-        consumption = drawdown * Tflush # mg/L/day * days
-        drawdown = DOconcen_dict[station]['Qin DO'] - consumption
+#         # get DO consumption
+#         consumption = drawdown * Tflush # mg/L/day * days
+#         drawdown = DOconcen_dict[station]['Qin DO'] - consumption
 
-        # filter
-        Tflush = zfun.lowpass(Tflush.values,n=60)
-        deltaDO = zfun.lowpass(deltaDO.values,n=60)
-        drawdown = zfun.lowpass(drawdown.values,n=30)
-        # remove padded nans
-        Tflush = Tflush[~np.isnan(Tflush)]
-        deltaDO = deltaDO[~np.isnan(deltaDO)]
-        drawdown = drawdown[~np.isnan(drawdown)]
-        # # calculate aug/sep % hypoxic volume
-        # augsep_hyp = np.nanmean(DOconcen_dict[station]['percent hypoxic volume'][211:272])
-        # plot
-        ax.plot(np.append(Tflush,Tflush[0]),np.append(deltaDO,deltaDO[0]),linewidth=3.5,
-                color='black')
-        if station == 'henderson':
-            color = 'black'
-        else:
-            color = colors[i]
-        ax.plot(np.append(Tflush,Tflush[0]),np.append(deltaDO,deltaDO[0]),linewidth=2.5,
-                color=color, label=station)#,
-        # ax.plot(np.append(drawdown,drawdown[0]),np.append(deltaDO,deltaDO[0]),linewidth=3,
-        #         color='k')
-        # ax.plot(np.append(drawdown,drawdown[0]),np.append(deltaDO,deltaDO[0]),linewidth=2)#,
-                # color=colors[round(augsep_hyp)])#,
-                # linewidth=1,color='k',alpha=0.5)
-        ax.set_xlim([0,80])
-    # cmap_oxy = plt.cm.get_cmap('rainbow_r')
-    # # cs_DO = ax.scatter(mean_Tflush,mean_DOin,s=45,zorder=5, edgecolor='k',c=deep_lay_DO, cmap=cmap_oxy)
-    # cs_DO = ax.scatter(mean_Tflush,mean_DOin,s=45,zorder=5, edgecolor='k',c=perc_hyp_vol, cmap=cmap_hyp)
-    # # create colorbarlegend
-    # cbar = fig.colorbar(cs_DO)
-    # cbar.ax.tick_params(labelsize=12)
-    # # cbar.ax.set_ylabel('Monthly mean deep layer DO [mg/L]', rotation=90, fontsize=14)
-    # cbar.ax.set_ylabel('Aug & Sep mean % hypoxic volume', rotation=90, fontsize=14)
-    # cbar.outline.set_visible(False)
-    # plt.xscale('log')
-    plt.legend(loc='lower right',ncol=3)
-    plt.tight_layout()
-    # save figure
-    plt.show()
+#         # filter
+#         Tflush = zfun.lowpass(Tflush.values,n=60)
+#         deltaDO = zfun.lowpass(deltaDO.values,n=60)
+#         drawdown = zfun.lowpass(drawdown.values,n=30)
+#         # remove padded nans
+#         Tflush = Tflush[~np.isnan(Tflush)]
+#         deltaDO = deltaDO[~np.isnan(deltaDO)]
+#         drawdown = drawdown[~np.isnan(drawdown)]
+#         # # calculate aug/sep % hypoxic volume
+#         # augsep_hyp = np.nanmean(DOconcen_dict[station]['percent hypoxic volume'][211:272])
+#         # plot
+#         ax.plot(np.append(Tflush,Tflush[0]),np.append(deltaDO,deltaDO[0]),linewidth=3.5,
+#                 color='black')
+#         if station == 'henderson':
+#             color = 'black'
+#         else:
+#             color = colors[i]
+#         ax.plot(np.append(Tflush,Tflush[0]),np.append(deltaDO,deltaDO[0]),linewidth=2.5,
+#                 color=color, label=station)#,
+#         # ax.plot(np.append(drawdown,drawdown[0]),np.append(deltaDO,deltaDO[0]),linewidth=3,
+#         #         color='k')
+#         # ax.plot(np.append(drawdown,drawdown[0]),np.append(deltaDO,deltaDO[0]),linewidth=2)#,
+#                 # color=colors[round(augsep_hyp)])#,
+#                 # linewidth=1,color='k',alpha=0.5)
+#         ax.set_xlim([0,80])
+#     # cmap_oxy = plt.cm.get_cmap('rainbow_r')
+#     # # cs_DO = ax.scatter(mean_Tflush,mean_DOin,s=45,zorder=5, edgecolor='k',c=deep_lay_DO, cmap=cmap_oxy)
+#     # cs_DO = ax.scatter(mean_Tflush,mean_DOin,s=45,zorder=5, edgecolor='k',c=perc_hyp_vol, cmap=cmap_hyp)
+#     # # create colorbarlegend
+#     # cbar = fig.colorbar(cs_DO)
+#     # cbar.ax.tick_params(labelsize=12)
+#     # # cbar.ax.set_ylabel('Monthly mean deep layer DO [mg/L]', rotation=90, fontsize=14)
+#     # cbar.ax.set_ylabel('Aug & Sep mean % hypoxic volume', rotation=90, fontsize=14)
+#     # cbar.outline.set_visible(False)
+#     # plt.xscale('log')
+#     plt.legend(loc='lower right',ncol=3)
+#     plt.tight_layout()
+#     # save figure
+#     plt.show()
 
 ##########################################################
 ##                   DO scatterplots                    ## 
@@ -2429,6 +2437,143 @@ if DO_analysis == True:
         # # save figure
         # plt.show()
 
+##########################################################
+##                Seasonal cycle analysis               ## 
+##########################################################
+
+seasonal_cycle = True
+if seasonal_cycle == True:
+
+    # initialize figure
+    fig = plt.figure(figsize = (12,9))
+
+    # crescent bay
+    ax = fig.add_subplot(2, 2, 1)
+    ax.set_title('(a) Crescent Bay 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{flush}$', loc='left', size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='both', labelsize=12)
+    ax.set_xlabel(r'Monthly mean DO$_{in}$ [mg/L]', fontsize=12)
+    ax.set_ylabel(r'Monthly mean DO$_{deep}$ [mg/L]', fontsize=12)
+    # plot
+    cmap_temp = plt.cm.get_cmap('cubehelix_r', 256)
+    cmap_tflush = ListedColormap(cmap_temp(np.linspace(0.2, 1, 256)))# get range of colormap
+    ax.plot([0,11],[0,11],color='dimgray')
+    ax.text(0.9,0.9,'unity',rotation=45,va='center',ha='center',backgroundcolor='#EEEEEE',zorder=4, fontsize=10)
+    # cs = ax.scatter(mean_DOin,deep_lay_DO,s=80, zorder=5, c=mean_Tflush, cmap=cmap_oxy)
+    ax.scatter(mean_DOin,deep_lay_DO,s=60, zorder=5, color='gray',alpha=0.3, edgecolor='none')
+    for i,station in enumerate(sta_dict):
+        if station == 'crescent':
+            cs = ax.scatter(mean_DOin[i*intervals:(i+1)*intervals],deep_lay_DO[i*intervals:(i+1)*intervals],marker='s',
+                            s=150, zorder=6, c=mean_Tflush[i*intervals:(i+1)*intervals], edgecolor='black',cmap=cmap_tflush,
+                        linewidth=2, vmin=0, vmax=40)
+        else:
+            continue
+    # create colorbarlegend
+    cbar = fig.colorbar(cs)
+    cbar.ax.tick_params(labelsize=12)
+    cbar.ax.set_ylabel(r'Monthly mean T$_{flush}$ [days]', rotation=90, fontsize=12)
+    cbar.outline.set_visible(False)
+    ax.set_xlim([0,11])
+    ax.set_ylim([0,11])
+
+    # lynch cove
+    ax = fig.add_subplot(2, 2, 3)
+    ax.set_title('(b) Lynch Cove 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{flush}$', loc='left', size=14)
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='both', labelsize=12)
+    ax.set_xlabel(r'Monthly mean DO$_{in}$ [mg/L]', fontsize=12)
+    ax.set_ylabel(r'Monthly mean DO$_{deep}$ [mg/L]', fontsize=12)
+    # plot
+    cmap_temp = plt.cm.get_cmap('cubehelix_r', 256)
+    cmap_tflush = ListedColormap(cmap_temp(np.linspace(0.2, 1, 256)))# get range of colormap
+    ax.plot([0,11],[0,11],color='dimgray')
+    ax.text(0.9,0.9,'unity',rotation=45,va='center',ha='center',backgroundcolor='#EEEEEE',zorder=4, fontsize=10)
+    # cs = ax.scatter(mean_DOin,deep_lay_DO,s=80, zorder=5, c=mean_Tflush, cmap=cmap_oxy)
+    ax.scatter(mean_DOin,deep_lay_DO,s=60, zorder=5, color='gray',alpha=0.3, edgecolor='none')
+    for i,station in enumerate(sta_dict):
+        if station == 'lynchcove':
+            cs = ax.scatter(mean_DOin[i*intervals:(i+1)*intervals],deep_lay_DO[i*intervals:(i+1)*intervals],marker='s',
+                            s=150, zorder=6, c=mean_Tflush[i*intervals:(i+1)*intervals], edgecolor='black',cmap=cmap_tflush,
+                        linewidth=2, vmin=0, vmax=40)
+        else:
+            continue
+    # create colorbarlegend
+    cbar = fig.colorbar(cs)
+    cbar.ax.tick_params(labelsize=12)
+    cbar.ax.set_ylabel(r'Monthly mean T$_{flush}$ [days]', rotation=90, fontsize=12)
+    cbar.outline.set_visible(False)
+    ax.set_xlim([0,11])
+    ax.set_ylim([0,11])
+
+
+    # spaghetti
+    ax = fig.add_subplot(1, 2, 2)
+    ax.set_title(r'(c) 2017 monthly mean $\Delta DO$ vs. T$_{flush}$',
+                    size=14, loc='left')
+    # format grid
+    ax.set_facecolor('#EEEEEE')
+    ax.tick_params(axis='x', labelrotation=30)
+    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    for border in ['top','right','bottom','left']:
+        ax.spines[border].set_visible(False)
+    ax.tick_params(axis='both', labelsize=12)
+    ax.set_xlabel(r'Monthly mean T$_{flush}$ [days]', fontsize=12)
+    ax.set_ylabel(r'Monthly mean $\Delta DO$ [mg/L]', fontsize=12)
+    hypoxic_counter = 0
+    oxygenated_counter = 0
+    for i,station in enumerate(sta_dict):
+        # plot
+        zorder=4
+        outline = 'black'
+        if station in ['penn','holmes','portsusan','dabob','case']:
+            if hypoxic_counter == 0:
+                ax.scatter(mean_Tflush[i*intervals:(i+1)*intervals],
+                       mean_DOin[i*intervals:(i+1)*intervals] - deep_lay_DO[i*intervals:(i+1)*intervals],
+                       marker='o', s=100, alpha=0.5, zorder=5, c='hotpink', edgecolor='none', label='Hypoxic')
+                hypoxic_counter += 1
+            else:
+                ax.scatter(mean_Tflush[i*intervals:(i+1)*intervals],
+                    mean_DOin[i*intervals:(i+1)*intervals] - deep_lay_DO[i*intervals:(i+1)*intervals],
+                    marker='o', s=100, alpha=0.5, zorder=5, c='hotpink', edgecolor='none')
+        else:
+            if oxygenated_counter == 0:
+                ax.scatter(mean_Tflush[i*intervals:(i+1)*intervals],
+                       mean_DOin[i*intervals:(i+1)*intervals] - deep_lay_DO[i*intervals:(i+1)*intervals],
+                       marker='o', s=100, alpha=0.5, zorder=5, c='cornflowerblue', edgecolor='none', label='Oxygenated')
+                oxygenated_counter += 1
+            else:
+                ax.scatter(mean_Tflush[i*intervals:(i+1)*intervals],
+                       mean_DOin[i*intervals:(i+1)*intervals] - deep_lay_DO[i*intervals:(i+1)*intervals],
+                       marker='o', s=100, alpha=0.5, zorder=5, c='cornflowerblue', edgecolor='none')
+        if station == 'lynchcove':
+            ax.scatter(mean_Tflush[i*intervals:(i+1)*intervals],
+                       mean_DOin[i*intervals:(i+1)*intervals] - deep_lay_DO[i*intervals:(i+1)*intervals],
+                       marker='s', s=150, zorder=6, c='deeppink', edgecolor='black', linewidth=2,
+                       label='Lynch Cove')
+        if station == 'crescent':
+            ax.scatter(mean_Tflush[i*intervals:(i+1)*intervals],
+                       mean_DOin[i*intervals:(i+1)*intervals] - deep_lay_DO[i*intervals:(i+1)*intervals],
+                       marker='s', s=150, zorder=6, c='royalblue', edgecolor='black', linewidth=2,
+                       label='Crescent Bay')
+        
+        ax.plot([0,85],[0,0],color='black',zorder=4,linewidth=0.5)
+        ax.spines['bottom'].set_position('zero')
+        ax.set_xlim([0,85])
+    ax.legend(loc='lower right')
+
+    plt.tight_layout()
+    # save figure
+    plt.show()
 
 ##########################################################
 ##                  Deep DO time series               ## 
