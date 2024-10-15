@@ -427,7 +427,11 @@ if remove_straits:
     # Add the patch to the Axes
     ax0.add_patch(rect)
     ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontsize=12)
-    ax0.set_title('(a) Region', fontsize = 14)
+    ax0.set_title('(a) Region', fontsize = 14, loc='left')
+
+# Puget Sound volume
+if remove_straits:
+    PS_vol = 195.2716230839466 # [km^3]
 
 # create time vector
 startdate = '2020.01.01'
@@ -452,7 +456,7 @@ for i,year in enumerate(years):
                 linewidth=2,label=year)
 
 # format figure
-ax1.grid(visible=True, color='w')
+ax1.grid(visible=True, axis='x', color='w')
 # format background color
 ax1.set_facecolor('#EEEEEE')
 for border in ['top','right','bottom','left']:
@@ -460,7 +464,21 @@ for border in ['top','right','bottom','left']:
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
 ax1.set_ylabel(r'Hypoxic volume [km$^3$]')
 plt.legend(loc='best', fontsize=12)
-plt.title('(b) Puget Sound hypoxic volume (DO < 2 mg/L)', fontsize = 14)
+plt.title('(b) Puget Sound hypoxic volume (DO < 2 mg/L)', fontsize = 14, loc='left')
 ax1.set_xlim([dates_local[0],dates_local[-1]])
+ax1.set_ylim([0,13])
+
+# create hypoxic volume y-axis
+# convert hypoxic volume to percent hypoxic volume
+percent = lambda hyp_vol: hyp_vol/PS_vol*100
+# get left axis limits
+ymin, ymax = ax1.get_ylim()
+# match ticks
+ax2 = ax1.twinx()
+ax2.set_ylim((percent(ymin),percent(ymax)))
+ax2.plot([],[])
+for border in ['top','right','bottom','left']:
+    ax2.spines[border].set_visible(False)
+ax2.set_ylabel(r'Percent of regional volume [%]')
 
 plt.savefig(out_dir / ('volume_with_DO_lt2_'+straits+'.png'))
