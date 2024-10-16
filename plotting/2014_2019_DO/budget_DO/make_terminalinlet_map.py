@@ -97,7 +97,7 @@ ecol_stn = {
     'lynchcove': 'HCB007',
     'commencement': 'CMB003',
     'hammersley': 'OAK004',
-    'totten': 'TOT002',
+    # 'totten': 'TOT002',
     'budd': 'BUD005'
 }
 

@@ -1189,7 +1189,7 @@ if hypinlet_budget_comparison_v2 == True:
         axis.tick_params(axis='y', labelsize=12)
         axis.set_xticklabels([])
         axis.set_ylabel('mg/L per day',fontsize=12)
-    ax[1].set_ylim([-1,1])
+    ax[1].set_ylim([-0.75,0.75])
 
     # create a new dictionary of results
     oxy_dict = {}
@@ -1242,16 +1242,16 @@ if hypinlet_budget_comparison_v2 == True:
         for attribute, measurement in dict.items():
             # choose color
             if attribute == 'TEF Exchange Flow':
-                color = '#a3bcf7'
+                color = 'powderblue'#'#a3bcf7'
                 label = 'Exchange Flow'
             if attribute == 'TEF Vertical':
-                color = '#b9a3f7'
+                color = 'dodgerblue'#'#b9a3f7'
                 label = 'Vertical Transport'
             if attribute == 'Photosynthesis':
-                color = '#88d7d8'
+                color = 'lightpink'#'#88d7d8'
                 label = attribute
             if attribute == 'Bio Consumption':
-                color = 'darkgray'
+                color = 'orangered'#'darkgray'
                 label = attribute
             if attribute == 'Storage':
                 color = 'black'
@@ -1268,7 +1268,7 @@ if hypinlet_budget_comparison_v2 == True:
             if attribute == 'Storage':
                 hatchcolor = 'white'
             else:
-                hatchcolor = 'black'
+                hatchcolor = 'white'
             if i == 0:
                 rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
                 rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
@@ -1368,8 +1368,8 @@ if hypinlet_budget_comparison_v2 == True:
         for attribute, measurement in dict.items():
             # choose color
             if attribute == 'TEF Recirculation':
-                color = '#b9a3f7'
-                label = 'Advection & Mixing'
+                color = 'lightskyblue'#'#b9a3f7'
+                label = 'Exchange Flow & Vertical Transport'
             # if attribute == 'Photosynthesis':
             #     color = '#A1CE37'
             #     label = attribute
@@ -1377,7 +1377,7 @@ if hypinlet_budget_comparison_v2 == True:
             #     color = '#A63446'
             #     label = attribute
             if attribute == 'Photosynthesis & Consumption':
-                color = '#88d7d8'
+                color = 'lightcoral'#'#88d7d8'
                 label = attribute
             if attribute == 'Storage':
                 color = 'black'
@@ -1394,7 +1394,7 @@ if hypinlet_budget_comparison_v2 == True:
             if attribute == 'Storage':
                 hatchcolor = 'white'
             else:
-                hatchcolor = 'black'
+                hatchcolor = 'white'
             if i == 0:
                 rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
                 rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
@@ -2445,7 +2445,7 @@ seasonal_cycle = True
 if seasonal_cycle == True:
 
     # initialize figure
-    fig = plt.figure(figsize = (12,9))
+    fig = plt.figure(figsize = (11,8))
 
     # crescent bay
     ax = fig.add_subplot(2, 2, 1)
@@ -2572,6 +2572,7 @@ if seasonal_cycle == True:
     ax.legend(loc='lower right')
 
     plt.tight_layout()
+    plt.subplots_adjust(hspace=0.5)
     # save figure
     plt.show()
 
