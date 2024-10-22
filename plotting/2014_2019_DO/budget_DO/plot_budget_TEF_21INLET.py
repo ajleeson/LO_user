@@ -1051,7 +1051,6 @@ if twoinlet_budget_comparison == True:
 
 
 # mid July to mid August
-# June and July
 minday = 194
 maxday = 225
 
@@ -1189,6 +1188,7 @@ if hypinlet_budget_comparison_v2 == True:
         axis.tick_params(axis='y', labelsize=12)
         axis.set_xticklabels([])
         axis.set_ylabel('mg/L per day',fontsize=12)
+        axis.set_xlim([0,1.6])
     ax[1].set_ylim([-0.75,0.75])
 
     # create a new dictionary of results
@@ -1212,10 +1212,8 @@ if hypinlet_budget_comparison_v2 == True:
             time_avg = np.nanmean(measurement[minday:maxday])
             # get volume average
             avg = time_avg/(np.nanmean(bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-            # convert to umol O2 /s /m3
-            avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
             # convert to mg/L per day
-            avg = avg * (32/1000/1000) * (60*60*24)
+            avg = avg * 1000 * 32 * 60 * 60 * 24
             # save values in dictionary
             if station in ['penn','case','holmes','portsusan','lynchcove','dabob']:
                 if attribute in hyp_dict.keys():
@@ -1239,30 +1237,41 @@ if hypinlet_budget_comparison_v2 == True:
     print('\n')
     for i,dict in enumerate([oxy_dict,hyp_dict]):
     # average all oxygenated and hypoxic inlet rate values, and calculate standard deviations
+        if i ==0:
+            shift = 0
+        else:
+            shift = 0.1
         for attribute, measurement in dict.items():
             # choose color
             if attribute == 'TEF Exchange Flow':
-                color = 'powderblue'#'#a3bcf7'
+                color = '#0D4B91'
                 label = 'Exchange Flow'
+                pos = 0.15
             if attribute == 'TEF Vertical':
-                color = 'dodgerblue'#'#b9a3f7'
+                color = '#99C5F7'
                 label = 'Vertical Transport'
+                pos = 0.35
             if attribute == 'Photosynthesis':
-                color = 'lightpink'#'#88d7d8'
+                color = '#8F0445'
                 label = attribute
+                pos = 0.65
             if attribute == 'Bio Consumption':
-                color = 'orangered'#'darkgray'
+                color = '#FCC2DD'
                 label = attribute
+                pos = 0.85
             if attribute == 'Storage':
                 color = 'black'
-                label = r'$\frac{d}{dt}$(DO)'
+                label = r'$\frac{d}{dt}$DO (net decrease)'
+                pos = 1.25
             # calculate average and standard deviation
             avg = np.nanmean(measurement)
             std = np.std(measurement)
             if avg < 0:
-                wiggle = 0.4
+                wiggle = 0.1
+                ha = 'center'
             if avg > 0:
-                wiggle = -0.6
+                wiggle = -1.9
+                ha = 'center'
             # plot
             offset = width * multiplier_deep1
             if attribute == 'Storage':
@@ -1270,30 +1279,35 @@ if hypinlet_budget_comparison_v2 == True:
             else:
                 hatchcolor = 'white'
             if i == 0:
-                rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
-                rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
-                # ax[1].errorbar(offset, avg, yerr=std, capsize=5, color="k",zorder=6)
-                # ax[0].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
-                #         fontsize=12)
+                # rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
+                # rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
+                rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=hatchcolor,color=color, hatch='xx')
+                rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color='none')
                 if attribute == 'Storage':
-                    ax[0].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
-                            color=color,fontsize=12, fontweight='bold')
+                    # ax[0].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    #         color=color,fontsize=12, fontweight='bold')
+                    ax[0].text(pos + shift, 0+wiggle, str(round(avg,3)),horizontalalignment=ha,verticalalignment='bottom',
+                            color=color,fontsize=12, fontweight='bold', rotation=45)
                 else:
-                    ax[0].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
-                            color='gray',fontsize=12)
+                    # ax[0].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    #         color='gray',fontsize=12)
+                    ax[0].text(pos + shift, 0+wiggle, str(round(avg,3)),horizontalalignment=ha,verticalalignment='bottom',
+                            color='gray',fontsize=12, rotation=45)
                 multiplier_deep1 += 2
             elif i == 1:
                 offset = width * multiplier_deep2
-                rects = ax[0].bar(offset+width, avg, width, zorder=5, edgecolor=color,color=color,label=label)
-                # ax[1].errorbar(offset+width, avg, yerr=std, capsize=5, color="k",zorder=6)
-                # ax[0].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
-                #         fontsize=12)
+                # rects = ax[0].bar(offset+width, avg, width, zorder=5, edgecolor=color,color=color,label=label)
+                rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color=color, label=label)
                 if attribute == 'Storage':
-                    ax[0].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
-                            color=color,fontsize=12, fontweight='bold')
+                    # ax[0].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    #         color=color,fontsize=12, fontweight='bold')
+                    ax[0].text(pos+shift, 0+wiggle, str(round(avg,3)),horizontalalignment=ha,verticalalignment='bottom',
+                            color=color,fontsize=12, fontweight='bold', rotation=45)
                 else:
-                    ax[0].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
-                            color='gray',fontsize=12)
+                    # ax[0].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    #         color='gray',fontsize=12)
+                    ax[0].text(pos + shift, 0+wiggle, str(round(avg,3)),horizontalalignment=ha,verticalalignment='bottom',
+                            color='gray',fontsize=12, rotation=45)
                 multiplier_deep2 += 2
             
             ax[0].legend(loc='upper right', fontsize=12, ncol=2)
@@ -1326,10 +1340,8 @@ if hypinlet_budget_comparison_v2 == True:
             time_avg = np.nanmean(measurement[minday:maxday])
             # get volume average
             avg = time_avg/(np.nanmean(bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-            # convert to umol O2 /s /m3
-            avg = avg * 1000 * 1000 * 1000 # umol O2 /s /m3
             # convert to mg/L per day
-            avg = avg * (32/1000/1000) * (60*60*24)
+            avg = avg * 1000 * 32 * 60 * 60 * 24
             # save values in dictionary
             if station in ['penn','case','holmes','portsusan','lynchcove','dabob']:
                 if attribute in hyp_dict.keys():
@@ -1344,20 +1356,22 @@ if hypinlet_budget_comparison_v2 == True:
 
     # t-test
     print('COMBINED TERMS --------------------------------------')
+    width = 0.2
     for attribute in oxy_dict:
         print('\n========================')
         print(attribute)
         a = oxy_dict[attribute]
         b = hyp_dict[attribute]
-        if attribute == 'Photosynthesis & Consumption':
-            print('one-sided')
-            # one-sided t-test 
-            # alternative hypothesis: a < b (drawdown of oxygenated is more negative than drawdown of hypoxic)
-            # the null hypothesis is thus that drawdown of hypoxic is more negative
-            ttest = ttest_ind(a, b, axis=0, equal_var=False, alternative='less')
-        else:
-            # two-sided t-test with null hypothesis that they are the same
-            ttest = ttest_ind(a, b, axis=0, equal_var=False)
+        ttest = ttest_ind(a, b, axis=0, equal_var=False)
+        # if attribute == 'Photosynthesis & Consumption':
+        #     print('one-sided')
+        #     # one-sided t-test 
+        #     # alternative hypothesis: a < b (drawdown of oxygenated is more negative than drawdown of hypoxic)
+        #     # the null hypothesis is thus that drawdown of hypoxic is more negative
+        #     ttest = ttest_ind(a, b, axis=0, equal_var=False, alternative='less')
+        # else:
+        #     # two-sided t-test with null hypothesis that they are the same
+        #     ttest = ttest_ind(a, b, axis=0, equal_var=False)
         print(ttest)
 
     print('\n')
@@ -1365,23 +1379,24 @@ if hypinlet_budget_comparison_v2 == True:
 
     for i,dict in enumerate([oxy_dict,hyp_dict]):
     # average all oxygenated and hypoxic inlet rate values, and calculate standard deviations
+        if i ==0:
+            shift = 0
+        else:
+            shift = 0.2
         for attribute, measurement in dict.items():
             # choose color
             if attribute == 'TEF Recirculation':
-                color = 'lightskyblue'#'#b9a3f7'
+                color = '#488DDB'
                 label = 'Exchange Flow & Vertical Transport'
-            # if attribute == 'Photosynthesis':
-            #     color = '#A1CE37'
-            #     label = attribute
-            # if attribute == 'Bio Consumption':
-            #     color = '#A63446'
-            #     label = attribute
+                pos = 0.2
             if attribute == 'Photosynthesis & Consumption':
-                color = 'lightcoral'#'#88d7d8'
-                label = attribute
+                color = '#F069A8'
+                label = attribute + ' (drawdown)'
+                pos = 0.7
             if attribute == 'Storage':
                 color = 'black'
-                label = r'$\frac{d}{dt}$(DO)'
+                label = r'$\frac{d}{dt}$DO (net decrease)'
+                pos = 1.2
             # calculate average and standard deviation
             avg = np.nanmean(measurement)
             std = np.std(measurement)
@@ -1396,28 +1411,35 @@ if hypinlet_budget_comparison_v2 == True:
             else:
                 hatchcolor = 'white'
             if i == 0:
-                rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
-                rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
-                # ax[1].errorbar(offset, avg, yerr=std, capsize=5, color="k",zorder=6)
-                # ax[1].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
-                #         color=color,fontsize=12)
+                # rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
+                # rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
+                rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
+                rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color='none')
                 if attribute == 'Storage':
-                    ax[1].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    # ax[1].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    #         color=color,fontsize=12, fontweight='bold')
+                    ax[1].text(pos+shift, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                             color=color,fontsize=12, fontweight='bold')
                 else:
-                    ax[1].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    # ax[1].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    #         color='gray',fontsize=12)
+                    ax[1].text(pos+shift, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                             color='gray',fontsize=12)
                     
                 multiplier_deep1 += 2
             elif i == 1:
                 offset = width * multiplier_deep2
-                rects = ax[1].bar(offset+width, avg, width, zorder=5, edgecolor=color,color=color,label=label)
-                # ax[1].errorbar(offset+width, avg, yerr=std, capsize=5, color="k",zorder=6)
+                # rects = ax[1].bar(offset+width, avg, width, zorder=5, edgecolor=color,color=color,label=label)
+                rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color=color,label=label)
                 if attribute == 'Storage':
-                    ax[1].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    # ax[1].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    #         color=color,fontsize=12, fontweight='bold')
+                    ax[1].text(pos+shift, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                             color=color,fontsize=12, fontweight='bold')
                 else:
-                    ax[1].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    # ax[1].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    #         color='gray',fontsize=12)
+                    ax[1].text(pos+shift, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                             color='gray',fontsize=12)
                 multiplier_deep2 += 2
             
@@ -1995,7 +2017,7 @@ if DO_analysis == True:
         fig, ax = plt.subplots(1,2,figsize = (10,5))
 
         # format figure
-        ax[0].set_title('(a) ' + year + r' monthly mean DO$_{deep}$ vs. DO$_{in}$' + '\n' + r'colored by mean T$_{flush}$',
+        ax[0].set_title('(a) ' + year + r' monthly mean DO$_{deep}$ vs. DO$_{in}$' + '\n' + r'colored by mean T$_{res}$',
                         size=16, loc='left')
         # format grid
         ax[0].set_facecolor('#EEEEEE')
@@ -2015,14 +2037,14 @@ if DO_analysis == True:
         # create colorbarlegend
         cbar = fig.colorbar(cs)
         cbar.ax.tick_params(labelsize=14)
-        cbar.ax.set_ylabel(r'Monthly mean T$_{flush}$ [days]', rotation=90, fontsize=14)
+        cbar.ax.set_ylabel(r'Monthly mean T$_{res}$ [days]', rotation=90, fontsize=14)
         cbar.outline.set_visible(False)
         ax[0].set_xlim([0,12])
         ax[0].set_ylim([0,12])
 
 
         # format figure
-        ax[1].set_title('(b) ' + year + ' monthly mean '+r'DO$_{in}$ vs. T$_{flush}$'+'\ncolored by % hypoxic volume',
+        ax[1].set_title('(b) ' + year + ' monthly mean '+r'DO$_{in}$ vs. T$_{res}$'+'\ncolored by % hypoxic volume',
                         size=16, loc='left')
         # format grid
         ax[1].set_facecolor('#EEEEEE')
@@ -2031,7 +2053,7 @@ if DO_analysis == True:
         for border in ['top','right','bottom','left']:
             ax[1].spines[border].set_visible(False)
         ax[1].tick_params(axis='both', labelsize=14)
-        ax[1].set_xlabel(r'Monthly mean T$_{flush}$ [days]', fontsize=14)
+        ax[1].set_xlabel(r'Monthly mean T$_{res}$ [days]', fontsize=14)
         ax[1].set_ylabel(r'Monthly mean DO$_{in}$ [mg/L]', fontsize=14)
         ax[1].set_ylim([0,11])
         ax[1].set_xlim([0,85])
@@ -2049,12 +2071,12 @@ if DO_analysis == True:
 
 
     # difference between DOin and deep layer DO vs. Tflush
-    deltaDO_Tflush = True
+    deltaDO_Tflush = False
     if deltaDO_Tflush == True:
         # initialize figure
         fig, ax = plt.subplots(1,1,figsize = (6,6))
         # format figure
-        plt.suptitle(year + ' monthly mean '+r' DO$_{in}$-DO$_{deep}$ vs. T$_{flush}$',
+        plt.suptitle(year + ' monthly mean '+r' DO$_{in}$-DO$_{deep}$ vs. T$_{res}$',
                         size=16)
         # format grid
         ax.set_facecolor('#EEEEEE')
@@ -2063,7 +2085,7 @@ if DO_analysis == True:
         for border in ['top','right','bottom','left']:
             ax.spines[border].set_visible(False)
         ax.tick_params(axis='both', labelsize=14)
-        ax.set_xlabel(r'Monthly mean T$_{flush}$ [days]', fontsize=14)
+        ax.set_xlabel(r'Monthly mean T$_{res}$ [days]', fontsize=14)
         ax.set_ylabel(r'Monthly mean DO$_{in}$-DO$_{deep}$ [mg/L]', fontsize=14)
         # plot
         ax.scatter(mean_Tflush,mean_DOin-deep_lay_DO,s=70,zorder=5,color='k',alpha=0.3)
@@ -2449,7 +2471,7 @@ if seasonal_cycle == True:
 
     # crescent bay
     ax = fig.add_subplot(2, 2, 1)
-    ax.set_title('(a) Crescent Bay 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{flush}$', loc='left', size=14)
+    ax.set_title('(a) Crescent Bay 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{res}$', loc='left', size=14)
     # format grid
     ax.set_facecolor('#EEEEEE')
     ax.tick_params(axis='x', labelrotation=30)
@@ -2476,14 +2498,14 @@ if seasonal_cycle == True:
     # create colorbarlegend
     cbar = fig.colorbar(cs)
     cbar.ax.tick_params(labelsize=12)
-    cbar.ax.set_ylabel(r'Monthly mean T$_{flush}$ [days]', rotation=90, fontsize=12)
+    cbar.ax.set_ylabel(r'Monthly mean T$_{res}$ [days]', rotation=90, fontsize=12)
     cbar.outline.set_visible(False)
     ax.set_xlim([0,11])
     ax.set_ylim([0,11])
 
     # lynch cove
     ax = fig.add_subplot(2, 2, 3)
-    ax.set_title('(b) Lynch Cove 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{flush}$', loc='left', size=14)
+    ax.set_title('(b) Lynch Cove 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{res}$', loc='left', size=14)
     # format grid
     ax.set_facecolor('#EEEEEE')
     ax.tick_params(axis='x', labelrotation=30)
@@ -2510,7 +2532,7 @@ if seasonal_cycle == True:
     # create colorbarlegend
     cbar = fig.colorbar(cs)
     cbar.ax.tick_params(labelsize=12)
-    cbar.ax.set_ylabel(r'Monthly mean T$_{flush}$ [days]', rotation=90, fontsize=12)
+    cbar.ax.set_ylabel(r'Monthly mean T$_{res}$ [days]', rotation=90, fontsize=12)
     cbar.outline.set_visible(False)
     ax.set_xlim([0,11])
     ax.set_ylim([0,11])
@@ -2518,7 +2540,7 @@ if seasonal_cycle == True:
 
     # spaghetti
     ax = fig.add_subplot(1, 2, 2)
-    ax.set_title(r'(c) 2017 monthly mean $\Delta DO$ vs. T$_{flush}$',
+    ax.set_title(r'(c) 2017 monthly mean $\Delta DO$ vs. T$_{res}$',
                     size=14, loc='left')
     # format grid
     ax.set_facecolor('#EEEEEE')
@@ -2527,7 +2549,7 @@ if seasonal_cycle == True:
     for border in ['top','right','bottom','left']:
         ax.spines[border].set_visible(False)
     ax.tick_params(axis='both', labelsize=12)
-    ax.set_xlabel(r'Monthly mean T$_{flush}$ [days]', fontsize=12)
+    ax.set_xlabel(r'Monthly mean T$_{res}$ [days]', fontsize=12)
     ax.set_ylabel(r'Monthly mean $\Delta DO$ [mg/L]', fontsize=12)
     hypoxic_counter = 0
     oxygenated_counter = 0
@@ -2580,6 +2602,10 @@ if seasonal_cycle == True:
 ##                  Deep DO time series               ## 
 ##########################################################
 
+# mid Jul - mid Aug
+minday = 194
+maxday = 225
+
 # initialize figure
 fig, ax = plt.subplots(1,1,figsize = (12,5))
 # format figure
@@ -2595,6 +2621,10 @@ ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
 for border in ['top','right','bottom','left']:
     ax.spines[border].set_visible(False)
 ax.tick_params(axis='both', labelsize=12)
+
+# add drawdown period
+ax.axvline(dates_local_daily[minday],0,12,color='pink')
+ax.axvline(dates_local_daily[maxday],0,12,color='pink')
 
 # loop through stations
 for i,station in enumerate(sta_dict):
