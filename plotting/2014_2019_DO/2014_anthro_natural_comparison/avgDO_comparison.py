@@ -63,7 +63,7 @@ region = 'Puget Sound'
 
 # start date
 start = '08-01'
-end = '10-31'
+end = '09-30'
 
 ##############################################################
 ##                    HELPER FUNCTIONS                      ##
@@ -160,7 +160,7 @@ else:
 ds_dict = {}
 # add ds to dictionary
 for year in years:
-    ds = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / (year + '_DO_info_' + straits + '.nc'))
+    ds = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / 'older_202470708' / (year + '_DO_info_' + straits + '.nc'))
     ds_dict[year] = ds
 
 ##############################################################
