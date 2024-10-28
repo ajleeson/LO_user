@@ -48,15 +48,15 @@ Ldir = Lfun.Lstart()
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['DIN','u','v'] # u, v, w, DIN
-date = '2014.12.12'
+vns = ['u']#['DIN','u','v'] # u, v, w, DIN
+date = '2013.01.01'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
 
-gtagex_longhindcast = 'cas7_t0_x4b'
-gtagex_noN = 'cas7_t0noN_x4b'
+gtagex_longhindcast = 'cas7_t0noN_x4b'
+gtagex_noN = 'cas7_t0noN_x4b_perf10'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
@@ -132,8 +132,8 @@ for vn in vns:
         vmax =  5
     elif vn == 'u' or vn == 'v':
         vn_name = vn
-        vmin = -0.01
-        vmax =  0.01
+        vmin = -0.1#-0.01
+        vmax =  0.1#0.01
     else:
         print('vmin and vmax not provided for '+ vn)
 
@@ -182,7 +182,7 @@ for vn in vns:
     plt.close('all')
 
     # Initialize figure
-    fig = plt.figure(figsize=(15,11)) # 15,11 for Puget sound and 18,8 for Salish Sea
+    fig = plt.figure(figsize=(12,9)) # 15,11 for Puget sound and 18,8 for Salish Sea
     plt.tight_layout()
 
     subplotnums = [121,122]

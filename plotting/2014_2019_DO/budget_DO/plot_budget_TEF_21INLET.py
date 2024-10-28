@@ -666,6 +666,147 @@ if DO_budget == True:
             plt.savefig(out_dir_budget / (station + '.png') )
 
 ##########################################################
+##         Lynch Cove example budget time series        ##
+##########################################################
+
+LC_budget = True
+
+# COLLAPSE
+if LC_budget == True:
+    plt.close('all')
+    for i,station in enumerate(['lynchcove']):
+            
+            # get interface depth from csv file
+            with open('interface_depths.csv', 'r') as f:
+                for line in f:
+                    inlet, interface_depth = line.strip().split(',')
+                    interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
+            z_interface = float(interface_dict[station])
+
+            # initialize figure
+            
+            fig, ax = plt.subplots(1,1,figsize=(12,8))
+            # format figure
+            plt.suptitle(station + ': DO Budget (10-day Hanning Window)',size=14)
+            ax.set_xlim([dates_local[0],dates_local[-25]])
+            ax.set_ylabel('DO transport ' + r'[kmol O$_2$ s$^{-1}$]',size=14)
+            ax.set_facecolor('#EEEEEE')
+            ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+            ax.tick_params(axis='x', labelrotation=30)
+            loc = mdates.MonthLocator(interval=1)
+            ax.xaxis.set_major_locator(loc)
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+            ax.tick_params(axis='both', labelsize=12)
+            for border in ['top','right','bottom','left']:
+                ax.spines[border].set_visible(False)
+            ax.set_xlabel(year, fontsize=14)
+
+            ax.set_ylim([-0.15,0.15])
+            
+            # plot deep budget
+            nwin = 10 # hanning window length
+            ax.plot(dates_local_daily,zfun.lowpass(bottomlay_dict[station]['TEF Exchange Flow'].values,n=nwin),color='#0D4B91',
+                    linewidth=2,label='Exchange Flow')
+            ax.plot(dates_local_daily,zfun.lowpass(bottomlay_dict[station]['TEF Vertical'].values,n=nwin),color='#99C5F7',
+                    linewidth=2,label='Vertical Transport')
+            # ax.plot(dates_local_daily,bottomlay_dict[station]['TRAPS'],color=traps_color,
+            #            linewidth=3,zorder=2)
+            ax.plot(dates_local_daily,zfun.lowpass(bottomlay_dict[station]['Photosynthesis'].values,n=nwin),color='#8F0445',
+                       linewidth=2, label='Photosynthesis')
+            ax.plot(dates_local_daily,zfun.lowpass(bottomlay_dict[station]['Bio Consumption'].values,n=nwin),color='#FCC2DD',
+                       linewidth=2,label='Bio Consumption')
+            ax.plot(dates_local_daily,zfun.lowpass(bottomlay_dict[station]['Storage'].values,n=nwin),color='k',
+                       linewidth=1,label=r'$\frac{d}{dt}\int_V$DO dV') #,alpha=0.6)
+            
+            ax.legend(loc='upper center',ncol=3, fontsize=12)
+
+            # add drawdown period
+            # mid Jul - mid Aug
+            minday = 194
+            maxday = 225
+            ax.axvline(dates_local_daily[minday],0,12,color='grey',linestyle=':')
+            ax.axvline(dates_local_daily[maxday],0,12,color='grey',linestyle=':')
+
+                    
+            plt.show()
+
+
+##########################################################
+##          Lynch Cove example budget barchart          ##
+##########################################################
+
+station = 'lynchcove'
+
+fig, ax = plt.subplots(1,1,figsize = (10,6))
+
+# format grid
+ax.set_facecolor('#EEEEEE')
+ax.tick_params(axis='x', labelrotation=30)
+ax.grid(True,color='w',linewidth=1,linestyle='-',axis='y')
+for border in ['top','right','bottom','left']:
+    ax.spines[border].set_visible(False)
+ax.tick_params(axis='y', labelsize=12)
+ax.set_xticklabels([])
+ax.set_ylabel('mg/L per day',fontsize=12)
+ax.set_title(station + ' volume-averaged deep layer DO budget')
+ax.set_xlim([0,1.4])
+ax.set_ylim([-0.3,0.3])
+width = 0.2
+
+for attribute, measurement in bottomlay_dict[station].items():
+    # skip variables we are not interested in
+    if attribute in ['EU Exchange Flow',
+                        'TRAPS',
+                        'EU Recirculation',
+                        'EU Vertical',
+                        'TEF Recirculation',
+                        'Photosynthesis & Consumption',
+                        'Volume',
+                        'Qin m3/s']:
+        continue
+
+    # assign colors
+    if attribute == 'TEF Exchange Flow':
+        color = '#0D4B91'
+        label = 'Exchange Flow'
+        pos = 0.15
+    if attribute == 'TEF Vertical':
+        color = '#99C5F7'
+        label = 'Vertical Transport'
+        pos = 0.35
+    if attribute == 'Photosynthesis':
+        color = '#8F0445'
+        label = attribute
+        pos = 0.65
+    if attribute == 'Bio Consumption':
+        color = '#FCC2DD'
+        label = attribute
+        pos = 0.85
+    if attribute == 'Storage':
+        color = 'black'
+        label = r'$\frac{d}{dt}$DO (net decrease)'
+        pos = 1.25
+
+    # calculate time average
+    time_avg = np.nanmean(measurement[minday:maxday])
+    # get volume average
+    avg = time_avg/(np.nanmean(bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+    # convert to mg/L per day
+    avg = avg * 1000 * 32 * 60 * 60 * 24
+
+    ax.bar(pos, avg, width, zorder=5, align='center', edgecolor=color,color=color, label=label)
+    if avg < 0:
+        wiggle = -0.02
+    if avg > 0:
+        wiggle = 0.02
+    ax.text(pos, avg+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+            color='black',fontsize=12)
+    
+    ax.legend(loc='upper right', fontsize=12, ncol=2)
+
+plt.show()
+
+##########################################################
 ##          DO rate budget summary bar chart           ## 
 ##########################################################
 
@@ -1270,7 +1411,7 @@ if hypinlet_budget_comparison_v2 == True:
                 wiggle = 0.1
                 ha = 'center'
             if avg > 0:
-                wiggle = -1.9
+                wiggle = -2.0#1.9
                 ha = 'center'
             # plot
             offset = width * multiplier_deep1
@@ -1453,7 +1594,7 @@ if hypinlet_budget_comparison_v2 == True:
     ax[0].set_title('(a) All budget rate terms', loc='left',fontsize=12)
     ax[1].set_title('(b) Combined physical and biological processes', loc='left',fontsize=12)
 
-    plt.subplots_adjust(left=0.1, wspace=0.02, top=0.92, bottom=0.1, right=0.9)
+    plt.subplots_adjust(left=0.1, wspace=0.02, top=0.9, bottom=0.1, right=0.9)
     plt.show()
 
 # scatter plot of aug/sep min bottom sigma DO vs. dDO/dt during jun/jul
@@ -2467,10 +2608,10 @@ seasonal_cycle = True
 if seasonal_cycle == True:
 
     # initialize figure
-    fig = plt.figure(figsize = (11,8))
+    fig = plt.figure(figsize = (11,8)) # fig = plt.figure(figsize = (11,5))
 
     # crescent bay
-    ax = fig.add_subplot(2, 2, 1)
+    ax = fig.add_subplot(2, 2, 1) # fig.add_subplot(1, 2, 1)
     ax.set_title('(a) Crescent Bay 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{res}$', loc='left', size=14)
     # format grid
     ax.set_facecolor('#EEEEEE')
@@ -2504,7 +2645,7 @@ if seasonal_cycle == True:
     ax.set_ylim([0,11])
 
     # lynch cove
-    ax = fig.add_subplot(2, 2, 3)
+    ax = fig.add_subplot(2, 2, 3) # fig.add_subplot(1, 2, 2)
     ax.set_title('(b) Lynch Cove 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{res}$', loc='left', size=14)
     # format grid
     ax.set_facecolor('#EEEEEE')
@@ -2594,7 +2735,7 @@ if seasonal_cycle == True:
     ax.legend(loc='lower right')
 
     plt.tight_layout()
-    plt.subplots_adjust(hspace=0.5)
+    plt.subplots_adjust(hspace=0.5) # plt.subplots_adjust(wspace=0.5)
     # save figure
     plt.show()
 
