@@ -239,8 +239,9 @@ def get_sta_dict(job_name):
         'sinclair': (-122.641701, 47.549999),     # 10. Sinclair Inlet (Ecology monitoring station SIN001)
         'elliot': (-122.368301, 47.596668),       # 11. Elliot Bay (Ecology monitoring station ELB015) 
         'lynchcove': (-122.928299, 47.398331),    # 12. Lynch Cove (Ecology monitoring station HCB007)  
+        'lynchcove2': (-123.023300, 47.356670),   #                (Ecology monitoring station HCB004) - updated 2024.11.16
         'case': (-122.807292, 47.332090),         # 13. Case Inlet
-        'carr': (-122.711210, 47.317064),         # 14. Carr Inlet
+        'carr': (-122.708297, 47.276668),         # 14. Carr Inlet (Ecology monitoring station CRR001) - updated 2024.11.16
         'quartermaster': (-122.470469, 47.377077),# 15. Quartermaster Harbor
         'commencement': (-122.448303, 47.290001), # 16. Commencement Bay (Ecology monitoring station CMB003)
         'hammersley': (-123.076698, 47.213329),   # 17. Hammersley Inlet (Ecology monitoring station OAK004) 
@@ -248,6 +249,17 @@ def get_sta_dict(job_name):
         'eld': (-122.949787, 47.115069),          # 19. Eld Inlet
         'budd': (-122.916702, 47.091671),         # 20. Budd Inlet (Ecology monitoring station BUD005)
         'henderson': (-122.834437, 47.143149),    # 21. Henderson Inlet
+        }
+
+    # 2024.11.16 Extraction locations Ecology CTD stations in Main Basin
+    elif job_name == 'mainbasin_EcolCTD':
+        sta_dict = {
+        'ADM002': (-122.8416976928711,48.1875),
+        'PTH005': (-122.76329803466797,48.08332824707031),
+        'ADM001': (-122.61669921875,48.029998779296875),
+        'ADM003': (-122.48179626464844,47.87916946411133),
+        'PSB003': (-122.44170379638672,47.65999984741211),
+        'EAP001': (-122.37999725341797,47.41667175292969)
         }
             
             
