@@ -455,6 +455,11 @@ for i,year in enumerate(years):
         ax1.plot(dates_local,hyp_vol[year],color=colors[i],
                 linewidth=2,label=year)
 
+# get median hypoxic volume
+med_vol = np.nanmedian(list(hyp_vol.values()), axis=0)
+ax1.plot(dates_local,med_vol,color='k',
+        linestyle='--',linewidth=2,label='median')
+
 # format figure
 ax1.grid(visible=True, axis='x', color='w')
 # format background color

@@ -60,13 +60,13 @@ newcmap.set_bad(background,1.) # background color
 # Salish Sea ----------------------------------------------------------
 ax0 = fig.add_subplot(1,2,1)
 # cs = ax0.pcolormesh(plon, plat, zm, vmin=-5, vmax=0, cmap=newcmap)
-cs = ax0.pcolormesh(plon, plat, zm, vmin=-500, vmax=0, cmap=newcmap)
-cbar = plt.colorbar(cs,ax=ax0, location='left', pad=0.1)#pad=0.05)
-cbar.ax.tick_params(labelsize=11)#, color='#EEEEEE')#, rotation=30)
-cbar.ax.set_ylabel('Depth [m]', fontsize=11)#, color='#EEEEEE')
-cbar.outline.set_visible(False)
-cbar_yticks = plt.getp(cbar.ax.axes, 'yticklabels')
-plt.setp(cbar_yticks)#, color='#EEEEEE')
+cs = ax0.pcolormesh(plon, plat, zm, vmin=-250, vmax=0, cmap=newcmap)
+# cbar = plt.colorbar(cs,ax=ax0, location='left', pad=0.1)#pad=0.05)
+# cbar.ax.tick_params(labelsize=11)#, color='#EEEEEE')#, rotation=30)
+# cbar.ax.set_ylabel('Depth [m]', fontsize=11)#, color='#EEEEEE')
+# cbar.outline.set_visible(False)
+# cbar_yticks = plt.getp(cbar.ax.axes, 'yticklabels')
+# plt.setp(cbar_yticks)#, color='#EEEEEE')
 # format figure
 pfun.dar(ax0)
 # pfun.add_coast(ax0, color='gray')
@@ -96,8 +96,8 @@ lat1 = lat0
 lon1 = -124.36975
 distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
 x_dist_km = round(distances_m[0]/1000)
-ax0.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=5)
-ax0.text((lon0+lon1)/2,lat0+0.05,'{} km'.format(x_dist_km),color='k',fontsize=12,
+ax0.plot([lon0,lon1],[lat0,lat1],color='white',linewidth=5)
+ax0.text((lon0+lon1)/2,lat0+0.05,'{} km'.format(x_dist_km),color='white',fontsize=12,
          horizontalalignment='center')
 # draw box around Puget Sound
 bordercolor = '#EEEEEE'
@@ -117,7 +117,7 @@ ax0.text(-123.1207 + 0.1,49.2827,'Vancouver',color='pink', rotation=0,
          horizontalalignment='left',verticalalignment='center', size=12)
 
 # add major water bodies
-ax0.text(-124.937095,47.782238,'Pacific Ocean',color='black', rotation=-75,
+ax0.text(-124.937095,47.782238,'Pacific Ocean',color='k', rotation=-75,
          horizontalalignment='left',verticalalignment='center', size=12,fontweight='bold')
 
 # Puget Sound ----------------------------------------------------------
@@ -165,5 +165,5 @@ ax1.plot([lon0,lon1],[lat0,lat1],color='w',linewidth=5)
 ax1.text((lon0+lon1)/2,lat0+0.015,'{} km'.format(x_dist_km),color='w',fontsize=12,
          horizontalalignment='center')
 
-plt.subplots_adjust(hspace = 0.01)
+plt.subplots_adjust(wspace = -0.3)
 plt.savefig(out_dir / ('model_bathy.png'))#,transparent='True')

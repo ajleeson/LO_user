@@ -809,9 +809,10 @@ if deep_budget_error == True:
             ax.legend(loc='lower center',ncol=2)
                 
             print(station)
-            print('     Error = ' + str(round(np.nanmean(np.abs(error_TEF)),3)))
-            print('     Storage = ' + str(round(np.nanmean(np.abs(storage)),3)))
-            print('     perc of storage = ' + str(round(np.nanmean(np.abs(error_TEF))/np.nanmean(np.abs(storage))*100,1)))
+            QinDOin = (bottomlay_dict[station]['TEF Exchange Flow'].values/dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+            print('     Error (ann avg.) = ' + str(round(np.nanmean(np.abs(error_TEF)),3)))
+            print('     QinDOin (ann avg.) = ' + str(round(np.nanmean(np.abs(QinDOin)),3)))
+            print('     perc of QinDOin (ann avg.) = ' + str(round((np.nanmean(np.abs(error_TEF))/np.nanmean(np.abs(QinDOin)))*100,2)) + '%')
 
 # ---------------------------------- save figure --------------------------------------------
 
@@ -938,13 +939,24 @@ if LC_budget == True:
                 # convert to mg/L per day
                 avg = avg * 1000 * 32 * 60 * 60 * 24
 
+                # calculate standard deviation
+                # get volume average
+                Vavg = measurement[minday:maxday]/bottomlay_dict[station]['Volume'][minday:maxday] # kmol O2 /s /m3
+                # get standard deviation
+                std = np.std(Vavg)
+                std = std * 1000 * 32 * 60 * 60 * 24
+
                 ax[1].bar(pos, avg, width, zorder=5, align='center', edgecolor=color,color=color, label=label)
+                ax[1].errorbar(pos, avg, yerr=std, capsize=5, color='grey',zorder=6)
                 if avg < 0:
-                    wiggle = -0.02
+                    wiggle = 0.03
                 if avg > 0:
-                    wiggle = 0.02
-                ax[1].text(pos, avg+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
+                    wiggle = -0.03
+                ax[1].text(pos, wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                         color='black',fontsize=12)
+                
+                # zero line
+                ax[1].axhline(0,-0.3,1.05,color='dimgrey')
                 
                 ax[1].legend(loc='upper right', fontsize=12, ncol=2)
 
@@ -1480,6 +1492,8 @@ if hypinlet_budget_comparison_v2 == True:
     # create a new dictionary of results
     oxy_dict = {}
     hyp_dict = {}
+    oxy_dict_std = {}
+    hyp_dict_std = {}
 
     # part 1 with distinct physical and biological terms
     for station in sta_dict:
@@ -1494,23 +1508,31 @@ if hypinlet_budget_comparison_v2 == True:
                              'Volume',
                              'Qin m3/s']:
                 continue
-             # calculate time average
-            time_avg = np.nanmean(measurement[minday:maxday])
-            # get volume average
-            avg = time_avg/(np.nanmean(bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+            # calculate time average normalized by volume
+            avg = np.nanmean(measurement[minday:maxday]/(bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
             # convert to mg/L per day
             avg = avg * 1000 * 32 * 60 * 60 * 24
+
+            # get standard deviations
+            Vavg = measurement[minday:maxday]/bottomlay_dict[station]['Volume'][minday:maxday] # kmol O2 /s /m3
+            # calculate standard deviation in mg/L per day
+            std = np.std(Vavg) * 1000 * 32 * 60 * 60 * 24
+
             # save values in dictionary
             if station in ['penn','case','holmes','portsusan','lynchcove','dabob']:
                 if attribute in hyp_dict.keys():
                     hyp_dict[attribute].append(avg)
+                    hyp_dict_std[attribute].append(std)
                 else:
                     hyp_dict[attribute] = [avg]
+                    hyp_dict_std[attribute] = [std]
             else:
                 if attribute in oxy_dict.keys():
                     oxy_dict[attribute].append(avg)
+                    oxy_dict_std[attribute].append(std)
                 else:
                     oxy_dict[attribute] = [avg]
+                    oxy_dict_std[attribute] = [std]
     # t-test
     print('DISTINCT TERMS --------------------------------------')
     for attribute in oxy_dict:
@@ -1549,9 +1571,17 @@ if hypinlet_budget_comparison_v2 == True:
                 color = 'black'
                 label = r'$\frac{d}{dt}$DO (net decrease)'
                 pos = -0.25
+
             # calculate average and standard deviation
             avg = np.nanmean(measurement)
-            std = np.std(measurement)
+            # get error
+            if dict == oxy_dict:
+                std_dict = oxy_dict_std
+            elif dict == hyp_dict:
+                std_dict = hyp_dict_std
+            # propagate error
+            error = 1/len(std_dict.keys()) * np.sqrt(np.sum(np.square(std_dict[attribute])))
+
             if avg < 0:
                 wiggle = 0.35
                 ha = 'center'
@@ -1569,6 +1599,7 @@ if hypinlet_budget_comparison_v2 == True:
                 # rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
                 rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=hatchcolor,color=color, hatch='xx')
                 rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color='none')
+                ax[0].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
                 if attribute == 'Storage':
                     # ax[0].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                     #         color=color,fontsize=12, fontweight='bold')
@@ -1584,6 +1615,7 @@ if hypinlet_budget_comparison_v2 == True:
                 offset = width * multiplier_deep2
                 # rects = ax[0].bar(offset+width, avg, width, zorder=5, edgecolor=color,color=color,label=label)
                 rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color=color, label=label)
+                ax[0].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
                 if attribute == 'Storage':
                     # ax[0].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                     #         color=color,fontsize=12, fontweight='bold')
@@ -1606,8 +1638,9 @@ if hypinlet_budget_comparison_v2 == True:
     # create a new dictionary of results
     oxy_dict = {}
     hyp_dict = {}
+    oxy_dict_std = {}
+    hyp_dict_std = {}
 
-    
     for station in sta_dict:
         for attribute, measurement in bottomlay_dict[station].items():
             # skip variables we are not interested in
@@ -1622,23 +1655,31 @@ if hypinlet_budget_comparison_v2 == True:
                              'Volume',
                              'Qin m3/s']:
                 continue
-             # calculate time average
-            time_avg = np.nanmean(measurement[minday:maxday])
-            # get volume average
-            avg = time_avg/(np.nanmean(bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+             # calculate time average normalized by volume
+            avg = np.nanmean(measurement[minday:maxday]/(bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
             # convert to mg/L per day
             avg = avg * 1000 * 32 * 60 * 60 * 24
+
+            # get standard deviations
+            Vavg = measurement[minday:maxday]/bottomlay_dict[station]['Volume'][minday:maxday] # kmol O2 /s /m3
+            # calculate standard deviation in mg/L per day
+            std = np.std(Vavg) * 1000 * 32 * 60 * 60 * 24
+
             # save values in dictionary
             if station in ['penn','case','holmes','portsusan','lynchcove','dabob']:
                 if attribute in hyp_dict.keys():
                     hyp_dict[attribute].append(avg)
+                    hyp_dict_std[attribute].append(std)
                 else:
                     hyp_dict[attribute] = [avg]
+                    hyp_dict_std[attribute] = [std]
             else:
                 if attribute in oxy_dict.keys():
                     oxy_dict[attribute].append(avg)
+                    oxy_dict_std[attribute].append(std)
                 else:
                     oxy_dict[attribute] = [avg]
+                    oxy_dict_std[attribute] = [std]
 
     # t-test
     print('COMBINED TERMS --------------------------------------')
@@ -1683,9 +1724,17 @@ if hypinlet_budget_comparison_v2 == True:
                 color = 'black'
                 label = r'$\frac{d}{dt}$DO (net decrease)'
                 pos = -0.3
+        
             # calculate average and standard deviation
             avg = np.nanmean(measurement)
-            std = np.std(measurement)
+            # get error
+            if dict == oxy_dict:
+                std_dict = oxy_dict_std
+            elif dict == hyp_dict:
+                std_dict = hyp_dict_std
+            # propagate error
+            error = 1/len(std_dict.keys()) * np.sqrt(np.sum(np.square(std_dict[attribute])))
+
             if avg < 0:
                 wiggle = 0.02
             if avg > 0:
@@ -1701,6 +1750,7 @@ if hypinlet_budget_comparison_v2 == True:
                 # rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
                 rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
                 rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color='none')
+                ax[1].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
                 if attribute == 'Storage':
                     # ax[1].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                     #         color=color,fontsize=12, fontweight='bold')
@@ -1717,6 +1767,7 @@ if hypinlet_budget_comparison_v2 == True:
                 offset = width * multiplier_deep2
                 # rects = ax[1].bar(offset+width, avg, width, zorder=5, edgecolor=color,color=color,label=label)
                 rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color=color,label=label)
+                ax[1].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
                 if attribute == 'Storage':
                     # ax[1].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                     #         color=color,fontsize=12, fontweight='bold')
