@@ -72,6 +72,8 @@ stations = ['lynchcove','penn','budd','case','carr']
 interface_dict = dict()
 
 for i,station in enumerate(sta_dict): # enumerate(stations): 
+        if station == 'lynchcove2':
+             continue
         # print status
         print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
 
@@ -187,8 +189,8 @@ for i,station in enumerate(sta_dict): # enumerate(stations):
 
 # ---------------------------------- plot and save --------------------------------------------
             # plot surface
-            ax[0].plot(dates_local_daily[1:-1],EU_surf,color=EU_color,
-                       linewidth=2,alpha=0.5,label='EU Exchange Flow')
+            # ax[0].plot(dates_local_daily[1:-1],EU_surf,color=EU_color,
+            #            linewidth=2,alpha=0.5,label='EU Exchange Flow')
             ax[0].plot(dates_local_daily[1:-1],TEF_surf,color=TEF_color,
                        linewidth=1,linestyle='--',label='TEF Exchange Flow')
             ax[0].plot(dates_local_daily[0:-1],dVdt_surf,color=dVdt_color,
@@ -196,40 +198,45 @@ for i,station in enumerate(sta_dict): # enumerate(stations):
                        label=r'$\frac{\mathrm{dV}}{\mathrm{dt}}$')
             ax[0].plot(dates_local_daily[1:-1],traps_surf,color=traps_color,
                        linewidth=3,zorder=4,label='TRAPS')
-            ax[0].plot(dates_local_daily[1:-1],vertXEU_surf,color=vertXEU_color,
-                       linewidth=2,alpha=0.5,label='EU Vertical')
+            # ax[0].plot(dates_local_daily[1:-1],vertXEU_surf,color=vertXEU_color,
+            #            linewidth=2,alpha=0.5,label='EU Vertical')
             ax[0].plot(dates_local_daily[1:-1],vertXTEF_surf,color=vertX_color,
                        linewidth=1,linestyle='--',label='TEF Vertical')
-            ax[0].legend(loc='best',ncol=3)
+            ax[0].legend(loc='best',ncol=4)
             
             # plot deep
-            ax[1].plot(dates_local_daily[1:-1],EU_deep,color=EU_color,
-                       linewidth=2,alpha=0.5)
+            # ax[1].plot(dates_local_daily[1:-1],EU_deep,color=EU_color,
+            #            linewidth=2,alpha=0.5)
             ax[1].plot(dates_local_daily[1:-1],TEF_deep,color=TEF_color,
                        linewidth=1,linestyle='--')
             ax[1].plot(dates_local_daily[0:-1],dVdt_deep,color=dVdt_color,
                        linewidth=1.5,zorder=5)
             ax[1].plot(dates_local_daily[1:-1],traps_deep,color=traps_color,
                        linewidth=3,zorder=4)
-            ax[1].plot(dates_local_daily[1:-1],vertXEU_deep,color=vertXEU_color,
-                       linewidth=2,alpha=0.5)
+            # ax[1].plot(dates_local_daily[1:-1],vertXEU_deep,color=vertXEU_color,
+            #            linewidth=2,alpha=0.5)
             ax[1].plot(dates_local_daily[1:-1],vertXTEF_deep,color=vertX_color,
                        linewidth=1,linestyle='--')
 
             # plot error
             error_TEF = vertXTEF_surf + vertXTEF_deep
             error_EU = vertXEU_surf + vertXEU_deep
-            ax[2].plot(dates_local_daily[1:-1],error_EU,color='olivedrab',
-                       linewidth=3,alpha=0.5,label='EU Error')
+            # ax[2].plot(dates_local_daily[1:-1],error_EU,color='olivedrab',
+            #            linewidth=3,alpha=0.5,label='EU Error')
             ax[2].plot(dates_local_daily[1:-1],error_TEF,color='darkgreen',
-                       linewidth=1,linestyle='--',label='TEF Error')
-            ax[2].legend(loc='best')
+                       linewidth=1,linestyle='-',label='TEF Error')
+            # ax[2].legend(loc='best')
 
             for axis in [ax[0],ax[1],ax[2]]:
                 ylimval_TEF = np.nanmax(np.abs(TEF_surf))*1.1
                 ylimval_EU = np.nanmax(np.abs(EU_surf))*1.1
                 ylimval = np.nanmax([ylimval_TEF,ylimval_EU])
                 axis.set_ylim([-1*ylimval,ylimval])
+
+            print(station)
+            print('     Error (ann avg.) = ' + str(round(np.nanmean(np.abs(error_TEF)),3)))
+            print('     Qin (ann avg.) = ' + str(round(np.nanmean(np.abs(TEF_deep)),3)))
+            print('     perc of Qin (ann avg.) = ' + str(round((np.nanmean(np.abs(error_TEF))/np.nanmean(np.abs(TEF_deep)))*100,2)) + '%')
 
 
             plt.savefig(out_dir / (station+'.png'))

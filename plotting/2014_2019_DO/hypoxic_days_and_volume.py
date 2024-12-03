@@ -393,9 +393,12 @@ f, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 4]})
 # format figure
 ax0.set_xlim([xmin,xmax])
 ax0.set_ylim([ymin,ymax])
-ax0.set_yticklabels([])
-ax0.set_xticklabels([])
-ax0.axis('off')
+# ax0.set_yticklabels([])
+# ax0.set_xticklabels([])
+# ax0.axis('off')
+ax0.set_ylabel('Latitude', fontsize=12)
+ax0.set_xlabel('Longitude', fontsize=12)
+ax0.tick_params(axis='both', labelsize=12)
 ax0.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 pfun.dar(ax0)
 # pfun.add_coast(ax0, color='gray')
@@ -461,14 +464,16 @@ ax1.plot(dates_local,med_vol,color='k',
         linestyle='--',linewidth=2,label='median')
 
 # format figure
-ax1.grid(visible=True, axis='x', color='w')
+# ax1.grid(visible=True, axis='x', color='w')
+ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
 # format background color
-ax1.set_facecolor('#EEEEEE')
-for border in ['top','right','bottom','left']:
-    ax1.spines[border].set_visible(False)
+# ax1.set_facecolor('#EEEEEE')
+# for border in ['top','right','bottom','left']:
+#     ax1.spines[border].set_visible(False)
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-ax1.set_ylabel(r'Hypoxic volume [km$^3$]')
-plt.legend(loc='best', fontsize=12)
+ax1.tick_params(axis='both', labelsize=12)
+ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
+plt.legend(loc='upper left', fontsize=12)
 plt.title('(b) Puget Sound hypoxic volume (DO < 2 mg/L)', fontsize = 14, loc='left')
 ax1.set_xlim([dates_local[0],dates_local[-1]])
 ax1.set_ylim([0,13])
@@ -484,6 +489,6 @@ ax2.set_ylim((percent(ymin),percent(ymax)))
 ax2.plot([],[])
 for border in ['top','right','bottom','left']:
     ax2.spines[border].set_visible(False)
-ax2.set_ylabel(r'Percent of regional volume [%]')
+ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=12)
 
 plt.savefig(out_dir / ('volume_with_DO_lt2_'+straits+'.png'))

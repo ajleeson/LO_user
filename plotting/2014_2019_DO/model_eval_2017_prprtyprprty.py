@@ -191,14 +191,14 @@ ax_map.add_patch(Rectangle((lon_low, lat_low), lon_high-lon_low,lat_high-lat_low
 ax_map.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
 # format
-ax_map.axes.xaxis.set_visible(False)
-ax_map.axes.yaxis.set_visible(False)
+# ax_map.axes.xaxis.set_visible(False)
+# ax_map.axes.yaxis.set_visible(False)
 ax_map.set_xlim(-123.29, -122.1) # Puget Sound
 ax_map.set_ylim(lat_low, lat_high) # Puget Sound
 pfun.dar(ax_map)
-# remove border
-for border in ['top','right','bottom','left']:
-    ax_map.spines[border].set_visible(False)
+# # remove border
+# for border in ['top','right','bottom','left']:
+#     ax_map.spines[border].set_visible(False)
 
 # # add cast locations
 # for sta in terminl_stns:
@@ -316,11 +316,12 @@ vns = ['CT','SA','Chl (mg m-3)','DO (uM)']
 
 # format grid
 for i,ax in enumerate(axes):
-    ax.set_facecolor('#EEEEEE')
+    # ax.set_facecolor('#EEEEEE')
     ax.tick_params(axis='x', labelrotation=30)
-    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
-    for border in ['top','right','bottom','left']:
-        ax.spines[border].set_visible(False)
+    ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+    # ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    # for border in ['top','right','bottom','left']:
+    #     ax.spines[border].set_visible(False)
     ax.tick_params(axis='both', labelsize=10)
     ax.set_title(letter[i+1] + ' ' + vars[i],loc='left',fontsize=12)
 
@@ -477,6 +478,9 @@ for i,vn in enumerate(vns):
     t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
     t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
 
+    axes[i].set_ylabel('Modeled',fontsize=12)
+    axes[i].set_xlabel('Observed',fontsize=12)
+
 plt.suptitle('Model vs. Observations property-property plots (terminal inlets 2017)', fontsize=15, x=0.65)
 plt.subplots_adjust(wspace=-0.2)      
 plt.tight_layout()
@@ -522,18 +526,21 @@ lon_low = -123.42
 lon_high =  -122
 lat_low = 46.93
 lat_high = 48.46
-ax_map.add_patch(Rectangle((lon_low, lat_low), lon_high-lon_low,lat_high-lat_low, facecolor='#EEEEEE'))
+ax_map.add_patch(Rectangle((lon_low, lat_low), lon_high-lon_low,lat_high-lat_low, facecolor='white'))#, facecolor='#EEEEEE'))
 ax_map.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
 # format
-ax_map.axes.xaxis.set_visible(False)
-ax_map.axes.yaxis.set_visible(False)
+# ax_map.axes.xaxis.set_visible(False)
+# ax_map.axes.yaxis.set_visible(False)
+ax_map.tick_params(axis='x', labelrotation=30)
+ax_map.set_ylabel('Latitude',fontsize=12)
+ax_map.set_xlabel('Longitude',fontsize=12)
 ax_map.set_xlim(-123.29, -122.1) # Puget Sound
 ax_map.set_ylim(lat_low, lat_high) # Puget Sound
 pfun.dar(ax_map)
-# remove border
-for border in ['top','right','bottom','left']:
-    ax_map.spines[border].set_visible(False)
+# # remove border
+# for border in ['top','right','bottom','left']:
+#     ax_map.spines[border].set_visible(False)
     
 
 # add terminal inlets cast locations
@@ -589,11 +596,12 @@ vns = ['CT','SA','Chl (mg m-3)','DO (uM)']
 
 # format grid
 for i,ax in enumerate(axes):
-    ax.set_facecolor('#EEEEEE')
+    # ax.set_facecolor('#EEEEEE')
     ax.tick_params(axis='x', labelrotation=30)
-    ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
-    for border in ['top','right','bottom','left']:
-        ax.spines[border].set_visible(False)
+    ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+    # ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    # for border in ['top','right','bottom','left']:
+    #     ax.spines[border].set_visible(False)
     ax.tick_params(axis='both', labelsize=10)
     ax.set_title(letter[i+1] + ' ' + vars[i],loc='left',fontsize=12)
 
@@ -650,6 +658,9 @@ for i,vn in enumerate(vns):
         transform=axes[i].transAxes, fontsize=10, color = 'deeppink')
     t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
     t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
+
+    axes[i].set_ylabel('Modeled',fontsize=12)
+    axes[i].set_xlabel('Observed',fontsize=12)
 
 
     # initialize arrays to save values
@@ -721,16 +732,20 @@ dates_local = [pfun.get_dt_local(x) for x in dates]
 selected_stns = {
     'elliot': 'ELB015',
     'lynchcove': 'HCB007',
-    'hammersley': 'OAK004',
+    # 'hammersley': 'OAK004',
 }
+
+# letter = ['(a)','(b)','(c)',
+#           '(d)','(e)','(f)',
+#           '(g)','(h)','(i)',
+#           '(j)','(k)','(l)']
 
 letter = ['(a)','(b)','(c)',
           '(d)','(e)','(f)',
-          '(g)','(h)','(i)',
-          '(j)','(k)','(l)']
+          '(g)','(h)']
 
 # initialize figure
-fig, ax = plt.subplots(4,3,figsize = (10,9.5),sharey='row',sharex='col')
+fig, ax = plt.subplots(4,2,figsize = (10,9.5),sharey='row',sharex='col')
 
 # add data
 for i,vn in enumerate(vns):
@@ -811,7 +826,7 @@ for i,vn in enumerate(vns):
                 bott_mod_avg = np.nansum(bott_mod * z_thick_bott, axis=1)/np.nansum(z_thick_bott,axis=1)
             # plot model output
             axis.plot(dates_local, surf_mod_avg, color='deeppink', linewidth=2, alpha=0.5, zorder=5)
-            axis.plot(dates_local, bott_mod_avg, color='royalblue', linewidth=2, alpha=0.5, zorder=5,label='model')
+            axis.plot(dates_local, bott_mod_avg, color='navy', linewidth=2, alpha=0.5, zorder=5,label='model')
 
             # observation
             surf_obs_df = df_ob_stn.where(z >= -(d/2))
@@ -826,17 +841,17 @@ for i,vn in enumerate(vns):
             # plot observations
             unique_time = [pd.Timestamp(x) for x in df_ob_stn['time'].unique()] # one point per timestampe
             axis.scatter(unique_time, surf_obs_avg, color='deeppink', s=20,zorder=10)
-            axis.scatter(unique_time, bott_obs_avg, color='royalblue', s=20,zorder=10, label='obs')
+            axis.scatter(unique_time, bott_obs_avg, color='navy', s=20,zorder=10, label='obs')
 
 
             # label
             if i == 0 and stn == 0:
-                axis.text(0.6, 0.95, 'surface {} m'.format(str(round(d/2))),
+                axis.text(0.75, 0.9, 'surface {} m'.format(str(round(d/2))),
                     verticalalignment='top', horizontalalignment='left',
                     transform=axis.transAxes, fontsize=12, color = 'deeppink',fontweight='bold')
-                axis.text(0.6, 0.85, 'bottom {} m'.format(str(round(d/2))),
+                axis.text(0.75, 0.8, 'bottom {} m'.format(str(round(d/2))),
                     verticalalignment='top', horizontalalignment='left',
-                    transform=axis.transAxes, fontsize=12, color = 'royalblue',fontweight='bold')
+                    transform=axis.transAxes, fontsize=12, color = 'navy',fontweight='bold')
                 axis.legend(loc='lower right',fontsize=11, frameon=False, handletextpad=0.1,
                             handlelength=1, markerfirst = False)
                 
@@ -878,9 +893,9 @@ for i,vn in enumerate(vns):
         if i == 1:
             axis.set_ylim([0,36])
         if i == 2:
-            axis.set_ylim([0,50])
+            axis.set_ylim([0,25])
         if i == 3:
-            axis.set_ylim([0,15])
+            axis.set_ylim([0,14])
         if stn == 0:
             axis.set_ylabel(vars[i],fontsize=12)
 
@@ -889,13 +904,14 @@ for i,vn in enumerate(vns):
 ax = ax.ravel()
 for i,axis in enumerate(ax):
     axis.set_xlim([dates_local[0],dates_local[-1]])
-    axis.set_facecolor('#EEEEEE')
-    axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    # axis.set_facecolor('#EEEEEE')
+    # axis.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+    axis.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
     axis.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
     axis.tick_params(axis='x', labelrotation=30)
-    for border in ['top','right','bottom','left']:
-        axis.spines[border].set_visible(False)
-    axis.text(0.05, 0.95, letter[i],
+    # for border in ['top','right','bottom','left']:
+    #     axis.spines[border].set_visible(False)
+    axis.text(0.03, 0.95, letter[i],
             verticalalignment='top', horizontalalignment='left',
             transform=axis.transAxes, fontsize=12, color = 'k')
 
