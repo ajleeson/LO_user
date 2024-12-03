@@ -93,15 +93,15 @@ if stations == 'all':
     sta_dict = job_lists.get_sta_dict(jobname)
     # remove lynchcove2
     del sta_dict['lynchcove2']
-    # # remove shallow inlets (< 10 m deep)
-    # del sta_dict['hammersley']
-    # del sta_dict['henderson']
-    # del sta_dict['oak']
-    # del sta_dict['totten']
-    # del sta_dict['similk']
-    # del sta_dict['budd']
-    # del sta_dict['eld']
-    # del sta_dict['killsut']
+    # remove shallow inlets (< 10 m deep)
+    del sta_dict['hammersley']
+    del sta_dict['henderson']
+    del sta_dict['oak']
+    del sta_dict['totten']
+    del sta_dict['similk']
+    del sta_dict['budd']
+    del sta_dict['eld']
+    del sta_dict['killsut']
 else:
     sta_dict = stations
 
@@ -947,7 +947,7 @@ if LC_budget == True:
                 std = std * 1000 * 32 * 60 * 60 * 24
 
                 ax[1].bar(pos, avg, width, zorder=5, align='center', edgecolor=color,color=color, label=label)
-                ax[1].errorbar(pos, avg, yerr=std, capsize=5, color='grey',zorder=6)
+                # ax[1].errorbar(pos, avg, yerr=std, capsize=5, color='grey',zorder=6)
                 if avg < 0:
                     wiggle = 0.03
                 if avg > 0:
@@ -1444,14 +1444,14 @@ if hypinlet_budget_comparison == True:
             offset = width * multiplier_deep1
             if i == 0:
                 rects = ax.bar(offset, avg, width, zorder=5, edgecolor=color,color=color,label=label)
-                ax.errorbar(offset, avg, yerr=std, capsize=5, color="k",zorder=6)
+                # ax.errorbar(offset, avg, yerr=std, capsize=5, color="k",zorder=6)
                 ax.text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                         fontsize=12)
                 multiplier_deep1 += 2
             elif i == 1:
                 offset = width * multiplier_deep2
                 rects = ax.bar(offset+width, avg, width, zorder=5, edgecolor=color,color='white', hatch='xx')
-                ax.errorbar(offset+width, avg, yerr=std, capsize=5, color="k",zorder=6)
+                # ax.errorbar(offset+width, avg, yerr=std, capsize=5, color="k",zorder=6)
                 ax.text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                         fontsize=12)
                 multiplier_deep2 += 2
@@ -1599,7 +1599,7 @@ if hypinlet_budget_comparison_v2 == True:
                 # rects = ax[0].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
                 rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=hatchcolor,color=color, hatch='xx')
                 rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color='none')
-                ax[0].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
+                # ax[0].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
                 if attribute == 'Storage':
                     # ax[0].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                     #         color=color,fontsize=12, fontweight='bold')
@@ -1615,7 +1615,7 @@ if hypinlet_budget_comparison_v2 == True:
                 offset = width * multiplier_deep2
                 # rects = ax[0].bar(offset+width, avg, width, zorder=5, edgecolor=color,color=color,label=label)
                 rects = ax[0].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color=color, label=label)
-                ax[0].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
+                # ax[0].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
                 if attribute == 'Storage':
                     # ax[0].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                     #         color=color,fontsize=12, fontweight='bold')
@@ -1750,7 +1750,7 @@ if hypinlet_budget_comparison_v2 == True:
                 # rects = ax[1].bar(offset, avg, width, zorder=5, edgecolor=color,color='none')
                 rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
                 rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color='none')
-                ax[1].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
+                # ax[1].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
                 if attribute == 'Storage':
                     # ax[1].text(offset, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                     #         color=color,fontsize=12, fontweight='bold')
@@ -1767,7 +1767,7 @@ if hypinlet_budget_comparison_v2 == True:
                 offset = width * multiplier_deep2
                 # rects = ax[1].bar(offset+width, avg, width, zorder=5, edgecolor=color,color=color,label=label)
                 rects = ax[1].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color=color,label=label)
-                ax[1].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
+                # ax[1].errorbar(pos+shift, avg, yerr=error, capsize=5, color='red',zorder=6)
                 if attribute == 'Storage':
                     # ax[1].text(offset+width, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                     #         color=color,fontsize=12, fontweight='bold')
