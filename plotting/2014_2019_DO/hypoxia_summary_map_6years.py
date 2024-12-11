@@ -238,12 +238,6 @@ if region == 'Puget Sound':
     ymin = 46.95
     ymax = 48.93
 
-# Initialize figure
-fs = 10
-pfun.start_plot(fs=16, figsize=(7,9))
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
-
 
 # Get LiveOcean grid info --------------------------------------------------
 
@@ -263,8 +257,10 @@ zm[np.transpose(mask_rho) != 0] = -1
 
 # Create map
 plt.close('all')
-fig = plt.figure(figsize=(5,9))
-ax = fig.add_subplot(1,1,1)
+# fig = plt.figure(figsize=(5,9))
+# ax = fig.add_subplot(1,1,1)
+fig = plt.figure(figsize=(11,9))
+ax = fig.add_subplot(1,2,1)
 plt.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.5, vmax=0, cmap=plt.get_cmap('Greys'))
 
 # plot hypoxic days
@@ -280,8 +276,8 @@ px, py = pfun.get_plon_plat(lons,lats)
 DO_days = DO_days['avg']
             
 cs = ax.pcolormesh(px,py,DO_days, vmin=0, vmax=np.nanmax(DO_days), cmap='rainbow')
-cbar = fig.colorbar(cs, location='left', pad=0.05)
-cbar.ax.tick_params(labelsize=14)#,length=10, width=2)
+cbar = fig.colorbar(cs)#, location='left')#, pad=0.05)
+cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
 cbar.outline.set_visible(False)
 # ax.set_title('six-year avg.', fontsize=14, loc='left')
 
@@ -311,20 +307,17 @@ ax.text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=12)
 # format figure
 ax.set_xlim([xmin,xmax])
 ax.set_ylim([ymin,ymax])
-ax.set_yticklabels([])
-ax.set_xticklabels([])
-ax.axis('off')
+# ax.set_yticklabels([])
+# ax.set_xticklabels([])
+# ax.axis('off')
 pfun.dar(ax)
 # pfun.add_coast(ax)
+plt.xticks(rotation=30)
+plt.yticks(rotation=30)
                                 
 # Add colormap title
-plt.suptitle('Days with bottom DO < {} [mg/L]'.format(str(DO_thresh)),
-            fontsize=16, fontweight='bold', y=0.95)
-
-# Generate plot
-plt.tight_layout
-plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05, wspace=0.02)
-plt.show()
+ax.set_title('(a) Days per year with\nbottom DO < {} '.format(str(DO_thresh) + r' mg L$^{-1}$'),
+            fontsize=12, loc='left')
 
 ##############################################################
 ##             PLOT MEAN BOTTOM DO CONCENTRATION            ##
@@ -340,11 +333,13 @@ if region == 'Puget Sound':
     ymin = 46.95
     ymax = 48.93
 
-# Initialize figure
-fs = 10
-pfun.start_plot(fs=16, figsize=(5,9))
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
+# # Initialize figure
+# fs = 10
+# pfun.start_plot(fs=16, figsize=(5,9))
+# fig = plt.figure()
+# ax = fig.add_subplot(1,1,1)
+
+ax = fig.add_subplot(1,2,2)
 
 # initialize empty dictionary
 ds_dict = {}
@@ -371,8 +366,8 @@ vmax = 10
 # calculate average of all of the arrays
 v_avg = sum(val_dict.values())/len(val_dict)
 cs = ax.pcolormesh(px,py,v_avg, vmin=vmin, vmax=vmax, cmap=cmap)
-cbar = fig.colorbar(cs, location='left',pad=0.05)
-cbar.ax.tick_params(labelsize=15)#,length=10, width=2)
+cbar = fig.colorbar(cs, location='right')#,pad=0.05)
+cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
 cbar.outline.set_visible(False)
             
 
@@ -402,17 +397,25 @@ ax.text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=12)
 # format figure
 ax.set_xlim([xmin,xmax])
 ax.set_ylim([ymin,ymax])
-ax.set_yticklabels([])
-ax.set_xticklabels([])
-ax.axis('off')
+# ax.set_yticklabels([])
+# ax.set_xticklabels([])
+# ax.axis('off')
 pfun.dar(ax)
 # pfun.add_coast(ax)
+plt.xticks(rotation=30)
+plt.yticks(rotation=30)
                                 
 # Add colormap title
-plt.suptitle(start+' to '+end+' mean bottom DO [mg/L]',
-            fontsize=16, fontweight='bold', y=0.95)
+# ax.set_title('(b)' + start+' to '+end+' mean bottom DO [mg/L]',
+#             fontsize=14, y=0.95)
+
+ax.set_title('(b) Aug 1 to Sep 30 \n' + r'mean bottom DO [mg L$^{-1}$]',
+            fontsize=12, loc='left')
+
+plt.suptitle('2014 through 2019 averages', fontsize=14)
 
 # Generate plot
 plt.tight_layout
-plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05, wspace=0.02)
+# plt.subplots_adjust(wspace=0.02)
+# plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05, wspace=0.02)
 plt.show()

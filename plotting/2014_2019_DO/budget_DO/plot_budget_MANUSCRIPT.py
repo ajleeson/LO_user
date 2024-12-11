@@ -86,11 +86,11 @@ Lfun.make_dir(out_dir)
 # create time_vector
 dates_hrly = pd.date_range(start= startdate, end=enddate_hrly, freq= 'h')
 dates_local = [pfun.get_dt_local(x) for x in dates_hrly]
-dates_daily = pd.date_range(start= startdate, end=enddate, freq= 'd')
+dates_daily = pd.date_range(start= startdate, end=enddate, freq= 'd')[2::]
 dates_local_daily = [pfun.get_dt_local(x) for x in dates_daily]
 # crop time vector (because we only have jan 2 - dec 30)
 dates_no_crop = dates_local_daily
-dates_local_daily = dates_local_daily[1:-1]
+dates_local_daily = dates_local_daily
 
 # create color dictionary for stations
 basin_dict = {'similk': 'Whidbey',
@@ -796,6 +796,46 @@ if deep_budget_error == True:
 
     plt.close('all')
 
+
+##########################################################
+##               Mid-Jul to mid-Aug error               ##
+##########################################################
+
+# mid July to mid August
+# minday = 194
+# maxday = 225
+minday = 0
+maxday = -1
+
+tef_error = np.array([])
+cons_error = np.array([])
+
+for i,station in enumerate(sta_dict):
+    # get error
+    error = np.nanmean(bottomlay_dict[station]['TEF Vertical'][minday:maxday] + surfacelay_dict[station]['TEF Vertical'][minday:maxday])
+    # get other terms
+    exchange_flow  = np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday])
+    vertical_trans = np.nanmean(bottomlay_dict[station]['TEF Vertical'][minday:maxday])
+    photosynthesis = np.nanmean(bottomlay_dict[station]['Photosynthesis'][minday:maxday])
+    consumption    = np.nanmean(bottomlay_dict[station]['Bio Consumption'][minday:maxday])
+
+    print('\n--------------------------------')
+    print(station)
+    print('EF       BC\n')
+
+    print('{}%    {}%'.format(
+        round(error/exchange_flow*100,1),
+        round(error/consumption*100,1)
+    ))
+
+    tef_error = np.concatenate((tef_error,[error/exchange_flow*100]))
+    cons_error = np.concatenate((cons_error,[error/consumption*100]))
+
+# average errors
+print('\nAVERAGE ERRORS (TEF, cons) [%]')
+print(np.nanmean(np.abs(tef_error)))
+print(np.nanmean(np.abs(cons_error)))
+
 # ##########################################################
 # ##         Lynch Cove example budget time series        ##
 # ##########################################################
@@ -1345,7 +1385,8 @@ if budget_barchart == True:
     # Bar chart     
     # ax[1].set_facecolor('#EEEEEE')
     ax[1].tick_params(axis='x', labelrotation=30)
-    ax[1].grid(True,color='silver',linewidth=1,linestyle='--',axis='y')
+    # ax[1].grid(True,color='silver',linewidth=1,linestyle='--',axis='y')
+    ax[1].axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')
     # ax[1].grid(True,color='w',linewidth=1,linestyle='-',axis='y')
     # for border in ['top','right','bottom','left']:
     #     ax[1].spines[border].set_visible(False)
@@ -1445,7 +1486,8 @@ if budget_barchart == True:
         # axis.grid(True,color='w',linewidth=1,linestyle='-',axis='y')
         # for border in ['top','right','bottom','left']:
         #     axis.spines[border].set_visible(False)
-        axis.grid(True,color='silver',linewidth=1,linestyle='--',axis='y')
+        # axis.grid(True,color='silver',linewidth=1,linestyle='--',axis='y')
+        axis.axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')
         axis.tick_params(axis='y', labelsize=10)
         axis.set_xticklabels([])
         axis.set_ylabel('mg/L per day',fontsize=10)
@@ -1759,80 +1801,85 @@ if budget_barchart == True:
     plt.show()
 
 
-#########################################################
-##     biological vs. physical mid-jul to mid-aug      ##
-#########################################################
+# #########################################################
+# ##     biological vs. physical mid-jul to mid-aug      ##
+# #########################################################
 
-# mid July to mid August
-minday = 194
-maxday = 225
+# # mid July to mid August
+# minday = 194
+# maxday = 225
 
-# initialize figure
-fig, ax = plt.subplots(1,1,figsize = (5,5))
+# # initialize figure
+# fig, ax = plt.subplots(1,1,figsize = (5,5))
 
-# format figure
-ax.set_title('Biological vs. Physical\n(mid-Jul through mid-Aug)',size=14)
-ax.tick_params(axis='x', labelrotation=30)
-ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-ax.tick_params(axis='both', labelsize=12)
-ax.set_xlabel('Exchange Flow & Vertical Transport\n[mg/L per day]', fontsize=12)
-ax.set_ylabel('Photosynthesis & Consumption\n[mg/L per day]', fontsize=12)
+# # format figure
+# ax.set_title('Biological vs. Physical\n(mid-Jul through mid-Aug)',size=14)
+# ax.tick_params(axis='x', labelrotation=30)
+# ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+# ax.tick_params(axis='both', labelsize=12)
+# ax.set_xlabel('Exchange Flow & Vertical Transport\n[mg/L per day]', fontsize=12)
+# ax.set_ylabel('Photosynthesis & Consumption\n[mg/L per day]', fontsize=12)
 
-# add line with slope -1
-ax.plot([0,0.45], [0,-0.45], color='grey', linestyle='-')
+# # add line with slope -1
+# ax.plot([0,0.45], [0,-0.45], color='grey', linestyle='-')
 
-physics_all = np.array([])
-biology_all = np.array([])
+# physics_all = np.array([])
+# biology_all = np.array([])
 
-for i,station in enumerate(sta_dict):
+# for i,station in enumerate(sta_dict):
     
-    # get physical
-    # calculate time average normalized by volume
-    tef =  np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/
-                      (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-    vert =  np.nanmean(bottomlay_dict[station]['TEF Vertical'][minday:maxday]/
-                       (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-    # convert to mg/L per day
-    tef = tef * 1000 * 32 * 60 * 60 * 24
-    vert = vert * 1000 * 32 * 60 * 60 * 24
-    # sum
-    physics = tef + vert
+#     # get physical
+#     # calculate time average normalized by volume
+#     tef =  np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/
+#                       (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+#     vert =  np.nanmean(bottomlay_dict[station]['TEF Vertical'][minday:maxday]/
+#                        (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+#     # convert to mg/L per day
+#     tef = tef * 1000 * 32 * 60 * 60 * 24
+#     vert = vert * 1000 * 32 * 60 * 60 * 24
+#     # sum
+#     physics = tef + vert
+#     # physics = tef
 
-    # get biological
-    # calculate time average normalized by volume
-    photo =  np.nanmean(bottomlay_dict[station]['Photosynthesis'][minday:maxday]/
-                      (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-    cons =  np.nanmean(bottomlay_dict[station]['Bio Consumption'][minday:maxday]/
-                       (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-    # convert to mg/L per day
-    photo = photo * 1000 * 32 * 60 * 60 * 24
-    cons = cons * 1000 * 32 * 60 * 60 * 24
-    # sum
-    biology = photo + cons
+#     # get biological
+#     # calculate time average normalized by volume
+#     photo =  np.nanmean(bottomlay_dict[station]['Photosynthesis'][minday:maxday]/
+#                       (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+#     cons =  np.nanmean(bottomlay_dict[station]['Bio Consumption'][minday:maxday]/
+#                        (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+#     # convert to mg/L per day
+#     photo = photo * 1000 * 32 * 60 * 60 * 24
+#     cons = cons * 1000 * 32 * 60 * 60 * 24
+#     # sum
+#     biology = photo + cons
+#     # biology = cons
 
-    # plot
-    ax.scatter(physics,biology,color='navy',alpha=0.3, s=60, zorder=5)
-    ax.set_ylim([-0.45,0])
-    ax.set_xlim([0,0.45])
+#     # plot
+#     ax.scatter(physics,biology,color='navy',alpha=0.3, s=60, zorder=5)
+#     # ax.set_ylim([-0.45,0])
+#     # ax.set_xlim([0,0.45])
 
-    # add to array
-    physics_all = np.concatenate((physics_all,[physics]))
-    biology_all = np.concatenate((biology_all,[biology]))
+#     # add to array
+#     physics_all = np.concatenate((physics_all,[physics]))
+#     biology_all = np.concatenate((biology_all,[biology]))
 
-# calculate correlation coefficient (Pearson)
-r,p = pearsonr(physics_all,biology_all)
-ax.text(0.4, 0.85, r'$r =$' + str(round(r,3)) + r'; $r^2 =$' + str(round(r**2,3)) ,color='black',
-                        verticalalignment='bottom', horizontalalignment='left',
-                        transform=ax.transAxes, fontsize=12, fontweight='bold')
-ax.text(0.4, 0.79, r'$p =$' + '{:.1e}'.format(p) ,color='black',
-                        verticalalignment='bottom', horizontalalignment='left',
-                        transform=ax.transAxes, fontsize=12, fontweight='bold')
+# # calculate correlation coefficient (Pearson)
+# r,p = pearsonr(physics_all,biology_all)
+# ax.text(0.4, 0.85, r'$r =$' + str(round(r,3)) + r'; $r^2 =$' + str(round(r**2,3)) ,color='black',
+#                         verticalalignment='bottom', horizontalalignment='left',
+#                         transform=ax.transAxes, fontsize=12, fontweight='bold')
+# ax.text(0.4, 0.79, r'$p =$' + '{:.1e}'.format(p) ,color='black',
+#                         verticalalignment='bottom', horizontalalignment='left',
+#                         transform=ax.transAxes, fontsize=12, fontweight='bold')
+# # ax.text(0.4, 0.79, r'$p =$' + str(round(p,3)) ,color='black',
+# #                         verticalalignment='bottom', horizontalalignment='left',
+# #                         transform=ax.transAxes, fontsize=12, fontweight='bold')
 
-ax.set_aspect('equal', adjustable='box')
-ax.xaxis.set_major_locator(plt.MaxNLocator(5))
-ax.yaxis.set_major_locator(plt.MaxNLocator(5))
-plt.tight_layout()
-plt.show()
+# # ax.set_aspect('equal', adjustable='box')
+# ax.xaxis.set_major_locator(plt.MaxNLocator(5))
+# ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+# plt.tight_layout()
+# plt.show()
 
 ##########################################################
 ##                   DO scatterplots                    ## 
@@ -1877,40 +1924,40 @@ if DO_analysis == True:
         
         for month in range(intervals):
             if month == 0:
-                minday = 1
-                maxday = 32
+                minday = 0 #1
+                maxday = 30 #32
             elif month == 1:
-                minday = 32
-                maxday = 60
+                minday = 30# 32
+                maxday = 58# 60
             elif month == 2:
-                minday = 60
-                maxday = 91
+                minday = 58# 60
+                maxday = 89# 91
             elif month == 3:
-                minday = 91
-                maxday = 121
+                minday = 89# 91
+                maxday = 119# 121
             elif month == 4:
-                minday = 121
-                maxday = 152
+                minday = 119# 121
+                maxday = 150# 152
             elif month == 5:
-                minday = 152
-                maxday = 182
+                minday = 150# 152
+                maxday = 180# 182
             elif month == 6:
-                minday = 182
-                maxday = 213
+                minday = 180# 182
+                maxday = 211# 213
             elif month == 7:
-                minday = 213
-                maxday = 244
+                minday = 211# 213
+                maxday = 242# 244
             elif month == 8:
-                minday = 244
-                maxday = 274
+                minday = 242# 244
+                maxday = 272# 274
             elif month == 9:
-                minday = 274
-                maxday = 305
+                minday = 272# 274
+                maxday = 303# 305
             elif month == 10:
-                minday = 305
-                maxday = 335
+                minday = 303# 305
+                maxday = 332# 335
             elif month == 11:
-                minday = 335
+                minday = 332# 335
                 maxday = 363
             # minday=month
             # maxday=month+1

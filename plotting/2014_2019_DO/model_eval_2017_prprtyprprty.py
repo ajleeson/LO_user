@@ -644,20 +644,35 @@ for i,vn in enumerate(vns):
     # calculate bias and rmse
     bias = np.nanmean(terminl_mod-terminl_obs)
     rmse = np.sqrt(np.nanmean((terminl_mod-terminl_obs)**2))
+    nse = 1 - (
+        np.nansum( (terminl_mod-terminl_obs)**2 )/
+        np.nansum( (terminl_obs- np.nanmean(terminl_obs) )**2 )
+        )
+    # nse = 1 - (
+    #     np.nansum( np.abs(terminl_mod-terminl_obs) )/
+    #     np.nansum( np.abs(terminl_obs- np.nanmean(terminl_obs) ) )
+    #     )
     t01 = axes[i].text(0.17, 0.95, 'Bias', fontweight='bold',
         verticalalignment='top', horizontalalignment='right',
         transform=axes[i].transAxes, fontsize=10, color = 'black')
-    t02 = axes[i].text(0.35, 0.95, 'RMSE', fontweight='bold',
+    t02 = axes[i].text(0.37, 0.95, 'RMSE', fontweight='bold',
+        verticalalignment='top', horizontalalignment='right',
+        transform=axes[i].transAxes, fontsize=10, color = 'black')
+    t03 = axes[i].text(0.57, 0.95, 'NSE', fontweight='bold',
         verticalalignment='top', horizontalalignment='right',
         transform=axes[i].transAxes, fontsize=10, color = 'black')
     t1 = axes[i].text(0.17, 0.89, '{:.2f}'.format(round(bias,2)),
         verticalalignment='top', horizontalalignment='right',fontweight='bold',
         transform=axes[i].transAxes, fontsize=10, color = 'deeppink')
-    t2 = axes[i].text(0.35, 0.89, '{:.2f}'.format(round(rmse,2)),
+    t2 = axes[i].text(0.37, 0.89, '{:.2f}'.format(round(rmse,2)),
+        verticalalignment='top', horizontalalignment='right',fontweight='bold',
+        transform=axes[i].transAxes, fontsize=10, color = 'deeppink')
+    t3 = axes[i].text(0.57, 0.89, '{:.2f}'.format(round(nse,2)),
         verticalalignment='top', horizontalalignment='right',fontweight='bold',
         transform=axes[i].transAxes, fontsize=10, color = 'deeppink')
     t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
     t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
+    t3.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
 
     axes[i].set_ylabel('Modeled',fontsize=12)
     axes[i].set_xlabel('Observed',fontsize=12)
@@ -703,17 +718,35 @@ for i,vn in enumerate(vns):
         PSstns_obs = np.concatenate((PSstns_obs,obsvals))
         PSstns_mod = np.concatenate((PSstns_mod,modvals))
     # # add bias and rmse label
-    # calculate bias and rmse
+    # calculate bias and rmse and nash-sutcliffe model efficiency index
     bias = np.nanmean(PSstns_mod-PSstns_obs)
     rmse = np.sqrt(np.nanmean((PSstns_mod-PSstns_obs)**2))
+
+    nse = 1 - (
+        np.nansum((PSstns_mod-PSstns_obs)**2)/
+        np.nansum((PSstns_obs-np.nanmean(PSstns_obs))**2)
+        )
+    
+    if vn == 'SA':
+        print((PSstns_mod-PSstns_obs)[210:215])
+        # print(np.nansum((PSstns_obs-np.nanmean(PSstns_obs))**2))
+    
+    # nse = 1 - (
+    #     np.nansum( np.abs(PSstns_mod-PSstns_obs) )/
+    #     np.nansum( np.abs(PSstns_obs-np.nanmean(PSstns_obs)) )
+    #     )
     t1 = axes[i].text(0.17, 0.83, '{:.2f}'.format(round(bias,2)),
         verticalalignment='top', horizontalalignment='right',fontweight='bold',
         transform=axes[i].transAxes, fontsize=10, color = 'navy')
-    t2 = axes[i].text(0.35, 0.83, '{:.2f}'.format(round(rmse,2)),
+    t2 = axes[i].text(0.37, 0.83, '{:.2f}'.format(round(rmse,2)),
+        verticalalignment='top', horizontalalignment='right',fontweight='bold',
+        transform=axes[i].transAxes, fontsize=10, color = 'navy')
+    t3 = axes[i].text(0.57, 0.83, '{:.2f}'.format(round(nse,2)),
         verticalalignment='top', horizontalalignment='right',fontweight='bold',
         transform=axes[i].transAxes, fontsize=10, color = 'navy')
     t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
     t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
+    t3.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
 
 
 plt.suptitle('Model vs. Observations property-property plots (Puget Sound 2017)', fontsize=15, x=0.65)
