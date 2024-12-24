@@ -253,7 +253,7 @@ plon, plat = pfun.get_plon_plat(lon,lat)
 # make a version of z with nans where masked
 zm = z.copy()
 zm[np.transpose(mask_rho) == 0] = np.nan
-zm[np.transpose(mask_rho) != 0] = -1
+zm[np.transpose(mask_rho) != 0] = -1.1
 
 # Create map
 plt.close('all')
@@ -316,8 +316,10 @@ plt.xticks(rotation=30)
 plt.yticks(rotation=30)
                                 
 # Add colormap title
+# ax.set_title('(a) Days per year with\nbottom DO < {} '.format(str(DO_thresh) + r' mg L$^{-1}$'),
+#             fontsize=12, loc='left')
 ax.set_title('(a) Days per year with\nbottom DO < {} '.format(str(DO_thresh) + r' mg L$^{-1}$'),
-            fontsize=12, loc='left')
+            fontsize=12, loc='left', fontweight='bold')
 
 ##############################################################
 ##             PLOT MEAN BOTTOM DO CONCENTRATION            ##
@@ -409,10 +411,12 @@ plt.yticks(rotation=30)
 # ax.set_title('(b)' + start+' to '+end+' mean bottom DO [mg/L]',
 #             fontsize=14, y=0.95)
 
+# ax.set_title('(b) Aug 1 to Sep 30 \n' + r'mean bottom DO [mg L$^{-1}$]',
+#             fontsize=12, loc='left')
 ax.set_title('(b) Aug 1 to Sep 30 \n' + r'mean bottom DO [mg L$^{-1}$]',
-            fontsize=12, loc='left')
+            fontsize=12, loc='left', fontweight='bold')
 
-plt.suptitle('2014 through 2019 averages', fontsize=14)
+# plt.suptitle('2014 through 2019 averages', fontsize=14)
 
 # Generate plot
 plt.tight_layout

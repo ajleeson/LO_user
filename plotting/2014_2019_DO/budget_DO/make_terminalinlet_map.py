@@ -260,7 +260,7 @@ ax.text(-123.54,48.17,'Oxygenated deep inlets\n(mean depth > 10 m)',va='center',
 # ax.text(-123.37,48.37,'Ecology monitoring\nstation (ID)',va='center',ha='left',fontweight='bold',color='mediumorchid',fontsize = 12)
 # ax.text(-123.37,48.3,'No observations',va='center',ha='left',fontweight='bold',color='k',fontsize = 12)
 
-plt.title('Terminal Inlet Locations',fontsize = 14)
+# plt.title('Terminal Inlet Locations',fontsize = 14)
 plt.tight_layout()
 
 
