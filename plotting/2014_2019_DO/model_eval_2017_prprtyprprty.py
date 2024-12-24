@@ -583,7 +583,8 @@ t2 = ax_map.text(0.03, 0.94, 'Main Basin stations',
 t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
 t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
 
-ax_map.set_title('(a) Inlet obs comparison locations',fontsize=12,loc='left')
+# ax_map.set_title('(a) Inlet obs comparison locations',fontsize=12,loc='left')
+ax_map.set_title('(a) Locations',fontsize=12,loc='left', fontweight='bold')
 
 ##########################################################
 ##         Puget Sound Property-property plots          ##
@@ -603,7 +604,7 @@ for i,ax in enumerate(axes):
     # for border in ['top','right','bottom','left']:
     #     ax.spines[border].set_visible(False)
     ax.tick_params(axis='both', labelsize=10)
-    ax.set_title(letter[i+1] + ' ' + vars[i],loc='left',fontsize=12)
+    ax.set_title(letter[i+1] + ' ' + vars[i],loc='left',fontsize=12, fontweight='bold')
 
 # plot property-property plots for terminal inlets
 for i,vn in enumerate(vns):
@@ -658,21 +659,21 @@ for i,vn in enumerate(vns):
     t02 = axes[i].text(0.37, 0.95, 'RMSE', fontweight='bold',
         verticalalignment='top', horizontalalignment='right',
         transform=axes[i].transAxes, fontsize=10, color = 'black')
-    t03 = axes[i].text(0.57, 0.95, 'NSE', fontweight='bold',
-        verticalalignment='top', horizontalalignment='right',
-        transform=axes[i].transAxes, fontsize=10, color = 'black')
+    # t03 = axes[i].text(0.57, 0.95, 'NSE', fontweight='bold',
+    #     verticalalignment='top', horizontalalignment='right',
+    #     transform=axes[i].transAxes, fontsize=10, color = 'black')
     t1 = axes[i].text(0.17, 0.89, '{:.2f}'.format(round(bias,2)),
         verticalalignment='top', horizontalalignment='right',fontweight='bold',
         transform=axes[i].transAxes, fontsize=10, color = 'deeppink')
     t2 = axes[i].text(0.37, 0.89, '{:.2f}'.format(round(rmse,2)),
         verticalalignment='top', horizontalalignment='right',fontweight='bold',
         transform=axes[i].transAxes, fontsize=10, color = 'deeppink')
-    t3 = axes[i].text(0.57, 0.89, '{:.2f}'.format(round(nse,2)),
-        verticalalignment='top', horizontalalignment='right',fontweight='bold',
-        transform=axes[i].transAxes, fontsize=10, color = 'deeppink')
+    # t3 = axes[i].text(0.57, 0.89, '{:.2f}'.format(round(nse,2)),
+    #     verticalalignment='top', horizontalalignment='right',fontweight='bold',
+    #     transform=axes[i].transAxes, fontsize=10, color = 'deeppink')
     t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
     t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
-    t3.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
+    # t3.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
 
     axes[i].set_ylabel('Modeled',fontsize=12)
     axes[i].set_xlabel('Observed',fontsize=12)
@@ -741,15 +742,15 @@ for i,vn in enumerate(vns):
     t2 = axes[i].text(0.37, 0.83, '{:.2f}'.format(round(rmse,2)),
         verticalalignment='top', horizontalalignment='right',fontweight='bold',
         transform=axes[i].transAxes, fontsize=10, color = 'navy')
-    t3 = axes[i].text(0.57, 0.83, '{:.2f}'.format(round(nse,2)),
-        verticalalignment='top', horizontalalignment='right',fontweight='bold',
-        transform=axes[i].transAxes, fontsize=10, color = 'navy')
+    # t3 = axes[i].text(0.57, 0.83, '{:.2f}'.format(round(nse,2)),
+    #     verticalalignment='top', horizontalalignment='right',fontweight='bold',
+    #     transform=axes[i].transAxes, fontsize=10, color = 'navy')
     t1.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
     t2.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
-    t3.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
+    # t3.set_bbox(dict(facecolor='white', alpha=0.7, edgecolor='none'))
 
 
-plt.suptitle('Model vs. Observations property-property plots (Puget Sound 2017)', fontsize=15, x=0.65)
+# plt.suptitle('Model vs. Observations property-property plots (Puget Sound 2017)', fontsize=15, x=0.65)
 plt.subplots_adjust(wspace=-0.2)      
 plt.tight_layout()
 
@@ -785,7 +786,7 @@ for i,vn in enumerate(vns):
     for stn, station in enumerate(selected_stns):
         # add a title
         if i == 0:
-            ax[i,stn].set_title(station + ' ('+selected_stns[station]+')',fontsize=12,fontweight='bold')
+            ax[i,stn].set_title(station + ' ('+selected_stns[station]+')',fontsize=12)
         # get axis
         axis = ax[i,stn]
 
@@ -946,8 +947,8 @@ for i,axis in enumerate(ax):
     #     axis.spines[border].set_visible(False)
     axis.text(0.03, 0.95, letter[i],
             verticalalignment='top', horizontalalignment='left',
-            transform=axis.transAxes, fontsize=12, color = 'k')
+            transform=axis.transAxes, fontsize=12, color = 'k',fontweight='bold')
 
-plt.suptitle('Model vs. Observations time series (2017)', fontsize=15)
+# plt.suptitle('Model vs. Observations time series (2017)', fontsize=15)
 plt.subplots_adjust(wspace=-0.2)      
 plt.tight_layout()

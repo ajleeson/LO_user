@@ -20,6 +20,10 @@ import csv
 import cmocean
 from scipy.stats import pearsonr
 from scipy.stats import ttest_ind
+from scipy.stats import f_oneway
+from scipy.stats import kruskal
+from scipy.stats import alexandergovern
+import pingouin as pg
 import matplotlib.pylab as plt
 import gsw
 import pickle
@@ -1342,7 +1346,9 @@ if budget_barchart == True:
 
     # format figure
     # plt.suptitle(station + ': DO Budget (10-day Hanning Window)',size=14)
-    ax[0].set_title('(a) 2017 Lynch Cove deep oxygen budget (10-day Hanning Window)',size=12, loc='left')
+    # ax[0].set_title('(a) 2017 Lynch Cove deep oxygen budget (10-day Hanning Window)',size=12, loc='left')
+    # ax[0].set_title('(a) Lynch Cove oxygen budget',size=12, loc='left', fontweight='bold')
+    ax[0].text(0.02, 0.88,'(a) Lynch Cove',fontsize=12, fontweight='bold',transform=ax[0].transAxes,)
     ax[0].set_xlim([dates_local[0],dates_local[-25]])
     ax[0].set_ylabel('DO transport ' + r'[kmol O$_2$ s$^{-1}$]',size=10)
     # ax[0].set_facecolor('#EEEEEE')
@@ -1357,7 +1363,7 @@ if budget_barchart == True:
     # for border in ['top','right','bottom','left']:
     #     ax[0].spines[border].set_visible(False)
     # ax[0].set_xlabel(year, fontsize=14)
-    ax[0].set_ylim([-0.25,0.15])
+    ax[0].set_ylim([-0.23,0.18])
     # plot deep budget
     nwin = 10 # hanning window length
     ax[0].plot(dates_local_daily,zfun.lowpass(bottomlay_dict[station]['Storage'].values,n=nwin),color='k',
@@ -1374,7 +1380,7 @@ if budget_barchart == True:
                 linewidth=2, label='Photosynthesis')
     ax[0].plot(dates_local_daily,zfun.lowpass(bottomlay_dict[station]['Bio Consumption'].values,n=nwin),color='#FCC2DD',
                 linewidth=2,label='Consumption')
-    ax[0].legend(loc='lower right',ncol=6, fontsize=9)
+    ax[0].legend(loc='lower right',ncol=6, fontsize=9, handletextpad=0.15)
     # add drawdown period
     # mid Jul - mid Aug
     minday = 194
@@ -1394,7 +1400,8 @@ if budget_barchart == True:
     ax[1].set_xticklabels([])
     ax[1].set_ylabel('mg/L per day',fontsize=10)
     # ax[1].set_title(station + ' volume-averaged deep layer DO budget')
-    ax[1].set_title('(b) Lynch Cove volume-averaged deep layer oxygen budget (drawdown period)',size=12, loc='left')
+    # ax[1].set_title('(b) Lynch Cove volume-averaged deep layer oxygen budget (drawdown period)',size=12, loc='left')
+    ax[1].text(0.02, 0.88,'(b) Lynch Cove',fontsize=12, fontweight='bold',transform=ax[1].transAxes,)
     ax[1].set_xlim([-0.5,1.05])
     ax[1].set_ylim([-0.25,0.25])
     width = 0.2
@@ -1459,7 +1466,7 @@ if budget_barchart == True:
         # ax[1].axhline(0,-0.3,1.05,color='dimgrey')
         
         # ax[1].legend(loc='lower center', fontsize=9, ncol=5)
-        ax[1].legend(bbox_to_anchor=(0.5, -0.3), loc='lower center', fontsize=9, ncol=5)
+        ax[1].legend(bbox_to_anchor=(0.5, -0.3), loc='lower center', fontsize=9, ncol=5, handletextpad=0.15)
 
 
 
@@ -1728,7 +1735,7 @@ if budget_barchart == True:
                 pos = 0.7
             if attribute == 'Storage':
                 color = 'black'
-                label = r'$\frac{d}{dt}$DO (net decrease)'
+                label = r'$\frac{d}{dt}$DO'
                 pos = -0.3
         
             # calculate average and standard deviation
@@ -1786,100 +1793,102 @@ if budget_barchart == True:
                             color='gray',fontsize=10)
                 multiplier_deep2 += 2
             
-            ax[3].legend(loc='lower center', fontsize=9, ncol=3)
+            ax[3].legend(loc='lower center', fontsize=9, ncol=3, handletextpad=0.15)
 
     ax[2].text(0.3, 0.12, 'HATCHED: oxygenated (n={})\nSOLID: hypoxic (n={})      '.format(len(oxy_dict['Storage']),len(hyp_dict['Storage'])),
             color='black', verticalalignment='bottom', horizontalalignment='right',zorder=6,
             transform=ax[2].transAxes, fontsize=9, fontweight='bold')
     # plt.suptitle('Volume-averaged deep layer budgets (mid-Jul to mid-Aug)',fontsize=16) 
 
-    ax[2].set_title('(c) All Inlet volume-averaged deep layer oxygen budgets (drawdown period)', loc='left',fontsize=12)
-    ax[3].set_title('(d) All Inlet oxygen budgets; combined physical and biological terms', loc='left',fontsize=12)
+    # ax[2].set_title('(c) All Inlet volume-averaged deep layer oxygen budgets (drawdown period)', loc='left',fontsize=12)
+    # ax[3].set_title('(d) All Inlet oxygen budgets; combined physical and biological terms', loc='left',fontsize=12)
+    ax[2].text(0.02, 0.88,'(c) All inlets',fontsize=12, fontweight='bold',transform=ax[2].transAxes,)
+    ax[3].text(0.02, 0.88,'(d) All inlets',fontsize=12, fontweight='bold',transform=ax[3].transAxes,)
 
-    plt.subplots_adjust(left=0.1, top=0.95, bottom=0.05, right=0.9)
-    plt.tight_layout()
+    plt.subplots_adjust(left=0.1, top=0.95, bottom=0.05, right=0.9, hspace=0.3)
+    # plt.tight_layout()
     plt.show()
 
 
-# #########################################################
-# ##     biological vs. physical mid-jul to mid-aug      ##
-# #########################################################
+#########################################################
+##     biological vs. physical mid-jul to mid-aug      ##
+#########################################################
 
-# # mid July to mid August
-# minday = 194
-# maxday = 225
+# mid July to mid August
+minday = 194
+maxday = 225
 
-# # initialize figure
-# fig, ax = plt.subplots(1,1,figsize = (5,5))
+# initialize figure
+fig, ax = plt.subplots(1,1,figsize = (5,5))
 
-# # format figure
-# ax.set_title('Biological vs. Physical\n(mid-Jul through mid-Aug)',size=14)
-# ax.tick_params(axis='x', labelrotation=30)
-# ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-# ax.tick_params(axis='both', labelsize=12)
-# ax.set_xlabel('Exchange Flow & Vertical Transport\n[mg/L per day]', fontsize=12)
-# ax.set_ylabel('Photosynthesis & Consumption\n[mg/L per day]', fontsize=12)
+# format figure
+ax.set_title('Consumption vs. QinDOin\n(mid-Jul through mid-Aug)',size=14)
+ax.tick_params(axis='x', labelrotation=30)
+ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax.tick_params(axis='both', labelsize=12)
+ax.set_xlabel('Exchange Flow\n[mg/L per day]', fontsize=12)
+ax.set_ylabel('Bio Consumption\n[mg/L per day]', fontsize=12)
 
 # # add line with slope -1
 # ax.plot([0,0.45], [0,-0.45], color='grey', linestyle='-')
 
-# physics_all = np.array([])
-# biology_all = np.array([])
+physics_all = np.array([])
+biology_all = np.array([])
 
-# for i,station in enumerate(sta_dict):
+for i,station in enumerate(sta_dict):
     
-#     # get physical
-#     # calculate time average normalized by volume
-#     tef =  np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/
-#                       (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-#     vert =  np.nanmean(bottomlay_dict[station]['TEF Vertical'][minday:maxday]/
-#                        (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-#     # convert to mg/L per day
-#     tef = tef * 1000 * 32 * 60 * 60 * 24
-#     vert = vert * 1000 * 32 * 60 * 60 * 24
-#     # sum
-#     physics = tef + vert
-#     # physics = tef
+    # get physical
+    # calculate time average normalized by volume
+    tef =  np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/
+                      (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+    vert =  np.nanmean(bottomlay_dict[station]['TEF Vertical'][minday:maxday]/
+                       (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+    # convert to mg/L per day
+    tef = tef * 1000 * 32 * 60 * 60 * 24
+    vert = vert * 1000 * 32 * 60 * 60 * 24
+    # sum
+    physics = tef + vert
+    physics = tef
 
-#     # get biological
-#     # calculate time average normalized by volume
-#     photo =  np.nanmean(bottomlay_dict[station]['Photosynthesis'][minday:maxday]/
-#                       (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-#     cons =  np.nanmean(bottomlay_dict[station]['Bio Consumption'][minday:maxday]/
-#                        (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
-#     # convert to mg/L per day
-#     photo = photo * 1000 * 32 * 60 * 60 * 24
-#     cons = cons * 1000 * 32 * 60 * 60 * 24
-#     # sum
-#     biology = photo + cons
-#     # biology = cons
+    # get biological
+    # calculate time average normalized by volume
+    photo =  np.nanmean(bottomlay_dict[station]['Photosynthesis'][minday:maxday]/
+                      (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+    cons =  np.nanmean(bottomlay_dict[station]['Bio Consumption'][minday:maxday]/
+                       (bottomlay_dict[station]['Volume'][minday:maxday])) # kmol O2 /s /m3
+    # convert to mg/L per day
+    photo = photo * 1000 * 32 * 60 * 60 * 24
+    cons = cons * 1000 * 32 * 60 * 60 * 24
+    # sum
+    biology = photo + cons
+    biology = cons
 
-#     # plot
-#     ax.scatter(physics,biology,color='navy',alpha=0.3, s=60, zorder=5)
-#     # ax.set_ylim([-0.45,0])
-#     # ax.set_xlim([0,0.45])
+    # plot
+    ax.scatter(physics,biology,color='navy',alpha=0.3, s=60, zorder=5)
+    ax.set_ylim([-0.6,0])
+    ax.set_xlim([0,6])
 
-#     # add to array
-#     physics_all = np.concatenate((physics_all,[physics]))
-#     biology_all = np.concatenate((biology_all,[biology]))
+    # add to array
+    physics_all = np.concatenate((physics_all,[physics]))
+    biology_all = np.concatenate((biology_all,[biology]))
 
-# # calculate correlation coefficient (Pearson)
-# r,p = pearsonr(physics_all,biology_all)
-# ax.text(0.4, 0.85, r'$r =$' + str(round(r,3)) + r'; $r^2 =$' + str(round(r**2,3)) ,color='black',
+# calculate correlation coefficient (Pearson)
+r,p = pearsonr(physics_all,biology_all)
+ax.text(0.4, 0.85, r'$r =$' + str(round(r,3)) + r'; $r^2 =$' + str(round(r**2,3)) ,color='black',
+                        verticalalignment='bottom', horizontalalignment='left',
+                        transform=ax.transAxes, fontsize=12, fontweight='bold')
+ax.text(0.4, 0.79, r'$p =$' + '{:.1e}'.format(p) ,color='black',
+                        verticalalignment='bottom', horizontalalignment='left',
+                        transform=ax.transAxes, fontsize=12, fontweight='bold')
+# ax.text(0.4, 0.79, r'$p =$' + str(round(p,3)) ,color='black',
 #                         verticalalignment='bottom', horizontalalignment='left',
 #                         transform=ax.transAxes, fontsize=12, fontweight='bold')
-# ax.text(0.4, 0.79, r'$p =$' + '{:.1e}'.format(p) ,color='black',
-#                         verticalalignment='bottom', horizontalalignment='left',
-#                         transform=ax.transAxes, fontsize=12, fontweight='bold')
-# # ax.text(0.4, 0.79, r'$p =$' + str(round(p,3)) ,color='black',
-# #                         verticalalignment='bottom', horizontalalignment='left',
-# #                         transform=ax.transAxes, fontsize=12, fontweight='bold')
 
-# # ax.set_aspect('equal', adjustable='box')
-# ax.xaxis.set_major_locator(plt.MaxNLocator(5))
-# ax.yaxis.set_major_locator(plt.MaxNLocator(5))
-# plt.tight_layout()
-# plt.show()
+# ax.set_aspect('equal', adjustable='box')
+ax.xaxis.set_major_locator(plt.MaxNLocator(5))
+ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+plt.tight_layout()
+plt.show()
 
 ##########################################################
 ##                   DO scatterplots                    ## 
@@ -1994,8 +2003,9 @@ if DO_analysis == True:
         ax = ax.ravel()
 
         # format figure
-        ax[0].set_title('(a) ' + year + r' monthly mean DO$_{deep}$ vs. DO$_{in}$' + '\n' + r'colored by mean T$_{flush}$',
-                        size=14, loc='left')
+        # ax[0].set_title('(a) ' + year + r' monthly mean DO$_{deep}$ vs. DO$_{in}$' + '\n' + r'colored by mean T$_{flush}$',
+        #                 size=14, loc='left')
+        ax[0].set_title('(a) All Inlets', size=14, loc='left', fontweight='bold')
         # ax[0].set_title(year + r' monthly mean DO$_{deep}$ vs. DO$_{in}$',
         #                 size=16, loc='left')
         # format grid
@@ -2026,8 +2036,9 @@ if DO_analysis == True:
 
 
         # format figure
-        ax[1].set_title('(b) ' + year + ' monthly mean '+r'DO$_{in}$ vs. T$_{flush}$'+'\ncolored by % hypoxic volume',
-                        size=14, loc='left')
+        # ax[1].set_title('(b) ' + year + ' monthly mean '+r'DO$_{in}$ vs. T$_{flush}$'+'\ncolored by % hypoxic volume',
+        #                 size=14, loc='left')
+        ax[1].set_title('(b) All Inlets', size=14, loc='left', fontweight='bold')
         # format grid
         # ax[1].set_facecolor('#EEEEEE')
         ax[1].tick_params(axis='x', labelrotation=30)
@@ -2050,7 +2061,8 @@ if DO_analysis == True:
         cbar.outline.set_visible(False)
 
         # crescent bay
-        ax[2].set_title('(c) Crescent Bay 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{flush}$', loc='left', size=14)
+        # ax[2].set_title('(c) Crescent Bay 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{flush}$', loc='left', size=14)
+        ax[2].set_title('(c) Crescent Bay', size=14, loc='left', fontweight='bold')
         # format grid
         # ax[2].set_facecolor('#EEEEEE')
         ax[2].tick_params(axis='x', labelrotation=30)
@@ -2084,7 +2096,8 @@ if DO_analysis == True:
         ax[2].set_ylim([0,11])
 
         # lynch cove
-        ax[3].set_title('(d) Lynch Cove 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{flush}$', loc='left', size=14)
+        # ax[3].set_title('(d) Lynch Cove 2017 monthly mean \n' + r'DO$_{deep}$ vs. DO$_{in}$ colored by T$_{flush}$', loc='left', size=14)
+        ax[3].set_title('(d) Lynch Cove', size=14, loc='left', fontweight='bold')
         # format grid
         # ax[3].set_facecolor('#EEEEEE')
         ax[3].tick_params(axis='x', labelrotation=30)
@@ -2135,8 +2148,9 @@ fig, ax = plt.subplots(1,2,figsize = (12,5),gridspec_kw={'width_ratios': [1, 1.5
 
 
 # Deep DO vs. % hypoxic volume
-ax[0].set_title('(a) ' + year + ' monthly mean \n     ' + r'% hypoxic volume vs. DO$_{deep}$',
-                size=14, loc='left')
+# ax[0].set_title('(a) ' + year + ' monthly mean \n     ' + r'% hypoxic volume vs. DO$_{deep}$',
+#                 size=14, loc='left')
+ax[0].set_title('(a) All inlets', size=14, loc='left', fontweight='bold')
 # format grid
 # ax[0].set_facecolor('#EEEEEE')
 ax[0].tick_params(axis='x', labelrotation=30)
@@ -2150,13 +2164,14 @@ ax[0].set_ylabel('Monthly mean % hypoxic volume', fontsize=14)
 # plot
 ax[0].scatter(deep_lay_DO,perc_hyp_vol,alpha=0.3,s=80,zorder=5,color='navy')
         # color=colors)
-ax[0].set_xlim([0,12])
+ax[0].set_xlim([0,10])
 ax[0].set_ylim([0,100])
 
 
 # Deep DO timeseries
-ax[1].set_title('(b) ' + year + r' DO$_{deep}$ time series [mg/L]' +  '\n     (30-day Hanning Window)',
-                size=14, loc='left')
+# ax[1].set_title('(b) ' + year + r' DO$_{deep}$ time series [mg/L]' +  '\n     (30-day Hanning Window)',
+#                 size=14, loc='left')
+ax[1].set_title('(b) All inlets', size=14, loc='left', fontweight='bold')
 # format grid
 # ax[1].set_facecolor('#EEEEEE')
 ax[1].tick_params(axis='x', labelrotation=30)
@@ -2183,7 +2198,75 @@ for i,station in enumerate(sta_dict):
 
 # format labels
 ax[1].set_xlim([dates_local[0],dates_local[-2]])
-ax[1].set_ylim([0,12])
+ax[1].set_ylim([0,10])
 ax[1].set_ylabel(r'DO$_{deep}$ [mg/L]',fontsize=14)
+plt.tight_layout()
+plt.show()
+
+##########################################################
+## net decrease (mid-July to mid-August) histogram ## 
+##########################################################
+
+# mid July to mid August
+minday = 194
+maxday = 225
+
+# initialize figure
+fig, ax = plt.subplots(1,1,figsize = (10,5))
+
+# format figure
+ax.set_title('d/dt(DO) (mid-Jul through mid-Aug)',size=14)
+ax.tick_params(axis='x', labelrotation=30)
+ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='x')
+ax.tick_params(axis='both', labelsize=12)
+ax.set_ylabel('d/dt(DO) [mg/L per day]', fontsize=12)
+
+# # add line with slope -1
+# ax.plot([0,0.45], [0,-0.45], color='grey', linestyle='-')
+
+storage_all = []
+
+for i,station in enumerate(sta_dict):
+    
+    # get daily net decrease rate
+    storage_daily =  bottomlay_dict[station]['Storage'][minday:maxday]/(bottomlay_dict[station]['Volume'][minday:maxday]) # kmol O2 /s /m3
+    
+    # convert to mg/L per day
+    storage_daily = storage_daily.values * 1000 * 32 * 60 * 60 * 24
+
+    # add to array
+    storage_all.append(list(storage_daily))
+
+# create boxplot
+ax.axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')
+bplot = plt.boxplot(storage_all, patch_artist=True, labels=sta_dict.keys(),
+            showmeans=True)
+
+for patch in bplot['boxes']:
+    patch.set_facecolor('honeydew')
+
+# condudct anova test
+anova0 = f_oneway(storage_all[0],storage_all[1],storage_all[2],storage_all[3],storage_all[4],
+         storage_all[5],storage_all[6],storage_all[7],storage_all[8],storage_all[9],
+         storage_all[10],storage_all[11],storage_all[12])
+anova1 = kruskal(storage_all[0],storage_all[1],storage_all[2],storage_all[3],storage_all[4],
+         storage_all[5],storage_all[6],storage_all[7],storage_all[8],storage_all[9],
+         storage_all[10],storage_all[11],storage_all[12])
+anova2 = alexandergovern(storage_all[0],storage_all[1],storage_all[2],storage_all[3],storage_all[4],
+         storage_all[5],storage_all[6],storage_all[7],storage_all[8],storage_all[9],
+         storage_all[10],storage_all[11],storage_all[12])
+flat_storage = [x for xs in storage_all for x in xs]
+df = pd.DataFrame({'storage':flat_storage,
+                   'inlet': np.repeat(list(sta_dict.keys()), repeats=31)})
+print(df)
+pingu = pg.welch_anova(data=df, dv='storage', between='inlet')
+
+
+print('\n===============================\n')
+print(anova0)
+print(anova1)
+print(anova2)
+print(pingu)
+
 plt.tight_layout()
 plt.show()

@@ -22,7 +22,7 @@ i2 = 652
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
 Lfun.make_dir(out_dir)
 
-background = 'dimgray'
+background = 'white'#'whitesmoke' #'dimgray'
 
 # Get LiveOcean grid info --------------------------------------------------
 
@@ -50,7 +50,8 @@ plt.subplots_adjust(wspace=0, hspace=0)
 # create colormap
 # newcmap = cmocean.tools.crop_by_percent(cmocean.cm.deep_r, 20, which='max', N=None)
 # newcmap = cmocean.cm.deep_r
-newcmap = cmocean.tools.crop_by_percent(cmocean.cm.deep_r, 10, which='max')
+# newcmap = cmocean.tools.crop_by_percent(cmocean.cm.deep_r, 15, which='max')
+newcmap = cmocean.tools.crop_by_percent(cmocean.cm.thermal, 20, which='max')
 newcmap.set_bad(background,1.) # background color
 
 # zm[np.transpose(mask_rho) != 0] = -1
@@ -70,8 +71,8 @@ cs = ax0.pcolormesh(plon, plat, zm, vmin=-250, vmax=0, cmap=newcmap)
 # format figure
 pfun.dar(ax0)
 # pfun.add_coast(ax0, color='gray')
-for border in ['top','right','bottom','left']:
-        ax0.spines[border].set_visible(False)
+# for border in ['top','right','bottom','left']:
+#         ax0.spines[border].set_visible(False)
 # Set axis limits
 ax0.set_xlim(X[i1],-122)#X[i2]) # Salish Sea
 ax0.set_ylim(Y[j1],Y[j2]) # Salish Sea
@@ -80,15 +81,17 @@ print('Lon={},{}'.format(X[i1],-122))
 print('Lat={},{}'.format(Y[j1],Y[j2]))
 
 # plt.xticks(rotation=30, color='gray')
-plt.xticks(rotation=30,horizontalalignment='right',color='gray',fontsize=12)
-plt.yticks(color='gray',fontsize=12)
+plt.xticks(rotation=30,horizontalalignment='right',fontsize=12)
+plt.yticks(fontsize=12)
+ax0.set_ylabel('Latitude', fontsize=12)
+ax0.set_xlabel('Longitude', fontsize=12)
 ax0.xaxis.set_major_locator(MaxNLocator(integer=True))
 ax0.yaxis.set_major_locator(MaxNLocator(integer=True))
 # plt.yticks(color='gray')
 # ax0.set_yticklabels([])
 # ax0.set_xticklabels([])
 # add title
-ax0.set_title('(a) Salish Sea',fontsize=14, loc='left')#,color='#EEEEEE')
+ax0.set_title('(a) Salish Sea',fontsize=14, loc='left', fontweight='bold')#,color='#EEEEEE')
 # add 10 km bar
 lat0 = 47
 lon0 = -124.63175
@@ -97,23 +100,23 @@ lon1 = -124.36975
 distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
 x_dist_km = round(distances_m[0]/1000)
 ax0.plot([lon0,lon1],[lat0,lat1],color='white',linewidth=5)
-ax0.text((lon0+lon1)/2,lat0+0.05,'{} km'.format(x_dist_km),color='white',fontsize=12,
+ax0.text((lon0+lon1)/2,lat0+0.05,'{} km'.format(x_dist_km),color='w',fontsize=12,
          horizontalalignment='center')
 # draw box around Puget Sound
-bordercolor = '#EEEEEE'
+bordercolor = 'k'#'#EEEEEE'
 ax0.add_patch(Rectangle((-123.3, 46.93), 1.2, 1.52,
-             edgecolor = bordercolor, facecolor='none', lw=2))
+             edgecolor = bordercolor, facecolor='none', lw=1))
 
 # add major cities
 # Seattle
 ax0.scatter([-122.3328],[47.6061],s=[250],color='pink',
             marker='*',edgecolors='darkred')
-ax0.text(-122.3328 + 0.1,47.6061,'Seattle',color='pink', rotation=90,
+ax0.text(-122.3328 + 0.1,47.6061,'Seattle',color='darkred', rotation=90,
          horizontalalignment='left',verticalalignment='center', size=12)
 # Vancouver
 ax0.scatter([-123.1207],[49.2827],s=[250],color='pink',
             marker='*',edgecolors='darkred')
-ax0.text(-123.1207 + 0.1,49.2827,'Vancouver',color='pink', rotation=0,
+ax0.text(-123.1207 + 0.1,49.2827,'Vancouver',color='darkred', rotation=0,
          horizontalalignment='left',verticalalignment='center', size=12)
 
 # add major water bodies
@@ -138,10 +141,10 @@ plt.setp(cbar_yticks)#, color='#EEEEEE')
 # format figure
 pfun.dar(ax1)
 # pfun.add_coast(ax1, color='gray')
-for border in ['top','right','bottom','left']:
-        ax1.spines[border].set_visible(False)
-        # ax1.spines[border].set_color(bordercolor)
-        # ax1.spines[border].set_linewidth(2)
+# for border in ['top','right','bottom','left']:
+#         ax1.spines[border].set_visible(False)
+#         # ax1.spines[border].set_color(bordercolor)
+#         # ax1.spines[border].set_linewidth(2)
 # Set axis limits
 ax1.set_xlim([-123.3,-122.1])
 ax1.set_ylim([46.93,48.45])
@@ -153,7 +156,7 @@ ax1.set_xticklabels([])
 # plt.xticks(rotation=30, color='gray')
 # plt.yticks(color='gray')
 # add title
-ax1.set_title('(b) Puget Sound',fontsize=14,loc='left')# color='#EEEEEE')
+ax1.set_title('(b) Puget Sound',fontsize=14,loc='left', fontweight='bold')# color='#EEEEEE')
 # add 10 km bar
 lat0 = 47
 lon0 = -123.2
@@ -161,8 +164,8 @@ lat1 = lat0
 lon1 = -123.06825
 distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
 x_dist_km = round(distances_m[0]/1000)
-ax1.plot([lon0,lon1],[lat0,lat1],color='w',linewidth=5)
-ax1.text((lon0+lon1)/2,lat0+0.015,'{} km'.format(x_dist_km),color='w',fontsize=12,
+ax1.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=5)
+ax1.text((lon0+lon1)/2,lat0+0.015,'{} km'.format(x_dist_km),color='k',fontsize=12,
          horizontalalignment='center')
 
 plt.subplots_adjust(wspace = -0.3)

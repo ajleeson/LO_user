@@ -360,7 +360,7 @@ dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 dates_local = [pfun.get_dt_local(x) for x in dates]
 
 # colors = ['red','darkorange','gold','green','blue','purple','deeppink']
-colors = ['#F9627D','#62B6CB','#A8C256','#96031A','#957FEF','#476ad1','darkorange']
+colors = ['#62B6CB','#A8C256','#96031A','#957FEF','#F9627D','#476ad1','darkorange']
 
 # # plot timeseries
 # for i,year in enumerate(years):
@@ -430,7 +430,8 @@ if remove_straits:
     # Add the patch to the Axes
     ax0.add_patch(rect)
     ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontsize=12)
-    ax0.set_title('(a) Region', fontsize = 14, loc='left')
+    # ax0.set_title('(a) Region', fontsize = 14, loc='left')
+    ax0.set_title('(a)', fontsize = 14, loc='left', fontweight='bold')
 
 # Puget Sound volume
 if remove_straits:
@@ -474,7 +475,8 @@ ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
 ax1.tick_params(axis='both', labelsize=12)
 ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
 plt.legend(loc='upper left', fontsize=12)
-plt.title('(b) Puget Sound hypoxic volume (DO < 2 mg/L)', fontsize = 14, loc='left')
+# plt.title('(b) Puget Sound hypoxic volume (DO < 2 mg/L)', fontsize = 14, loc='left')
+plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
 ax1.set_xlim([dates_local[0],dates_local[-1]])
 ax1.set_ylim([0,13])
 
