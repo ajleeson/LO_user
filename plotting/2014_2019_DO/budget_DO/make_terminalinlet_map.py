@@ -59,7 +59,7 @@ ax.set_ylabel('Latitude',fontsize=12)
 ax.set_xlabel('Longitude',fontsize=12)
 plt.xticks(rotation=30)
 # plt.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.2, vmax=0, cmap=plt.get_cmap('Greys'))
-plt.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+plt.pcolormesh(plon, plat, zm, vmin=-25, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
 # get terminal inlet locations
 for stn,station in enumerate(sta_dict): # stations: 
