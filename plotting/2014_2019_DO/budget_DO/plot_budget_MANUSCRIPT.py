@@ -460,6 +460,7 @@ for i,station in enumerate(sta_dict):
             print(list(DOconcen_dict[station].keys()))
             print(list(dimensions_dict[station].keys()))
 
+
 ##########################################################
 ##              Plot DO budget of every inlet           ##
 ##########################################################
@@ -2005,7 +2006,7 @@ if DO_analysis == True:
         # format figure
         # ax[0].set_title('(a) ' + year + r' monthly mean DO$_{deep}$ vs. DO$_{in}$' + '\n' + r'colored by mean T$_{flush}$',
         #                 size=14, loc='left')
-        ax[0].set_title('(a) All Inlets', size=14, loc='left', fontweight='bold')
+        ax[0].set_title('(a) All thirteen inlets', size=14, loc='left', fontweight='bold')
         # ax[0].set_title(year + r' monthly mean DO$_{deep}$ vs. DO$_{in}$',
         #                 size=16, loc='left')
         # format grid
@@ -2034,11 +2035,10 @@ if DO_analysis == True:
         ax[0].set_xlim([0,10])
         ax[0].set_ylim([0,10])
 
-
         # format figure
         # ax[1].set_title('(b) ' + year + ' monthly mean '+r'DO$_{in}$ vs. T$_{flush}$'+'\ncolored by % hypoxic volume',
         #                 size=14, loc='left')
-        ax[1].set_title('(b) All Inlets', size=14, loc='left', fontweight='bold')
+        ax[1].set_title('(b) All thirteen inlets', size=14, loc='left', fontweight='bold')
         # format grid
         # ax[1].set_facecolor('#EEEEEE')
         ax[1].tick_params(axis='x', labelrotation=30)
@@ -2150,7 +2150,7 @@ fig, ax = plt.subplots(1,2,figsize = (12,5),gridspec_kw={'width_ratios': [1, 1.5
 # Deep DO vs. % hypoxic volume
 # ax[0].set_title('(a) ' + year + ' monthly mean \n     ' + r'% hypoxic volume vs. DO$_{deep}$',
 #                 size=14, loc='left')
-ax[0].set_title('(a) All inlets', size=14, loc='left', fontweight='bold')
+ax[0].set_title('(a) All thirteen inlets', size=14, loc='left', fontweight='bold')
 # format grid
 # ax[0].set_facecolor('#EEEEEE')
 ax[0].tick_params(axis='x', labelrotation=30)
@@ -2171,7 +2171,7 @@ ax[0].set_ylim([0,100])
 # Deep DO timeseries
 # ax[1].set_title('(b) ' + year + r' DO$_{deep}$ time series [mg/L]' +  '\n     (30-day Hanning Window)',
 #                 size=14, loc='left')
-ax[1].set_title('(b) All inlets', size=14, loc='left', fontweight='bold')
+ax[1].set_title('(b) All thirteen inlets', size=14, loc='left', fontweight='bold')
 # format grid
 # ax[1].set_facecolor('#EEEEEE')
 ax[1].tick_params(axis='x', labelrotation=30)
@@ -2204,7 +2204,7 @@ plt.tight_layout()
 plt.show()
 
 ##########################################################
-## net decrease (mid-July to mid-August) histogram ## 
+## net decrease (mid-July to mid-August) boxplots ## 
 ##########################################################
 
 # mid July to mid August
@@ -2212,21 +2212,32 @@ minday = 194
 maxday = 225
 
 # initialize figure
-fig, ax = plt.subplots(1,1,figsize = (10,5))
+fig, ax = plt.subplots(1,1,figsize = (10,5.5))
 
 # format figure
-ax.set_title('d/dt(DO) (mid-Jul through mid-Aug)',size=14)
+# ax.set_title('d/dt(DO) (mid-Jul through mid-Aug)',size=14)
 ax.tick_params(axis='x', labelrotation=30)
-ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='x')
+# ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='x')
 ax.tick_params(axis='both', labelsize=12)
-ax.set_ylabel('d/dt(DO) [mg/L per day]', fontsize=12)
+ax.set_ylabel(r'$d/dt$DO [mg/L per day]', fontsize=12)
+ax.set_ylim([-0.55,0.2])
 
 # # add line with slope -1
 # ax.plot([0,0.45], [0,-0.45], color='grey', linestyle='-')
 
 storage_all = []
+storage_mean = []
 
-for i,station in enumerate(sta_dict):
+# mean_depth_sorted = dict(sorted(dimensions_dict.items(), key=lambda item: item[1]))
+# print(mean_depth_sorted)
+
+stations_sorted = ['sinclair','quartermaster','dyes',
+                   'crescent','penn','case',
+                   'lynchcove','carr','holmes',
+                   'portsusan','elliot','commencement',
+                   'dabob']
+
+for i,station in enumerate(stations_sorted):
     
     # get daily net decrease rate
     storage_daily =  bottomlay_dict[station]['Storage'][minday:maxday]/(bottomlay_dict[station]['Volume'][minday:maxday]) # kmol O2 /s /m3
@@ -2236,37 +2247,81 @@ for i,station in enumerate(sta_dict):
 
     # add to array
     storage_all.append(list(storage_daily))
+    storage_mean.append(np.nanmean(storage_daily))
+
 
 # create boxplot
 ax.axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')
-bplot = plt.boxplot(storage_all, patch_artist=True, labels=sta_dict.keys(),
-            showmeans=True)
+bplot = plt.boxplot(storage_all, patch_artist=True, labels=stations_sorted,
+            showmeans=True, showfliers=False, boxprops={'color':'darkgray'}, meanprops=
+            {'marker': 'o', 'markerfacecolor': 'navy', 'markersize': 7, 'markeredgecolor': 'none'})
 
+# align x-axis labels
+plt.xticks(ha='right')
+
+# add mean depth
+for i,station in enumerate(stations_sorted):
+    interval = 0.077
+    ax.text(i*interval+interval/2, 0.03, str(round(dimensions_dict[station]['Mean depth'][0])) ,color='black',
+                        horizontalalignment='center',transform=ax.transAxes, fontsize=10)
+ax.text(interval/3, 0.08, 'Mean depths [m]:' ,color='black', fontweight='bold',
+                        horizontalalignment='left',transform=ax.transAxes, fontsize=10)
+
+# format boxplot
 for patch in bplot['boxes']:
-    patch.set_facecolor('honeydew')
+    patch.set_facecolor('whitesmoke')
+for element in ['whiskers', 'medians', 'caps']:
+        plt.setp(bplot[element], color='darkgray')
+
+# add mean of all inlets
+ax.axhline(y=np.nanmean(storage_mean), xmin=-0.5, xmax=1.05,color='deepskyblue',linewidth=2,
+           label='mean: {} mg/L per day'.format(round(np.nanmean(storage_mean),3)))
+ax.legend(loc='best',frameon=False,fontsize=12)
 
 # condudct anova test
-anova0 = f_oneway(storage_all[0],storage_all[1],storage_all[2],storage_all[3],storage_all[4],
-         storage_all[5],storage_all[6],storage_all[7],storage_all[8],storage_all[9],
-         storage_all[10],storage_all[11],storage_all[12])
-anova1 = kruskal(storage_all[0],storage_all[1],storage_all[2],storage_all[3],storage_all[4],
-         storage_all[5],storage_all[6],storage_all[7],storage_all[8],storage_all[9],
-         storage_all[10],storage_all[11],storage_all[12])
-anova2 = alexandergovern(storage_all[0],storage_all[1],storage_all[2],storage_all[3],storage_all[4],
-         storage_all[5],storage_all[6],storage_all[7],storage_all[8],storage_all[9],
-         storage_all[10],storage_all[11],storage_all[12])
 flat_storage = [x for xs in storage_all for x in xs]
 df = pd.DataFrame({'storage':flat_storage,
                    'inlet': np.repeat(list(sta_dict.keys()), repeats=31)})
-print(df)
 pingu = pg.welch_anova(data=df, dv='storage', between='inlet')
-
-
 print('\n===============================\n')
-print(anova0)
-print(anova1)
-print(anova2)
 print(pingu)
 
 plt.tight_layout()
 plt.show()
+
+##########################################################
+##               Multiple regression (1)                ## 
+##########################################################
+
+# create array of predictors
+
+input_array = np.array([mean_DOin, mean_Tflush, [1]*len(mean_DOin)]).T
+
+
+B,a,b,c = lstsq(input_array,deep_lay_DO)
+slope_DOin = B[0]
+slope_Tflush = B[1]
+intercept = B[2]
+
+print('\nMean deep layer DO [mg/L] = {}*DOin + {}*Tflush + {}'.format(
+    round(slope_DOin,2),round(slope_Tflush,2),round(intercept,2)))
+
+
+# calculate r^2 and p value
+r,p = pearsonr(mean_DOin,deep_lay_DO)
+print('\n===============================================')
+print('DO_deep dependence on DO_in')
+print('   r = {}'.format(r))
+print('   R^2 = {}'.format(r**2))
+print('   p = {}'.format(p))
+print('===============================================\n')
+
+# calculate r^2 and p value
+predicted_DOdeep = slope_DOin * mean_DOin + slope_Tflush * mean_Tflush + intercept
+r,p = pearsonr(deep_lay_DO,predicted_DOdeep)
+print('\n===============================================')
+print('DO_deep dependence on DO_in and T_flush')
+print('   r = {}'.format(r))
+print('   R^2 = {}'.format(r**2))
+print('   p = {}'.format(p))
+print('===============================================\n')

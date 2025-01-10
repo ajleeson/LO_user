@@ -699,19 +699,21 @@ for i,vn in enumerate(vns):
         bias = np.nanmean(modvals-obsvals)
         rmse = np.sqrt(np.nanmean((modvals-obsvals)**2))
         # get max limits
+        minval = 0
         if vn == 'CT':
             maxval = 25
         if vn == 'SA':
-            maxval = 40
+            minval = 15
+            maxval = 35
         if vn == 'Chl (mg m-3)':
             maxval = 120
         if vn == 'DO (uM)':
             maxval = 17
         # plot data and y = x line
         axes[i].scatter(obsvals,modvals, color='navy', alpha=0.1, s=6, zorder=10, edgecolor='none')
-        axes[i].plot([0,maxval*1.01], [0,maxval*1.01], color='grey', linestyle='-', zorder=5)
-        axes[i].set_ylim([0,maxval])
-        axes[i].set_xlim([0,maxval])
+        axes[i].plot([minval,maxval*1.01], [minval,maxval*1.01], color='grey', linestyle='-', zorder=5)
+        axes[i].set_ylim([minval,maxval])
+        axes[i].set_xlim([minval,maxval])
         axes[i].set_aspect('equal', adjustable='box')
         axes[i].xaxis.set_major_locator(plt.MaxNLocator(5))
         axes[i].yaxis.set_major_locator(plt.MaxNLocator(5))
