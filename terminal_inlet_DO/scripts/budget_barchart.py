@@ -178,6 +178,7 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
 
     # t-test
     print('\n=====================Welch\'s t-test=======================\n')
+    print('p < 0.05 means we reject null hypothesis\n\n')
     for attribute in oxy_dict:
         if attribute == 'd/dt(DO)':
             print('Null hypothesis: d/dt(DO) of hypoxic and oxygenated inlets is the same')
@@ -269,8 +270,6 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
     # create a new dictionary of results
     oxy_dict = {}
     hyp_dict = {}
-    oxy_dict_std = {}
-    hyp_dict_std = {}
 
     for inlet in inlets:
         for attribute, measurement in deeplay_dict[inlet].items():

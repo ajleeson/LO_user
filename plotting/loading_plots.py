@@ -13,9 +13,13 @@ from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
 # define grid indices to look at
+# j1 = 590
+# j2 = 1170 #1300
+# i1 = 220 #160
+# i2 = 652
 j1 = 590
-j2 = 1170 #1300
-i1 = 220 #160
+j2 = 1300
+i1 = 20
 i2 = 652
 
 # where to put output figures

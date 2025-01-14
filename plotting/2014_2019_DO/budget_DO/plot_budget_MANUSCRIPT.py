@@ -79,6 +79,7 @@ if stations == 'all':
     del sta_dict['budd']
     del sta_dict['eld']
     del sta_dict['killsut']
+    del sta_dict['dabob']
 else:
     sta_dict = stations
 
@@ -2234,8 +2235,8 @@ storage_mean = []
 stations_sorted = ['sinclair','quartermaster','dyes',
                    'crescent','penn','case',
                    'lynchcove','carr','holmes',
-                   'portsusan','elliot','commencement',
-                   'dabob']
+                   'portsusan','elliot','commencement']#,
+                   #'dabob']
 
 for i,station in enumerate(stations_sorted):
     

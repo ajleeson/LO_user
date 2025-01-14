@@ -48,15 +48,19 @@ Ldir = Lfun.Lstart()
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['u']#['DIN','u','v'] # u, v, w, DIN
-date = '2013.01.01'
+vns = ['DIN']#['DIN','u','v'] # u, v, w, DIN
+# date = '2013.01.01'
+date = '2013.01.14'
+# date = '2014.01.09'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
 
-gtagex_longhindcast = 'cas7_t0noN_x4b'
-gtagex_noN = 'cas7_t0noN_x4b_perf10'
+# gtagex_longhindcast = 'cas7_t0noN_x4b'
+# gtagex_noN = 'cas7_t0noN_x4b_perf10'
+gtagex_longhindcast = 'cas7_t0_x4b'
+gtagex_noN = 'cas7_t0noN_x4b'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
@@ -128,8 +132,10 @@ for vn in vns:
         vn_name = 'NO3'
         vn_no3 = 'NO3'
         vn_nh4 = 'NH4'
-        vmin = -5
-        vmax =  5
+        # vmin = -5
+        # vmax =  5
+        vmin = -0.001
+        vmax =  0.001
     elif vn == 'u' or vn == 'v':
         vn_name = vn
         vmin = -0.1#-0.01
@@ -203,8 +209,8 @@ for vn in vns:
         cbar.ax.tick_params(labelsize=14)
         cbar.outline.set_visible(False)
         # format figure
-        ax.set_xlim([xmin,xmax])
-        ax.set_ylim([ymin,ymax])
+        # ax.set_xlim([xmin,xmax])
+        # ax.set_ylim([ymin,ymax])
         ax.set_yticklabels([])
         ax.set_xticklabels([])
         ax.axis('off')
@@ -221,9 +227,9 @@ for vn in vns:
         lon1 = -122.27
         distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
         x_dist_km = round(distances_m[0]/1000)
-        ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=6)
-        ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
-                horizontalalignment='center', fontsize=15)
+        # ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=6)
+        # ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
+        #         horizontalalignment='center', fontsize=15)
         
         # # add WWTP locations
         # ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,

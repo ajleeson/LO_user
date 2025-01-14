@@ -412,11 +412,11 @@ for i,station in enumerate(sta_dict):
         # mg/L units
 
         # DO concentrations
-        DOconcen_dict[station]['Surface Layer DO'] = o2_surf
+        DOconcen_dict[station]['Shallow Layer DO'] = o2_surf
         DOconcen_dict[station]['Deep Layer DO'] = o2_deep
-        DOconcen_dict[station]['Bottom Sigma DO'] = bottom_oxygen
+        # DOconcen_dict[station]['Bottom Sigma DO'] = bottom_oxygen
         # DOconcen_dict[station]['Minimum Bottom Layer DO'] = oxygen_min
-        DOconcen_dict[station]['Qin DO'] = DO_in
+        DOconcen_dict[station]['DOin'] = DO_in
         DOconcen_dict[station]['percent hypoxic volume'] = hyp_vol/[inlet_vol] * 100
 
 # ------------------------ save inlet dimensions in dataframe dict ----------------------------------------
@@ -440,6 +440,8 @@ with open('shallowlay_dict.pickle', 'wb') as handle:
     pickle.dump(surfacelay_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 with open('dimensions_dict.pickle', 'wb') as handle:
     pickle.dump(dimensions_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+with open('DOconcen_dict.pickle', 'wb') as handle:
+    pickle.dump(DOconcen_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 # ##########################################################
 # ##              Plot DO budget of every inlet           ##
