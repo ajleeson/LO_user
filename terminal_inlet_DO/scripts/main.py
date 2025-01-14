@@ -6,31 +6,12 @@ Aurora Leeson
 January 2025
 """
 
-from subprocess import Popen as Po
-from subprocess import PIPE as Pi
-from matplotlib.markers import MarkerStyle
-import matplotlib.dates as mdates
-import matplotlib.ticker as ticker
-import numpy as np
-import xarray as xr
-from datetime import datetime, timedelta
 import pandas as pd
-import matplotlib.patches as mpatches
-from scipy.linalg import lstsq
-import math
-import matplotlib.patches as patches
-from matplotlib.colors import ListedColormap
-import csv
-import cmocean
-from scipy.stats import pearsonr
-from scipy.stats import ttest_ind
-import pingouin as pg
 import matplotlib.pylab as plt
-import gsw
 import pickle
-# import get_two_layer
 
 # import helper functions
+import helper_functions
 import get_monthly_means
 import budget_error
 import budget_barchart
@@ -38,11 +19,7 @@ import QinDOin_correl_consumption
 import plot_monthly_means
 import dodeep_hypvol_timeseries
 import net_decrease_boxplots
-
-from lo_tools import Lfun, zfun
-from lo_tools import plotting_functions as pfun
-
-Ldir = Lfun.Lstart()
+import multiple_regression
 
 plt.close('all')
 
@@ -107,10 +84,10 @@ enddate_hrly = str(int(year)+1)+'.01.01 00:00:00'
 
 # create time_vector
 dates_hrly = pd.date_range(start= startdate, end=enddate_hrly, freq= 'h')
-dates_local_hrly = [pfun.get_dt_local(x) for x in dates_hrly]
+dates_local_hrly = [helper_functions.get_dt_local(x) for x in dates_hrly]
 # crop time vector (because we only have jan 2 - dec 30)
 dates_daily = pd.date_range(start= startdate, end=enddate, freq= 'd')[2::]
-dates_local_daily = [pfun.get_dt_local(x) for x in dates_daily]
+dates_local_daily = [helper_functions.get_dt_local(x) for x in dates_daily]
 
 ##########################################################
 ##                 Get monthly means                    ## 
@@ -186,39 +163,10 @@ dodeep_hypvol_timeseries.dodeep_hypvol_timeseries(MONTHLYmean_DOdeep,
 net_decrease_boxplots.net_decrease_boxplots(dimensions_dict,deeplay_dict,
                                             minday,maxday)
 
-# ##########################################################
-# ##               Multiple regression (1)                ## 
-# ##########################################################
+##########################################################
+##                 Multiple regression                  ## 
+##########################################################
 
-# # create array of predictors
-
-# input_array = np.array([mean_DOin, mean_Tflush, [1]*len(mean_DOin)]).T
-
-
-# B,a,b,c = lstsq(input_array,deep_lay_DO)
-# slope_DOin = B[0]
-# slope_Tflush = B[1]
-# intercept = B[2]
-
-# print('\nMean deep layer DO [mg/L] = {}*DOin + {}*Tflush + {}'.format(
-#     round(slope_DOin,2),round(slope_Tflush,2),round(intercept,2)))
-
-
-# # calculate r^2 and p value
-# r,p = pearsonr(mean_DOin,deep_lay_DO)
-# print('\n===============================================')
-# print('DO_deep dependence on DO_in')
-# print('   r = {}'.format(r))
-# print('   R^2 = {}'.format(r**2))
-# print('   p = {}'.format(p))
-# print('===============================================\n')
-
-# # calculate r^2 and p value
-# predicted_DOdeep = slope_DOin * mean_DOin + slope_Tflush * mean_Tflush + intercept
-# r,p = pearsonr(deep_lay_DO,predicted_DOdeep)
-# print('\n===============================================')
-# print('DO_deep dependence on DO_in and T_flush')
-# print('   r = {}'.format(r))
-# print('   R^2 = {}'.format(r**2))
-# print('   p = {}'.format(p))
-# print('===============================================\n')
+multiple_regression.multiple_regression(MONTHLYmean_DOdeep,
+                                        MONTHLYmean_DOin,
+                                        MONTHLYmean_Tflush)

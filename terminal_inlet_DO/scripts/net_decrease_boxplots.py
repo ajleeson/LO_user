@@ -91,14 +91,14 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
                     'inlet': np.repeat(stations_sorted, repeats=repeats)})
     pingu = pg.welch_anova(data=df, dv='storage', between='inlet')
     print('Welch\'s ANOVA test of all thirteen inlets')
-    print(pingu)
+    print('    p = {:.2e}'.format((pingu['p-unc'].values[0])))
     print('\n')
 
     # remove Dabob Bay from analysis and repeat ANOVA
     df_nodabob = df[df['inlet'] != 'dabob']
     pingu_nodabob = pg.welch_anova(data=df_nodabob, dv='storage', between='inlet')
     print('OMITTING DABOB BAY: Welch\'s ANOVA test of all other twelve inlets')
-    print(pingu_nodabob)
+    print('    p = {}'.format(round(pingu_nodabob['p-unc'].values[0],3)))
     print('\n')
 
     plt.tight_layout()
