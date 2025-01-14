@@ -5,6 +5,7 @@ Parker MacCready
 """
 
 import numpy as np
+import pytz
 
 def lowpass(data, f='hanning', n=40, nanpad=True):
     """
@@ -65,3 +66,11 @@ def hanning_shape(n=40):
     filt = (1 + ff)/2
     filt = filt / filt.sum()
     return filt
+
+def get_dt_local(dt, tzl='US/Pacific'):
+    # take a model datetime (assumed to be UTC) and return local datetime
+    tz_utc = pytz.timezone('UTC')
+    tz_local = pytz.timezone(tzl)
+    dt_utc = dt.replace(tzinfo=tz_utc)
+    dt_local = dt_utc.astimezone(tz_local)
+    return dt_local

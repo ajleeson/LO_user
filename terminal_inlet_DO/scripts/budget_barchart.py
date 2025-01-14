@@ -147,9 +147,7 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
     # create a new dictionary of results
     oxy_dict = {}
     hyp_dict = {}
-    oxy_dict_std = {}
-    hyp_dict_std = {}
-
+    
     for inlet in inlets:
         for attribute, measurement in deeplay_dict[inlet].items():
             # skip variables we are not interested in
@@ -185,8 +183,8 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
             print('    alpha = 0.05')
             a = oxy_dict[attribute]
             b = hyp_dict[attribute]
-            ttest = ttest_ind(a, b, axis=0, equal_var=False)
-            print('    '+str(ttest))
+            ttest,p_value = ttest_ind(a, b, axis=0, equal_var=False)
+            print('    p = {}'.format(round(p_value,3)))
         else:
             continue
     print('\n')
@@ -229,14 +227,13 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
                 wiggle = -0.7
                 ha = 'center'
             # plot
-            offset = width * multiplier_deep1
             if attribute == 'Storage':
                 hatchcolor = 'white'
             else:
                 hatchcolor = 'white'
             if i == 0:
-                rects = ax[2].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=hatchcolor,color=color, hatch='xx')
-                rects = ax[2].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color='none')
+                ax[2].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=hatchcolor,color=color, hatch='xx')
+                ax[2].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color='none')
                 if attribute == 'd/dt(DO)':
                     ax[2].text(pos + shift, 0+wiggle, str(round(avg,3)),horizontalalignment=ha,verticalalignment='center',
                             color=color,fontsize=10, fontweight='bold', rotation=45)
@@ -245,8 +242,7 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
                             color='gray',fontsize=10, rotation=45)
                 multiplier_deep1 += 2
             elif i == 1:
-                offset = width * multiplier_deep2
-                rects = ax[2].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color=color, label=label)
+                ax[2].bar(pos + shift, avg, width, zorder=5, align='center', edgecolor=color,color=color, label=label)
                 if attribute == 'd/dt(DO)':
                     ax[2].text(pos+shift, 0+wiggle, str(round(avg,3)),horizontalalignment=ha,verticalalignment='center',
                             color=color,fontsize=10, fontweight='bold', rotation=45)
@@ -306,8 +302,8 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
             print('    alpha = 0.05')
             a = oxy_dict[attribute]
             b = hyp_dict[attribute]
-            ttest = ttest_ind(a, b, axis=0, equal_var=False)
-            print('    '+str(ttest))
+            ttest,p_value = ttest_ind(a, b, axis=0, equal_var=False)
+            print('    p = {}'.format(round(p_value,3)))
         else:
             continue
 
@@ -340,11 +336,10 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
             if avg > 0:
                 wiggle = -0.04
             # plot
-            offset = width * multiplier_deep1
             hatchcolor = 'white'
             if i == 0:
-                rects = ax[3].bar(pos + shift, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
-                rects = ax[3].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color='none')
+                ax[3].bar(pos + shift, avg, width, zorder=5, edgecolor=hatchcolor,color=color, hatch='xx')
+                ax[3].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color='none')
                 if attribute == 'd/dt(DO)':
                     ax[3].text(pos+shift, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                             color=color,fontsize=10, fontweight='bold')
@@ -353,8 +348,7 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
                             color='gray',fontsize=10)
                 multiplier_deep1 += 2
             elif i == 1:
-                offset = width * multiplier_deep2
-                rects = ax[3].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color=color,label=label)
+                ax[3].bar(pos + shift, avg, width, zorder=5, edgecolor=color,color=color,label=label)
                 if attribute == 'd/dt(DO)':
                     ax[3].text(pos+shift, 0+wiggle, str(round(avg,3)),horizontalalignment='center',verticalalignment='center',
                             color=color,fontsize=10, fontweight='bold')
