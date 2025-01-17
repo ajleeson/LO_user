@@ -68,6 +68,7 @@ kmolm3sec_to_mgLday = 1000 * 32 * 60 * 60 * 24
 minday = 194
 maxday = 225
 
+# yearday of drawdown period (mid-June through mid-August)
 # minday = 164
 # maxday = 225
 
