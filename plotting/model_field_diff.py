@@ -48,7 +48,7 @@ Ldir = Lfun.Lstart()
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['DIN']#['DIN','u','v'] # u, v, w, DIN
+vns = ['temp']#['DIN','u','v'] # u, v, w, DIN
 # date = '2013.01.01'
 date = '2013.01.14'
 # date = '2014.01.09'
@@ -138,8 +138,20 @@ for vn in vns:
         vmax =  0.001
     elif vn == 'u' or vn == 'v':
         vn_name = vn
-        vmin = -0.1#-0.01
-        vmax =  0.1#0.01
+        vmin = -0.00001#-0.01
+        vmax =  0.00001#0.01
+    elif vn == 'oxygen':
+        vn_name = vn
+        vmin = -0.001
+        vmax =  0.001
+    elif vn == 'salt':
+        vn_name = vn
+        vmin = -0.00001
+        vmax =  0.00001
+    elif vn == 'temp':
+        vn_name = vn
+        vmin = -0.00001
+        vmax =  0.00001
     else:
         print('vmin and vmax not provided for '+ vn)
 
