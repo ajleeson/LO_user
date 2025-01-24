@@ -21,6 +21,8 @@ import dodeep_hypvol_timeseries
 import net_decrease_boxplots
 import multiple_regression
 
+import TEST1LAYER_net_decrease_boxplots
+
 plt.close('all')
 
 ##########################################################
@@ -64,13 +66,13 @@ hyp_inlets = ['penn','case','holmes','portsusan','lynchcove','dabob']
 # convert from kmol O2 per m3 per second to mg/L per day
 kmolm3sec_to_mgLday = 1000 * 32 * 60 * 60 * 24
 
-# yearday of drawdown period (mid-July through mid-August)
-minday = 194
-maxday = 225
+# # yearday of drawdown period (mid-July through mid-August)
+# minday = 194
+# maxday = 225
 
 # yearday of drawdown period (mid-June through mid-August)
-# minday = 164
-# maxday = 225
+minday = 164
+maxday = 225
 
 ##########################################################
 ##   Get dates for analysis (2017.01.02 to 2017.12.30)  ##
@@ -171,3 +173,16 @@ net_decrease_boxplots.net_decrease_boxplots(dimensions_dict,deeplay_dict,
 multiple_regression.multiple_regression(MONTHLYmean_DOdeep,
                                         MONTHLYmean_DOin,
                                         MONTHLYmean_Tflush)
+
+
+
+
+
+
+
+##########################################################
+##   TESTING WHY IS D/DT(DO) THE SAME IN ALL INLETS?    ## 
+##########################################################
+
+TEST1LAYER_net_decrease_boxplots.net_decrease_boxplots(dimensions_dict,deeplay_dict,
+                                                        shallowlay_dict,minday,maxday)

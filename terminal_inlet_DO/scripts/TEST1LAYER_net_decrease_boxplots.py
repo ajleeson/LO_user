@@ -13,10 +13,10 @@ import pandas as pd
 import pingouin as pg
 
 def net_decrease_boxplots(dimensions_dict,deeplay_dict,
-                            minday,maxday):
+                        shallowlay_dict,minday,maxday):
     
 
-    print('\n=====================Welch\'s ANOVA=======================\n')
+    print('\n=====================Welch\'s ANOVA (1layer)=======================\n')
 
     print('\nNull hypothesis: all inlets have same net decrease rate')
     print('p < 0.05 means we reject null hypothesis\n\n')
@@ -46,7 +46,9 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
     for i,station in enumerate(stations_sorted):
         
         # get daily net decrease rate
-        storage_daily =  deeplay_dict[station]['d/dt(DO)'][minday:maxday]/(deeplay_dict[station]['Volume'][minday:maxday]) # kmol O2 /s /m3
+        d_dt_DO = deeplay_dict[station]['d/dt(DO)'][minday:maxday] + shallowlay_dict[station]['d/dt(DO)'][minday:maxday]
+        total_volume = deeplay_dict[station]['Volume'][minday:maxday] + shallowlay_dict[station]['Volume'][minday:maxday]
+        storage_daily = d_dt_DO / total_volume # kmol O2 /s /m3
         
         # convert to mg/L per day
         storage_daily = storage_daily.values * 1000 * 32 * 60 * 60 * 24
@@ -101,6 +103,7 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
     print('    p = {}'.format(round(pingu_nodabob['p-unc'].values[0],3)))
     print('\n')
 
+    plt.title('d/dt(DO) in entire inlet (one-layer)')
     plt.tight_layout()
     plt.show()
     
