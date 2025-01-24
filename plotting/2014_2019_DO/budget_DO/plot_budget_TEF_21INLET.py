@@ -2963,22 +2963,24 @@ plt.show()
 ##           Deep DO and Tflush time series             ## 
 ##########################################################
 
-timeseries = False
+timeseries = True
 if timeseries == True:
     for i,station in enumerate(sta_dict):
         # plt.close('all')
-        if station != 'lynchcove':
+        if station != 'penn':
             continue
         # initialize figure
         fig, ax = plt.subplots(1,1,figsize = (8,6))
         ax.set_title(station,fontsize=18)
 
         # format grid
-        ax.set_facecolor('#EEEEEE')
+        # ax.set_facecolor('#EEEEEE')
         ax.tick_params(axis='x', labelrotation=30)
-        ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
-        for border in ['top','right','bottom','left']:
-            ax.spines[border].set_visible(False)
+        ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+        ax.tick_params(axis='both', labelsize=12)
+        # ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
+        # for border in ['top','right','bottom','left']:
+        #     ax.spines[border].set_visible(False)
         ax.tick_params(axis='both', labelsize=12)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
         ax.set_xlim([dates_no_crop[0],dates_no_crop[-1]])
@@ -3010,18 +3012,18 @@ if timeseries == True:
         ticks = 5
 
         # add Tflush
-        Tflush_color = 'deeppink'
+        Tflush_color = 'mediumturquoise'
         ax2 = ax.twinx()
         for border in ['top','right','bottom','left']:
             ax2.spines[border].set_visible(False)
         ax2.plot(dates_local_daily,Tflush,linewidth=2,linestyle='-',color=Tflush_color,
-                 alpha=0.5,label=r'T$_{res}$ (30-day Hanning Window)')
+                 alpha=0.5,label=r'T$_{flush}$ (30-day Hanning Window)')
         # add scatter points of monthly mean
         ax2.scatter(days,mean_Tflush[i*intervals:(i+1)*intervals],s=80,facecolor=Tflush_color,edgecolor='white',zorder=7)
         # ax2.plot(dates_local_daily,Qin,linewidth=2,linestyle='-',color='darkturquoise',label='Qin (30-day Hanning Window)')
         # ax2.set_ylim([0,np.nanmax(Tflush)*4])
         # ax2.set_ylim([0,np.nanmax(Qin)*4])
-        ax2.set_ylabel(r'T$_{res}$ [days]',color=Tflush_color,fontsize=12)
+        ax2.set_ylabel(r'T$_{flush}$ [days]',color=Tflush_color,fontsize=12)
         ax2.legend(loc='upper right',fontsize=12)
         ymax = 1.2*np.nanmax(Tflush)
         # round to nearest multiple of 5

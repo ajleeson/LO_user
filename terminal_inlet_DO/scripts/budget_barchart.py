@@ -30,7 +30,8 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
     ax[0].text(0.02, 0.88,'(a) Lynch Cove',fontsize=12, fontweight='bold',transform=ax[0].transAxes,)
     ax[0].set_xlim([dates_local_hrly[0],dates_local_hrly[-25]])
     ax[0].set_ylabel('DO transport ' + r'[kmol O$_2$ s$^{-1}$]',size=10)
-    ax[0].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+    # ax[0].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+    ax[0].grid(True,color='gainsboro',linewidth=1,linestyle='--',axis='both')
     ax[0].tick_params(axis='x', labelrotation=30, labelsize=10)
     ax[0].tick_params(axis='y', labelsize=10)
     loc = mdates.MonthLocator(interval=1)
@@ -41,17 +42,17 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
     # plot deep budget time series
     nwin = 10 # hanning window length
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['d/dt(DO)'].values,n=nwin),color='k',
-                linewidth=1,label=r'$\frac{d}{dt}\int_V$DO dV') #,alpha=0.6)
+                linewidth=2,label=r'$\frac{d}{dt}\int_V$DO dV',zorder=5)
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['Vertical Transport'].values + shallowlay_dict[inlet]['Vertical Transport'].values,n=nwin),
-                color='darkorange', linewidth=1,label='Error')
+                color='darkorange', linewidth=2,label='Error')
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['TEF Exchange Flow'].values,n=nwin),color='#0D4B91',
-            linewidth=2,label='Exchange Flow')
+            linewidth=3,label='Exchange Flow')
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['Vertical Transport'].values,n=nwin),color='#99C5F7',
-            linewidth=2,label='Vertical')
+            linewidth=3,label='Vertical')
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['Photosynthesis'].values,n=nwin),color='#8F0445',
-                linewidth=2, label='Photosynthesis')
+                linewidth=3, label='Photosynthesis')
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['Bio Consumption'].values,n=nwin),color='#FCC2DD',
-                linewidth=2,label='Consumption')
+                linewidth=3,label='Consumption')
     ax[0].legend(loc='lower right',ncol=6, fontsize=9, handletextpad=0.15)
 
     # add drawdown period
@@ -70,7 +71,7 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
     ax[1].set_ylabel('mg/L per day',fontsize=10)
     ax[1].text(0.02, 0.88,'(b) Lynch Cove',fontsize=12, fontweight='bold',transform=ax[1].transAxes,)
     ax[1].set_xlim([-0.5,1.05])
-    ax[1].set_ylim([-0.25,0.25])
+    ax[1].set_ylim([-0.3,0.3])
     # set bar width
     width = 0.2
     # create bar chart
