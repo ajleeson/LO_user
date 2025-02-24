@@ -15,14 +15,20 @@
 # 2. roms out number
 # 3. year
 
-otype=bottle
-for source in ecology_nc dfo1 nceiSalish
-do
- python ./extract_casts_fast.py -gtx $1 -ro $2 -source $source -otype $otype -year $3 > ./$1"_"$source"_"$otype"_"$3.log
-done
+# otype=bottle
+# for source in ecology_nc dfo1 nceiSalish
+# do
+#  python ./extract_casts_fast.py -gtx $1 -ro $2 -source $source -otype $otype -year $3 > ./$1"_"$source"_"$otype"_"$3.log
+# done
+
+# otype=ctd
+# for source in dfo1 ecology_nc
+# do
+#  python ./extract_casts_fast.py -gtx $1 -ro $2 -source $source -otype $otype -year $3 > ./$1"_"$source"_"$otype"_"$3.log
+# done
 
 otype=ctd
-for source in dfo1 ecology_nc
+for source in kc_whidbey
 do
  python ./extract_casts_fast.py -gtx $1 -ro $2 -source $source -otype $otype -year $3 > ./$1"_"$source"_"$otype"_"$3.log
 done
