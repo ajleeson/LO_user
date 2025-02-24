@@ -30,7 +30,6 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
     ax[0].text(0.02, 0.88,'(a) Lynch Cove',fontsize=12, fontweight='bold',transform=ax[0].transAxes,)
     ax[0].set_xlim([dates_local_hrly[0],dates_local_hrly[-25]])
     ax[0].set_ylabel('DO transport ' + r'[kmol O$_2$ s$^{-1}$]',size=10)
-    # ax[0].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
     ax[0].grid(True,color='gainsboro',linewidth=1,linestyle='--',axis='both')
     ax[0].tick_params(axis='x', labelrotation=30, labelsize=10)
     ax[0].tick_params(axis='y', labelsize=10)
@@ -43,8 +42,8 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
     nwin = 10 # hanning window length
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['d/dt(DO)'].values,n=nwin),color='k',
                 linewidth=2,label=r'$\frac{d}{dt}\int_V$DO dV',zorder=5)
-    # ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['Vertical Transport'].values + shallowlay_dict[inlet]['Vertical Transport'].values,n=nwin),
-    #             color='darkorange', linewidth=2,label='Error')
+    ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['Vertical Transport'].values + shallowlay_dict[inlet]['Vertical Transport'].values,n=nwin),
+                color='darkorange', linewidth=2,label='Error')
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['TEF Exchange Flow'].values,n=nwin),color='#0D4B91',
             linewidth=3,label='Exchange Flow')
     ax[0].plot(dates_local_daily,helper_functions.lowpass(deeplay_dict[inlet]['Vertical Transport'].values,n=nwin),color='#99C5F7',

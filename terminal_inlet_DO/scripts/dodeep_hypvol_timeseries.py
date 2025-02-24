@@ -45,8 +45,9 @@ def dodeep_hypvol_timeseries(MONTHLYmean_DOdeep,
     for i,inlet in enumerate(inlets):
         # get average deep layer DO
         deep_lay_DO_alltime = DOconcen_dict[inlet]['Deep Layer DO']
-        # 30-day hanning windwo
+        # 30-day hanning window
         deep_lay_DO_alltime = helper_functions.lowpass(deep_lay_DO_alltime.values,n=30)
+        # plot
         ax[1].plot(dates_local_daily,deep_lay_DO_alltime,linewidth=1,color='navy',alpha=0.5)
 
     # format labels

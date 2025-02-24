@@ -22,6 +22,7 @@ import net_decrease_boxplots
 import multiple_regression
 
 import TEST1LAYER_net_decrease_boxplots
+import d_dt_DO_timeseries
 
 plt.close('all')
 
@@ -66,9 +67,6 @@ hyp_inlets = ['penn','case','holmes','portsusan','lynchcove','dabob']
 # convert from kmol O2 per m3 per second to mg/L per day
 kmolm3sec_to_mgLday = 1000 * 32 * 60 * 60 * 24
 
-# # yearday of drawdown period (mid-July through mid-August)
-# minday = 194
-# maxday = 225
 
 # yearday of drawdown period (mid-June through mid-August)
 minday = 164
@@ -186,3 +184,11 @@ multiple_regression.multiple_regression(MONTHLYmean_DOdeep,
 
 TEST1LAYER_net_decrease_boxplots.net_decrease_boxplots(dimensions_dict,deeplay_dict,
                                                         shallowlay_dict,minday,maxday)
+
+
+d_dt_DO_timeseries.d_dt_DO_timeseries(DOconcen_dict,
+                        dates_local_daily,
+                        dates_local_hrly,
+                        inlets,minday,maxday,
+                        dimensions_dict,deeplay_dict,
+                        shallowlay_dict,)
