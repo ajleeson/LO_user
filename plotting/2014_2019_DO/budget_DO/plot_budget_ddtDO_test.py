@@ -161,6 +161,8 @@ DX = (ds_box.pm.values)**-1
 DY = (ds_box.pn.values)**-1
 DA = DX*DY # get area of each grid cell in m^2
 
+DIN_in_direct = [None] * len(sta_dict)
+
 # COLLAPSE
 for i,station in enumerate(sta_dict):
 
@@ -191,7 +193,7 @@ for i,station in enumerate(sta_dict):
         DO_m = tef_df['oxygen_m'] # DOout [mmol/m3]
         # convert from mmol/s to kmol/s
         TEF_surf = (Q_m.values * DO_m.values) * (1/1000) * (1/1000) # Qout * DOout
-        TEF_deep = (Q_p.values * DO_p.values) * (1/1000) * (1/1000) # Qout * DOout
+        TEF_deep = (Q_p.values * DO_p.values) * (1/1000) * (1/1000) # Qin * DOin
 
         # nutrients (NO3 + NH4)
         DIN_p = tef_df['NO3_p']+tef_df['NH4_p'] # NH4in [mmol/m3] # NO3in [mmol/m3]
@@ -200,6 +202,8 @@ for i,station in enumerate(sta_dict):
         # convert from mmol/s to kmol/s
         QoutDINout = (Q_m.values * DIN_m.values) * (1/1000) * (1/1000) # Qout * DINout
         QinDINin = (Q_p.values * DIN_p.values) * (1/1000) * (1/1000) # Qin * DINin
+
+        DIN_in_direct[i] = np.nanmean(DIN_p[164:225])
 
         # phytoplankton
         P_p = tef_df['phytoplankton_p'] # Pin
@@ -475,155 +479,151 @@ for i,station in enumerate(sta_dict):
 ##                   DO scatterplots                    ## 
 ##########################################################
 
-DO_analysis = True
-if DO_analysis == True:
+print(np.nanmean(DIN_in_direct)/1000)
 
-    # initialize arrays for plotting
-    intervals = 1
-    deep_lay_DO = np.zeros(len(sta_dict)*intervals)
-    mean_DOin = np.zeros(len(sta_dict)*intervals)
-    mean_Tflush = np.zeros(len(sta_dict)*intervals)
-    mean_TEFin = np.zeros(len(sta_dict)*intervals)
-    mean_recirc = np.zeros(len(sta_dict)*intervals)
-    mean_cons = np.zeros(len(sta_dict)*intervals)
-    mean_depth = np.zeros(len(sta_dict)*intervals)
+# initialize arrays for plotting
+deep_lay_DO = np.zeros(len(sta_dict))
+mean_DOin = np.zeros(len(sta_dict))
+mean_Tflush = np.zeros(len(sta_dict))
+mean_TEFin = np.zeros(len(sta_dict))
+mean_recirc = np.zeros(len(sta_dict))
+mean_cons = np.zeros(len(sta_dict))
+mean_depth = np.zeros(len(sta_dict))
 
-    mean_Qin = np.zeros(len(sta_dict)*intervals)
-    mean_QinDINin = np.zeros(len(sta_dict)*intervals)
-    mean_QinDOin = np.zeros(len(sta_dict)*intervals)
-    mean_QoutDOout = np.zeros(len(sta_dict)*intervals)
-    mean_QinPin = np.zeros(len(sta_dict)*intervals)
-    mean_photo = np.zeros(len(sta_dict)*intervals)
-    mean_airsea = np.zeros(len(sta_dict)*intervals)
+mean_Qin = np.zeros(len(sta_dict))
+mean_QinDINin = np.zeros(len(sta_dict))
+mean_QinDOin = np.zeros(len(sta_dict))
+mean_QoutDOout = np.zeros(len(sta_dict))
+mean_QinPin = np.zeros(len(sta_dict))
+mean_photo = np.zeros(len(sta_dict))
+mean_airsea = np.zeros(len(sta_dict))
+mean_rivers = np.zeros(len(sta_dict))
 
-    inlet_vol = np.zeros(len(sta_dict)*intervals)
+inlet_vol = np.zeros(len(sta_dict))
 
-    colors = []
+colors = []
 
-    # get values for plotting and calculating r value
-    for i,station in enumerate(sta_dict):
-        
-        for month in range(intervals):
-            if month == 0:
-                minday = 164
-                maxday = 225 
+# get values for plotting and calculating r value
+for i,station in enumerate(sta_dict):
 
-            deep_lay_DO[i*intervals+month] =  np.nanmean(DOconcen_dict[station]['Deep Layer'][minday:maxday])
-            mean_DOin[i*intervals+month] = np.nanmean(DOconcen_dict[station]['Qin DO'][minday:maxday])
+    # get individual inlet volume
+    ind_inlet_vol = dimensions_dict[station]['Inlet volume'][0]
 
-            mean_Qin[i*intervals+month] = np.nanmean(bottomlay_dict[station]['Qin m3/s'][minday:maxday]/dimensions_dict[station]['Inlet volume'][0]) * (60*60*24)  #1/Tflush (days-1)
-            mean_QinDINin[i*intervals+month] = np.nanmean(bottomlay_dict[station]['QinDINin'][minday:maxday]/dimensions_dict[station]['Inlet volume'][0]) * (
-                                    1000) * (60*60*24) # mmol/L per day
-            mean_QinPin[i*intervals+month] = np.nanmean(bottomlay_dict[station]['QinPin'][minday:maxday]/dimensions_dict[station]['Inlet volume'][0]) * (
-                                    1000) * (60*60*24) # mmol/L per day
-            mean_QinDOin[i*intervals+month] = np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/dimensions_dict[station]['Inlet volume'][0]) * (
-                                    32 * 1000) * (60*60*24) # QinDOin [mg/L per day]
-            mean_QoutDOout[i*intervals+month] = np.nanmean(surfacelay_dict[station]['TEF Exchange Flow'][minday:maxday]/dimensions_dict[station]['Inlet volume'][0]) * (
-                                    32 * 1000) * (60*60*24) # QinDOin [mg/L per day]
-                                    
-            
-            mean_photo[i*intervals+month] = np.nanmean((bottomlay_dict[station]['Photosynthesis'][minday:maxday]+
-                                                       surfacelay_dict[station]['Photosynthesis'][minday:maxday])
-                                                      /dimensions_dict[station]['Inlet volume'][0]) * (32 * 1000) * (60*60*24) # mg/L per day
-            
-            mean_airsea[i*intervals+month] = np.nanmean(surfacelay_dict[station]['Air-Sea Transfer'][minday:maxday]
-                                                      /dimensions_dict[station]['Inlet volume'][0]) * (32 * 1000) * (60*60*24) # mg/L per day
-            
-            mean_Tflush[i*intervals+month] = np.nanmean(dimensions_dict[station]['Inlet volume'][0]/bottomlay_dict[station]['Qin m3/s'][minday:maxday]) / (60*60*24)
-            mean_TEFin[i*intervals+month] = np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/bottomlay_dict[station]['Volume'][minday:maxday]) * (
-                                    32 * 1000) * (60*60*24) # QinDOin [mg/L per day]
-            mean_recirc[i*intervals+month] = np.nanmean(bottomlay_dict[station]['TEF Recirculation'][minday:maxday]/bottomlay_dict[station]['Volume'][minday:maxday]) * (
-                                    32 * 1000) * (60*60*24)
-            
-            mean_cons[i*intervals+month] = np.nanmean((bottomlay_dict[station]['Bio Consumption'][minday:maxday]+
-                                                       surfacelay_dict[station]['Bio Consumption'][minday:maxday])
-                                                      /dimensions_dict[station]['Inlet volume'][0]) * (32 * 1000) * (60*60*24) # mg/L per day
-            
-            mean_depth[i*intervals+month] = dimensions_dict[station]['Mean depth'][0]
-            inlet_vol[i*intervals+month] = dimensions_dict[station]['Inlet volume'][0]
-        
+    # drawdown period
+    minday = 164
+    maxday = 225 
 
-    # Plot scatter plots
-    # initialize figure
-    fig, ax = plt.subplots(2,3,figsize = (14,9))
-    ax = ax.ravel()
+    deep_lay_DO[i] =  np.nanmean(DOconcen_dict[station]['Deep Layer'][minday:maxday])
+    mean_DOin[i] = np.nanmean(DOconcen_dict[station]['Qin DO'][minday:maxday])
 
-    # DIN
-    ax[0].set_title('(a) DIN fluxes\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
-    ax[0].tick_params(axis='x', labelrotation=30)
-    ax[0].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-    ax[0].tick_params(axis='both', labelsize=12)
-    ax[0].set_xlabel(r'Mean $\frac{Q_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [day-1]', fontsize=12)
-    ax[0].set_ylabel(r'Mean $\frac{Q_{in}DIN_{in}}{V_{inlet}}$ [mmol/L per day]', fontsize=12)
-    # plot
-    ax[0].scatter(mean_Tflush**-1,mean_QinDINin,s=60, zorder=5, c='navy', alpha=0.5)
+    mean_Qin[i] = np.nanmean(bottomlay_dict[station]['Qin m3/s'][minday:maxday]/ind_inlet_vol) * (60*60*24)  #1/Tflush (days-1)
+    mean_QinDINin[i] = np.nanmean(bottomlay_dict[station]['QinDINin'][minday:maxday]/ind_inlet_vol) * (1000) * (60*60*24) # mmol/L per day
+    mean_QinPin[i] = np.nanmean(bottomlay_dict[station]['QinPin'][minday:maxday]/ind_inlet_vol) * (1000) * (60*60*24) # mmol/L per day
+    mean_QinDOin[i] = np.nanmean(bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday]/ind_inlet_vol) * (32 * 1000) * (60*60*24) # QinDOin [mg/L per day]
+    mean_QoutDOout[i] = np.nanmean(surfacelay_dict[station]['TEF Exchange Flow'][minday:maxday]/ind_inlet_vol) * (32 * 1000) * (60*60*24) # QinDOin [mg/L per day]
+                            
+    
+    mean_photo[i] = np.nanmean((bottomlay_dict[station]['Photosynthesis'][minday:maxday]+
+                                surfacelay_dict[station]['Photosynthesis'][minday:maxday])
+                                /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
+    
+    mean_airsea[i] = np.nanmean(surfacelay_dict[station]['Air-Sea Transfer'][minday:maxday]
+                                /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
+    mean_rivers[i] = np.nanmean((surfacelay_dict[station]['TRAPS'][minday:maxday]+
+                                bottomlay_dict[station]['TRAPS'][minday:maxday])
+                                /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
+    
+    mean_Tflush[i] = np.nanmean(ind_inlet_vol/bottomlay_dict[station]['Qin m3/s'][minday:maxday]) / (60*60*24)
+    
+    mean_cons[i] = np.nanmean((bottomlay_dict[station]['Bio Consumption'][minday:maxday]+
+                                surfacelay_dict[station]['Bio Consumption'][minday:maxday])
+                                /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
+
+    mean_depth[i] = dimensions_dict[station]['Mean depth'][0]
+    inlet_vol[i] = ind_inlet_vol
+    
+
+# Plot scatter plots
+# initialize figure
+fig, ax = plt.subplots(2,3,figsize = (14,9))
+ax = ax.ravel()
+
+# DIN
+ax[0].set_title('(a) DIN fluxes\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[0].tick_params(axis='x', labelrotation=30)
+ax[0].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[0].tick_params(axis='both', labelsize=12)
+ax[0].set_xlabel(r'Mean $\frac{Q_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [day-1]', fontsize=12)
+ax[0].set_ylabel(r'Mean $\frac{Q_{in}DIN_{in}}{V_{inlet}}$ [mmol/L per day]', fontsize=12)
+# plot
+ax[0].scatter(mean_Tflush**-1,mean_QinDINin,s=60, zorder=5, c='navy', alpha=0.5)
 #     ax[0].set_ylim([0,0.018])
-    ax[0].set_xlim([0,0.35])
+ax[0].set_xlim([0,0.35])
 #     print(mean_QinDINin)
 #     print(mean_QinDINin/mean_Tflush**-1)
-    # conduct linear regession
-    x = mean_Tflush**-1
-    res = stats.linregress(x,mean_QinDINin)
-    print(res.slope)
-    ax[0].plot(x, res.intercept + res.slope*x, 'orchid')
-    ax[0].text(0.1,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[0].transAxes,
-               fontsize=12,fontweight='bold')
-    ax[0].text(0.1,0.82,f'Slope: {res.slope:.4f}',transform=ax[0].transAxes,
-               fontsize=12,fontweight='bold')
-    QtoN = res.slope * 1000 
+# conduct linear regession
+x = mean_Tflush**-1
+res = stats.linregress(x,mean_QinDINin)
+print(res.slope)
+ax[0].plot(x, res.intercept + res.slope*x, 'orchid')
+ax[0].text(0.1,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[0].transAxes,
+            fontsize=12,fontweight='bold')
+ax[0].text(0.1,0.82,f'Slope: {res.slope:.4f}',transform=ax[0].transAxes,
+            fontsize=12,fontweight='bold')
+QtoN = res.slope * 1000 
 
-    # Consumption vs. Photosynthesis
-    ax[1].set_title('(b) consumpton vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
-    ax[1].tick_params(axis='x', labelrotation=30)
-    ax[1].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-    ax[1].tick_params(axis='both', labelsize=12)
-    ax[1].set_ylabel(r'Mean $\frac{Consumption}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-    ax[1].set_xlabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-    # plot
-    ax[1].scatter(mean_photo,mean_cons,s=60, zorder=5, c='navy', alpha=0.5)
-    ax[1].set_ylim([-0.35,0])
-    ax[1].set_xlim([0,0.6])
-    # conduct linear regession
-    x = mean_photo
-    res = stats.linregress(mean_photo,mean_cons)
-    ax[1].plot(x, res.intercept + res.slope*x, 'orchid')
-    ax[1].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[1].transAxes,
-               fontsize=12,fontweight='bold')
-    ax[1].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[1].transAxes,
-               fontsize=12,fontweight='bold')
-    ax[1].text(0.5,0.74,f'intercept: {res.intercept:.3f}',transform=ax[1].transAxes,
-               fontsize=12,fontweight='bold')
-    
-    # # Phytoplankton 
-    # ax[2].set_title('(c) Phytoplankton fluxes\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
-    # ax[2].tick_params(axis='x', labelrotation=30)
-    # ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-    # ax[2].tick_params(axis='both', labelsize=12)
-    # ax[2].set_xlabel(r'Mean $\frac{Q_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [day-1]', fontsize=12)
-    # ax[2].set_ylabel(r'Mean $\frac{Q_{in}P_{in}}{V_{inlet}}$ [mmol/L per day]', fontsize=12)
-    # # plot
-    # ax[2].scatter(mean_Tflush**-1,mean_QinPin,s=60, zorder=5, c='navy', alpha=0.5)
-    # ax[2].set_ylim([0,0.0025])
-    # ax[2].set_xlim([0,0.35])
-    # # conduct linear regession
-    # x = mean_Tflush**-1
-    # res = stats.linregress(mean_Tflush**-1,mean_QinPin)
-    # ax[2].plot(x, res.intercept + res.slope*x, 'orchid')
-    # ax[2].text(0.1,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[2].transAxes,
-    #            fontsize=12,fontweight='bold')
-    # ax[2].text(0.1,0.82,f'Slope: {res.slope:.6f}',transform=ax[2].transAxes,
-    #            fontsize=12,fontweight='bold')
-    # QtoP = res.slope * 1000
-    
-    # Photosynthesis growth rate
-    ax[2].set_title('(c) volume-normalized photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
-    ax[2].tick_params(axis='x', labelrotation=30)
-    ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-    ax[2].tick_params(axis='both', labelsize=12)
-    ax[2].set_xlabel(r'Mean $\frac{Q_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [day-1]', fontsize=12)
-    ax[2].set_ylabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-    # plot
-    ax[2].scatter(mean_Tflush**-1,mean_photo,s=60, zorder=5, c='navy', alpha=0.5)
+# Consumption vs. Photosynthesis
+ax[1].set_title('(b) consumpton vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[1].tick_params(axis='x', labelrotation=30)
+ax[1].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[1].tick_params(axis='both', labelsize=12)
+ax[1].set_ylabel(r'Mean $\frac{Consumption}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[1].set_xlabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# plot
+ax[1].scatter(mean_photo,mean_cons,s=60, zorder=5, c='navy', alpha=0.5)
+ax[1].set_ylim([-0.35,0])
+ax[1].set_xlim([0,0.6])
+# conduct linear regession
+x = mean_photo
+res = stats.linregress(x,mean_cons)
+ax[1].plot(x, res.intercept + res.slope*x, 'orchid')
+ax[1].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[1].transAxes,
+            fontsize=12,fontweight='bold')
+ax[1].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[1].transAxes,
+            fontsize=12,fontweight='bold')
+ax[1].text(0.5,0.74,f'intercept: {res.intercept:.3f}',transform=ax[1].transAxes,
+            fontsize=12,fontweight='bold')
+
+# # Phytoplankton 
+# ax[2].set_title('(c) Phytoplankton fluxes\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+# ax[2].tick_params(axis='x', labelrotation=30)
+# ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+# ax[2].tick_params(axis='both', labelsize=12)
+# ax[2].set_xlabel(r'Mean $\frac{Q_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [day-1]', fontsize=12)
+# ax[2].set_ylabel(r'Mean $\frac{Q_{in}P_{in}}{V_{inlet}}$ [mmol/L per day]', fontsize=12)
+# # plot
+# ax[2].scatter(mean_Tflush**-1,mean_QinPin,s=60, zorder=5, c='navy', alpha=0.5)
+# ax[2].set_ylim([0,0.0025])
+# ax[2].set_xlim([0,0.35])
+# # conduct linear regession
+# x = mean_Tflush**-1
+# res = stats.linregress(mean_Tflush**-1,mean_QinPin)
+# ax[2].plot(x, res.intercept + res.slope*x, 'orchid')
+# ax[2].text(0.1,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[2].transAxes,
+#            fontsize=12,fontweight='bold')
+# ax[2].text(0.1,0.82,f'Slope: {res.slope:.6f}',transform=ax[2].transAxes,
+#            fontsize=12,fontweight='bold')
+# QtoP = res.slope * 1000
+
+# Photosynthesis growth rate
+ax[2].set_title('(c) volume-normalized photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[2].tick_params(axis='x', labelrotation=30)
+ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[2].tick_params(axis='both', labelsize=12)
+ax[2].set_xlabel(r'Mean $\frac{Q_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [day-1]', fontsize=12)
+ax[2].set_ylabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# plot
+ax[2].scatter(mean_Tflush**-1,mean_photo,s=60, zorder=5, c='navy', alpha=0.5)
 #     # create growth curve
 #     Tflush_inv = np.linspace(0,0.35,100)
 #     ks = 0.1
@@ -648,70 +648,98 @@ if DO_analysis == True:
 # #     print(sunlight)
 #     growth_prediction = (QtoN*Q / (ks + 2*np.sqrt(ks*QtoN*Q) + QtoN*Q)) * (QtoP*Q) * 32 * Cox * sunlight
 #     ax[3].plot(Q, growth_prediction, 'orchid')
-    ax[2].set_ylim([0,0.6])
-    ax[2].set_xlim([0,0.35])
+ax[2].set_ylim([0,0.6])
+ax[2].set_xlim([0,0.35])
 
-    # QoutDOout vs. QinDOin
-    ax[3].set_title('(d) QoutDOout vs. QinDOin\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
-    ax[3].tick_params(axis='x', labelrotation=30)
-    ax[3].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-    ax[3].tick_params(axis='both', labelsize=12)
-    ax[3].set_xlabel(r'Mean $\frac{Q_{in}DO_{in}}{V_{inlet}}$[mg/L per day]', fontsize=12)
-    ax[3].set_ylabel(r'Mean $\frac{Q_{out}DO_{out}}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-    # plot
-    ax[3].scatter(mean_QinDOin,mean_QoutDOout,s=60, zorder=5, c='navy', alpha=0.5)
+# QoutDOout vs. QinDOin
+ax[3].set_title('(d) QoutDOout vs. QinDOin\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[3].tick_params(axis='x', labelrotation=30)
+ax[3].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[3].tick_params(axis='both', labelsize=12)
+ax[3].set_xlabel(r'Mean $\frac{Q_{in}DO_{in}}{V_{inlet}}$[mg/L per day]', fontsize=12)
+ax[3].set_ylabel(r'Mean $\frac{Q_{out}DO_{out}}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# plot
+ax[3].scatter(mean_QinDOin,mean_QoutDOout,s=60, zorder=5, c='navy', alpha=0.5)
 #     ax[1].set_ylim([-0.35,0])
-    # ax[4].set_xlim([0,0.35])
-    # conduct linear regession
-    x = mean_QinDOin
-    res = stats.linregress(mean_QinDOin,mean_QoutDOout)
-    ax[3].plot(x, res.intercept + res.slope*x, 'orchid')
-    ax[3].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[3].transAxes,
-               fontsize=12,fontweight='bold')
-    ax[3].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[3].transAxes,
-               fontsize=12,fontweight='bold')
-    ax[3].text(0.5,0.74,f'Intercept: {res.intercept:.3f}',transform=ax[3].transAxes,
-               fontsize=12,fontweight='bold')
+# ax[4].set_xlim([0,0.35])
+# conduct linear regession
+x = mean_QinDOin
+res = stats.linregress(x,mean_QoutDOout)
+ax[3].plot(x, res.intercept + res.slope*x, 'orchid')
+ax[3].text(0.5,0.9,f'R-squared: {res.rvalue**2:.5f}',transform=ax[3].transAxes,
+            fontsize=12,fontweight='bold')
+ax[3].text(0.5,0.82,f'Slope: {res.slope:.5f}',transform=ax[3].transAxes,
+            fontsize=12,fontweight='bold')
+ax[3].text(0.5,0.74,f'Intercept: {res.intercept:.5f}',transform=ax[3].transAxes,
+            fontsize=12,fontweight='bold')
 
-#     # air-sea vs. Photosynthesis
-#     ax[4].set_title('(e) Air-sea vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+# air-sea+rivers vs. Photosynthesis
+ax[4].set_title('(e) Air-sea+Rivers vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[4].tick_params(axis='x', labelrotation=30)
+ax[4].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[4].tick_params(axis='both', labelsize=12)
+ax[4].set_ylabel(r'Mean $\frac{Air-sea +Rivers}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[4].set_xlabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# plot
+ax[4].scatter(mean_photo,mean_airsea+mean_rivers,s=60, zorder=5, c='navy', alpha=0.5)
+#     ax[1].set_ylim([-0.35,0])
+ax[4].set_xlim([0,0.6])
+# conduct linear regession
+x = mean_photo
+res = stats.linregress(x,mean_airsea+mean_rivers)
+ax[4].plot(x, res.intercept + res.slope*x, 'orchid')
+ax[4].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[4].transAxes,
+            fontsize=12,fontweight='bold')
+ax[4].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[4].transAxes,
+            fontsize=12,fontweight='bold')
+ax[4].text(0.5,0.74,f'Intercept: {res.intercept:.3f}',transform=ax[4].transAxes,
+            fontsize=12,fontweight='bold')
+# plot expected relationship
+photo_values = np.linspace(0,0.6,5)
+predicted_values = photo_values*-0.441 + 0.029
+ax[4].plot(photo_values,predicted_values,color='darkorange',linestyle=':')
+
+# checking d/dt(DO)-- intercept should be -0.03!!
+ax[5].set_title('(f) photo+cons+airsea vs. exchange+TRAPS\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[5].tick_params(axis='x', labelrotation=30)
+ax[5].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[5].tick_params(axis='both', labelsize=12)
+ax[5].set_ylabel(r'Mean $\frac{photo+cons+airsea}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[5].set_xlabel(r'Mean $\frac{exchange+traps}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# plot
+# ax[5].scatter(mean_QinDOin+mean_QoutDOout+mean_rivers,mean_photo+mean_cons+mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
+mean_exchange = mean_QinDOin+mean_QoutDOout
+ax[5].scatter(mean_QinDOin+mean_QoutDOout+mean_rivers,mean_photo+mean_cons+mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
+# conduct linear regession
+x = mean_QinDOin+mean_QoutDOout+mean_rivers
+res = stats.linregress(x,mean_photo+mean_cons+mean_airsea)
+ax[5].plot(x, res.intercept + res.slope*x, 'orchid')
+ax[5].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[5].transAxes,
+            fontsize=12,fontweight='bold')
+ax[5].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[5].transAxes,
+            fontsize=12,fontweight='bold')
+ax[5].text(0.5,0.74,f'Intercept: {res.intercept:.3f}',transform=ax[5].transAxes,
+            fontsize=12,fontweight='bold')
+
+# # air-sea vs. exchange flow strength
+#     ax[4].set_title('(e) Air-sea vs. exchange flow strength\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
 #     ax[4].tick_params(axis='x', labelrotation=30)
 #     ax[4].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 #     ax[4].tick_params(axis='both', labelsize=12)
 #     ax[4].set_ylabel(r'Mean $\frac{Air-sea}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-#     ax[4].set_xlabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+#     ax[4].set_xlabel(r'Mean $\frac{Q_{in}DO_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [mg/L per day]', fontsize=12)
 #     # plot
-#     ax[4].scatter(mean_photo,mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
+#     ax[4].scatter(mean_QinDOin,mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
 # #     ax[1].set_ylim([-0.35,0])
-#     ax[4].set_xlim([0,0.6])
+#     # ax[4].set_xlim([0,0.35])
 #     # conduct linear regession
-#     x = mean_photo
-#     res = stats.linregress(mean_photo,mean_airsea)
+#     x = mean_QinDOin
+#     res = stats.linregress(mean_QinDOin,mean_airsea)
 #     ax[4].plot(x, res.intercept + res.slope*x, 'orchid')
 #     ax[4].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[4].transAxes,
 #                fontsize=12,fontweight='bold')
 #     ax[4].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[4].transAxes,
 #                fontsize=12,fontweight='bold')
-
-# air-sea vs. exchange flow strength
-    ax[4].set_title('(e) Air-sea vs. exchange flow strength\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
-    ax[4].tick_params(axis='x', labelrotation=30)
-    ax[4].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-    ax[4].tick_params(axis='both', labelsize=12)
-    ax[4].set_ylabel(r'Mean $\frac{Air-sea}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-    ax[4].set_xlabel(r'Mean $\frac{Q_{in}DO_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [mg/L per day]', fontsize=12)
-    # plot
-    ax[4].scatter(mean_QinDOin,mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
-#     ax[1].set_ylim([-0.35,0])
-    # ax[4].set_xlim([0,0.35])
-    # conduct linear regession
-    x = mean_QinDOin
-    res = stats.linregress(mean_QinDOin,mean_airsea)
-    ax[4].plot(x, res.intercept + res.slope*x, 'orchid')
-    ax[4].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[4].transAxes,
-               fontsize=12,fontweight='bold')
-    ax[4].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[4].transAxes,
-               fontsize=12,fontweight='bold')
 
 #     # Photosynthesis growth rate
 #     ax[2].set_title('(c) volume-normalized photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
@@ -737,5 +765,5 @@ if DO_analysis == True:
 #     ax[3].set_ylim([-0.35,0])
 #     ax[3].set_xlim([0,0.35])
 
-    plt.tight_layout()
+plt.tight_layout()
 

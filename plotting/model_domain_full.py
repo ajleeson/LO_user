@@ -49,7 +49,8 @@ plt.subplots_adjust(wspace=0, hspace=0)
 # create colormap
 # newcmap = cmocean.tools.crop_by_percent(cmocean.cm.deep_r, 20, which='max', N=None)
 # newcmap = cmocean.cm.deep_r
-newcmap = cmocean.tools.crop_by_percent(cmocean.cm.deep_r, 10, which='max')
+newcmap = cmocean.tools.crop_by_percent(cmocean.cm.deep_r, 5, which='max')
+# newcmap = cmocean.tools.crop_by_percent(cmocean.cm.rain_r, 10, which='max')
 newcmap.set_bad(background,1.) # background color
 
 # zm[np.transpose(mask_rho) != 0] = -1
@@ -59,13 +60,14 @@ newcmap.set_bad(background,1.) # background color
 # Salish Sea ----------------------------------------------------------
 ax0 = fig.add_subplot(1,2,1)
 # cs = ax0.pcolormesh(plon, plat, zm, vmin=-5, vmax=0, cmap=newcmap)
-cs = ax0.pcolormesh(plon, plat, zm, vmin=-4200, vmax=0, cmap=newcmap)
+cs = ax0.pcolormesh(plon, plat, zm, vmin=-4000, vmax=0, cmap=newcmap)
+# cs = ax0.pcolormesh(plon, plat, zm, vmin=-4000, vmax=0, cmap='gist_stern_r')
 cbar = plt.colorbar(cs,ax=ax0, location='right', pad=0.05)
-cbar.ax.tick_params(labelsize=11, color='#EEEEEE')#, rotation=30)
-cbar.ax.set_ylabel('Depth [m]', fontsize=11, color='#EEEEEE')
+cbar.ax.tick_params(labelsize=11)#, color='#EEEEEE')#, rotation=30)
+cbar.ax.set_ylabel('Depth [m]', fontsize=11)#, color='#EEEEEE')
 cbar.outline.set_visible(False)
 cbar_yticks = plt.getp(cbar.ax.axes, 'yticklabels')
-plt.setp(cbar_yticks, color='#EEEEEE')
+# plt.setp(cbar_yticks, color='#EEEEEE')
 # format figure
 pfun.dar(ax0)
 # pfun.add_coast(ax0, color='gray')
@@ -75,16 +77,19 @@ for border in ['top','right','bottom','left']:
 # ax0.set_xlim(X[i1],-122)#X[i2]) # Salish Sea
 # ax0.set_ylim(Y[j1],Y[j2]) # Salish Sea
 
+ax0.set_ylabel('Latitude')
+ax0.set_xlabel('Longitude')
+
 print('Lon={},{}'.format(X[i1],-122))
 print('Lat={},{}'.format(Y[j1],Y[j2]))
 
-plt.xticks(rotation=30, color='#EEEEEE')
-plt.yticks(color='#EEEEEE')
+plt.xticks(rotation=30)#, color='#EEEEEE')
+# plt.yticks(color='#EEEEEE')
 
-# draw box around Puget Sound
-bordercolor = 'white'
-ax0.add_patch(Rectangle((-123.2, 46.93), 1.1, 1.52,
-             edgecolor = bordercolor, facecolor='none', lw=1.5))
+# # draw box around Puget Sound
+# bordercolor = 'white'
+# ax0.add_patch(Rectangle((-123.2, 46.93), 1.1, 1.52,
+#              edgecolor = bordercolor, facecolor='none', lw=1.5))
 
 
 plt.savefig(out_dir / ('model_domain_full.png'),transparent='True')

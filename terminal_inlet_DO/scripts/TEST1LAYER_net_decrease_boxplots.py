@@ -47,7 +47,7 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
         
         # get daily net decrease rate
         d_dt_DO = deeplay_dict[station]['d/dt(DO)'][minday:maxday] + shallowlay_dict[station]['d/dt(DO)'][minday:maxday]
-        total_volume = deeplay_dict[station]['Volume'][minday:maxday] + shallowlay_dict[station]['Volume'][minday:maxday]
+        total_volume = dimensions_dict[station]['Inlet volume'][0] #deeplay_dict[station]['Volume'][minday:maxday] + shallowlay_dict[station]['Volume'][minday:maxday]
         storage_daily = d_dt_DO / total_volume # kmol O2 /s /m3
         
         # convert to mg/L per day
