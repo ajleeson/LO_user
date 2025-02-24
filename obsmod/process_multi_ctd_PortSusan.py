@@ -21,7 +21,7 @@ testing = False
 
 source_list = ['kc_whidbey']
 otype = 'ctd'
-year = '2022'
+year = '2023'
 
 out_dir = Ldir['parent'] / 'LO_output' / 'obsmod'
 Lfun.make_dir(out_dir)
