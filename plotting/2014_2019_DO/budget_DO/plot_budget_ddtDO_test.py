@@ -479,7 +479,7 @@ for i,station in enumerate(sta_dict):
 ##                   DO scatterplots                    ## 
 ##########################################################
 
-print(np.nanmean(DIN_in_direct)/1000)
+# print(np.nanmean(DIN_in_direct)/1000)
 
 # initialize arrays for plotting
 deep_lay_DO = np.zeros(len(sta_dict))
@@ -500,6 +500,9 @@ mean_airsea = np.zeros(len(sta_dict))
 mean_rivers = np.zeros(len(sta_dict))
 
 inlet_vol = np.zeros(len(sta_dict))
+
+mean_cons_unscaled = np.zeros(len(sta_dict))
+spurcorr_var = np.zeros(len(sta_dict))
 
 colors = []
 
@@ -538,10 +541,20 @@ for i,station in enumerate(sta_dict):
     mean_cons[i] = np.nanmean((bottomlay_dict[station]['Bio Consumption'][minday:maxday]+
                                 surfacelay_dict[station]['Bio Consumption'][minday:maxday])
                                 /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
+    
+    mean_cons_unscaled[i] = np.nanmean((bottomlay_dict[station]['Bio Consumption'][minday:maxday]+
+                                surfacelay_dict[station]['Bio Consumption'][minday:maxday]))
+    spurcorr_var[i] = np.random.rand() # random noise
 
     mean_depth[i] = dimensions_dict[station]['Mean depth'][0]
     inlet_vol[i] = ind_inlet_vol
     
+
+# scale spurious correlation variable to be same range as consumption
+print(spurcorr_var)
+m = (np.nanmax(mean_cons_unscaled) - np.nanmin(mean_cons_unscaled))/(np.nanmax(spurcorr_var) - np.nanmin(spurcorr_var))
+b = np.nanmax(mean_cons_unscaled) - np.nanmax(spurcorr_var) * m
+spurcorr_var_scaled = (m * spurcorr_var + b)/inlet_vol * (32 * 1000) * (60*60*24)
 
 # Plot scatter plots
 # initialize figure
@@ -549,7 +562,7 @@ fig, ax = plt.subplots(2,3,figsize = (14,9))
 ax = ax.ravel()
 
 # DIN
-ax[0].set_title('(a) DIN fluxes\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[0].set_title('DIN fluxes\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
 ax[0].tick_params(axis='x', labelrotation=30)
 ax[0].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[0].tick_params(axis='both', labelsize=12)
@@ -564,7 +577,7 @@ ax[0].set_xlim([0,0.35])
 # conduct linear regession
 x = mean_Tflush**-1
 res = stats.linregress(x,mean_QinDINin)
-print(res.slope)
+# print(res.slope)
 ax[0].plot(x, res.intercept + res.slope*x, 'orchid')
 ax[0].text(0.1,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[0].transAxes,
             fontsize=12,fontweight='bold')
@@ -573,7 +586,7 @@ ax[0].text(0.1,0.82,f'Slope: {res.slope:.4f}',transform=ax[0].transAxes,
 QtoN = res.slope * 1000 
 
 # Consumption vs. Photosynthesis
-ax[1].set_title('(b) consumpton vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[1].set_title('consumpton vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
 ax[1].tick_params(axis='x', labelrotation=30)
 ax[1].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[1].tick_params(axis='both', labelsize=12)
@@ -592,6 +605,28 @@ ax[1].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[1].transAxes,
 ax[1].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[1].transAxes,
             fontsize=12,fontweight='bold')
 ax[1].text(0.5,0.74,f'intercept: {res.intercept:.3f}',transform=ax[1].transAxes,
+            fontsize=12,fontweight='bold')
+
+# Spurious Correlation check
+ax[2].set_title('Spurious correlation check', size=12, loc='left', fontweight='bold')
+ax[2].tick_params(axis='x', labelrotation=30)
+ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[2].tick_params(axis='both', labelsize=12)
+ax[2].set_ylabel(r'$\frac{Random\ noise\ (scaled\ to\ range\ of\ consumption)}{V_{inlet}}$', fontsize=12)
+ax[2].set_xlabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# plot
+ax[2].scatter(mean_photo,spurcorr_var_scaled,s=60, zorder=5, c='navy', alpha=0.5)
+# ax[2].set_ylim([-0.35,0])
+ax[2].set_xlim([0,0.6])
+# conduct linear regession
+x = mean_photo
+res = stats.linregress(x,spurcorr_var_scaled)
+ax[2].plot(x, res.intercept + res.slope*x, 'orchid')
+ax[2].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[2].transAxes,
+            fontsize=12,fontweight='bold')
+ax[2].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[2].transAxes,
+            fontsize=12,fontweight='bold')
+ax[2].text(0.5,0.74,f'intercept: {res.intercept:.3f}',transform=ax[2].transAxes,
             fontsize=12,fontweight='bold')
 
 # # Phytoplankton 
@@ -615,44 +650,44 @@ ax[1].text(0.5,0.74,f'intercept: {res.intercept:.3f}',transform=ax[1].transAxes,
 #            fontsize=12,fontweight='bold')
 # QtoP = res.slope * 1000
 
-# Photosynthesis growth rate
-ax[2].set_title('(c) volume-normalized photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
-ax[2].tick_params(axis='x', labelrotation=30)
-ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-ax[2].tick_params(axis='both', labelsize=12)
-ax[2].set_xlabel(r'Mean $\frac{Q_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [day-1]', fontsize=12)
-ax[2].set_ylabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-# plot
-ax[2].scatter(mean_Tflush**-1,mean_photo,s=60, zorder=5, c='navy', alpha=0.5)
-#     # create growth curve
-#     Tflush_inv = np.linspace(0,0.35,100)
-#     ks = 0.1
-#     Cox = 138/16 # mmol O2 : mmol N
-#     mu0 = 1.7
-#     alpha = 0.07
-#     E = 5 # what is a typical value for this????
-#     sunlight = mu0 * alpha * E /(np.sqrt(mu0**2 + alpha**2*E**2))
-# #     print(sunlight)
-#     N_Tflush = np.nanmean(mean_QinDINin/mean_Qin) # QinDINin/Qin = DINin. Need to multiply by Tflush (or divide by 1/Tflush)
-#     P_Tflush = np.nanmean(mean_QinPin/mean_Qin)
-#     growth_prediction = (N_Tflush/Tflush_inv / (ks + 2*np.sqrt(ks*N_Tflush/Tflush_inv) + N_Tflush/Tflush_inv)) * (P_Tflush/Tflush_inv) * 32 * Cox * sunlight
-#     ax[3].plot(Tflush_inv, growth_prediction, 'orchid')
-#     # create growth curve
-#     Q = np.linspace(0,0.35,100)
-#     ks = 0.1
-#     Cox = 138/16 # mmol O2 : mmol N
-#     mu0 = 1.7
-#     alpha = 0.07
-#     E = 5 # what is a typical value for this????
-#     sunlight = mu0 * alpha * E /(np.sqrt(mu0**2 + alpha**2*E**2))
-# #     print(sunlight)
-#     growth_prediction = (QtoN*Q / (ks + 2*np.sqrt(ks*QtoN*Q) + QtoN*Q)) * (QtoP*Q) * 32 * Cox * sunlight
-#     ax[3].plot(Q, growth_prediction, 'orchid')
-ax[2].set_ylim([0,0.6])
-ax[2].set_xlim([0,0.35])
+# # Photosynthesis growth rate
+# ax[2].set_title('volume-normalized photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+# ax[2].tick_params(axis='x', labelrotation=30)
+# ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+# ax[2].tick_params(axis='both', labelsize=12)
+# ax[2].set_xlabel(r'Mean $\frac{Q_{in}}{V_{inlet}}=\frac{1}{T_{flush}}$ [day-1]', fontsize=12)
+# ax[2].set_ylabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# # plot
+# ax[2].scatter(mean_Tflush**-1,mean_photo,s=60, zorder=5, c='navy', alpha=0.5)
+# #     # create growth curve
+# #     Tflush_inv = np.linspace(0,0.35,100)
+# #     ks = 0.1
+# #     Cox = 138/16 # mmol O2 : mmol N
+# #     mu0 = 1.7
+# #     alpha = 0.07
+# #     E = 5 # what is a typical value for this????
+# #     sunlight = mu0 * alpha * E /(np.sqrt(mu0**2 + alpha**2*E**2))
+# # #     print(sunlight)
+# #     N_Tflush = np.nanmean(mean_QinDINin/mean_Qin) # QinDINin/Qin = DINin. Need to multiply by Tflush (or divide by 1/Tflush)
+# #     P_Tflush = np.nanmean(mean_QinPin/mean_Qin)
+# #     growth_prediction = (N_Tflush/Tflush_inv / (ks + 2*np.sqrt(ks*N_Tflush/Tflush_inv) + N_Tflush/Tflush_inv)) * (P_Tflush/Tflush_inv) * 32 * Cox * sunlight
+# #     ax[3].plot(Tflush_inv, growth_prediction, 'orchid')
+# #     # create growth curve
+# #     Q = np.linspace(0,0.35,100)
+# #     ks = 0.1
+# #     Cox = 138/16 # mmol O2 : mmol N
+# #     mu0 = 1.7
+# #     alpha = 0.07
+# #     E = 5 # what is a typical value for this????
+# #     sunlight = mu0 * alpha * E /(np.sqrt(mu0**2 + alpha**2*E**2))
+# # #     print(sunlight)
+# #     growth_prediction = (QtoN*Q / (ks + 2*np.sqrt(ks*QtoN*Q) + QtoN*Q)) * (QtoP*Q) * 32 * Cox * sunlight
+# #     ax[3].plot(Q, growth_prediction, 'orchid')
+# ax[2].set_ylim([0,0.6])
+# ax[2].set_xlim([0,0.35])
 
 # QoutDOout vs. QinDOin
-ax[3].set_title('(d) QoutDOout vs. QinDOin\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[3].set_title('QoutDOout vs. QinDOin\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
 ax[3].tick_params(axis='x', labelrotation=30)
 ax[3].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[3].tick_params(axis='both', labelsize=12)
@@ -674,7 +709,7 @@ ax[3].text(0.5,0.74,f'Intercept: {res.intercept:.5f}',transform=ax[3].transAxes,
             fontsize=12,fontweight='bold')
 
 # air-sea+rivers vs. Photosynthesis
-ax[4].set_title('(e) Air-sea+Rivers vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[4].set_title('Air-sea+Rivers vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
 ax[4].tick_params(axis='x', labelrotation=30)
 ax[4].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[4].tick_params(axis='both', labelsize=12)
@@ -700,7 +735,7 @@ predicted_values = photo_values*-0.441 + 0.029
 ax[4].plot(photo_values,predicted_values,color='darkorange',linestyle=':')
 
 # checking d/dt(DO)-- intercept should be -0.03!!
-ax[5].set_title('(f) photo+cons+airsea vs. exchange+TRAPS\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[5].set_title('photo+cons+airsea vs. exchange+TRAPS\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
 ax[5].tick_params(axis='x', labelrotation=30)
 ax[5].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[5].tick_params(axis='both', labelsize=12)
