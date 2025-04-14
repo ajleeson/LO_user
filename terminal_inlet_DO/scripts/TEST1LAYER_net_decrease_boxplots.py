@@ -57,6 +57,8 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
         storage_all.append(list(storage_daily))
         storage_mean.append(np.nanmean(storage_daily))
 
+        print('{}: {} days'.format(station,np.nanmean(np.nanmean(dimensions_dict[station]['Inlet volume'][0]/deeplay_dict[station]['Qin m3/s']) / (60*60*24))))
+
 
     # create boxplot
     ax.axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')

@@ -460,6 +460,9 @@ for i,station in enumerate(sta_dict):
         bottomlay_dict[station]['Volume'] = deep_V
         bottomlay_dict[station]['Qin m3/s'] = Q_p.values 
 
+        if station in ['dabob','lynchcove','sinclair','carr','commencement']:
+            print('    {} = {}'.format(station,np.nanmean(Q_p.values)))
+
 # ------------------------- save DO concentrations in dataframe dict -----------------------------------
 
         # mg/L units
@@ -2883,12 +2886,20 @@ if seasonal_cycle == True:
             ax.scatter(mean_Tflush[i*intervals:(i+1)*intervals],
                        mean_DOin[i*intervals:(i+1)*intervals] - deep_lay_DO[i*intervals:(i+1)*intervals],
                        marker='s', s=150, zorder=6, c='royalblue', edgecolor='black', linewidth=2,
-                       label='Crescent Bay')
-        
+                       label='Crescent Bay') 
         ax.plot([0,85],[0,0],color='black',zorder=4,linewidth=0.5)
         ax.spines['bottom'].set_position('zero')
         ax.set_xlim([0,85])
     ax.legend(loc='lower right',bbox_to_anchor=(0.98, 0.15))
+
+    deltaDO = mean_DOin - deep_lay_DO
+    r,p = pearsonr(deltaDO,mean_Tflush)
+    ax.text(0.1, 0.85, r'$r =$' + str(round(r,2)) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
+    ax.text(0.1, 0.79, r'$p =$' + '{:.2e}'.format(p) ,color='black',
+                            verticalalignment='bottom', horizontalalignment='left',
+                            transform=ax.transAxes, fontsize=12, fontweight='bold')
 
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.5) # plt.subplots_adjust(wspace=0.5)

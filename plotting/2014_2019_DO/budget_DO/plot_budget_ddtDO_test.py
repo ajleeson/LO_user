@@ -423,7 +423,7 @@ for i,station in enumerate(sta_dict):
         # surface layer
         surfacelay_dict[station]['TEF Exchange Flow'] = TEF_surf
 
-        surfacelay_dict[station]['QouDINout'] = QoutDINout
+        surfacelay_dict[station]['QoutDINout'] = QoutDINout
 
         surfacelay_dict[station]['TEF Recirculation'] = TEF_surf + vertX_surf_TEF
         surfacelay_dict[station]['TRAPS'] = traps_surf
@@ -527,8 +527,8 @@ for i,station in enumerate(sta_dict):
                             
     
     mean_photo[i] = np.nanmean((bottomlay_dict[station]['Photosynthesis'][minday:maxday]+
-                                surfacelay_dict[station]['Photosynthesis'][minday:maxday])
-                                /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
+                                surfacelay_dict[station]['Photosynthesis'][minday:maxday]))
+                                # /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
     
     mean_airsea[i] = np.nanmean(surfacelay_dict[station]['Air-Sea Transfer'][minday:maxday]
                                 /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
@@ -539,8 +539,8 @@ for i,station in enumerate(sta_dict):
     mean_Tflush[i] = np.nanmean(ind_inlet_vol/bottomlay_dict[station]['Qin m3/s'][minday:maxday]) / (60*60*24)
     
     mean_cons[i] = np.nanmean((bottomlay_dict[station]['Bio Consumption'][minday:maxday]+
-                                surfacelay_dict[station]['Bio Consumption'][minday:maxday])
-                                /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
+                                surfacelay_dict[station]['Bio Consumption'][minday:maxday]))
+                                # /ind_inlet_vol) * (32 * 1000) * (60*60*24) # mg/L per day
     
     mean_cons_unscaled[i] = np.nanmean((bottomlay_dict[station]['Bio Consumption'][minday:maxday]+
                                 surfacelay_dict[station]['Bio Consumption'][minday:maxday]))
@@ -590,12 +590,14 @@ ax[1].set_title('consumpton vs. photosynthesis\nmid-Jun to mid-Aug', size=12, lo
 ax[1].tick_params(axis='x', labelrotation=30)
 ax[1].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[1].tick_params(axis='both', labelsize=12)
-ax[1].set_ylabel(r'Mean $\frac{Consumption}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-ax[1].set_xlabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# ax[1].set_ylabel(r'Mean $\frac{Consumption}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# ax[1].set_xlabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[1].set_ylabel('Mean Consumption [kmol O2 per s]', fontsize=12)
+ax[1].set_xlabel('Mean Photosynthesis [kmol O2 per s]', fontsize=12)
 # plot
 ax[1].scatter(mean_photo,mean_cons,s=60, zorder=5, c='navy', alpha=0.5)
-ax[1].set_ylim([-0.35,0])
-ax[1].set_xlim([0,0.6])
+ax[1].set_ylim([-0.15,0])
+ax[1].set_xlim([0,0.25])
 # conduct linear regession
 x = mean_photo
 res = stats.linregress(x,mean_cons)
@@ -709,52 +711,50 @@ ax[3].text(0.5,0.74,f'Intercept: {res.intercept:.5f}',transform=ax[3].transAxes,
             fontsize=12,fontweight='bold')
 
 # air-sea+rivers vs. Photosynthesis
-ax[4].set_title('Air-sea+Rivers vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[4].set_title('Air-sea vs. everything else\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
 ax[4].tick_params(axis='x', labelrotation=30)
 ax[4].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[4].tick_params(axis='both', labelsize=12)
-ax[4].set_ylabel(r'Mean $\frac{Air-sea +Rivers}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-ax[4].set_xlabel(r'Mean $\frac{Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[4].set_ylabel(r'Mean $\frac{Air-sea}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[4].set_xlabel(r'Mean $\frac{Everything else}{V_{inlet}}$ [mg/L per day]', fontsize=12)
 # plot
-ax[4].scatter(mean_photo,mean_airsea+mean_rivers,s=60, zorder=5, c='navy', alpha=0.5)
+ax[4].scatter(mean_photo+mean_cons+mean_QinDOin+mean_QoutDOout+mean_rivers,mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
 #     ax[1].set_ylim([-0.35,0])
-ax[4].set_xlim([0,0.6])
+# ax[4].set_xlim([0,0.6])
 # conduct linear regession
-x = mean_photo
-res = stats.linregress(x,mean_airsea+mean_rivers)
+x = mean_photo+mean_cons+mean_QinDOin+mean_QoutDOout+mean_rivers
+res = stats.linregress(x,mean_airsea)
 ax[4].plot(x, res.intercept + res.slope*x, 'orchid')
-ax[4].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[4].transAxes,
+ax[4].text(0.5,0.26,f'R-squared: {res.rvalue**2:.3f}',transform=ax[4].transAxes,
             fontsize=12,fontweight='bold')
-ax[4].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[4].transAxes,
+ax[4].text(0.5,0.18,f'Slope: {res.slope:.3f}',transform=ax[4].transAxes,
             fontsize=12,fontweight='bold')
-ax[4].text(0.5,0.74,f'Intercept: {res.intercept:.3f}',transform=ax[4].transAxes,
+ax[4].text(0.5,0.1,f'Intercept: {res.intercept:.3f}',transform=ax[4].transAxes,
             fontsize=12,fontweight='bold')
-# plot expected relationship
-photo_values = np.linspace(0,0.6,5)
-predicted_values = photo_values*-0.441 + 0.029
-ax[4].plot(photo_values,predicted_values,color='darkorange',linestyle=':')
 
 # checking d/dt(DO)-- intercept should be -0.03!!
-ax[5].set_title('photo+cons+airsea vs. exchange+TRAPS\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+ax[5].set_title('exchange vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
 ax[5].tick_params(axis='x', labelrotation=30)
 ax[5].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[5].tick_params(axis='both', labelsize=12)
-ax[5].set_ylabel(r'Mean $\frac{photo+cons+airsea}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-ax[5].set_xlabel(r'Mean $\frac{exchange+traps}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[5].set_xlabel(r'Mean $\frac{photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[5].set_ylabel(r'Mean $\frac{Q_{in}DO_{in}+Q_{out}DO_{out}}{V_{inlet}}$ [mg/L per day]', fontsize=12)
 # plot
 # ax[5].scatter(mean_QinDOin+mean_QoutDOout+mean_rivers,mean_photo+mean_cons+mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
 mean_exchange = mean_QinDOin+mean_QoutDOout
-ax[5].scatter(mean_QinDOin+mean_QoutDOout+mean_rivers,mean_photo+mean_cons+mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
+ax[5].scatter(mean_photo,mean_exchange,s=60, zorder=5, c='navy', alpha=0.5)
 # conduct linear regession
-x = mean_QinDOin+mean_QoutDOout+mean_rivers
-res = stats.linregress(x,mean_photo+mean_cons+mean_airsea)
-ax[5].plot(x, res.intercept + res.slope*x, 'orchid')
-ax[5].text(0.5,0.9,f'R-squared: {res.rvalue**2:.3f}',transform=ax[5].transAxes,
+x = mean_photo
+res = stats.linregress(x,mean_exchange)
+# ax[5].plot(x, res.intercept + res.slope*x, 'orchid')
+ax[5].text(0.5,0.26,f'R-squared: {res.rvalue**2:.3f}',transform=ax[5].transAxes,
             fontsize=12,fontweight='bold')
-ax[5].text(0.5,0.82,f'Slope: {res.slope:.3f}',transform=ax[5].transAxes,
+ax[5].text(0.5,0.18,f'Slope: {res.slope:.3f}',transform=ax[5].transAxes,
             fontsize=12,fontweight='bold')
-ax[5].text(0.5,0.74,f'Intercept: {res.intercept:.3f}',transform=ax[5].transAxes,
+ax[5].text(0.5,0.1,f'Intercept: {res.intercept:.3f}',transform=ax[5].transAxes,
             fontsize=12,fontweight='bold')
+ax[5].set_ylim([-0.2,0])
+ax[5].set_xlim([0,0.25])
 
 # # air-sea vs. exchange flow strength
 #     ax[4].set_title('(e) Air-sea vs. exchange flow strength\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
@@ -802,3 +802,242 @@ ax[5].text(0.5,0.74,f'Intercept: {res.intercept:.3f}',transform=ax[5].transAxes,
 
 plt.tight_layout()
 
+##########################################################
+##   FULL WATER COLUMN ALL INLET BUDGET TIME SERIES     ##
+##########################################################
+
+# Hanning window size
+nwin = 10
+
+# term to normalize by
+# normalization = r'$Q_{in}DO_{in} + Q_{out}DO_{out}$'
+normalization = 'Qin'
+
+# initialize figure
+fig, ax = plt.subplots(1,1,figsize = (12,7))
+# format figure
+plt.suptitle('Entire inlet DO Budget ({}-day Hanning Window)'.format(nwin),size=14)
+# plt.suptitle('Entire inlet DO Budget ({}-day Hanning Window)\nnormalized by {}'.format(nwin,normalization),size=14)
+for axis in [ax]:
+        axis.set_xlim([dates_local[0],dates_local[-1]])
+        axis.set_ylabel('DO transport (mg/L per day)')
+        # axis.set_ylabel('normalized DO transport (dimensionless)')
+        axis.grid(True,color='silver',linewidth=1,linestyle=':',axis='both')
+        axis.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+        axis.tick_params(axis='x', labelrotation=30)
+ax.set_xlabel(year)
+
+
+# remove inlet with strong river
+print(list(sta_dict.keys()))
+
+stations = sta_dict
+stations = ['sinclair','quartermaster','dyes','crescent','penn','case','carr','holmes'] # no large rivers
+
+for i,station in enumerate(stations):
+
+
+        # plot surf + deep (volume normalized: units of mg/L per day)
+
+        # normalization value -------------
+
+        norm_denom = 1 # no normalization
+
+        # # Qin
+        # Qin = (bottomlay_dict[station]['Qin m3/s'].values) / (
+        #         dimensions_dict[station]['Inlet volume'].values) * (60 * 60 * 24)
+        # norm_denom = np.nanmax(np.abs(zfun.lowpass(Qin,n=nwin))) # photosynthesis
+
+        # # exchange flow
+        # TEF = (bottomlay_dict[station]['TEF Exchange Flow'].values + 
+        #        surfacelay_dict[station]['TEF Exchange Flow'].values) / (
+        # dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        # norm_denom = np.nanmax(np.abs(zfun.lowpass(TEF,n=nwin))) # photosynthesis
+
+        # # photosynthesis
+        # photosynthesis = (bottomlay_dict[station]['Photosynthesis'].values +
+        # surfacelay_dict[station]['Photosynthesis'].values) / (
+        # dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        # norm_denom = np.nanmax(np.abs(zfun.lowpass(photosynthesis,n=nwin))) # photosynthesis
+
+        # # nutrient flux in
+        # QinDINin = (bottomlay_dict[station]['QinDINin'].values) / (
+        # dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        # norm_denom = np.nanmax(np.abs(zfun.lowpass(QinDINin,n=nwin))) # QinDINin
+
+        # -------------------------
+
+        # Exchange Flow
+        TEF = (bottomlay_dict[station]['TEF Exchange Flow'].values +
+        surfacelay_dict[station]['TEF Exchange Flow'].values) / (
+        dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        if i == 0:
+             label = 'Exchange Flow'
+        else:
+             label = None
+        ax.plot(dates_local_daily,
+                zfun.lowpass(TEF,n=nwin)/norm_denom,
+                color=exchange_color, linewidth=2, zorder=3, label=label)
+        
+        
+        # TRAPS
+        TRAPS = (bottomlay_dict[station]['TRAPS'].values +
+        surfacelay_dict[station]['TRAPS'].values) / (
+        dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        if i == 0:
+             label = 'TRAPS'
+        else:
+             label = None
+        ax.plot(dates_local_daily,
+                zfun.lowpass(TRAPS,n=nwin)/norm_denom,
+                color=ddtDOV_color,linewidth=2,zorder=5, label=label)
+        
+        # Photosynthesis
+        photosynthesis = (bottomlay_dict[station]['Photosynthesis'].values +
+        surfacelay_dict[station]['Photosynthesis'].values) / (
+        dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        if i == 0:
+             label = 'Photosynthesis'
+        else:
+             label = None
+        ax.plot(dates_local_daily,
+                zfun.lowpass(photosynthesis,n=nwin)/norm_denom,
+                color=photo_color,
+                linewidth=2, zorder=4, label=label)
+        
+        # Consumption
+        consumption = (bottomlay_dict[station]['Bio Consumption'].values +
+        surfacelay_dict[station]['Bio Consumption'].values) / (
+        dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        if i == 0:
+             label = 'Bio Consumption'
+        else:
+             label = None
+        ax.plot(dates_local_daily,
+                zfun.lowpass(consumption,n=nwin)/norm_denom,
+                color='crimson',
+                linewidth=2,zorder=6, label=label)
+        
+        # Air-sea
+        airsea = surfacelay_dict[station]['Air-Sea Transfer'].values / (
+        dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        if i == 0:
+             label = 'Air-Sea'
+        else:
+             label = None
+        ax.plot(dates_local_daily,
+                zfun.lowpass(airsea,n=nwin)/norm_denom,
+                color='darkorange',
+                linewidth=2,zorder=7,label=label)
+        
+        # Storage
+        storage = (bottomlay_dict[station]['Storage'].values +
+        surfacelay_dict[station]['Storage'].values) / (
+        dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        if i == 0:
+             label = 'd/dt(DO)'
+        else:
+             label = None
+        ax.plot(dates_local_daily,
+                zfun.lowpass(storage,n=nwin),
+                color=traps_color,linewidth=2,zorder=8, label=label)#,alpha=0.6)
+
+
+ax.legend(loc='lower center',ncol=6)
+
+# # drawdown season only
+# ax.set_xlim([dates_local_daily[164],dates_local_daily[225]])
+
+# ---------------------------------- save figure --------------------------------------------
+
+plt.subplots_adjust(hspace=0.06, bottom=0.06, top=0.9)
+plt.show()
+
+##########################################################
+##     FULL WATER COLUMN ALL INLET BUDGET BOXPLOTS      ## (drawdown period)
+##########################################################
+
+# yearday of drawdown period (mid-June through mid-August)
+minday = 164
+maxday = 225
+
+
+# initialize figure
+fig, ax = plt.subplots(1,1,figsize = (12,7))
+# format figure
+plt.suptitle('Drawdown period budget terms\n(every data point in boxplot corresponds to one inlet, where value is averaged over drawdow period)'.format(nwin),
+             size=14)
+
+for axis in [ax]:
+        axis.set_ylabel('DO transport (mg/L per day)')
+        ax.axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')
+        axis.tick_params(axis='x', labelrotation=30)
+
+
+# initialize lists to store budget terms
+budget_terms_all = [[],[],[],[],[],[]]
+# name budget terms 
+budget_term_names = ['Exchange Flow','TRAPS','Photosynthesis','Consumption','Air-Sea','Storage']
+
+stations = sta_dict
+# stations = ['sinclair','quartermaster','dyes','crescent','penn','case','carr','holmes'] # no large rivers
+
+# get values for boxplot
+for i,station in enumerate(stations):
+
+        # normalize by photosynthesis
+        photosynthesis = (bottomlay_dict[station]['Photosynthesis'][minday:maxday].values +
+                surfacelay_dict[station]['Photosynthesis'][minday:maxday].values) / (
+                dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        norm_denom = np.nanmean(photosynthesis)
+        norm_denom = 1
+
+        # Exchange Flow
+        TEF = (bottomlay_dict[station]['TEF Exchange Flow'][minday:maxday].values +
+                surfacelay_dict[station]['TEF Exchange Flow'][minday:maxday].values) / (
+                dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        budget_terms_all[0].append(np.nanmean(TEF)/norm_denom)
+        
+        # TRAPS
+        TRAPS = (bottomlay_dict[station]['TRAPS'][minday:maxday].values +
+                surfacelay_dict[station]['TRAPS'][minday:maxday].values) / (
+                dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        budget_terms_all[1].append(np.nanmean(TRAPS))
+        
+        # Photosynthesis
+        photosynthesis = (bottomlay_dict[station]['Photosynthesis'][minday:maxday].values +
+                surfacelay_dict[station]['Photosynthesis'][minday:maxday].values) / (
+                dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        budget_terms_all[2].append(np.nanmean(photosynthesis))
+        
+        # Consumption
+        consumption = (bottomlay_dict[station]['Bio Consumption'][minday:maxday].values +
+                surfacelay_dict[station]['Bio Consumption'][minday:maxday].values) / (
+                dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        budget_terms_all[3].append(np.nanmean(consumption)/norm_denom)
+        
+        # Air-sea
+        airsea = surfacelay_dict[station]['Air-Sea Transfer'][minday:maxday].values / (
+                dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        budget_terms_all[4].append(np.nanmean(airsea))
+        
+        # Storage
+        storage = (bottomlay_dict[station]['Storage'][minday:maxday].values +
+                surfacelay_dict[station]['Storage'][minday:maxday].values) / (
+                dimensions_dict[station]['Inlet volume'].values) * (1000 * 32 * 60 * 60 * 24)
+        budget_terms_all[5].append(np.nanmean(storage))
+
+# plot boxplot
+ax.axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')
+bplot = plt.boxplot(budget_terms_all, patch_artist=True, labels=budget_term_names,
+        showmeans=True, showfliers=True, boxprops={'color':'darkgray'}, meanprops=
+        {'marker': 'o', 'markerfacecolor': 'navy', 'markersize': 7, 'markeredgecolor': 'none'})
+# format boxplot
+for patch in bplot['boxes']:
+        patch.set_facecolor('whitesmoke')
+for element in ['whiskers', 'medians', 'caps']:
+        plt.setp(bplot[element], color='darkgray')
+
+
+plt.subplots_adjust(hspace=0.06, bottom=0.2, top=0.9)
+plt.show()

@@ -41,7 +41,7 @@ def budget_error(inlets,shallowlay_dict,deeplay_dict,
     print('(annual mean error)/(annual mean QinDOin) [expressed as percentage]')
     print('    {}%'.format(round(error_QinDOin,2)))
     print('\n')
-    print('(annual mean error)/(annual mean consumption) [expressed as percentage]')
+    print('(annual mean error)/(annual mean deep consumption) [expressed as percentage]')
     print('    {}%'.format(round(error_consumption,2)))
 
     return
