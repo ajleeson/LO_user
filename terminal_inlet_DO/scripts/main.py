@@ -128,9 +128,9 @@ budget_barchart.budget_barchart(inlets,shallowlay_dict,deeplay_dict,
                     dates_local_hrly,dates_local_daily,hyp_inlets,
                     minday,maxday,kmolm3sec_to_mgLday)
 
-#########################################################
-## Correlation of Cons & QinDOin (mid-jul to mid-aug) ##
-#########################################################
+########################################################
+# Correlation of Cons & QinDOin (mid-jun to mid-aug) ##
+########################################################
 
 QinDOin_correl_consumption.correl(inlets,deeplay_dict,minday,maxday,kmolm3sec_to_mgLday)
 

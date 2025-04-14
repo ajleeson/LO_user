@@ -11,6 +11,8 @@ def correl(inlets,deeplay_dict,minday,maxday,kmolm3sec_to_mgLday):
     
     print('\n=================Correlation between QinDOin and Consumption===================\n')
 
+    print('UPDATE THIS TO INSTEAD BE DOin - DOdeep vs. TFLUSH CORRELATION,\n SINCE I REFERENCE THAT NUMBER IN THE MANUSCRIPT')
+
     exchange = np.array([])
     consumption = np.array([])
 
