@@ -6,7 +6,7 @@ to calculate daily averages from the hourly data.
 Code to extract tef2 sections.
 
 To test on mac:
-run extract_sections_ALdaily.py -gtx cas7_t0_x4b -ctag c21 -get_bio True -0 2017.01.01 -1 2017.01.02
+run extract_sections_ALdaily.py -gtx cas7_t0_x4b -ctag c21 -get_bio True -0 2017.01.01 -1 2017.01.02 -Nproc 5
 
 Doing this with subprocesses (Nproc = 10, on my mac) was about 2x as fast as doing
 it sequentially within this program. The less-than-expected speedup may be because
@@ -32,14 +32,6 @@ import pandas as pd
 import xarray as xr
 import numpy as np
 import pickle
-
-# import sys
-# from pathlib import Path
-# pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'extract' / 'tef2'
-# if str(pth) not in sys.path:
-#     sys.path.append(str(pth))
-# import extract_sections_one_time
-# import tef_fun
 
 gctag = Ldir['gridname'] + '_' + Ldir['collection_tag']
 tef2_dir = Ldir['LOo'] / 'extract' / 'tef2'
