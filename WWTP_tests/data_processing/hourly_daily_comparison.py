@@ -70,6 +70,8 @@ dates_local = [pfun.get_dt_local(x) for x in dates_hrly]
 ##        Calculate shallow and deep exchange flow      ##
 ##########################################################
 
+# inlets = ['lynchcove']
+
 for i,station in enumerate(inlets):
     # print status
     print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
@@ -82,11 +84,21 @@ for i,station in enumerate(inlets):
                          '/tef2/extractions_'+startdate+'_'+enddate+
                          '/'+station+'.nc')
     
+    # print(ds)
+    
     # calculate daily averages from hourly data
     # first, remove extra hour at the end of the year (first hour of 2018)
     ds_dropped_last_value = ds.isel(time=slice(0, 8760))
+    # separate out data variables that have time dimensions from those that do not
+    ds_time = ds_dropped_last_value[[var for var in ds_dropped_last_value.data_vars if 'time' in ds_dropped_last_value[var].dims]]
+    ds_notime = ds_dropped_last_value[[var for var in ds_dropped_last_value.data_vars if 'time' not in ds_dropped_last_value[var].dims]]
     # Then, resample the data to daily averages
-    ds_daily_averages = ds_dropped_last_value.resample(time="1D").mean()
+    ds_time_daily = ds_time.resample(time="1D").mean()
+    # Merge daily averages back with variables that had no time dimension
+    ds_daily_averages = xr.merge([ds_time_daily, ds_notime])
+
+    # print(ds_daily_averages)
+
 
     # save new averaged data
     out_fn = out_dir / (station+'.nc')
