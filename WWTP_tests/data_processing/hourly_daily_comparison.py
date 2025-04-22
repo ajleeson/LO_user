@@ -51,95 +51,107 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 
 # Get mooring stations:
 sta_dict = job_lists.get_sta_dict(jobname)
+# remove the second lynchcove extraction
+del sta_dict['lynchcove2']
+
+# get list of inlet names
+inlets = list(sta_dict.keys())
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+startdate+'_'+enddate) / '2layer_EU_exchange'
+out_dir = Ldir['LOo'] / 'loading_test' / 'eulerian_hourly' #'artificial_daily_averages'
 Lfun.make_dir(out_dir)
 
 # create time_vecotr
 dates_hrly = pd.date_range(start= startdate, end=enddate_hrly, freq= 'h')
 dates_local = [pfun.get_dt_local(x) for x in dates_hrly]
 
-# create dictionaries with interface depths
-interface_dict = dict()
-print('\n')
 
 ##########################################################
 ##        Calculate shallow and deep exchange flow      ##
 ##########################################################
 
-stations = ['lynchcove','penn','budd','case','carr']
-
-for i,station in enumerate(sta_dict): #enumerate(stations):
+for i,station in enumerate(inlets):
     # print status
     print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
 
     # initialize empty dataframe for saving
     df = pd.DataFrame()
 
-    # get interface depth from csv file
-    with open('interface_depths.csv', 'r') as f:
-        for line in f:
-            inlet, interface_depth = line.strip().split(',')
-            interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
-    z_interface = float(interface_dict[station])
-
     # get section information
-    ds = xr.open_dataset('../../../../LO_output/extract/'+gtagex+
+    ds = xr.open_dataset('../../../LO_output/extract/'+gtagex+
                          '/tef2/extractions_'+startdate+'_'+enddate+
                          '/'+station+'.nc')
     
-    # calculate exchange flow DO budget at cross section
-    oxygen = ds['oxygen'] # convert to mmol/m3 (time,z,p)
+
+    ################################
+    ##          FOR DAILY         ##
+    ################################
+    # # calculate daily averages from hourly data
+    # # first, remove extra hour at the end of the year (first hour of 2018)
+    # ds_dropped_last_value = ds.isel(time=slice(0, 8760))
+    # # Then, resample the data to daily averages
+    # ds_daily_averages = ds_dropped_last_value.resample(time="1D").mean()
+    # # Get data
+    # oxygen = ds_daily_averages['oxygen'] # mmol/m3 (time,z,p)
+    # nitrate = ds_daily_averages['NO3'] # mmol/m3 (time,z,p)
+    # ammonium = ds_daily_averages['NH4'] # mmol/m3 (time,z,p)
+    # velocity = ds_daily_averages['vel'] # m/s (time,z,p)
+    # area = ds_daily_averages['DZ'] * ds_daily_averages['dd'] # m2 (time,z,p)
+    # Q = velocity * area # m3/s (time,z,p)
+    
+    ################################
+    ##  FOR HOURLY: GODIN FILTER  ##
+    ################################
+    # Get hourly data
+    oxygen = ds['oxygen'] # mmol/m3 (time,z,p)
+    nitrate = ds['NO3'] # mmol/m3 (time,z,p)
+    ammonium = ds['NH4'] # mmol/m3 (time,z,p)
     velocity = ds['vel'] # m/s (time,z,p)
-    area = ds['DZ'] * ds['dd'] # m^2 (time,z,p)
-    exchange = oxygen * velocity * area * (1/1000) * (1/1000) # mmol/s * 1/1000 * 1/1000 = kmol/s (time,z,p)
+    area = ds['DZ'] * ds['dd'] # m2 (time,z,p)
+    Q = velocity * area # m3/s (time,z,p)
 
+    # Separate into inflow and outflow values using a mask
+    inflow = np.where(velocity >= 0, 1, np.nan)
+    outflow = np.where(velocity < 0, 1, np.nan)
 
-    # manage one or two layers
-    if math.isnan(z_interface):
-        print('    One-layer...add code!!!')
+    # get the inflowing and outflowing quantities
+    DOin = inflow * oxygen # mmol/m3 (time,z,p)
+    DOout = outflow * oxygen # mmol/m3 (time,z,p)
+    ##
+    NO3in = inflow * nitrate # mmol/m3 (time,z,p)
+    NO3out = outflow * nitrate # mmol/m3 (time,z,p)
+    ##
+    NH4in = inflow * ammonium # mmol/m3 (time,z,p)
+    NH4out = outflow * ammonium # mmol/m3 (time,z,p)
+    ##
+    Qin = inflow * Q # m3/s (time,z,p)
+    Qout = outflow * Q # m3/s (time,z,p)
 
-    else:
-        print('    Two-layers...Interface depth [m]: {}'.format(z_interface))
+    ################################
+    ##          FOR DAILY         ##
+    ################################
+    # # create dataframe of values 
+    # # the .sum(axis=1).sum(axis=1) command sums over the z and p dimensions
+    # # so the results varies with time only
+    # df['Qin [m3/s]'] = Qin.sum(axis=1).sum(axis=1)
+    # df['Qout [m3/s]'] = Qin.sum(axis=1).sum(axis=1)
+    # # mmol/s * 1/1000 * 1/1000 = kmol/s
+    # df['QinDOin [kmol O2/s]'] = (Qin * DOin).sum(axis=1).sum(axis=1) * (1/1000) * (1/1000)
+    # df['QinDINn [kmol N/s]'] = (Qin * (NO3in + NH4in)).sum(axis=1).sum(axis=1) * (1/1000) * (1/1000)
+    # # save to pickle file
+    # df.to_pickle(out_dir / (station + '.p'))
 
-        # Get z_rho (time,z,p), the depth of all z_rho layers
-        DZ = ds['DZ'].values
-        # append a set of zeros at the very bottom
-        DZ_w0 = np.insert(DZ, 0, np.zeros([8761,len(ds['p'].values)]), axis=1)
-        # calculate cumulative zum
-        DZ_cumsum = np.cumsum(DZ_w0, axis=1) # this is effectively z_w recreated, but measured from bottom
-        DZ_cumsum = np.delete(DZ_cumsum, -1, axis=1) # drop the surface level
-        # divide DZ by two to get the distance between z_w and z_rho
-        zw_2_zrho = DZ/2
-        # get z_rho (and move datum to surface)
-        z_rho = DZ_cumsum + zw_2_zrho - ds['h'].values
-
-        # mask surface and deep layers
-        surf_layer = np.where(z_rho >= z_interface, 1, np.nan)
-        deep_layer = np.where(z_rho < z_interface, 1, np.nan)
-
-        # separate exchange into deep and surface layer
-        exchange_surf = exchange * surf_layer
-        exchange_deep = exchange * deep_layer
-
-        # print('\nLayer thickness, with zero appended to beginning')
-        # print(DZ_w0[0,:,0])
-        # print('\nCumulative sum of layer thicknesses (starting from bottom layer)')
-        # print(DZ_cumsum[0,:,0])
-        # print('\n1/2 of DZ-- so the distance between a z_w value and a z-rho value')
-        # print(zw_2_zrho[0,:,0])
-        # print('\nz_rho, after shifting the datum from bottom back to surface, using h')
-        # print(z_rho[0,:,0])
-
-        # sum up exchange flow over surface and deep areas
-        exchange_surf_total = exchange_surf.sum(axis=1).sum(axis=1)
-        exchange_deep_total = exchange_deep.sum(axis=1).sum(axis=1)
-        exchange_total = exchange.sum(axis=1).sum(axis=1)
-
-        # create dataframe of values
-        df['surface [kmol/s]'] = exchange_surf_total
-        df['deep [kmol/s]'] = exchange_deep_total
-        df['total [kmol/s]'] = exchange_total
-        # save to pickle file
-        df.to_pickle(out_dir / (station + '.p'))
+    ################################
+    ##  FOR HOURLY: GODIN FILTER  ##
+    ################################
+    # create dataframe of values 
+    # the .sum(axis=1).sum(axis=1) command sums over the z and p dimensions
+    # so the results varies with time only
+    pad = 36
+    df['Qin [m3/s]'] = zfun.lowpass(Qin.sum(axis=1).sum(axis=1).values, f='godin')[pad:-pad+1:24]
+    df['Qout [m3/s]'] = zfun.lowpass(Qin.sum(axis=1).sum(axis=1).values, f='godin')[pad:-pad+1:24]
+    # mmol/s * 1/1000 * 1/1000 = kmol/s
+    df['QinDOin [kmol O2/s]'] = zfun.lowpass((Qin * DOin).sum(axis=1).sum(axis=1).values * (1/1000) * (1/1000), f='godin')[pad:-pad+1:24]
+    df['QinDINn [kmol N/s]'] = zfun.lowpass((Qin * (NO3in + NH4in)).sum(axis=1).sum(axis=1).values * (1/1000) * (1/1000), f='godin')[pad:-pad+1:24]
+    # save to pickle file
+    df.to_pickle(out_dir / (station + '.p'))
