@@ -9,7 +9,7 @@ Based on his code, and modified by PM.
 PERFORMANCE: 9 sec for test.
 
 To test on mac:
-run bulk_calc.py -gtx cas7_trapsV00_meV00 -ctag c0 -0 2017.07.04 -1 2017.07.06
+run bulk_calc.py -gtx cas7_t0_x4b -ctag c21 -0 2017.01.01 -1 2017.12.31
 
 """
 
@@ -33,7 +33,8 @@ tef2_dir = Ldir['LOo'] / 'extract' / 'tef2'
 sect_df_fn = tef2_dir / ('sect_df_' + gctag + '.p')
 sect_df = pd.read_pickle(sect_df_fn)
 
-out_dir0 = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef2'
+# out_dir0 = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef2'
+out_dir0 = Ldir['LOo'] / 'loading_test' / 'artificial_daily_averages'
 in_dir = out_dir0 / ('processed_' + Ldir['ds0'] + '_' + Ldir['ds1'])
 out_dir = out_dir0 / ('bulk_' + Ldir['ds0'] + '_' + Ldir['ds1'])
 Lfun.make_dir(out_dir, clean=True)
@@ -61,29 +62,57 @@ for snp in sect_list:
     
     ds = xr.open_dataset(in_dir / snp)
     
-    # Create the absolute value of the net transport (to make Qprism)
-    # but first remove the low-passed transport (like Qr)
-    qnet_lp = zfun.lowpass(ds.qnet.values, f='godin',nanpad=False)
+    # # Create the absolute value of the net transport (to make Qprism)
+    # # but first remove the low-passed transport (like Qr)
+    # qnet_lp = zfun.lowpass(ds.qnet.values, f='godin',nanpad=False)
+    # qabs = np.abs(ds.qnet.values - qnet_lp)
+    qnet_lp = ds.qnet.values
     qabs = np.abs(ds.qnet.values - qnet_lp)
     
-    # Tidal averaging, subsample, and cut off nans
-    pad = 36
-    # this pad is more than is required for the nans from the godin filter (35),
-    # but, when combined with the subsampling we end up with fields at Noon of
-    # each day (excluding the first and last days of the record)
+    # # Tidal averaging, subsample, and cut off nans
+    # pad = 36
+    # # this pad is more than is required for the nans from the godin filter (35),
+    # # but, when combined with the subsampling we end up with fields at Noon of
+    # # each day (excluding the first and last days of the record)
+    # TEF_lp = dict() # temporary storage
+    # vn_list = []
+    # vec_list = []
+    # for vn in ds.data_vars:
+    #     if ('time' in ds[vn].coords) and ('sbins' in ds[vn].coords):
+    #         TEF_lp[vn] = zfun.lowpass(ds[vn].values, f='godin')[pad:-pad+1:24, :]
+    #         vn_list.append(vn)
+    #     elif ('time' in ds[vn].coords) and ('sbins'  not in ds[vn].coords):
+    #         TEF_lp[vn] = zfun.lowpass(ds[vn].values, f='godin')[pad:-pad+1:24]
+    #         vec_list.append(vn)
+    # time_lp = ds.time.values[pad:-pad+1:24]
+    # sbins = ds.sbins.values
+    # TEF_lp['qabs'] = zfun.lowpass(qabs, f='godin')[pad:-pad+1:24]
+    # # Add the qprism time series.
+    # # Conceptually, qprism is the maximum possible exchange flow if all
+    # # the flood tide made Qin and all the ebb tide made Qout.
+    # # If you go through the trigonometry you find that qprism = 1/2 <qabs>.
+    # TEF_lp['qprism'] = TEF_lp['qabs'].copy()/2
+    # vec_list += ['qabs', 'qprism']
+    # ds.close()
+
+    # # Tidal averaging, subsample, and cut off nans
+    # pad = 36
+    # # this pad is more than is required for the nans from the godin filter (35),
+    # # but, when combined with the subsampling we end up with fields at Noon of
+    # # each day (excluding the first and last days of the record)
     TEF_lp = dict() # temporary storage
     vn_list = []
     vec_list = []
     for vn in ds.data_vars:
         if ('time' in ds[vn].coords) and ('sbins' in ds[vn].coords):
-            TEF_lp[vn] = zfun.lowpass(ds[vn].values, f='godin')[pad:-pad+1:24, :]
+            TEF_lp[vn] = ds[vn].values
             vn_list.append(vn)
         elif ('time' in ds[vn].coords) and ('sbins'  not in ds[vn].coords):
-            TEF_lp[vn] = zfun.lowpass(ds[vn].values, f='godin')[pad:-pad+1:24]
+            TEF_lp[vn] = ds[vn].values
             vec_list.append(vn)
-    time_lp = ds.time.values[pad:-pad+1:24]
+    time_lp = ds.time.values
     sbins = ds.sbins.values
-    TEF_lp['qabs'] = zfun.lowpass(qabs, f='godin')[pad:-pad+1:24]
+    TEF_lp['qabs'] = qabs
     # Add the qprism time series.
     # Conceptually, qprism is the maximum possible exchange flow if all
     # the flood tide made Qin and all the ebb tide made Qout.
