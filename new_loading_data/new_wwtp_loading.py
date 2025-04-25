@@ -25,12 +25,27 @@ from pathlib import Path
 #                               WWTP information                                #
 #################################################################################
 
-old_WWTP_name = 'West Point'
-new_WWTP_name = 'King County West Point WWTP'
+# old_WWTP_name = 'West Point'
+# new_WWTP_name = 'King County West Point WWTP'
 
 
 # old_WWTP_name = 'Stanwood' # discharges into Stillaguamish
 # new_WWTP_name = 'STANWOOD STP'
+
+# old_WWTP_name = 'Bainbridge Island City'
+# new_WWTP_name = 'BAINBRIDGE ISLAND WWTP'
+
+# old_WWTP_name = 'Bellingham'
+# new_WWTP_name = 'BELLINGHAM STP'
+
+# old_WWTP_name = 'McNeil Is'
+# new_WWTP_name = 'McNeil Island Special Commitment Center WWTP'
+
+# old_WWTP_name = 'Shelton'
+# new_WWTP_name = 'SHELTON STP'
+
+old_WWTP_name = 'South King'
+new_WWTP_name = 'King County South WWTP'
     
 
 #################################################################################
@@ -118,10 +133,11 @@ ax.plot(t,old_nutrient_load_15years, label='Climatology (1999-2017 data)',
 ax.set_title('{} nutrient load comparison'.format(old_WWTP_name),
              fontsize=14,fontweight='bold')
 ax.set_ylabel('Nutrient load [kg/day]',fontsize=12)
-ax.legend(loc='best', fontsize=12)
+ax.legend(loc='upper left', fontsize=12)
 
 ax.set_ylim([0,np.nanmax([np.nanmax(new_nutrient_load_15years),np.nanmax(old_nutrient_load_15years)])*1.1])
-ax.set_xlim([pd.to_datetime('2005-01-01'),pd.to_datetime('2020-12-31')])
+# ax.set_xlim([pd.to_datetime('2005-01-01'),pd.to_datetime('2020-12-31')])
+ax.set_xlim([pd.to_datetime('2013-01-01'),pd.to_datetime('2017-12-31')])
 ax.xaxis.set_major_locator(mdates.YearLocator())
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 ax.tick_params(axis='x', labelrotation=30)
