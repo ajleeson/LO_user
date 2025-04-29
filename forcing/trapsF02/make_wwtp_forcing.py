@@ -72,6 +72,8 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
             #                      'Lake Stevens 002', 'Oak Harbor RBC', 'OF100'],:]
             gwi_df = gwi_df.loc[['West Point', 'Birch Bay', 'Lake Stevens 001',
                                  'Lake Stevens 002', 'Tacoma Central', 'US Oil & Refining'],:]
+            
+        print(gwi_df)
         
 #################################################################################
 #       Combine name of sources that are located at the same grid cell          #
