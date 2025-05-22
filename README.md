@@ -1,3 +1,3 @@
 # LO_user
  
-![Mohamedali et al. (2020) point source locations](../LO_output/loading_test/point_source_integration/Mohamedali_etal2020/all_loads_comparison.png)
+![all_loads_comparison](https://github.com/user-attachments/assets/8f15ce00-2fe5-40ea-8578-f6f0bd190748 =300x)
