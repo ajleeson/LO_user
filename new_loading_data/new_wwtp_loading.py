@@ -28,7 +28,6 @@ from pathlib import Path
 # old_WWTP_name = 'West Point'
 # new_WWTP_name = 'King County West Point WWTP'
 
-
 # old_WWTP_name = 'Stanwood' # discharges into Stillaguamish
 # new_WWTP_name = 'STANWOOD STP'
 
@@ -44,8 +43,39 @@ from pathlib import Path
 # old_WWTP_name = 'Shelton'
 # new_WWTP_name = 'SHELTON STP'
 
-old_WWTP_name = 'South King'
-new_WWTP_name = 'King County South WWTP'
+# old_WWTP_name = 'South King'
+# new_WWTP_name = 'King County South WWTP'
+
+# old_WWTP_name = 'Brightwater'
+# new_WWTP_name = 'King County Brightwater WWTP'
+
+old_WWTP_name = 'Anacortes'
+new_WWTP_name = 'ANACORTES WWTP'
+
+#################################################################################
+#                     Get old Ecology data (not climatology)                    #
+#################################################################################
+
+# open raw Ecology data
+fn_old_raw = Ldir['data'] / 'trapsD00' / 'all_point_source_data.nc'
+ds_old = xr.open_dataset(fn_old_raw)
+
+print(ds_old)
+
+# get flow [m3/s] & subsample to one value per month
+old_raw_flow = ds_old.sel(source=(ds_old['name']==old_WWTP_name))['flow'].resample(date='1MS').first()[0]
+
+# get NO3 and NH4 [mmol/m3] & subsample to one value per month
+old_raw_NO3 = ds_old.sel(source=(ds_old['name']==old_WWTP_name))['NO3'].resample(date='1MS').first()[0]
+old_raw_NH4 = ds_old.sel(source=(ds_old['name']==old_WWTP_name))['NH4'].resample(date='1MS').first()[0]
+# sum nutrients
+old_raw_nutrients = old_raw_NO3 + old_raw_NH4 # [mmol/m3]
+
+# get total nutrient loading [kg/day]
+old_raw_nutrient_load_mmol_s = old_raw_flow * old_raw_nutrients # [m3/s * mmol/m3 = mmol/s]
+# convert to kg/day: [1g = 14.01/1000^2mmol] [1day = 60*60*24sec]
+old_raw_nutrient_load_kg_day = old_raw_nutrient_load_mmol_s * 14.01 * 60 * 60 * 24 / 1000 / 1000
+
     
 
 #################################################################################
@@ -78,7 +108,7 @@ old_nutrient_load_kg_day = old_nutrient_load_mmol_s * 14.01 * 60 * 60 * 24 / 100
 old_nutrient_load_subsampled = old_nutrient_load_kg_day[15::30]
 
 # repeat for 15 years
-old_nutrient_load_15years = np.tile(old_nutrient_load_subsampled,16)
+old_nutrient_load_15years = np.tile(old_nutrient_load_subsampled,22)
 
 #################################################################################
 #                               Get new WWTP data                               #
@@ -92,13 +122,17 @@ df_nut_loads_new = pd.read_csv('nutrient_loads.csv')
 fac_ID = df_fac_attr.loc[df_fac_attr['FAC_NAME'] == new_WWTP_name, 'FAC_ID'].values[0]
 
 # get flow corresponding to desired WWTP
-new_flow_millGall_day = df_nut_loads_new.loc[df_nut_loads_new['FAC_ID'] == fac_ID, 'FLOW_MGD'].values.astype(float)
+# replace any '.' with NaN
+no_empties_flow = df_nut_loads_new.loc[df_nut_loads_new['FAC_ID'] == fac_ID, 'FLOW_MGD'].replace('.', np.nan).astype(float)
+new_flow_millGall_day = no_empties_flow.values
 # convert to m3/s
 new_flow_m3_s = new_flow_millGall_day * 0.0438126364
 
 # get nutrient data [mg/L]
-new_NO3 = df_nut_loads_new.loc[df_nut_loads_new['FAC_ID'] == fac_ID, 'NO2NO3N_MG_L'].values.astype(float)
-new_NH4 = df_nut_loads_new.loc[df_nut_loads_new['FAC_ID'] == fac_ID, 'NH4N_MG_L'].values.astype(float)
+no_empties_NO3 = df_nut_loads_new.loc[df_nut_loads_new['FAC_ID'] == fac_ID, 'NO2NO3N_MG_L'].replace('.', np.nan).astype(float)
+no_empties_NH4 = df_nut_loads_new.loc[df_nut_loads_new['FAC_ID'] == fac_ID, 'NH4N_MG_L'].replace('.', np.nan).astype(float)
+new_NO3 = no_empties_NO3.values
+new_NH4 = no_empties_NH4.values
 # sum NO3 and NH4
 new_nutrients = new_NO3 + new_NH4 # [mg/L]
 
@@ -116,28 +150,34 @@ new_nutrient_load_15years = new_nutrient_load_kg_day
 #################################################################################
 
 # get time array
-t = pd.date_range(start='2005-01-01', end='2020-12-31', freq='MS').to_list()
+t_new = pd.date_range(start='2005-01-01', end='2020-12-31', freq='MS').to_list()
+t_old = pd.date_range(start='1999-01-01', end='2017-7-31', freq='MS').to_list()
+t_all = pd.date_range(start='1999-01-01',end='2020-12-31', freq='MS').to_list()
 
 plt.close('all')
-fig, ax = plt.subplots(1,1,figsize = (10,6))
+fig, ax = plt.subplots(1,1,figsize = (13,7))
 
 # plot new data
-ax.plot(t,new_nutrient_load_15years, label='New Data (2005-2020 data)',
-        linewidth=3,color='orchid', alpha=0.6)
+ax.plot(t_new,new_nutrient_load_15years, label='New Data (2005-2020 data)',
+        linewidth=2.5,color='hotpink', alpha=0.8)
+
+# plot old raw data
+ax.plot(t_old,old_raw_nutrient_load_kg_day, label='Old Data (1999-2017 data)',
+        linewidth=1.5, linestyle='--', color='purple', alpha=0.8)
 
 # plot WWTP climatologies
-ax.plot(t,old_nutrient_load_15years, label='Climatology (1999-2017 data)',
-        linewidth=2,color='teal', alpha=0.8)
+ax.plot(t_all,old_nutrient_load_15years, label='Climatology (1999-2017 data)',
+        linewidth=3,color='k', alpha=0.4)
 
 # format figure
 ax.set_title('{} nutrient load comparison'.format(old_WWTP_name),
              fontsize=14,fontweight='bold')
 ax.set_ylabel('Nutrient load [kg/day]',fontsize=12)
-ax.legend(loc='upper left', fontsize=12)
+ax.legend(loc='best', fontsize=12)
 
 ax.set_ylim([0,np.nanmax([np.nanmax(new_nutrient_load_15years),np.nanmax(old_nutrient_load_15years)])*1.1])
-# ax.set_xlim([pd.to_datetime('2005-01-01'),pd.to_datetime('2020-12-31')])
-ax.set_xlim([pd.to_datetime('2013-01-01'),pd.to_datetime('2017-12-31')])
+ax.set_xlim([pd.to_datetime('1999-01-01'),pd.to_datetime('2020-12-31')])
+# ax.set_xlim([pd.to_datetime('2013-01-01'),pd.to_datetime('2017-12-31')])
 ax.xaxis.set_major_locator(mdates.YearLocator())
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 ax.tick_params(axis='x', labelrotation=30)
