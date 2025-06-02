@@ -212,8 +212,8 @@ while mdt <= dt1:
 # (this is a bit titchy because of NetCDF 3 limitations on strings, forcing them
 # to be arrays of characters)
 mds = mds_list[0]
-fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
-ds = xr.open_dataset(fn)
+# fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
+ds = xr.open_dataset(riv_fn)
 rn = ds['river_name'].values
 NR = rn.shape[0]
 riv_name_list = list(rn)
