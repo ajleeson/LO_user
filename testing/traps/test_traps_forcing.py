@@ -45,7 +45,8 @@ frc = args.frc
 # input and output locations
 Ldir = Lfun.Lstart(gridname=gridname)
 grid_fn = Ldir['grid'] / 'grid.nc'
-riv_fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + dstr0) / frc / 'rivers.nc'
+# riv_fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + dstr0) / frc / 'rivers.nc'
+riv_fn = 'agdat1' / 'parker' / 'LO_output' / 'forcing' / gridname / ('f' + dstr0) / frc / 'rivers.nc'
 out_dir = Ldir['LOo'] / 'testing' / 'traps' / (gridname + '_' + frc)
 Lfun.make_dir(out_dir)
     
