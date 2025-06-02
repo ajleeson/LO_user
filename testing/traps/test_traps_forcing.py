@@ -213,7 +213,8 @@ while mdt <= dt1:
 # to be arrays of characters)
 mds = mds_list[0]
 # fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
-ds = xr.open_dataset(riv_fn)
+fn = perigee_dir / 'agdat1' / 'parker' / 'LO_output' / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
+ds = xr.open_dataset(fn)
 rn = ds['river_name'].values
 NR = rn.shape[0]
 riv_name_list = list(rn)
@@ -229,7 +230,8 @@ for tt,mds in enumerate(mds_list):
     this_dt = datetime.strptime(mds, Lfun.ds_fmt)
     if this_dt.day == 1 and this_dt.month == 1:
         print(' Year = %d' % (this_dt.year))
-    fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
+    # fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
+    fn = perigee_dir / 'agdat1' / 'parker' / 'LO_output' / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
     ds = xr.open_dataset(fn)
     # The river transport is given at noon of a number of days surrounding the forcing date.
     # Here we find the index of the time for the day "mds".
