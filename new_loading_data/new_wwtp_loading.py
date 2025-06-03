@@ -25,8 +25,8 @@ from pathlib import Path
 #                               WWTP information                                #
 #################################################################################
 
-# old_WWTP_name = 'West Point'
-# new_WWTP_name = 'King County West Point WWTP'
+old_WWTP_name = 'West Point'
+new_WWTP_name = 'King County West Point WWTP'
 
 # old_WWTP_name = 'Stanwood' # discharges into Stillaguamish
 # new_WWTP_name = 'STANWOOD STP'
@@ -49,8 +49,8 @@ from pathlib import Path
 # old_WWTP_name = 'Brightwater'
 # new_WWTP_name = 'King County Brightwater WWTP'
 
-old_WWTP_name = 'Anacortes'
-new_WWTP_name = 'ANACORTES WWTP'
+# old_WWTP_name = 'Anacortes'
+# new_WWTP_name = 'ANACORTES WWTP'
 
 #################################################################################
 #                     Get old Ecology data (not climatology)                    #
