@@ -70,11 +70,12 @@ trapsP = Ldir['trapsP']
 # river and point source climatologies.
 ctag = 'lo_base'
 
-# get correct version of Ecology data (based on what is saved in LO/pre/trapsP##)
-this_dir = Path(__file__).absolute().parent.parent.parent.parent
-with open(this_dir / 'LO' / 'pre' / trapsP / 'traps_data_ver.csv','r') as f:
-    for ver in f:
-        trapsD = ver
+# # get correct version of Ecology data (based on what is saved in LO/pre/trapsP##)
+# this_dir = Path(__file__).absolute().parent.parent.parent.parent
+# with open(this_dir / 'LO' / 'pre' / trapsP / 'traps_data_ver.csv','r') as f:
+#     for ver in f:
+#         trapsD = ver
+trapsD = 'trapsD01'
 
 if Ldir['testing']:
     reload(zrfun)
