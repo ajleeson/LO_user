@@ -2,7 +2,7 @@
 Code to test TRAPS forcing in river.nc file
 
 From ipython:
-run test_traps_forcing.py -gridname cas7 -frc trapsF00 -dstr0 2013.01.01 -dstr1 2013.12.31
+run test_traps_forcing.py -gridname cas7 -frc trapsN00 -dstr0 2019.07.10 -dstr1 2019.07.10
 """
 
 #################################################################################
@@ -146,9 +146,9 @@ v_counts[0]         = 59
 preLO_counts[0]     = 45
 triv_counts[0]      = 131
 mergedriv_counts[0] = 3
-LwSrc_counts[0]     = 98
-mergedwwtp_counts[0]= 1
-total_counts[0]     = 274
+LwSrc_counts[0]     = 87
+mergedwwtp_counts[0]= 0
+total_counts[0]     = 263
 
 # Add actual value
 LuvSrc_counts[1] = df['dir'].value_counts()[0] + df['dir'].value_counts()[1]
