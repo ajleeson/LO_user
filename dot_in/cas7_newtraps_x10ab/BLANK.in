@@ -1020,7 +1020,7 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
 ! Input climatology nudging coefficients file name.
 
-     NUDNAME == $grid_dir$/nudgcoef.nc
+     NUDNAME == $grid_dir$/nudgcoef_tracer100.nc
 
 ! Input Sources/Sinks forcing (like river runoff) file name.
 
