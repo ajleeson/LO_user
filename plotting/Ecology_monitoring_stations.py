@@ -12,13 +12,16 @@ import xarray as xr
 import cmocean
 from lo_tools import plotting_functions as pfun
 
+plt.close('all')
 
 # Read monitoring site locations
 fp = '../../LO_user/downloaded_data/EIM_monitoring_locations.csv'
 df = pd.read_csv(fp)
 
-lat = df['Calculated_Latitude_Decimal_Degrees_NAD83HARN']
-lon = df['Calculated_Longitude_Decimal_Degrees_NAD83HARN']
+
+lat = df.loc[df.Location_Name == 'HCB003','Calculated_Latitude_Decimal_Degrees_NAD83HARN']
+lon = df.loc[df.Location_Name == 'HCB003','Calculated_Longitude_Decimal_Degrees_NAD83HARN']
+
 
 fig = plt.figure(figsize=(6,8))
 ax = fig.add_subplot(111)
