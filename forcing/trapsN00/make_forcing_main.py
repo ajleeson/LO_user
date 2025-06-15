@@ -70,11 +70,12 @@ trapsP = Ldir['trapsP']
 # river and point source climatologies.
 ctag = 'lo_base'
 
-# # get correct version of Ecology data (based on what is saved in LO/pre/trapsP##)
-# this_dir = Path(__file__).absolute().parent.parent.parent.parent
-# with open(this_dir / 'LO' / 'pre' / trapsP / 'traps_data_ver.csv','r') as f:
-#     for ver in f:
-#         trapsD = ver
+# get correct version of Ecology data (based on what is saved in LO/pre/trapsP##)
+this_dir = Path(__file__).absolute().parent.parent.parent.parent
+with open(this_dir / 'LO' / 'pre' / trapsP / 'traps_data_ver.csv','r') as f:
+    for ver in f:
+        trapsD = ver
+
 trapsD = 'trapsD01'
 
 if Ldir['testing']:
@@ -139,7 +140,7 @@ except Exception as e:
 
 # generate forcing for marine point sources (Mohamedali et al., 2020)
 try:
-    wwtp_ds, NWWTP_was = wwtp_was24.make_forcing(N,NT,NRIV,NTRIV,NWWTP_moh,dt_ind,yd_ind,ot_vec,Ldir,enable_wwtps,trapsP,trapsD,ctag)
+    wwtp_ds, NWWTP_was = wwtp_was24.make_forcing(N,NT,NRIV,NTRIV,NWWTP_moh,dt_ind,yd_ind,ot_vec,Ldir,enable_wwtps,trapsD)
     ds_to_merge.append(wwtp_ds)
 except Exception as e:
     print('Error creating wwtp: maybe there are none.')
