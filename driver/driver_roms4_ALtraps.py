@@ -218,9 +218,15 @@ while dt <= dt1:
                         F_string = f_string
                     elif args.run_type == 'forecast':
                         F_string = f_string0
-                    cmd_list = ['scp','-r',
-                        remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + F_string + '/' + force_choice,
-                        str(force_dir)]
+                    # either look in Aurora's apogee folder for traps forcing...
+                    if force_choice in ['trapsN00','trapsN01']:
+                        cmd_list = ['scp','-r',
+                            remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + F_string + '/' + force_choice,
+                            str(force_dir)]
+                    # or look in Parker's apogee folder for atm, ocn, and tide forcing
+                    else:
+                        cmd_list = ['scp','-r', 'auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
+                            Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir)]
                     proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = proc.communicate()
                     if len(stderr) > 0:
