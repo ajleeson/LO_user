@@ -190,6 +190,7 @@ while dt <= dt1:
     sys.stdout.flush()
 
     print('here!')
+    sys.stdout.flush()
     
     # Set various paths.
     force_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / f_string
@@ -208,6 +209,7 @@ while dt <= dt1:
     roms_ex_name = 'romsM'
     
     print(str(roms_out_dir)) # always print this
+    sys.stdout.flush()
     if args.verbose:
         print(' - force_dir:    ' + str(force_dir))
         print(' - dot_in_dir:   ' + str(dot_in_dir))
