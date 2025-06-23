@@ -255,7 +255,8 @@ while dt <= dt1:
                     else:
                         cmd_list = ['scp','-r', 'auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
                             Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir)]
-                        print('Getting Parkers forcing from {}'.format('auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/'))
+                        print('Getting Parkers forcing from {}'.format('auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
+                            Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir)))
                         sys.stdout.flush()
                     proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = proc.communicate()
