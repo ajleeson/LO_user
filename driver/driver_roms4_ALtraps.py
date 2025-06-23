@@ -220,6 +220,8 @@ while dt <= dt1:
         for line in f:
             which_force, force_choice = line.strip().split(',')
             force_dict[which_force] = force_choice
+    print('forcing list acquired')
+    sys.stdout.flush()
     
     if args.get_forcing:
         for fff in range(10):
