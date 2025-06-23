@@ -320,8 +320,9 @@ while dt <= dt1:
             tt0 = time()
             # Run ROMS using the batch script.
             if 'klone' in Ldir['lo_env']:
-                cmd_list = ['sbatch', '-p', args.cpu_choice, '-A', args.group_choice,
-                    str(roms_out_dir / 'klone_batch.sh')]
+                # cmd_list = ['sbatch', '-p', args.cpu_choice, '-A', args.group_choice,
+                #     str(roms_out_dir / 'klone_batch.sh')]
+                cmd_list = ['sbatch', '-p', args.cpu_choice, str(roms_out_dir / 'klone_batch.sh')]
             proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             stdout, stderr = proc.communicate()
