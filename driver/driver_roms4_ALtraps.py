@@ -241,8 +241,8 @@ while dt <= dt1:
                     elif args.run_type == 'forecast':
                         F_string = f_string0
 
-                    print(force_choice)
-                    sys.stdout.flush()
+                    # print(force_choice)
+                    # sys.stdout.flush()
 
                     # either look in Aurora's apogee folder for traps forcing...
                     if force_choice in ['trapsN00','trapsN01']:
@@ -250,30 +250,30 @@ while dt <= dt1:
                             remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + F_string + '/' + force_choice,
                             str(force_dir)]
                         
-                        print('Getting my traps forcing from {}'.format(remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + F_string + '/' + force_choice))
-                        sys.stdout.flush()
+                        # print('Getting my traps forcing from {}'.format(remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + F_string + '/' + force_choice))
+                        # sys.stdout.flush()
 
                     # or look in Parker's apogee folder for atm, ocn, and tide forcing
                     else:
                         cmd_list = ['scp','-r', 'auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
                             Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir)]
                         
-                        print('Getting Parkers forcing from {}'.format('auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
-                            Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir)))
-                        sys.stdout.flush()
+                        # print('Getting Parkers forcing from {}'.format('auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
+                        #     Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir)))
+                        # sys.stdout.flush()
 
                     proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = proc.communicate()
 
-                    print('proc.communicate successful')
-                    sys.stdout.flush()
+                    # print('proc.communicate successful')
+                    # sys.stdout.flush()
 
                     if len(stderr) > 0:
                         got_forcing = False
                     messages(stdout, stderr, 'Copy forcing ' + force_choice, args.verbose)
 
-                    print('Forcing successful')
-                    sys.stdout.flush()
+                    # print('Forcing successful')
+                    # sys.stdout.flush()
 
             print(' - time to get forcing = %d sec' % (time()-tt0))
             sys.stdout.flush()
