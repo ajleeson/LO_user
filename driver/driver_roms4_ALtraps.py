@@ -252,7 +252,7 @@ while dt <= dt1:
                         
                         print('Getting my traps forcing from {}'.format(remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + F_string + '/' + force_choice))
                         sys.stdout.flush()
-                        
+
                     # or look in Parker's apogee folder for atm, ocn, and tide forcing
                     else:
                         cmd_list = ['scp','-r', 'auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
@@ -263,6 +263,10 @@ while dt <= dt1:
                         sys.stdout.flush()
 
                     proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    
+                    print('proc successful')
+                    sys.stdout.flush()
+
                     stdout, stderr = proc.communicate()
                     if len(stderr) > 0:
                         got_forcing = False
