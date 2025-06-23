@@ -220,8 +220,6 @@ while dt <= dt1:
         for line in f:
             which_force, force_choice = line.strip().split(',')
             force_dict[which_force] = force_choice
-    print('forcing list acquired')
-    sys.stdout.flush()
     
     if args.get_forcing:
         for fff in range(10):
@@ -232,6 +230,10 @@ while dt <= dt1:
             # Name the place where the forcing files will be copied from
             remote_dir = remote_user + '@' + remote_machine + ':' + remote_dir0
             Lfun.make_dir(force_dir, clean=True)
+
+            print('forcing files: {}'.format(remote_dir))
+            sys.stdout.flush()
+
             # Copy the forcing files, one folder at a time.
             for force in force_dict.keys():
                 if force == 'open':
