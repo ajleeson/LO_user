@@ -323,13 +323,16 @@ while dt <= dt1:
                 cmd_list = ['sbatch', '-p', args.cpu_choice, '-A', args.group_choice,
                     str(roms_out_dir / 'klone_batch.sh')]
             proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            stdout, stderr = proc.communicate()
+            messages(stdout, stderr, 'Running ROMS', args.verbose)
             
             # now we need code to wait until the run has completed
             
             # these are for checking on the run using squeue
             if 'klone' in Ldir['lo_env']:
                 # cmd_list = ['squeue', '-p', args.cpu_choice, '-A', args.group_choice]
-                cmd_list = ['squeue', '-p', 'ckpt-g2', '-u', 'auroral'] # reccomendation from Jilian
+                cmd_list = ['squeue', '-p', 'ckpt-g2', '-u', 'auroral'] # recommendation from Jilian
 
             # first figure out if it has started
             for rrr in range(10):
