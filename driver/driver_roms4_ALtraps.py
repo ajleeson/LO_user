@@ -263,11 +263,11 @@ while dt <= dt1:
                         sys.stdout.flush()
 
                     proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    
-                    print('proc successful')
+                    stdout, stderr = proc.communicate()
+
+                    print('proc.communicate successful')
                     sys.stdout.flush()
 
-                    stdout, stderr = proc.communicate()
                     if len(stderr) > 0:
                         got_forcing = False
                     messages(stdout, stderr, 'Copy forcing ' + force_choice, args.verbose)
