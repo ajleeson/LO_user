@@ -230,10 +230,6 @@ while dt <= dt1:
             # Name the place where the forcing files will be copied from
             remote_dir = remote_user + '@' + remote_machine + ':' + remote_dir0
             Lfun.make_dir(force_dir, clean=True)
-
-            print('forcing files: {}'.format(remote_dir))
-            sys.stdout.flush()
-
             # Copy the forcing files, one folder at a time.
             for force in force_dict.keys():
                 if force == 'open':
@@ -244,6 +240,10 @@ while dt <= dt1:
                         F_string = f_string
                     elif args.run_type == 'forecast':
                         F_string = f_string0
+
+                    print(force_choice)
+                    sys.stdout.flush()
+
                     # either look in Aurora's apogee folder for traps forcing...
                     if force_choice in ['trapsN00','trapsN01']:
                         cmd_list = ['scp','-r',
@@ -255,6 +255,8 @@ while dt <= dt1:
                     else:
                         cmd_list = ['scp','-r', 'auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
                             Ldir['gridname'] + '/' + F_string + '/' + force_choice, str(force_dir)]
+                        print('Getting Parkers forcing from {}'.format('auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/'))
+                        sys.stdout.flush()
                     proc = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     stdout, stderr = proc.communicate()
                     if len(stderr) > 0:
