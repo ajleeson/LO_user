@@ -188,6 +188,8 @@ while dt <= dt1:
     print((' ' + f_string + ' ').center(Ncenter,'='))
     print(' > started at %s' % (datetime.now().strftime('%Y.%m.%d %H:%M:%S')))
     sys.stdout.flush()
+
+    print('here!')
     
     # Set various paths.
     force_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / f_string
