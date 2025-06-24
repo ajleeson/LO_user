@@ -48,9 +48,10 @@ Ldir = Lfun.Lstart()
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['oxygen']#['DIN','u','v'] # u, v, w, DIN
+vns = ['DIN']#['DIN','u','v'] # u, v, w, DIN
 # date = '2013.01.01'
-date = '2013.01.14'
+# date = '2012.10.31'
+date = '2012.10.07'
 # date = '2014.01.09'
 
 ###################################################################
@@ -59,8 +60,8 @@ date = '2013.01.14'
 
 # gtagex_longhindcast = 'cas7_t0noN_x4b'
 # gtagex_noN = 'cas7_t0noN_x4b_perf10'
-gtagex_longhindcast = 'cas7_t0_x4b'
-gtagex_noN = 'cas7_t0noN_x4b'
+gtagex_longhindcast = 'cas7_newtraps_x11ab'
+gtagex_noN = 'cas7_newtrapsnoN_x11ab'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
@@ -108,8 +109,10 @@ ymax = 48.45
 # ymax = 52
 
 # get model output
-fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_his_0025.nc'
-fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0025.nc'
+# fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_his_0025.nc'
+# fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0025.nc'
+fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_avg_0001.nc'
+fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_avg_0001.nc'
 ds_hindcast = xr.open_dataset(fp_hindcast)
 ds_noN = xr.open_dataset(fp_noN)
 
@@ -229,7 +232,7 @@ for vn in vns:
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
         ax.set_title(vn + ' difference at ' + stext + pinfo.units_dict[vn_name], fontsize=16)
-        fig.suptitle('Anthropogenic - Natural\n' + date + ' ocean_his_0025',
+        fig.suptitle('Loading minus No-loading\n' + date + ' ocean_avg_0001',
                     fontsize=18, fontweight='bold')
 
         # add 10 km bar
