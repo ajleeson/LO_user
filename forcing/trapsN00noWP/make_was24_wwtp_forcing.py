@@ -250,28 +250,28 @@ def make_forcing(N,NT,NRIV,NTRIV,NWWTP_moh,dt_ind, yd_ind,ot_vec,Ldir,enable,tra
             B_mat = np.nan * np.zeros((NT, N, NWWTP))
             for rr,rn in enumerate(gri_df_no_ovrlp.index):
                 # adjust names to get data from dataset
+                lookup_var = var
                 if var == 'TAlk':
-                    var = 'Talk'
+                    lookup_var = 'Talk'
                 if var == 'Oxyg':
-                    var = 'DO'
+                    lookup_var = 'DO'
                 # consolidate sources located at same grid cell
                 if '+' in rn:
                     # split into individual point sources
                     [wwtp1,wwtp2] = rn.split('+')
                     # calculate weighted average (based on flowrate)
-                    bvals = trapsfun.weighted_average_ds(var, dt_ind, was24_wwtp_data_ds, wwtp1, wwtp2)
+                    bvals = trapsfun.weighted_average_ds(lookup_var, dt_ind, was24_wwtp_data_ds, wwtp1, wwtp2)
                 else:
-                    bvals = was24_wwtp_data_ds[var].sel(
+                    bvals = was24_wwtp_data_ds[lookup_var].sel(
                             source=was24_wwtp_data_ds.source[was24_wwtp_data_ds.name == rn].item(),
                             date=dt_ind)
                 # Make West Point loads zero
-                if rn == 'King County West Point WWTP':
-                    if var == 'NO3' or var == 'NH4':
-                        bvals = np.zeros((NT, N, NWWTP))
+                if rn == 'King County West Point WWTP' and var in ['NO3', 'NH4']:
+                    bvals = bvals*0
                 for nn in range(N):
                     B_mat[:, nn, rr] = bvals
             # check for nans
-            if np.isnan(TS_mat).any():
+            if np.isnan(B_mat).any():
                 print('Error from traps: nans in tiny river bio!')
                 sys.exit()
             # add metadata

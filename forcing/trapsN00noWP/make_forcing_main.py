@@ -138,7 +138,7 @@ except Exception as e:
     print(e)
     NWWTP_moh = 0
 
-# generate forcing for marine point sources (Mohamedali et al., 2020)
+# generate forcing for marine point sources (Wasielewski et al., 2024)
 try:
     wwtp_ds, NWWTP_was = wwtp_was24.make_forcing(N,NT,NRIV,NTRIV,NWWTP_moh,dt_ind,yd_ind,ot_vec,Ldir,enable_wwtps,trapsD)
     ds_to_merge.append(wwtp_ds)
