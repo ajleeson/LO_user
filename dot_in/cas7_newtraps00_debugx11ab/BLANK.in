@@ -751,7 +751,7 @@ Aout(idUvel) == T       ! u                  3D U-velocity
 Aout(idVvel) == T       ! v                  3D V-velocity
 Aout(idu3dE) == F       ! u_eastward         3D U-eastward  at RHO-points
 Aout(idv3dN) == F       ! v_northward        3D V-northward at RHO-points
-Aout(idWvel) == F       ! w                  3D W-velocity
+Aout(idWvel) == T       ! w                  3D W-velocity
 Aout(idOvel) == F       ! omega              omega vertical velocity
 Aout(idUbar) == F       ! ubar               2D U-velocity
 Aout(idVbar) == F       ! vbar               2D V-velocity
