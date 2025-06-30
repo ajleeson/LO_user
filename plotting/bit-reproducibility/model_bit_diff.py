@@ -1,7 +1,7 @@
 """
 Plot difference between surface/bottom values of specified state variable.
 Calculates difference between two different runs
-(Written to compare long hindcast to N-less run)
+(Written to compare long model1 to N-less run)
 
 From ipython: run model_field_diff
 Figures saved in LO_output/AL_custom_plots/[vn]_diff.png
@@ -16,6 +16,7 @@ from subprocess import Popen as Po
 from subprocess import PIPE as Pi
 from matplotlib.markers import MarkerStyle
 import matplotlib.dates as mdates
+import matplotlib.colors as mcolors
 import numpy as np
 import xarray as xr
 from datetime import datetime, timedelta
@@ -44,22 +45,26 @@ import gfun
 Gr = gfun.gstart()
 Ldir = Lfun.Lstart()
 
+plt.close('all')
+
 ###################################################################
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['DIN']#['DIN','u','v'] # u, v, w, DIN
-# date = '2013.01.01'
-# date = '2012.10.31'
+vns = ['NH4'] # u, v, w, NO3, NH4 oxygen
 date = '2012.10.07'
-# date = '2014.01.09'
+
+filetype = 'ocean_avg_0001.nc'
+# filetype = 'ocean_his_0002.nc'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
 
-model1 = 'cas7_newtraps00_debugx11ab'
-model2 = 'cas7_newtraps01_debugx11ab'
+# model1 = 'cas7_newtraps00_debugx11ab'
+# model2 = 'cas7_newtraps01_debugx11ab'
+model1 = 'cas7_newtraps_x11ab'
+model2 = 'cas7_newtrapsnoN_x11ab'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
@@ -75,180 +80,87 @@ lat_u = grid_ds.lat_u.values
 lon_v = grid_ds.lon_v.values
 lat_v = grid_ds.lat_v.values
 
-# get WWTP locations
-wwtp_ind_df = pd.read_csv(Ldir['data'] / 'grids/cas7/wwtp_info.csv', index_col='rname')
-wwtp_col = [int(col) for col in wwtp_ind_df['col_py']]
-wwtp_row = [int(row) for row in wwtp_ind_df['row_py']]
-wwtp_lon = [lon[0,i] for i in wwtp_col]
-wwtp_lat = [lat[i,0] for i in wwtp_row]
-
-# layer, text, axis limits
-slev_surf = -1
-slev_bott = 0
-stext_surf = 'Surface'
-stext_bott = 'Bottom'
-
-# lon/lat limits (Puget Sound)
-xmin = -123.2
-xmax = -122.1
-ymin = 46.93
-ymax = 48.45
-
-# # lon/lat limits (Salish Sea)
-# xmin = -125
-# xmax = -121
-# ymin = 46.9
-# ymax = 50
-
-# # lon/lat limits (Full grid)
-# xmin = -130
-# xmax = -121.5
-# ymin = 42
-# ymax = 52
-
 # get model output
-# fp_hindcast = Ldir['roms_out'] / model1 / ('f'+date) / 'ocean_his_0025.nc'
-# fp_noN = Ldir['roms_out'] / model2 / ('f'+date) / 'ocean_his_0025.nc'
-fp_hindcast = Ldir['roms_out'] / model1 / ('f'+date) / 'ocean_avg_0001.nc'
-fp_noN = Ldir['roms_out'] / model2 / ('f'+date) / 'ocean_avg_0001.nc'
-ds_hindcast = xr.open_dataset(fp_hindcast)
-ds_noN = xr.open_dataset(fp_noN)
+fp_model1 = Ldir['roms_out'] / model1 / ('f'+date) / filetype
+fp_model2 = Ldir['roms_out'] / model2 / ('f'+date) / filetype
+ds_model1 = xr.open_dataset(fp_model1)
+ds_model2 = xr.open_dataset(fp_model2)
 
-# ###################################################################
-# ##                     Calculate differences                     ##  
-# ################################################################### 
+
+###################################################################
+##                     Calculate differences                     ##  
+################################################################### 
 
 for vn in vns:
 
-    # get coordinates for pcolormesh
-    if vn == 'u':
-        px, py = pfun.get_plon_plat(lon_u,lat_u)
-    elif vn == 'v':
-        px, py = pfun.get_plon_plat(lon_v,lat_v)
+    # Get data, and get rid of ocean_time dim (because this is at a single time)
+    v1 = ds_model1[vn].squeeze()
+    v2 = ds_model2[vn].squeeze()
+
+    # Identify vertical and horizontal dims
+    if 's_rho' in v1.dims:
+        vert_dim = 's_rho'
+    elif 's_w' in v1.dims:
+        vert_dim = 's_w'
     else:
-        px, py = pfun.get_plon_plat(lon,lat)
+        raise ValueError(f"No vertical dimension found for {vn}")
 
-    # sum nitrate and ammonium for DIN
-    if vn == 'DIN':
-        vn_name = 'NO3'
-        vn_no3 = 'NO3'
-        vn_nh4 = 'NH4'
-        # vmin = -5
-        # vmax =  5
-        vmin = -0.001
-        vmax =  0.001
-    elif vn == 'u' or vn == 'v':
-        vn_name = vn
-        vmin = -0.00001#-0.01
-        vmax =  0.00001#0.01
-    elif vn == 'oxygen':
-        vn_name = vn
-        vmin = -0.001
-        vmax =  0.001
-    elif vn == 'salt':
-        vn_name = vn
-        vmin = -0.00001
-        vmax =  0.00001
-    elif vn == 'temp':
-        vn_name = vn
-        vmin = -0.00001
-        vmax =  0.00001
+    if ('eta_rho' in v1.dims) and ('xi_rho' in v1.dims):
+        h_dims = ('eta_rho', 'xi_rho')
+        lon = ds_model1['lon_rho']
+        lat = ds_model1['lat_rho']
+    elif ('eta_u' in v1.dims) and ('xi_u' in v1.dims):
+        h_dims = ('eta_u', 'xi_u')
+        lon = ds_model1['lon_u']
+        lat = ds_model1['lat_u']
+    elif ('eta_v' in v1.dims) and ('xi_v' in v1.dims):
+        h_dims = ('eta_v', 'xi_v')
+        lon = ds_model1['lon_v']
+        lat = ds_model1['lat_v']
+    elif ('eta_psi' in v1.dims) and ('xi_psi' in v1.dims):
+        h_dims = ('eta_psi', 'xi_psi')
+        lon = ds_model1['lon_psi']
+        lat = ds_model1['lat_psi']
     else:
-        print('vmin and vmax not provided for '+ vn)
+        raise ValueError(f"Unknown grid type for variable '{vn}'.")
+    
+    print(list(ds_model1.keys()))
 
-    # scale variable
-    scale =  pinfo.fac_dict[vn_name]
+    # Compute strict difference (True where different, False where equal)
+    diff_mask = (v1 != v2) | (v1.isnull() != v2.isnull())
+    diff_2d = diff_mask.any(dim=vert_dim)
 
-    # Get hindcast data
-    if vn == 'DIN':
-        surf_no3_hindcast = ds_hindcast[vn_no3][0,slev_surf,:,:].values
-        surf_nh4_hindcast = ds_hindcast[vn_nh4][0,slev_surf,:,:].values
-        bott_no3_hindcast = ds_hindcast[vn_no3][0,slev_bott,:,:].values
-        bott_nh4_hindcast = ds_hindcast[vn_nh4][0,slev_bott,:,:].values
-    else:
-        surf_vn_hindcast = ds_hindcast[vn][0,slev_surf,:,:].values
-        bott_vn_hindcast = ds_hindcast[vn][0,slev_bott,:,:].values
+    # Mask out locations where both are NaN at all depths
+    both_nan = v1.isnull() & v2.isnull()
+    diff_2d = diff_2d.where(~both_nan.any(dim=vert_dim))
 
-    # Get noN data
-    if vn == 'DIN':
-        surf_no3_noN = ds_noN[vn_no3][0,slev_surf,:,:].values
-        surf_nh4_noN = ds_noN[vn_nh4][0,slev_surf,:,:].values
-        bott_no3_noN = ds_noN[vn_no3][0,slev_bott,:,:].values
-        bott_nh4_noN = ds_noN[vn_nh4][0,slev_bott,:,:].values
-    else:
-        surf_vn_noN = ds_noN[vn][0,slev_surf,:,:].values
-        bott_vn_noN = ds_noN[vn][0,slev_bott,:,:].values
+    # Convert to numeric: 0 = same, 1 = diff, NaN = both missing
+    plot_data = diff_2d.astype(float)
 
-    # Calculate DIN
-    if vn == 'DIN':
-        surf_DIN_hindcast = surf_no3_hindcast + surf_nh4_hindcast
-        bott_DIN_hindcast = bott_no3_hindcast + bott_nh4_hindcast
-        surf_DIN_noN = surf_no3_noN + surf_nh4_noN
-        bott_DIN_noN = bott_no3_noN + bott_nh4_noN
+    # Set up colormap: black = 0, lightblue = 1, white = NaN
+    cmap = mcolors.ListedColormap(['lightblue', 'black'])
+    bounds = [-0.5, 0.5, 1.5]
+    norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
-    # Get difference
-    if vn == 'DIN':
-        surf_diff = (surf_DIN_hindcast - surf_DIN_noN) * scale
-        bott_diff = (bott_DIN_hindcast - bott_DIN_noN) * scale
-    else:
-        surf_diff = (surf_vn_hindcast - surf_vn_noN) * scale
-        bott_diff = (bott_vn_hindcast - bott_vn_noN) * scale
-
-    # ###################################################################
-    # ##                  Plotting and saving figure                   ##  
-    # ################################################################### 
-
-    plt.close('all')
+    ###################################################################
+    ##                          Plotting                             ##  
+    ################################################################### 
 
     # Initialize figure
-    fig = plt.figure(figsize=(12,9)) # 15,11 for Puget sound and 18,8 for Salish Sea
+    fig, ax = plt.subplots(1,1, figsize=(10, 8))
+
+    # plot
+    map = plt.pcolormesh(lon, lat, plot_data, cmap=cmap, norm=norm, shading='auto')
+    cbar = plt.colorbar(map, ticks=[0, 1])
+    cbar.ax.set_yticklabels(['No differences', 'Differences'],fontsize=12)
+
+    # format figure
+    plt.suptitle('Locations where {} differs between runs at any s-level'.format(vn),fontsize=14,fontweight='bold')
+    ax.set_title('{} and {} ({})'.format(model1,model2, filetype))
+    plt.xlabel('Lon', fontsize=12)
+    plt.ylabel('Lat', fontsize=12)
+    pfun.dar(ax)
+    ax.set_ylim([46.5,50])
+    ax.set_xlim([-126.5,-122])
     plt.tight_layout()
-
-    subplotnums = [121,122]
-    stexts = [stext_surf,stext_bott]
-    values = [surf_diff,bott_diff]
-
-    newcmap = cmocean.cm.balance_r
-
-    # loop through all of the plots we need to make
-    for i,stext in enumerate(stexts):
-
-        # add water/land
-        ax = fig.add_subplot(subplotnums[i])
-
-        # plot values
-        cs = ax.pcolormesh(px,py,values[i],vmin=vmin, vmax=vmax, cmap=newcmap)
-        cbar = fig.colorbar(cs)
-        cbar.ax.tick_params(labelsize=14)
-        cbar.outline.set_visible(False)
-        # format figure
-        # ax.set_xlim([xmin,xmax])
-        # ax.set_ylim([ymin,ymax])
-        ax.set_yticklabels([])
-        ax.set_xticklabels([])
-        ax.axis('off')
-        # pfun.add_coast(ax, color='k')
-        pfun.dar(ax)
-        ax.set_title(vn + ' difference at ' + stext + pinfo.units_dict[vn_name], fontsize=16)
-        fig.suptitle('{} minus {}}\n'.format(model1,model2) + date + ' ocean_avg_0001',
-                    fontsize=18, fontweight='bold')
-
-        # add 10 km bar
-        lat0 = 47
-        lon0 = -122.4
-        lat1 = lat0
-        lon1 = -122.27
-        distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
-        x_dist_km = round(distances_m[0]/1000)
-        # ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=6)
-        # ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
-        #         horizontalalignment='center', fontsize=15)
-        
-        # # add WWTP locations
-        # ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
-        #         facecolors='none',edgecolors='k')
-
-    # Generate plot
-    plt.tight_layout
-    plt.subplots_adjust(wspace=0.05)
-    plt.savefig(out_dir / (date+'_'+vn+'_diff.png'))
+    plt.show()
