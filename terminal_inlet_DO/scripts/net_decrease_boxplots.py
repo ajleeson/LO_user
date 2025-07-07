@@ -79,9 +79,11 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
     for element in ['whiskers', 'medians', 'caps']:
             plt.setp(bplot[element], color='darkgray')
 
-    # add mean of all inlets
-    ax.axhline(y=np.nanmean(storage_mean), xmin=-0.5, xmax=1.05,color='deepskyblue',linewidth=2,
+    # add mean and median of all inlets
+    ax.axhline(y=np.nanmean(storage_mean), xmin=-0.5, xmax=1.05,color='deepskyblue',linewidth=3,
             label='mean: {} mg/L per day'.format(round(np.nanmean(storage_mean),3)))
+    ax.axhline(y=np.nanmedian(storage_mean), xmin=-0.5, xmax=1.05,color='black',linewidth=2,linestyle='--',
+            label='median: {} mg/L per day'.format(round(np.nanmedian(storage_mean),3)))
     ax.legend(loc='best',frameon=False,fontsize=12)
 
     # condudct anova test

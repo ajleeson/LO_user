@@ -71,11 +71,11 @@ def plot_monthly_means(MONTHLYmean_DOdeep,
     cbar.outline.set_visible(False)
 
     #########################################################
-    ##               Panel (c): Crescent Bay               ##
+    ##               Panel (c): Crescent Harbor               ##
     #########################################################
 
     # format figure 
-    ax[2].set_title('(c) Crescent Bay', size=14, loc='left', fontweight='bold')
+    ax[2].set_title('(c) Crescent Harbor', size=14, loc='left', fontweight='bold')
     ax[2].tick_params(axis='x', labelrotation=30)
     ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
     ax[2].tick_params(axis='both', labelsize=12)
