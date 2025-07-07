@@ -23,6 +23,7 @@ import multiple_regression
 
 import TEST1LAYER_net_decrease_boxplots
 import d_dt_DO_timeseries
+import TEST_STATISTICS
 
 plt.close('all')
 
@@ -192,3 +193,7 @@ d_dt_DO_timeseries.d_dt_DO_timeseries(DOconcen_dict,
                         inlets,minday,maxday,
                         dimensions_dict,deeplay_dict,
                         shallowlay_dict,)
+
+TEST_STATISTICS.test_statistics(inlets,shallowlay_dict,deeplay_dict,
+                    dates_local_hrly,dates_local_daily,hyp_inlets,
+                    minday,maxday,kmolm3sec_to_mgLday)
