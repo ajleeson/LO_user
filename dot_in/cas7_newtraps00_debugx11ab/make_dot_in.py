@@ -74,8 +74,7 @@ else:
 
 D['ndtfast'] = 20
     
-# his_interval = 86400 # seconds to define and write to history files (also averages and diagnostics)
-his_interval = dtsec
+his_interval = 86400 # seconds to define and write to history files (also averages and diagnostics)
 rst_interval = 0 # days between writing to the restart file (e.g. 1)
 
 # Find which forcings to look for (search the csv file in this directory).
@@ -139,10 +138,8 @@ D['dt'] = dt
 
 if Ldir['short_roms']:
     print(' --- running short roms')
-    # his_interval = 10 * dtsec
-    # D['ntimes'] = int(his_interval/dtsec) # run for his_interval
-    his_interval = dtsec
-    D['ntimes'] = 10 # run for ten time steps
+    his_interval = 10 * dtsec
+    D['ntimes'] = int(his_interval/dtsec) # run for his_interval
 else:
     D['ntimes'] = int(days_to_run*86400/dtsec)
 
