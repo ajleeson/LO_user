@@ -58,6 +58,7 @@ d1 = '2012.10.07'
 
 list_type = 'hourly' #'snapshot', 'daily', 'hourly ', 'allhours'
 his_num = 26# 11
+timestep_interval = 60
 
 # ----------------------------------------------------------------
 
@@ -217,7 +218,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     plt.ylabel('Lat', fontsize=12)
     pfun.dar(ax)
 
-    ax.text(0.7, 0.95, 'Timestep {}'.format(i*20), color='black', fontweight='bold', fontsize=12,
+    ax.text(0.7, 0.95, 'Timestep {}'.format(i*timestep_interval), color='black', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
 
     # # Salish Sea
@@ -361,7 +362,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
                     fontsize=14, fontweight='bold')
         
         if j == 1:
-            ax.text(0.6, 0.1, 'Timestep {}'.format(i*20), color='black', fontweight='bold', fontsize=12,
+            ax.text(0.6, 0.1, 'Timestep {}'.format(i*timestep_interval), color='black', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
         
     # prepare a directory for results
