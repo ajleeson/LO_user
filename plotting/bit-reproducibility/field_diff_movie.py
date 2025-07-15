@@ -74,6 +74,12 @@ fn_list_noWWTP = Lfun.get_fn_list(list_type, Ldir_noWWTP,
 fn_list_WWTP[0] = Ldir['roms_out'] / 'cas7_ats00_debugx11ab' / 'f2012.10.07' / 'ocean_his_0001.nc'
 fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_ats00noWP_debugx11ab' / 'f2012.10.07' / 'ocean_his_0001.nc'
 
+# add additional files
+if his_num > 25:
+    for i in np.linspace(25,his_num,his_num-25+1):
+        fn_list_WWTP.append(Ldir['roms_out'] / 'cas7_ats00_debugx11ab' / 'f2012.10.07' / 'ocean_his_00' +str(i) + '.nc')
+        fn_list_noWWTP.append(Ldir['roms_out'] / 'cas7_ats00noWP_debugx11ab' / 'f2012.10.07' / 'ocean_his_00' +str(i) + '.nc')
+
 # vns = ['NH4'] #['NH4','NO3','oxygen','u','v','w','salt','temp'] # u, v, w, NO3, NH4 oxygen
 vn = 'NH4' # one variable at a time
 date = '2012.10.07'
