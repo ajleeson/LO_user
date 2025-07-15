@@ -139,11 +139,11 @@ D['dt'] = dt
 
 if Ldir['short_roms']:
     print(' --- running short roms')
-    his_interval = 10 * dtsec
+    his_interval = 20 * dtsec
     # D['ntimes'] = int(his_interval/dtsec) # run for his_interval
     # his_interval = dtsec
     # D['ntimes'] = 10 # run for ten time steps
-    D['ntimes'] = 200 # run for 200 time steps
+    D['ntimes'] = 500 # run for 500 time steps
 else:
     D['ntimes'] = int(days_to_run*86400/dtsec)
 
