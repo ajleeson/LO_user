@@ -291,8 +291,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     # set bounds
     if vn in ['NO3','NH4']:
         vn_name = vn
-        vmin = -0.001
-        vmax =  0.001
+        vmin = -0.00001
+        vmax =  0.00001
     elif vn in ['u','v','w']:
         vn_name = vn
         vmin = -0.00001#-0.01
