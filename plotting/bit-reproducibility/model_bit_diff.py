@@ -3,8 +3,7 @@ Plot difference between surface/bottom values of specified state variable.
 Calculates difference between two different runs
 (Written to compare long model1 to N-less run)
 
-From ipython: run model_field_diff
-Figures saved in LO_output/AL_custom_plots/[vn]_diff.png
+From ipython: run model_bit_diff
 
 """
 
@@ -54,8 +53,8 @@ plt.close('all')
 vns = ['NH4'] #['NH4','NO3','oxygen','u','v','w','salt','temp'] # u, v, w, NO3, NH4 oxygen
 date = '2012.10.07'
 
-filetype = 'ocean_avg_0001.nc'
-# filetype = 'ocean_his_0002.nc'
+# filetype = 'ocean_avg_0001.nc'
+filetype = 'ocean_his_0002.nc'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
@@ -253,6 +252,7 @@ for vn in vns:
     subplotnums = [121,122]
     stexts = ['Surface','Bottom']
     values = [surf_diff,bott_diff]
+    # values = [surf_vn_model1,bott_vn_model1]
 
     newcmap = cmocean.tools.crop_by_percent(cmocean.cm.balance_r, 20, which='both', N=None)
 
@@ -264,6 +264,7 @@ for vn in vns:
 
         # plot values
         cs = ax.pcolormesh(lon, lat,values[i],vmin=vmin, vmax=vmax, cmap=newcmap)
+        # cs = ax.pcolormesh(lon, lat,values[i],vmin=0, vmax=0.005)#, cmap=newcmap)
         cbar = fig.colorbar(cs)
         cbar.ax.tick_params(labelsize=14)
         cbar.outline.set_visible(False)
@@ -281,3 +282,85 @@ for vn in vns:
         ax.set_title(vn + ' difference at ' + stext + pinfo.units_dict[vn_name], fontsize=16)
         fig.suptitle('{} minus {}\n'.format(model1,model2) + date + ' {}'.format(filetype),
                     fontsize=14, fontweight='bold')
+        
+
+###################################################################
+##                    Property-property plot                     ##  
+################################################################### 
+
+for vn in vns:
+
+    # West Point position
+    lat0, lon0 = WP_lat, WP_lon
+
+    # Compute residual and squeeze ocean_time
+    res = ds_model1[vn].squeeze() - ds_model2[vn].squeeze()  # shape (s_rho, eta_rho, xi_rho)
+
+    # Load lat/lon on rho grid (shape (eta_rho, xi_rho))
+    lat = ds_model1['lat_rho'].values
+    lon = ds_model1['lon_rho'].values
+
+    # get residual data: (s_rho, eta_rho, xi_rho)
+    res_data = res.values  # (30, 1302, 663)
+
+    # Broadcast lat/lon to match res vertical dimension for flattening
+    # lat and lon are 2D (eta_rho, xi_rho)
+    # We want 3D (s_rho, eta_rho, xi_rho) by repeating lat/lon vertically
+    lat3d = np.broadcast_to(lat, res_data.shape)
+    lon3d = np.broadcast_to(lon, res_data.shape)
+
+    # Flatten all arrays to 1D for scatter plot
+    flat_res = res_data.flatten()
+    flat_lat = lat3d.flatten()
+    flat_lon = lon3d.flatten()
+
+    # Mask to keep only finite, nonzero residuals
+    valid = np.isfinite(flat_res) & (flat_res != 0)
+    flat_res = flat_res[valid]
+    flat_lat = flat_lat[valid]
+    flat_lon = flat_lon[valid]
+
+    # Get distance from West Point
+    x, y = zfun.ll2xy(flat_lon, flat_lat, lon0, lat0)
+    distance = np.sqrt(x**2 + y**2) / 1000  # convert to km
+
+    # convert to proper units
+    scale =  pinfo.fac_dict[vn]
+    residuals = flat_res * scale
+    # get positive and negative residual values, and take absolute value
+    pos_residuals = flat_res[flat_res > 0] * scale
+    pos_distances = distance[flat_res > 0] * scale
+    neg_residuals = flat_res[flat_res < 0] * scale * -1
+    neg_distances = distance[flat_res < 0] * scale
+
+    # # get mean residual value
+    # mean_res = np.nanmean(flat_res) * scale
+
+    # Plot
+    fig, axes = plt.subplots(2,1, figsize=(8, 8),sharex=True)
+    ax = axes.ravel()
+
+    # Residual
+    ax[0].scatter(distance, residuals, s=5, alpha=0.3,color='black',zorder=5)
+    # format figure
+    ax[0].set_ylabel(f'{vn} residual {pinfo.units_dict[vn]}\n(West Point - no West Point)',fontsize=12)
+    ax[0].grid(True,color='gainsboro')
+
+
+    # Absolute value and log transform
+    ax[1].scatter(pos_distances, pos_residuals, s=5, alpha=0.3,color='royalblue',
+                  label='Positive Residual',zorder=5)
+    ax[1].scatter(neg_distances, neg_residuals, s=5, alpha=0.3,color='crimson',
+                  label='Negative Residual',zorder=5)
+    # format figure
+    ax[1].set_yscale('log')
+    ax[1].set_xlim([0,25])
+    ax[1].set_xlabel(f'Distance from West Point [km]',fontsize=12)
+    ax[1].set_ylabel(f'{vn} residual {pinfo.units_dict[vn]}\n(West Point - no West Point)',fontsize=12)
+    ax[1].grid(True,color='gainsboro')
+    ax[1].legend(loc='upper right',fontsize=12)
+
+
+    plt.suptitle(f'Residuals of {vn} vs. distance from West Point',fontsize=14)
+    plt.tight_layout()
+    plt.show()

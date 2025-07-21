@@ -55,6 +55,9 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
         storage_all.append(list(storage_daily))
         storage_mean.append(np.nanmean(storage_daily))
 
+        print(station)
+        print(storage_mean[i])
+
 
     # create boxplot
     ax.axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')
