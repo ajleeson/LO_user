@@ -227,135 +227,135 @@ def test_statistics(inlets,shallowlay_dict,deeplay_dict,
         else:
             continue
 
-    print('\n=====================Welch\'s ANOVA=======================\n')
+    # print('\n=====================Welch\'s ANOVA=======================\n')
 
-    print('\nNull hypothesis: all inlets have same net decrease rate')
-    print('p < 0.05 means we reject null hypothesis\n\n')
+    # print('\nNull hypothesis: all inlets have same net decrease rate')
+    # print('p < 0.05 means we reject null hypothesis\n\n')
 
-    # initialize lists to store net decrease rates
-    storage_all = []
-    storage_mean = []
+    # # initialize lists to store net decrease rates
+    # storage_all = []
+    # storage_mean = []
 
-    # mean_depth_sorted = dict(sorted(dimensions_dict.items(), key=lambda item: item[1]))
-    # print(mean_depth_sorted)
+    # # mean_depth_sorted = dict(sorted(dimensions_dict.items(), key=lambda item: item[1]))
+    # # print(mean_depth_sorted)
 
-    stations_sorted = ['sinclair','quartermaster','dyes',
-                    'crescent','penn','case',
-                    'lynchcove','carr','holmes',
-                    'portsusan','elliot','commencement',
-                    'dabob']
+    # stations_sorted = ['sinclair','quartermaster','dyes',
+    #                 'crescent','penn','case',
+    #                 'lynchcove','carr','holmes',
+    #                 'portsusan','elliot','commencement',
+    #                 'dabob']
 
-    for i,station in enumerate(stations_sorted):
+    # for i,station in enumerate(stations_sorted):
         
-        # get daily net decrease rate
-        storage_daily =  deeplay_dict[station]['d/dt(DO)'][minday:maxday]/(deeplay_dict[station]['Volume'][minday:maxday]) # kmol O2 /s /m3
+    #     # get daily net decrease rate
+    #     storage_daily =  deeplay_dict[station]['d/dt(DO)'][minday:maxday]/(deeplay_dict[station]['Volume'][minday:maxday]) # kmol O2 /s /m3
         
-        # convert to mg/L per day
-        storage_daily = storage_daily.values * 1000 * 32 * 60 * 60 * 24
+    #     # convert to mg/L per day
+    #     storage_daily = storage_daily.values * 1000 * 32 * 60 * 60 * 24
 
-        # # subsample to weekly values
-        # storage_weekly = storage_daily[::7]
+    #     # # subsample to weekly values
+    #     # storage_weekly = storage_daily[::7]
 
-        # # subsample to every three days
-        # storage_daily = storage_daily[::3]
+    #     # # subsample to every three days
+    #     # storage_daily = storage_daily[::3]
 
-        # # Aggregate to weekly means
-        # # Assume storage_daily is your 1D array with 61 daily values
-        # n = len(storage_daily)
-        # block_size = 3
-        # # Truncate to full weeks only (optional, drops leftover days)
-        # n_blocks = n // block_size
-        # trimmed = storage_daily[:n_blocks * block_size]
-        # # Reshape into (weeks, days_per_week) and compute means
-        # storage_daily = trimmed.reshape(n_blocks, block_size).mean(axis=1)
+    #     # # Aggregate to weekly means
+    #     # # Assume storage_daily is your 1D array with 61 daily values
+    #     # n = len(storage_daily)
+    #     # block_size = 3
+    #     # # Truncate to full weeks only (optional, drops leftover days)
+    #     # n_blocks = n // block_size
+    #     # trimmed = storage_daily[:n_blocks * block_size]
+    #     # # Reshape into (weeks, days_per_week) and compute means
+    #     # storage_daily = trimmed.reshape(n_blocks, block_size).mean(axis=1)
 
-        # add to array
-        storage_all.append(list(storage_daily))
-        storage_mean.append(np.nanmean(storage_daily))
-        # storage_all.append(list(storage_weekly))
-        # storage_mean.append(np.nanmean(storage_weekly))
+    #     # add to array
+    #     storage_all.append(list(storage_daily))
+    #     storage_mean.append(np.nanmean(storage_daily))
+    #     # storage_all.append(list(storage_weekly))
+    #     # storage_mean.append(np.nanmean(storage_weekly))
 
-    # loop through all inlets adn check for normality
-    print('    First checking that daily d/dt(DO) rates of inlets are normally distributed')
-    print('      Shapiro-Wilk test (p < 0.05 means data are NOT normally distributed)')
-    for i,inlet_storage in enumerate(storage_all):
-        stat,shapiro_test_daily = shapiro(inlet_storage)
-        print('        p = {} for {}'.format(round(shapiro_test_daily,3),stations_sorted[i]))
-    print('        => Not all inlets have normally distributed daily d/dt(DO) rates!\n')
+    # # loop through all inlets adn check for normality
+    # print('    First checking that daily d/dt(DO) rates of inlets are normally distributed')
+    # print('      Shapiro-Wilk test (p < 0.05 means data are NOT normally distributed)')
+    # for i,inlet_storage in enumerate(storage_all):
+    #     stat,shapiro_test_daily = shapiro(inlet_storage)
+    #     print('        p = {} for {}'.format(round(shapiro_test_daily,3),stations_sorted[i]))
+    # print('        => Not all inlets have normally distributed daily d/dt(DO) rates!\n')
 
-    print('Kruskal-Wallis H-test of all thirteen inlets (weekly subsampling to reduce autocorrelation)')
-    stat,kruskal_p = kruskal(storage_all[0],
-                             storage_all[1],
-                             storage_all[2],
-                             storage_all[3],
-                             storage_all[4],
-                             storage_all[5],
-                             storage_all[6],
-                             storage_all[7],
-                             storage_all[8],
-                             storage_all[9],
-                             storage_all[10],
-                             storage_all[11],
-                             storage_all[12])
-    print('    p = {}'.format(kruskal_p))
-    print('\n')
-    
-
-    print('---------------------------')
-    print('Checking autocorrelation of weekly data')
-    
-    print(len(storage_all))
-    print(len(storage_all[0]))
-    
-    fig, axes = plt.subplots(3,5,figsize=(10,8),sharex=True,sharey=True)
-    fig.supylabel('Autocorrelation')
-    fig.supxlabel('Lag (days)')
-    fig.suptitle('Autocorrelation of daily d/dt(DO) during drawdown period')
-    ax = axes.ravel()
-    for i,inlet_storage in enumerate(storage_all):
-        # fig, ax = plt.subplots(1,1,figsize = (6,6))
-        # pd.plotting.lag_plot(pd.Series(inlet_storage), lag=1)
-        plot_acf(np.asarray(inlet_storage), title=stations_sorted[i], ax=ax[i])
-        # ax.set_title(stations_sorted[i])
-
-
-    print('---------------------------')
-    print('Permutation test')
-
-    # # condudct anova test
-    # flat_storage = [x for xs in storage_all for x in xs]
-    # repeats = maxday - minday
-    # repeats = len(storage_all[0]) # for subsampled
-    # df = pd.DataFrame({'storage':flat_storage,
-    #                    'inlet': np.repeat(stations_sorted, repeats=repeats)})
-    
-    # # Compute observed F-statistic
-    # obs = pg.anova(data=df, dv='storage', between='inlet', detailed=True)
-    # obs_F = obs.loc[0, 'F']
-    # n_perm = 10000
-    # perm_Fs = np.zeros(n_perm)
-    # for i in range(n_perm):
-    #     shuffled_df = df.copy()
-    #     shuffled_df['inlet'] = np.random.permutation(shuffled_df['inlet'])  # row-wise shuffle
-    #     result = pg.anova(data=shuffled_df, dv='storage', between='inlet', detailed=True)
-    #     perm_Fs[i] = result.loc[0, 'F']
-    # # Two-sided permutation p-value
-    # p_perm = np.mean(perm_Fs >= obs_F)
-    # print(f'Observed F: {obs_F:.3f}')
-    # print(f'Permutation-based p-value: {p_perm:.4f}')
-    
-
-    # pingu = pg.welch_anova(data=df, dv='storage', between='inlet')
-    # print('Welch\'s ANOVA test of all thirteen inlets')
-    # print('    p = {:.2e}'.format((pingu['p-unc'].values[0])))
+    # print('Kruskal-Wallis H-test of all thirteen inlets (weekly subsampling to reduce autocorrelation)')
+    # stat,kruskal_p = kruskal(storage_all[0],
+    #                          storage_all[1],
+    #                          storage_all[2],
+    #                          storage_all[3],
+    #                          storage_all[4],
+    #                          storage_all[5],
+    #                          storage_all[6],
+    #                          storage_all[7],
+    #                          storage_all[8],
+    #                          storage_all[9],
+    #                          storage_all[10],
+    #                          storage_all[11],
+    #                          storage_all[12])
+    # print('    p = {}'.format(kruskal_p))
     # print('\n')
+    
 
-    # # remove Dabob Bay from analysis and repeat ANOVA
-    # df_nodabob = df[df['inlet'] != 'dabob']
-    # pingu_nodabob = pg.welch_anova(data=df_nodabob, dv='storage', between='inlet')
-    # print('OMITTING DABOB BAY: Welch\'s ANOVA test of all other twelve inlets')
-    # print('    p = {}'.format(round(pingu_nodabob['p-unc'].values[0],3)))
-    # print('\n')
+    # print('---------------------------')
+    # print('Checking autocorrelation of weekly data')
+    
+    # print(len(storage_all))
+    # print(len(storage_all[0]))
+    
+    # fig, axes = plt.subplots(3,5,figsize=(10,8),sharex=True,sharey=True)
+    # fig.supylabel('Autocorrelation')
+    # fig.supxlabel('Lag (days)')
+    # fig.suptitle('Autocorrelation of daily d/dt(DO) during drawdown period')
+    # ax = axes.ravel()
+    # for i,inlet_storage in enumerate(storage_all):
+    #     # fig, ax = plt.subplots(1,1,figsize = (6,6))
+    #     # pd.plotting.lag_plot(pd.Series(inlet_storage), lag=1)
+    #     plot_acf(np.asarray(inlet_storage), title=stations_sorted[i], ax=ax[i])
+    #     # ax.set_title(stations_sorted[i])
 
 
-    return
+    # print('---------------------------')
+    # print('Permutation test')
+
+    # # # condudct anova test
+    # # flat_storage = [x for xs in storage_all for x in xs]
+    # # repeats = maxday - minday
+    # # repeats = len(storage_all[0]) # for subsampled
+    # # df = pd.DataFrame({'storage':flat_storage,
+    # #                    'inlet': np.repeat(stations_sorted, repeats=repeats)})
+    
+    # # # Compute observed F-statistic
+    # # obs = pg.anova(data=df, dv='storage', between='inlet', detailed=True)
+    # # obs_F = obs.loc[0, 'F']
+    # # n_perm = 10000
+    # # perm_Fs = np.zeros(n_perm)
+    # # for i in range(n_perm):
+    # #     shuffled_df = df.copy()
+    # #     shuffled_df['inlet'] = np.random.permutation(shuffled_df['inlet'])  # row-wise shuffle
+    # #     result = pg.anova(data=shuffled_df, dv='storage', between='inlet', detailed=True)
+    # #     perm_Fs[i] = result.loc[0, 'F']
+    # # # Two-sided permutation p-value
+    # # p_perm = np.mean(perm_Fs >= obs_F)
+    # # print(f'Observed F: {obs_F:.3f}')
+    # # print(f'Permutation-based p-value: {p_perm:.4f}')
+    
+
+    # # pingu = pg.welch_anova(data=df, dv='storage', between='inlet')
+    # # print('Welch\'s ANOVA test of all thirteen inlets')
+    # # print('    p = {:.2e}'.format((pingu['p-unc'].values[0])))
+    # # print('\n')
+
+    # # # remove Dabob Bay from analysis and repeat ANOVA
+    # # df_nodabob = df[df['inlet'] != 'dabob']
+    # # pingu_nodabob = pg.welch_anova(data=df_nodabob, dv='storage', between='inlet')
+    # # print('OMITTING DABOB BAY: Welch\'s ANOVA test of all other twelve inlets')
+    # # print('    p = {}'.format(round(pingu_nodabob['p-unc'].values[0],3)))
+    # # print('\n')
+
+
+    # return

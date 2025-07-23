@@ -1,7 +1,7 @@
 """
 Plots example budget for Lynch Cove
 and plots barcharts of budget terms for hypoxic and oxygenated inlets
-during the drawdown period (mid-Jul through mid-Aug).
+during the drawdown period (June 15 through August 15).
 
 Also conducts Welch's t-test to test whether biological drawdown rate
 or net decrease rates are different between hypoxic and oxygenated inlets.
@@ -9,6 +9,8 @@ or net decrease rates are different between hypoxic and oxygenated inlets.
 import numpy as np
 import matplotlib.pylab as plt
 import matplotlib.dates as mdates
+from scipy.stats import shapiro
+from scipy.stats import bartlett
 from scipy.stats import ttest_ind
 import helper_functions
 
@@ -174,19 +176,45 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
                 else:
                     oxy_dict[attribute] = [avg]
 
-    # t-test
-    print('\n=====================Welch\'s t-test=======================\n')
-    print('p < 0.05 means we reject null hypothesis\n\n')
+    # t-test for d/dt(DO)
+    print('\n=============================================================')
+    print('=================Welch\'s t-test for d/dt(DO)=================')
+    print('=============================================================\n')
     for attribute in oxy_dict:
         if attribute == 'd/dt(DO)':
-            print('Null hypothesis: d/dt(DO) of hypoxic and oxygenated inlets is the same')
-            print('    alpha = 0.05')
             a = oxy_dict[attribute]
             b = hyp_dict[attribute]
+            # Perform Shapiro-Wilk test
+            print(' 1. Check that inlet-level mean d/dt(DO) rates of oxygenated')
+            print('    and hypoxic groups are normally distributed')
+            print('      Shapiro-Wilk test (p < 0.05 means data are NOT normally distributed)\n')
+            stat,shapiro_test_oxy_p = shapiro(a)
+            stat,shapiro_test_hyp_p = shapiro(b)
+            print('        p = {} for oxygenated inlets'.format(round(shapiro_test_oxy_p,3)))
+            print('        p = {} for hypoxic inlets'.format(round(shapiro_test_hyp_p,3)))
+            print('        => Data are normally distributed\n')
+            print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
+            # Perform Bartlett's test
+            print(' 2. Check whether d/dt(DO) rates of oxygenated and hypoxic')
+            print('    inlet groups have similar variances')
+            print('      Bartlett\'s test (p < 0.05 means variances are significantly different)\n')
+            sta,bartlett_p_value = bartlett(a, b)
+            print('        p = {}'.format(round(bartlett_p_value,3)))
+            print('        => Variances are significantly different\n')
+            print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
+            # Conduct Welch's t-test
+            print(' 3. Check whether group-level mean d/dt(DO) rates of oxygenated')
+            print('    and hypoxic groups are statistically similar')
+            print('      Welch\'s t-test')
+            print('      Null hypothesis: d/dt(DO) of hypoxic and oxygenated inlets is the same')
+            print('      p < 0.05 means we reject null hypothesis\n')
             ttest,p_value = ttest_ind(a, b, axis=0, equal_var=False)
-            print('    p = {}'.format(round(p_value,3)))
+            print('        p = {}'.format(round(p_value,3)))
+            print('        => d/dt(DO) of hypoxic and oxygenated inlets are statistically similar\n')
         else:
             continue
+
+
     print('\n')
     for i,dict in enumerate([oxy_dict,hyp_dict]):
     # average all oxygenated and hypoxic inlet rate values
@@ -295,17 +323,82 @@ def budget_barchart(inlets,shallowlay_dict,deeplay_dict,
                 else:
                     oxy_dict[attribute] = [avg]
 
-    # t-test
+    # t-test for Photosynthesis & Consumption
+    print('\n=============================================================')
+    print('=======Welch\'s t-test for Photosynthesis & Consumption=======')
+    print('=============================================================\n')
     for attribute in oxy_dict:
         if attribute == 'Photosynthesis & Consumption':
-            print('Null hypothesis: biological drawdown of hypoxic and oxygenated inlets is the same')
-            print('    alpha = 0.05')
             a = oxy_dict[attribute]
             b = hyp_dict[attribute]
+            # Perform Shapiro-Wilk test
+            print(' 1. Check that inlet-level mean Photosynthesis & Consumption of oxygenated')
+            print('    and hypoxic groups are normally distributed')
+            print('      Shapiro-Wilk test (p < 0.05 means data are NOT normally distributed)\n')
+            stat,shapiro_test_oxy_p = shapiro(a)
+            stat,shapiro_test_hyp_p = shapiro(b)
+            print('        p = {} for oxygenated inlets'.format(round(shapiro_test_oxy_p,3)))
+            print('        p = {} for hypoxic inlets'.format(round(shapiro_test_hyp_p,3)))
+            print('        => Data are normally distributed\n')
+            print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
+            # Perform Bartlett's test
+            print(' 2. Check whether Photosynthesis & Consumption of oxygenated and hypoxic')
+            print('    inlet groups have similar variances')
+            print('      Bartlett\'s test (p < 0.05 means variances are significantly different)\n')
+            sta,bartlett_p_value = bartlett(a, b)
+            print('        p = {}'.format(round(bartlett_p_value,3)))
+            print('        => Variances are significantly different\n')
+            print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
+            # Conduct Welch's t-test
+            print(' 3. Check whether group-level mean Photosynthesis & Consumption of oxygenated')
+            print('    and hypoxic groups are statistically similar')
+            print('      Welch\'s t-test')
+            print('      Null hypothesis: Photosynthesis & Consumption of hypoxic and oxygenated inlets is the same')
+            print('      p < 0.05 means we reject null hypothesis\n')
             ttest,p_value = ttest_ind(a, b, axis=0, equal_var=False)
-            print('    p = {}'.format(round(p_value,3)))
+            print('        p = {}'.format(round(p_value,3)))
+            print('        => Photosynthesis & Consumption of hypoxic and oxygenated inlets are statistically similar\n')
         else:
             continue
+
+    # t-test for Exchange Flow & Vertical
+    print('\n=============================================================')
+    print('=========Welch\'s t-test for Exchange Flow & Vertical=========')
+    print('=============================================================\n')
+    for attribute in oxy_dict:
+        if attribute == 'Exchange Flow & Vertical':
+            a = oxy_dict[attribute]
+            b = hyp_dict[attribute]
+            # Perform Shapiro-Wilk test
+            print(' 1. Check that inlet-level mean Exchange Flow & Vertical of oxygenated')
+            print('    and hypoxic groups are normally distributed')
+            print('      Shapiro-Wilk test (p < 0.05 means data are NOT normally distributed)\n')
+            stat,shapiro_test_oxy_p = shapiro(a)
+            stat,shapiro_test_hyp_p = shapiro(b)
+            print('        p = {} for oxygenated inlets'.format(round(shapiro_test_oxy_p,3)))
+            print('        p = {} for hypoxic inlets'.format(round(shapiro_test_hyp_p,3)))
+            print('        => Data are normally distributed\n')
+            print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
+            # Perform Bartlett's test
+            print(' 2. Check whether Exchange Flow & Vertical of oxygenated and hypoxic')
+            print('    inlet groups have similar variances')
+            print('      Bartlett\'s test (p < 0.05 means variances are significantly different)\n')
+            sta,bartlett_p_value = bartlett(a, b)
+            print('        p = {}'.format(round(bartlett_p_value,3)))
+            print('        => Variances are significantly different\n')
+            print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
+            # Conduct Welch's t-test
+            print(' 3. Check whether group-level mean Exchange Flow & Vertical of oxygenated')
+            print('    and hypoxic groups are statistically similar')
+            print('      Welch\'s t-test')
+            print('      Null hypothesis: Exchange Flow & Vertical of hypoxic and oxygenated inlets is the same')
+            print('      p < 0.05 means we reject null hypothesis\n')
+            ttest,p_value = ttest_ind(a, b, axis=0, equal_var=False)
+            print('        p = {}'.format(round(p_value,3)))
+            print('        => Exchange Flow & Vertical of hypoxic and oxygenated inlets are statistically similar\n')
+        else:
+            continue
+
 
     for i,dict in enumerate([oxy_dict,hyp_dict]):
     # average all oxygenated and hypoxic inlet rate values
