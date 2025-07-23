@@ -7,8 +7,9 @@ import numpy as np
 def budget_error(inlets,shallowlay_dict,deeplay_dict,
                  dimensions_dict,kmolm3sec_to_mgLday):
 
-
-    print('\n=====================Budget Error=======================\n')
+    print('\n=============================================================')
+    print('========================Budget Error=========================')
+    print('=============================================================\n')
 
     # initialize lists
     error_QinDOin_ann_avg = []

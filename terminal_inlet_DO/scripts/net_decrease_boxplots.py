@@ -1,25 +1,14 @@
 """
 Plots boxplots of net decrease of oxygen 
 in all thirteen terminal inlets
-during the drawdown period (mid-Jul through mid-Aug).
-
-Also conducts Welch's ANOVA test to test whether all inlets
-have the same mean net decrease of oxgyen during the
-drawdown period.
+during the drawdown period (June 15 through August 15).
 """
 import numpy as np
 import matplotlib.pylab as plt
-import pandas as pd
-import pingouin as pg
 
 def net_decrease_boxplots(dimensions_dict,deeplay_dict,
                             minday,maxday):
     
-
-    print('\n=====================Welch\'s ANOVA=======================\n')
-
-    print('\nNull hypothesis: all inlets have same net decrease rate')
-    print('p < 0.05 means we reject null hypothesis\n\n')
 
     # initialize figure
     fig, ax = plt.subplots(1,1,figsize = (10,5.5))
@@ -55,9 +44,6 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
         storage_all.append(list(storage_daily))
         storage_mean.append(np.nanmean(storage_daily))
 
-        print(station)
-        print(storage_mean[i])
-
 
     # create boxplot
     ax.axhline(y=0, xmin=-0.5, xmax=1.05,color='silver',linewidth=1,linestyle='--')
@@ -82,29 +68,11 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
     for element in ['whiskers', 'medians', 'caps']:
             plt.setp(bplot[element], color='darkgray')
 
-    # add mean and median of all inlets
+    # add mean of all inlets
     ax.axhline(y=np.nanmean(storage_mean), xmin=-0.5, xmax=1.05,color='deepskyblue',linewidth=3,
             label='mean: {} mg/L per day'.format(round(np.nanmean(storage_mean),3)))
-    ax.axhline(y=np.nanmedian(storage_mean), xmin=-0.5, xmax=1.05,color='black',linewidth=2,linestyle='--',
-            label='median: {} mg/L per day'.format(round(np.nanmedian(storage_mean),3)))
     ax.legend(loc='best',frameon=False,fontsize=12)
 
-    # condudct anova test
-    flat_storage = [x for xs in storage_all for x in xs]
-    repeats = maxday - minday
-    df = pd.DataFrame({'storage':flat_storage,
-                    'inlet': np.repeat(stations_sorted, repeats=repeats)})
-    pingu = pg.welch_anova(data=df, dv='storage', between='inlet')
-    print('Welch\'s ANOVA test of all thirteen inlets')
-    print('    p = {:.2e}'.format((pingu['p-unc'].values[0])))
-    print('\n')
-
-    # remove Dabob Bay from analysis and repeat ANOVA
-    df_nodabob = df[df['inlet'] != 'dabob']
-    pingu_nodabob = pg.welch_anova(data=df_nodabob, dv='storage', between='inlet')
-    print('OMITTING DABOB BAY: Welch\'s ANOVA test of all other twelve inlets')
-    print('    p = {}'.format(round(pingu_nodabob['p-unc'].values[0],3)))
-    print('\n')
 
     plt.tight_layout()
     plt.show()

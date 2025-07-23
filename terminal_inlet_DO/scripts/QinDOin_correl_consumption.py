@@ -9,7 +9,9 @@ from scipy.stats import pearsonr
 
 def correl(inlets,deeplay_dict,minday,maxday,kmolm3sec_to_mgLday):
     
-    print('\n=================Correlation between QinDOin and Consumption===================\n')
+    print('\n=============================================================')
+    print('=========Correlation between QinDOin and Consumption=========')
+    print('=============================================================\n')
 
     print('UPDATE THIS TO INSTEAD BE DOin - DOdeep vs. TFLUSH CORRELATION,\n SINCE I REFERENCE THAT NUMBER IN THE MANUSCRIPT')
 

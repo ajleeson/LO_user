@@ -3,7 +3,7 @@ Main script to process data and generate figures for
 studying drivers of low oxygen in Puget Sound terminal inlets.
 
 Aurora Leeson
-January 2025
+July 2025
 """
 
 import pandas as pd
@@ -15,12 +15,13 @@ import helper_functions
 import get_monthly_means
 import budget_error
 import budget_barchart
-import QinDOin_correl_consumption
 import plot_monthly_means
 import dodeep_hypvol_timeseries
 import net_decrease_boxplots
 import multiple_regression
 
+# DELETE THESE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+import QinDOin_correl_consumption
 import TEST1LAYER_net_decrease_boxplots
 import d_dt_DO_timeseries
 import TEST_STATISTICS
@@ -69,7 +70,7 @@ hyp_inlets = ['penn','case','holmes','portsusan','lynchcove','dabob']
 kmolm3sec_to_mgLday = 1000 * 32 * 60 * 60 * 24
 
 
-# yearday of drawdown period (mid-June through mid-August)
+# yearday of drawdown period (June 15 through August 15)
 minday = 164
 maxday = 225
 
@@ -129,12 +130,6 @@ budget_barchart.budget_barchart(inlets,shallowlay_dict,deeplay_dict,
                     dates_local_hrly,dates_local_daily,hyp_inlets,
                     minday,maxday,kmolm3sec_to_mgLday)
 
-########################################################
-# Correlation of Cons & QinDOin (mid-jun to mid-aug) ##
-########################################################
-
-QinDOin_correl_consumption.correl(inlets,deeplay_dict,minday,maxday,kmolm3sec_to_mgLday)
-
 #########################################################
 ##Plot monthly mean DOdeep, DOin, Tflush, and % hyp vol##
 #########################################################
@@ -159,7 +154,7 @@ dodeep_hypvol_timeseries.dodeep_hypvol_timeseries(MONTHLYmean_DOdeep,
                                                 inlets,minday,maxday)
 
 ##########################################################
-##    Net decrease (mid-July to mid-August) boxplots    ## 
+##        Net decrease (Jun 15 to Aug 15) boxplots      ## 
 ##########################################################
 
 net_decrease_boxplots.net_decrease_boxplots(dimensions_dict,deeplay_dict,
@@ -179,21 +174,28 @@ multiple_regression.multiple_regression(MONTHLYmean_DOdeep,
 
 
 
-##########################################################
-##   TESTING WHY IS D/DT(DO) THE SAME IN ALL INLETS?    ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-##########################################################
+# ##########################################################
+# ##   TESTING WHY IS D/DT(DO) THE SAME IN ALL INLETS?    ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# ##########################################################
+# # DELETE THESE
 
-TEST1LAYER_net_decrease_boxplots.net_decrease_boxplots(dimensions_dict,deeplay_dict,
-                                                        shallowlay_dict,minday,maxday)
+# TEST1LAYER_net_decrease_boxplots.net_decrease_boxplots(dimensions_dict,deeplay_dict,
+#                                                         shallowlay_dict,minday,maxday)
 
 
-d_dt_DO_timeseries.d_dt_DO_timeseries(DOconcen_dict,
-                        dates_local_daily,
-                        dates_local_hrly,
-                        inlets,minday,maxday,
-                        dimensions_dict,deeplay_dict,
-                        shallowlay_dict,)
+# d_dt_DO_timeseries.d_dt_DO_timeseries(DOconcen_dict,
+#                         dates_local_daily,
+#                         dates_local_hrly,
+#                         inlets,minday,maxday,
+#                         dimensions_dict,deeplay_dict,
+#                         shallowlay_dict,)
 
-TEST_STATISTICS.test_statistics(inlets,shallowlay_dict,deeplay_dict,
-                    dates_local_hrly,dates_local_daily,hyp_inlets,
-                    minday,maxday,kmolm3sec_to_mgLday)
+# TEST_STATISTICS.test_statistics(inlets,shallowlay_dict,deeplay_dict,
+#                     dates_local_hrly,dates_local_daily,hyp_inlets,
+#                     minday,maxday,kmolm3sec_to_mgLday)
+
+# ########################################################
+# # Correlation of Cons & QinDOin (mid-jun to mid-aug) ##
+# ########################################################
+
+# QinDOin_correl_consumption.correl(inlets,deeplay_dict,minday,maxday,kmolm3sec_to_mgLday)
