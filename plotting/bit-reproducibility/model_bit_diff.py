@@ -60,9 +60,9 @@ filetype = 'ocean_his_0002.nc'
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
 
-model1 = 'cas7_newtraps00_debugx11ab'
+model1 = 'cas7_newtraps00_debugx11ab_OG'
 # model2 = 'cas7_newtraps01_debugx11ab'
-model2 = 'cas7_newtraps00noWP_debugx11ab'
+model2 = 'cas7_newtraps00noWP_debugx11ab_OG'
 # model1 = 'cas7_newtraps_x11ab'
 # model2 = 'cas7_newtrapsnoN_x11ab'
 
@@ -211,8 +211,8 @@ for vn in vns:
     # set bounds
     if vn in ['NO3','NH4']:
         vn_name = vn
-        vmin = -0.001
-        vmax =  0.001
+        vmin = -1e-6#-0.001
+        vmax =  1e-6#0.001
     elif vn in ['u','v','w']:
         vn_name = vn
         vmin = -0.00001#-0.01
