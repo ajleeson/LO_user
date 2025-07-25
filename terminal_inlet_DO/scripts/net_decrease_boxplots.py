@@ -29,7 +29,7 @@ def net_decrease_boxplots(dimensions_dict,deeplay_dict,
     stations_sorted = ['sinclair','quartermaster','dyes',
                     'crescent','penn','case',
                     'lynchcove','carr','holmes',
-                    'portsusan','elliot','commencement',
+                    'portsusan','elliott','commencement',
                     'dabob']
 
     for i,station in enumerate(stations_sorted):
