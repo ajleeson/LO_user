@@ -8,9 +8,9 @@ import xarray as xr
 
 # old forcing files from Parker's apogee account
 print('Getting original ocean forcing')
-ds_ini = xr.open_dataset('../../LO_output/forcing/cas7/f2012.10.07/ocnG00/ocean_ini_OG.nc')
-ds_bry = xr.open_dataset('../../LO_output/forcing/cas7/f2012.10.07/ocnG00/ocean_bry_OG.nc')
-ds_clm = xr.open_dataset('../../LO_output/forcing/cas7/f2012.10.07/ocnG00/ocean_clm_OG.nc')
+ds_ini = xr.open_dataset('../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye/ocean_ini_OG.nc')
+ds_bry = xr.open_dataset('../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye/ocean_bry_OG.nc')
+ds_clm = xr.open_dataset('../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye/ocean_clm_OG.nc')
 
 ################################################################
 # add dye to the different datasets, using a copy of temp as a reference
@@ -56,7 +56,7 @@ ds_clm['dye_time'].attrs = ds_clm['temp_time'].attrs.copy()
 ################################################################
 # Save .nc files
 print('Saving new files...')
-ds_ini.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00/ocean_ini.nc')
-ds_bry.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00/ocean_bry.nc')
-ds_clm.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00/ocean_clm.nc')
+ds_ini.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye/ocean_ini.nc')
+ds_bry.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye/ocean_bry.nc')
+ds_clm.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye/ocean_clm.nc')
 
