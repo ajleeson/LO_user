@@ -190,10 +190,13 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir,trapsP,trapsD,ctag):
    
     # Add biology (see the lineup near the end of fennel_var.h)
     bvn_list = ['NO3', 'NH4', 'Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo',
-            'TIC', 'TAlk', 'LDeC', 'SDeC', 'Oxyg']
+            'TIC', 'TAlk', 'LDeC', 'SDeC', 'Oxyg', 'dye_01']
     for bvn in bvn_list:
         vn = 'river_' + bvn
-        vinfo = zrfun.get_varinfo(vn)
+        if vn == 'river_dye_01':
+            vinfo = zrfun.get_varinfo('river_dye_')
+        else:
+            vinfo = zrfun.get_varinfo(vn)
         dims = (vinfo['time'],) + ('s_rho', 'river')
         B_mat = np.nan * np.zeros((NT, N, NRIV))
         for rr,rn in enumerate(gri_df.index):
