@@ -58,23 +58,23 @@ days_to_run = 1.0
 
 # time step in seconds (should fit evenly into 3600 sec)
 if Ldir['blow_ups'] == 0:
-    dtsec = 60
-elif Ldir['blow_ups'] == 1:
     dtsec = 50
-elif Ldir['blow_ups'] == 2:
+elif Ldir['blow_ups'] == 1:
     dtsec = 40
-elif Ldir['blow_ups'] == 3:
+elif Ldir['blow_ups'] == 2:
     dtsec = 30
-elif Ldir['blow_ups'] == 4:
+elif Ldir['blow_ups'] == 3:
     dtsec = 25
-elif Ldir['blow_ups'] == 5:
+elif Ldir['blow_ups'] == 4:
     dtsec = 20
+elif Ldir['blow_ups'] == 5:
+    dtsec = 15
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
 
 D['ndtfast'] = 20
     
-his_interval = 86400 # seconds to define and write to history files (also averages and diagnostics)
+his_interval = 3600 # seconds to define and write to history files (also averages and diagnostics)
 rst_interval = 0 # days between writing to the restart file (e.g. 1)
 
 # Find which forcings to look for (search the csv file in this directory).
@@ -105,6 +105,9 @@ for O in list('NSEW'):
 if multi_core:
     if Ldir['np_num'] == 160: # klone cpu-g2 slices (5*32)
         ntilei = '10' # number of tiles in I-direction
+        ntilej = '16' # number of tiles in J-direction
+    elif Ldir['np_num'] == 192: # klone cpu-g2 slices (6*32)
+        ntilei = '12' # number of tiles in I-direction
         ntilej = '16' # number of tiles in J-direction
     elif Ldir['np_num'] == 320: # klone cpu-g2 slices (10*32)
         ntilei = '16' # number of tiles in I-direction
