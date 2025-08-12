@@ -53,13 +53,13 @@ Ldir_dye   = Lfun.Lstart(gridname='cas7', tag='dyetest', ex_name='x11bd')
 fn_list   = Lfun.get_fn_list(list_type, Ldir_dye,
     d0, d1, his_num)[0:his_num:]
 
-fn_list[0] = Ldir['roms_out'] / 'cas7_ats00_debugx11ab' / 'f2012.10.07' / 'ocean_his_0001.nc'
+fn_list[0] = Ldir['roms_out'] / 'cas7_dyetest_x11bd' / 'f2012.10.07' / 'ocean_his_0001.nc'
 
-# add additional files
-if his_num > 25:
-    for i in np.linspace(26,his_num,his_num-26+1):
-        oceanhis = 'ocean_his_00' +str(int(i)) + '.nc'
-        fn_list.append(Ldir['roms_out'] / 'cas7_ats00_debugx11ab' / 'f2012.10.07' / oceanhis)
+# # add additional files
+# if his_num > 25:
+#     for i in np.linspace(26,his_num,his_num-26+1):
+#         oceanhis = 'ocean_his_00' +str(int(i)) + '.nc'
+#         fn_list.append(Ldir['roms_out'] / 'cas7_ats00_debugx11ab' / 'f2012.10.07' / oceanhis)
 
 vn = 'dye_01' # one variable at a time
 date = '2012.10.07'
@@ -164,9 +164,7 @@ for i,fn in enumerate(fn_list):
         ax.scatter(WP_lon,WP_lat,s=80, facecolors='none', edgecolors='deeppink')
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
-        ax.set_title(vn + ' difference at ' + stext + 'kg/m3', fontsize=16)
-        fig.suptitle('{} minus {}\n'.format(model1,model2) + date,
-                    fontsize=14, fontweight='bold')
+        ax.set_title(stext + 'dye concentration [kg/m3]', fontsize=16)
         
         if j == 1:
             ax.text(0.6, 0.1, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
