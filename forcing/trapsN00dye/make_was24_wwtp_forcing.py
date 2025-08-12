@@ -294,9 +294,9 @@ def make_forcing(N,NT,NRIV,NTRIV,NWWTP_moh,dt_ind, yd_ind,ot_vec,Ldir,enable,tra
             for rr,rn in enumerate(gri_df_no_ovrlp.index):
                 for nn in range(N):
                     B_mat[:, nn, rr] = rivfun.get_bio_vec(bvn, rn, yd_ind)
-                # Make West Point have dye output
-                if rn == 'King County West Point WWTP' and bvn in ['dye_01']:
-                    B_mat = 0.1 * np.ones((NT, N, NWWTP))
+                    # Make West Point have dye output
+                    if rn == 'King County West Point WWTP' and bvn in ['dye_01']:
+                        B_mat[:, nn, rr] = 10 * np.ones(len(yd_ind))
             # check for nans
             if np.isnan(B_mat).any():
                 print('Error from traps: nans in B_mat for tiny river ' + vn)
