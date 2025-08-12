@@ -73,10 +73,6 @@ Lfun.make_dir(outdir0)
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
 
-model1 = 'With West Point'
-model2 = 'No West Point'
-
-
 # Get grid data
 G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
 grid_ds = xr.open_dataset(Ldir['data'] / 'grids/cas7/grid.nc')
@@ -122,7 +118,7 @@ for i,fn in enumerate(fn_list):
 
     # set bounds
     vmin = 0
-    vmax = 0.0001
+    vmax = 0.1
 
     # Get model1 data
     surf_val = ds_model1[vn][0,-1,:,:].values
@@ -136,7 +132,7 @@ for i,fn in enumerate(fn_list):
     stexts = ['Surface','Bottom']
     values = [surf_val,bott_val]
 
-    newcmap = cmocean.cm.turbid
+    newcmap = cmocean.cm.matter
 
     # loop through all of the plots we need to make
     for j,stext in enumerate(stexts):
@@ -164,7 +160,7 @@ for i,fn in enumerate(fn_list):
         ax.scatter(WP_lon,WP_lat,s=80, facecolors='none', edgecolors='deeppink')
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
-        ax.set_title(stext + 'dye concentration [kg/m3]', fontsize=16)
+        ax.set_title(stext + ' dye concentration [kg/m3]', fontsize=16)
         
         if j == 1:
             ax.text(0.6, 0.1, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
