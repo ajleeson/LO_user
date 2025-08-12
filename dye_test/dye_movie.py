@@ -19,14 +19,14 @@ from lo_tools import Lfun, zrfun
 from lo_tools import plotting_functions as pfun
 
 import sys
-from pathlib import Path
-pth = Path(__file__).absolute().parent.parent / 'LO' / 'pgrid'
-if str(pth) not in sys.path:
-    sys.path.append(str(pth))
-import gfun_utility as gfu
-import gfun
+# from pathlib import Path
+# pth = Path(__file__).absolute().parent.parent / 'LO' / 'pgrid'
+# if str(pth) not in sys.path:
+#     sys.path.append(str(pth))
+# import gfun_utility as gfu
+# import gfun
 
-Gr = gfun.gstart()
+# Gr = gfun.gstart()
 Ldir = Lfun.Lstart()
 
 plt.close('all')
