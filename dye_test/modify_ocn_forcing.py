@@ -23,24 +23,24 @@ ds_ini['dye_01'].attrs['units'] = 'kg m-3'
 # Ocean boundary conditions
 # North
 dye_time_north = xr.zeros_like(ds_bry['temp_north']).rename({'temp_time': 'dye_time'})
-ds_bry['dye_01_north'] = dye_time_north
-ds_bry['dye_01_north'].attrs['long_name'] = 'Passive tracer dye northern boundary conditions'
-ds_bry['dye_01_north'].attrs['units'] = 'kg m-3' 
+ds_bry['dye_north_01'] = dye_time_north
+ds_bry['dye_north_01'].attrs['long_name'] = 'Passive tracer dye northern boundary conditions'
+ds_bry['dye_north_01'].attrs['units'] = 'kg m-3' 
 # South
 dye_time_south = xr.zeros_like(ds_bry['temp_south']).rename({'temp_time': 'dye_time'})
-ds_bry['dye_01_south'] = dye_time_south
-ds_bry['dye_01_south'].attrs['long_name'] = 'Passive tracer dye southern boundary conditions'
-ds_bry['dye_01_south'].attrs['units'] = 'kg m-3' 
+ds_bry['dye_south_01'] = dye_time_south
+ds_bry['dye_south_01'].attrs['long_name'] = 'Passive tracer dye southern boundary conditions'
+ds_bry['dye_south_01'].attrs['units'] = 'kg m-3' 
 # East
 dye_time_east = xr.zeros_like(ds_bry['temp_east']).rename({'temp_time': 'dye_time'})
-ds_bry['dye_01_east'] = dye_time_east
-ds_bry['dye_01_east'].attrs['long_name'] = 'Passive tracer dye eastern boundary conditions'
-ds_bry['dye_01_east'].attrs['units'] = 'kg m-3' 
+ds_bry['dye_east_01'] = dye_time_east
+ds_bry['dye_east_01'].attrs['long_name'] = 'Passive tracer dye eastern boundary conditions'
+ds_bry['dye_east_01'].attrs['units'] = 'kg m-3' 
 # West
 dye_time_west = xr.zeros_like(ds_bry['temp_west']).rename({'temp_time': 'dye_time'})
-ds_bry['dye_01_west'] = dye_time_west
-ds_bry['dye_01_west'].attrs['long_name'] = 'Passive tracer dye western boundary conditions'
-ds_bry['dye_01_west'].attrs['units'] = 'kg m-3' 
+ds_bry['dye_west_01'] = dye_time_west
+ds_bry['dye_west_01'].attrs['long_name'] = 'Passive tracer dye western boundary conditions'
+ds_bry['dye_west_01'].attrs['units'] = 'kg m-3' 
 # Add dye_time coordinate
 ds_bry['dye_time'].attrs = ds_bry['temp_time'].attrs.copy()
 
