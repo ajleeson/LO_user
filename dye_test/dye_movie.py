@@ -14,14 +14,13 @@ import numpy as np
 import xarray as xr
 import cmocean
 import matplotlib.pylab as plt
-import pinfo
 
 from lo_tools import Lfun, zrfun
 from lo_tools import plotting_functions as pfun
 
 import sys
 from pathlib import Path
-pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
+pth = Path(__file__).absolute().parent.parent / 'LO' / 'pgrid'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
 import gfun_utility as gfu
