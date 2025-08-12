@@ -122,7 +122,7 @@ for i,fn in enumerate(fn_list):
 
     # set bounds
     vmin = 0
-    vmax = 0.0015
+    vmax = 0.0001
 
     # Get model1 data
     surf_val = ds_model1[vn][0,-1,:,:].values
