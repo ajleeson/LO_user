@@ -190,7 +190,7 @@ def make_forcing(N,NT,dt_ind,yd_ind,ot_vec,dt1,days,Ldir,trapsP,trapsD,ctag):
    
     # Add biology (see the lineup near the end of fennel_var.h)
     bvn_list = ['NO3', 'NH4', 'Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo',
-            'TIC', 'TAlk', 'LDeC', 'SDeC', 'Oxyg', 'dye_01']
+            'TIC', 'TAlk', 'LDeC', 'SDeC', 'Oxyg', 'dye_01', 'dye_02']
     for bvn in bvn_list:
         vn = 'river_' + bvn
         if vn == 'river_dye_01':
