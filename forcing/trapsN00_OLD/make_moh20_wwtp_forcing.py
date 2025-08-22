@@ -38,11 +38,11 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
 
         # define directory for point_source climatology
         wwtp_dir = Ldir['LOo'] / 'pre' / trapsP / 'moh20_wwtps' /ctag
-        traps_type = 'moh20wwtp'  
+        traps_type = 'wwtp'  
 
         # get climatological data
-        clim_fns = ['Cflow_moh20wwtp_fn', 'Ctemp_moh20wwtp_fn', 'CDO_moh20wwtp_fn',
-                    'CNH4_moh20wwtp_fn', 'CNO3_moh20wwtp_fn', 'CTalk_moh20wwtp_fn', 'CTIC_moh20wwtp_fn']
+        clim_fns = ['Cflow_wwtp_fn', 'Ctemp_wwtp_fn', 'CDO_wwtp_fn',
+                    'CNH4_wwtp_fn', 'CNO3_wwtp_fn', 'CTalk_wwtp_fn', 'CTIC_wwtp_fn']
         clim_vns = ['flow', 'temp', 'DO', 'NH4', 'NO3', 'Talk', 'TIC']
         for i, clim_fn in enumerate(clim_fns):
             Ldir[clim_fn] = wwtp_dir / 'Data_historical' / ('CLIM_'+clim_vns[i]+'.p')
@@ -56,7 +56,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
         gwi_df = pd.read_csv(gwi_fn, index_col='rname')
         # if testing, only look at a few sources
         if Ldir['testing']:
-            gwi_df = gwi_df.loc[['Swinomish', 'Iona'],:]
+            gwi_df = gwi_df.loc[['LOTT', 'Iona'],:]
         
 #################################################################################
 #       Combine name of sources that are located at the same grid cell          #
@@ -212,7 +212,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
                         TS_mat[:, nn, rr] = temps
             # check for nans
             if np.isnan(TS_mat).any():
-                print('Error from traps: nans in moh20 wwtp river_temp!')
+                print('Error from traps: nans in point source river_temp!')
                 sys.exit()
             # add metadata
             wwtp_ds[vn] = (dims, TS_mat)
@@ -245,8 +245,8 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
                 for nn in range(N):
                     B_mat[:, nn, rr] = bvals
             # check for nans
-            if np.isnan(B_mat).any():
-                print('Error from traps: nans in moh20 wwtp bio!')
+            if np.isnan(TS_mat).any():
+                print('Error from traps: nans in tiny river bio!')
                 sys.exit()
             # add metadata
             wwtp_ds[vn] = (dims, B_mat)
@@ -271,7 +271,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
                     B_mat[:, nn, rr] = rivfun.get_bio_vec(bvn, rn, yd_ind)
             # check for nans
             if np.isnan(B_mat).any():
-                print('Error from traps: nans in B_mat for moh20 wwtp ' + vn)
+                print('Error from traps: nans in B_mat for tiny river ' + vn)
                 sys.exit()
             # add metadata
             wwtp_ds[vn] = (dims, B_mat)
