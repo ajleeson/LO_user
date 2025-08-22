@@ -295,7 +295,7 @@ def make_forcing(N,NT,NRIV,NTRIV,NWWTP_moh,dt_ind, yd_ind,ot_vec,Ldir,enable,tra
                 for nn in range(N):
                     B_mat[:, nn, rr] = rivfun.get_bio_vec(bvn, rn, yd_ind)
                     # Make West Point have dye output
-                    if rn == 'King County West Point WWTP' and bvn in ['dye_01']:
+                    if rn == 'King County West Point WWTP' and bvn in ['dye_01','dye_02']:
                         B_mat[:, nn, rr] = 10 * np.ones(len(yd_ind))
             # check for nans
             if np.isnan(B_mat).any():
