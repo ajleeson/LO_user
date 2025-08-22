@@ -242,7 +242,7 @@ while dt <= dt1:
                         F_string = f_string0
 
                     # either look in Aurora's apogee folder for traps and ocean dye forcing...
-                    if force_choice in ['trapsN00dye','ocnG00dye']:
+                    if force_choice in ['trapsN00dye','ocnG00dye','trapsN00dye2','ocnG00dye2']:
                         cmd_list = ['scp','-r',
                             remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + F_string + '/' + force_choice,
                             str(force_dir)]
