@@ -160,7 +160,7 @@ for i,fn in enumerate(fn_list):
         ax.scatter(WP_lon,WP_lat,s=80, facecolors='none', edgecolors='deeppink')
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
-        ax.set_title(stext + ' dye concentration [kg/m3]', fontsize=16)
+        ax.set_title(stext + ' ' + vn + ' concentration [kg/m3]', fontsize=16)
         
         if j == 1:
             ax.text(0.6, 0.1, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
