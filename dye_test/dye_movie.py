@@ -61,7 +61,7 @@ fn_list[0] = Ldir['roms_out'] / 'cas7_dyetest2_x11bd' / 'f2012.10.07' / 'ocean_h
 #         oceanhis = 'ocean_his_00' +str(int(i)) + '.nc'
 #         fn_list.append(Ldir['roms_out'] / 'cas7_ats00_debugx11ab' / 'f2012.10.07' / oceanhis)
 
-vn = 'dye_02' # one variable at a time
+vn = 'dye_01' # one variable at a time
 date = '2012.10.07'
 
 outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'dye_release_2' / vn
