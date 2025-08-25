@@ -61,10 +61,10 @@ fn_list[0] = Ldir['roms_out'] / 'cas7_exdye_x11exdye' / 'f2012.10.07' / 'ocean_h
 #         oceanhis = 'ocean_his_00' +str(int(i)) + '.nc'
 #         fn_list.append(Ldir['roms_out'] / 'cas7_ats00_debugx11ab' / 'f2012.10.07' / oceanhis)
 
-vn = 'dye_02' # one variable at a time
+vns = ['dye_01','dye_02'] 
 date = '2012.10.07'
 
-outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye' /vn
+outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye' / 'comparison'
 Lfun.make_dir(outdir0)
 
 
@@ -95,7 +95,7 @@ for i,fn in enumerate(fn_list):
     ds_model1 = xr.open_dataset(fn)
 
     # Get data, and get rid of ocean_time dim (because this is at a single time)
-    v1 = ds_model1[vn].squeeze()
+    v1 = ds_model1[vns[0]].squeeze()
 
     if ('eta_rho' in v1.dims) and ('xi_rho' in v1.dims):
         h_dims = ('eta_rho', 'xi_rho')
@@ -118,24 +118,23 @@ for i,fn in enumerate(fn_list):
 
     # set bounds
     vmin = 0
-    vmax = 0.0000001
+    vmax = 0.00001
 
-    # Get model1 data
-    surf_val = ds_model1[vn][0,-1,:,:].values
-    bott_val = ds_model1[vn][0,0,:,:].values
+    # Get model data
+    dye_01_val = ds_model1[vns[0]][0,0,:,:].values
+    dye_02_val = ds_model1[vns[1]][0,0,:,:].values
 
     # Initialize figure
     fig = plt.figure(figsize=(16,8)) # 15,11 for Puget sound and 18,8 for Salish Sea
     plt.tight_layout()
 
     subplotnums = [121,122]
-    stexts = ['Surface','Bottom']
-    values = [surf_val,bott_val]
+    values = [dye_01_val,dye_02_val]
 
     newcmap = cmocean.cm.matter
 
     # loop through all of the plots we need to make
-    for j,stext in enumerate(stexts):
+    for j,stext in enumerate(vns):
 
         # add water/land
         ax = fig.add_subplot(subplotnums[j])
@@ -160,7 +159,7 @@ for i,fn in enumerate(fn_list):
         ax.scatter(WP_lon,WP_lat,s=80, facecolors='none', edgecolors='deeppink')
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
-        ax.set_title(stext + ' ' + vn + ' concentration [kg/m3]', fontsize=16)
+        ax.set_title(stext + 'bottom concentration [kg/m3]', fontsize=16)
         
         if j == 1:
             ax.text(0.6, 0.1, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
