@@ -49,7 +49,7 @@ d0= '2012.10.07'
 d1 = '2012.10.07'
 
 list_type = 'hourly' #'snapshot', 'daily', 'hourly ', 'allhours'
-his_num = 26# 11
+his_num = 25# 11
 timestep_interval = 60
 
 # ----------------------------------------------------------------
