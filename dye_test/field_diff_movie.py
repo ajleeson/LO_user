@@ -87,7 +87,7 @@ Lfun.make_dir(outdir0)
 
 if len(fn_list_WWTP) > 1:
     # prepare a directory for results if making a movie
-    outdir = outdir0 / 'first10timesteps_withWestPoint_minus_noWP'
+    outdir = outdir0
     Lfun.make_dir(outdir / 'binary', clean=True)
     Lfun.make_dir(outdir / 'pcolormesh', clean=True)
 
