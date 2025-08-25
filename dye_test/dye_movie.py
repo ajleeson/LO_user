@@ -47,13 +47,13 @@ timestep_interval = 60
 # ----------------------------------------------------------------
 
 # gtagex of files to difference
-Ldir_dye   = Lfun.Lstart(gridname='cas7', tag='dyetest2', ex_name='x11bd')
+Ldir_dye   = Lfun.Lstart(gridname='cas7', tag='exdye', ex_name='x11exdye')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
 fn_list   = Lfun.get_fn_list(list_type, Ldir_dye,
     d0, d1, his_num)[0:his_num:]
 
-fn_list[0] = Ldir['roms_out'] / 'cas7_dyetest2_x11bd' / 'f2012.10.07' / 'ocean_his_0001.nc'
+fn_list[0] = Ldir['roms_out'] / 'cas7_exdye_x11exdye' / 'f2012.10.07' / 'ocean_his_0001.nc'
 
 # # add additional files
 # if his_num > 25:
