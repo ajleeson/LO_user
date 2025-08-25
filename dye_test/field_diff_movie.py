@@ -29,7 +29,6 @@ import cmocean
 import matplotlib.pylab as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.patheffects as PathEffects
-import pinfo
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -316,9 +315,6 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     else:
         print('vmin and vmax not provided for '+ vn)
 
-    # scale variable
-    scale =  pinfo.fac_dict[vn_name]
-
     # Get model1 data
     surf_vn_model1 = ds_model1[vn][0,-1,:,:].values
     bott_vn_model1 = ds_model1[vn][0,0,:,:].values
@@ -326,8 +322,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     surf_vn_model2 = ds_model2[vn][0,-1,:,:].values
     bott_vn_model2 = ds_model2[vn][0,0,:,:].values
     # Get difference
-    surf_diff = (surf_vn_model1 - surf_vn_model2) * scale
-    bott_diff = (bott_vn_model1 - bott_vn_model2) * scale
+    surf_diff = (surf_vn_model1 - surf_vn_model2)
+    bott_diff = (bott_vn_model1 - bott_vn_model2)
 
     # Initialize figure
     fig = plt.figure(figsize=(16,8)) # 15,11 for Puget sound and 18,8 for Salish Sea
@@ -361,7 +357,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
         ax.scatter(WP_lon,WP_lat,s=80, facecolors='none', edgecolors='deeppink')
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
-        ax.set_title(vn + ' difference at ' + stext + pinfo.units_dict[vn_name], fontsize=16)
+        ax.set_title(vn + ' difference at ' + stext + '[kg/m3]', fontsize=16)
         fig.suptitle('{} minus {}\n'.format(model1,model2) + date,
                     fontsize=14, fontweight='bold')
         
