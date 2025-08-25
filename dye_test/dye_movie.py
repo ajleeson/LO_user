@@ -114,11 +114,11 @@ for i,fn in enumerate(fn_list):
         lon = ds_model1['lon_psi']
         lat = ds_model1['lat_psi']
     else:
-        raise ValueError(f"Unknown grid type for variable '{vn}'.")
+        raise ValueError(f"Unknown grid type for variable '{vns[0]}'.")
 
     # set bounds
     vmin = 0
-    vmax = 0.00001
+    vmax = 0.01
 
     # Get model data
     dye_01_val = ds_model1[vns[0]][0,0,:,:].values
@@ -159,7 +159,7 @@ for i,fn in enumerate(fn_list):
         ax.scatter(WP_lon,WP_lat,s=80, facecolors='none', edgecolors='deeppink')
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
-        ax.set_title(stext + 'bottom concentration [kg/m3]', fontsize=16)
+        ax.set_title(stext + ' bottom concentration [kg/m3]', fontsize=16)
         
         if j == 1:
             ax.text(0.6, 0.1, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
