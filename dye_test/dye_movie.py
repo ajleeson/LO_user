@@ -64,7 +64,7 @@ fn_list[0] = Ldir['roms_out'] / 'cas7_exdye_x11exdye' / 'f2012.10.07' / 'ocean_h
 vn = 'dye_01' # one variable at a time
 date = '2012.10.07'
 
-outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'dye_release_2' / vn
+outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye' /vn
 Lfun.make_dir(outdir0)
 
 
