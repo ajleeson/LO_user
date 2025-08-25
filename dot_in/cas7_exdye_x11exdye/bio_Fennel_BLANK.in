@@ -232,6 +232,10 @@
 
      pCO2air == 370.0d0
 
+! AL edit to add exponential decay rate for dye_02
+     decay_dye2 == 8*1.0d-6               ! 1/s
+! end AL edit
+
 ! Harmonic/biharmonic horizontal diffusion of biological tracer for
 ! nonlinear model and adjoint-based algorithms: [1:NBT,Ngrids].
 
