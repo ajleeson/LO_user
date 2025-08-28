@@ -733,19 +733,40 @@ ax[4].text(0.5,0.1,f'Intercept: {res.intercept:.3f}',transform=ax[4].transAxes,
             fontsize=12,fontweight='bold')
 
 # checking d/dt(DO)-- intercept should be -0.03!!
-ax[5].set_title('exchange vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+# ax[5].set_title('exchange vs. photosynthesis\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
+# ax[5].tick_params(axis='x', labelrotation=30)
+# ax[5].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+# ax[5].tick_params(axis='both', labelsize=12)
+# ax[5].set_xlabel(r'Mean $\frac{photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# ax[5].set_ylabel(r'Mean $\frac{Q_{in}DO_{in}+Q_{out}DO_{out}}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+# # plot
+# # ax[5].scatter(mean_QinDOin+mean_QoutDOout+mean_rivers,mean_photo+mean_cons+mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
+# mean_exchange = mean_QinDOin+mean_QoutDOout
+# ax[5].scatter(mean_photo,mean_exchange,s=60, zorder=5, c='navy', alpha=0.5)
+# # conduct linear regession
+# x = mean_photo
+# res = stats.linregress(x,mean_exchange)
+# # ax[5].plot(x, res.intercept + res.slope*x, 'orchid')
+# ax[5].text(0.5,0.26,f'R-squared: {res.rvalue**2:.3f}',transform=ax[5].transAxes,
+#             fontsize=12,fontweight='bold')
+# ax[5].text(0.5,0.18,f'Slope: {res.slope:.3f}',transform=ax[5].transAxes,
+#             fontsize=12,fontweight='bold')
+# ax[5].text(0.5,0.1,f'Intercept: {res.intercept:.3f}',transform=ax[5].transAxes,
+#             fontsize=12,fontweight='bold')
+# ax[5].set_ylim([-0.2,0])
+# ax[5].set_xlim([0,0.25])
+
+ax[5].set_title('Drawdown vs. Mean Depth', size=12, loc='left', fontweight='bold')
 ax[5].tick_params(axis='x', labelrotation=30)
 ax[5].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[5].tick_params(axis='both', labelsize=12)
-ax[5].set_xlabel(r'Mean $\frac{photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
-ax[5].set_ylabel(r'Mean $\frac{Q_{in}DO_{in}+Q_{out}DO_{out}}{V_{inlet}}$ [mg/L per day]', fontsize=12)
+ax[5].set_xlabel(r'Mean Depth [m]', fontsize=12)
+ax[5].set_ylabel(r'Mean $\frac{Consumption+Photosynthesis}{V_{inlet}}$ [mg/L per day]', fontsize=12)
 # plot
-# ax[5].scatter(mean_QinDOin+mean_QoutDOout+mean_rivers,mean_photo+mean_cons+mean_airsea,s=60, zorder=5, c='navy', alpha=0.5)
-mean_exchange = mean_QinDOin+mean_QoutDOout
-ax[5].scatter(mean_photo,mean_exchange,s=60, zorder=5, c='navy', alpha=0.5)
+ax[5].scatter(mean_depth,mean_cons+mean_photo,s=60, zorder=5, c='navy', alpha=0.5)
 # conduct linear regession
-x = mean_photo
-res = stats.linregress(x,mean_exchange)
+x = mean_depth
+res = stats.linregress(x,mean_cons+mean_photo)
 # ax[5].plot(x, res.intercept + res.slope*x, 'orchid')
 ax[5].text(0.5,0.26,f'R-squared: {res.rvalue**2:.3f}',transform=ax[5].transAxes,
             fontsize=12,fontweight='bold')
@@ -753,8 +774,8 @@ ax[5].text(0.5,0.18,f'Slope: {res.slope:.3f}',transform=ax[5].transAxes,
             fontsize=12,fontweight='bold')
 ax[5].text(0.5,0.1,f'Intercept: {res.intercept:.3f}',transform=ax[5].transAxes,
             fontsize=12,fontweight='bold')
-ax[5].set_ylim([-0.2,0])
-ax[5].set_xlim([0,0.25])
+# ax[5].set_ylim([-0.2,0])
+# ax[5].set_xlim([0,0.25])
 
 # # air-sea vs. exchange flow strength
 #     ax[4].set_title('(e) Air-sea vs. exchange flow strength\nmid-Jun to mid-Aug', size=12, loc='left', fontweight='bold')
