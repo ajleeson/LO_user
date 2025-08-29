@@ -204,8 +204,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
             transform=ax.transAxes)
     ax.text(0.04, 0.92, 'No Differences', color='turquoise', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
-    plt.suptitle('Locations where {} differs between runs at any s-level'.format(vn),fontsize=14,fontweight='bold')
-    ax.set_title('{} and {}'.format(model1,model2))
+    plt.suptitle('Locations where dye_01 and dye_02 differs between runs at any s-level',fontsize=14,fontweight='bold')
     plt.xlabel('Lon', fontsize=12)
     plt.ylabel('Lat', fontsize=12)
     pfun.dar(ax)
