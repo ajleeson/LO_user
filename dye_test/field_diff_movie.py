@@ -311,8 +311,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     surf_vn_model1 = ds_model1[vn][0,-1,:,:].values
     bott_vn_model1 = ds_model1[vn][0,0,:,:].values
     # Get model2 data
-    surf_vn_model2 = ds_model2[vn][0,-1,:,:].values
-    bott_vn_model2 = ds_model2[vn][0,0,:,:].values
+    surf_vn_model2 = ds_model2['dye_02'][0,-1,:,:].values
+    bott_vn_model2 = ds_model2['dye_02'][0,0,:,:].values
     # Get difference
     surf_diff = (surf_vn_model1 - surf_vn_model2)
     bott_diff = (bott_vn_model1 - bott_vn_model2)
@@ -349,12 +349,12 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
         ax.scatter(WP_lon,WP_lat,s=80, facecolors='none', edgecolors='deeppink')
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
-        ax.set_title(vn + ' difference at ' + stext + '[kg/m3]', fontsize=16)
-        fig.suptitle('{} minus {}\n'.format(model1,model2) + date,
+        ax.set_title('Dye difference at ' + stext + '[kg/m3]', fontsize=16)
+        fig.suptitle('dye_01 minus dye_02\n' + date,
                     fontsize=14, fontweight='bold')
         
         if j == 1:
-            ax.text(0.6, 0.1, 'Timestep {}'.format(i*timestep_interval), color='black', fontweight='bold', fontsize=12,
+            ax.text(0.6, 0.1, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
         
     # prepare a directory for results
