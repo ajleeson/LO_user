@@ -95,7 +95,7 @@ for i,fn in enumerate(fn_list):
 
     # set bounds
     vmin = 0
-    vmax = 0.01
+    vmax = 0.001
 
     # Get model1 data
     dye_01_val = ds_model1[vns[0]][0,0,:,:].values
