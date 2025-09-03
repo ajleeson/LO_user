@@ -78,7 +78,8 @@ date = '2012.10.07'
 # filetype = 'ocean_his_0002.nc'
 
 # PLOTTING
-outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye2' / 'same_run'
+# outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye2' / 'same_run'
+outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye2' / 'two_different_runs'
 Lfun.make_dir(outdir0)
 
 if len(fn_list_WWTP) > 1:
