@@ -55,8 +55,8 @@ timestep_interval = 60
 # ----------------------------------------------------------------
 
 # gtagex of files to difference
-Ldir_WWTP   = Lfun.Lstart(gridname='cas7', tag='exdye', ex_name='x11exdye')
-Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye', ex_name='x11exdye')
+Ldir_WWTP   = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
+Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
 fn_list_WWTP   = Lfun.get_fn_list(list_type, Ldir_WWTP,
@@ -64,8 +64,8 @@ fn_list_WWTP   = Lfun.get_fn_list(list_type, Ldir_WWTP,
 fn_list_noWWTP = Lfun.get_fn_list(list_type, Ldir_noWWTP,
     d0, d1, his_num)[0:his_num:]
 
-fn_list_WWTP[0] = Ldir['roms_out'] / 'cas7_exdye_x11exdye' / 'f2012.10.07' / 'ocean_his_0001.nc'
-fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye_x11exdye' / 'f2012.10.07' / 'ocean_his_0001.nc'
+fn_list_WWTP[0]   = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
+fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
 
 # add additional files
 if his_num > 25:
@@ -82,7 +82,7 @@ date = '2012.10.07'
 # filetype = 'ocean_his_0002.nc'
 
 # PLOTTING
-outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye' / 'comparison'
+outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye2' / 'same_run'
 Lfun.make_dir(outdir0)
 
 if len(fn_list_WWTP) > 1:
@@ -94,15 +94,6 @@ if len(fn_list_WWTP) > 1:
 ###################################################################
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
-
-model1 = 'With West Point'
-model2 = 'No West Point'
-
-# model1 = 'cas7_newtraps00_debugx11ab'
-# # model2 = 'cas7_newtraps01_debugx11ab'
-# model2 = 'cas7_newtraps00noWP_debugx11ab'
-# model1 = 'cas7_newtraps_x11ab'
-# model2 = 'cas7_newtrapsnoN_x11ab'
 
 # # where to put output figures
 # out_dir = Ldir['LOo'] / 'AL_custom_plots'
@@ -204,7 +195,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
             transform=ax.transAxes)
     ax.text(0.04, 0.92, 'No Differences', color='turquoise', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
-    plt.suptitle('Locations where dye_01 and dye_02 differs between runs at any s-level',fontsize=14,fontweight='bold')
+    plt.suptitle('Locations where dye_01 and dye_02 differs between runs at any s-level\nWithin same run',
+                 fontsize=14,fontweight='bold')
     plt.xlabel('Lon', fontsize=12)
     plt.ylabel('Lat', fontsize=12)
     pfun.dar(ax)
@@ -302,8 +294,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
         vmax =  0.00001
     elif vn == 'dye_01':
         vn_name = vn
-        vmin = -0.00001
-        vmax =  0.00001
+        vmin = -0.0001
+        vmax =  0.0001
     else:
         print('vmin and vmax not provided for '+ vn)
 
