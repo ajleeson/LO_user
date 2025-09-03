@@ -56,7 +56,8 @@ timestep_interval = 60
 
 # gtagex of files to difference
 Ldir_WWTP   = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
-Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
+# Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
+Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2duplicate', ex_name='x11exdye2duplicate')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
 fn_list_WWTP   = Lfun.get_fn_list(list_type, Ldir_WWTP,
@@ -65,14 +66,9 @@ fn_list_noWWTP = Lfun.get_fn_list(list_type, Ldir_noWWTP,
     d0, d1, his_num)[0:his_num:]
 
 fn_list_WWTP[0]   = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
-fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
+# fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
+fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2duplicate_x11exdye2duplicate' / 'f2012.10.07' / 'ocean_his_0001.nc'
 
-# add additional files
-if his_num > 25:
-    for i in np.linspace(26,his_num,his_num-26+1):
-        oceanhis = 'ocean_his_00' +str(int(i)) + '.nc'
-        fn_list_WWTP.append(Ldir['roms_out'] / 'cas7_exdye_x11exdye' / 'f2012.10.07' / oceanhis)
-        fn_list_noWWTP.append(Ldir['roms_out'] / 'cas7_exdye_x11exdye' / 'f2012.10.07' / oceanhis)
 
 # vns = ['NH4'] #['NH4','NO3','oxygen','u','v','w','salt','temp'] # u, v, w, NO3, NH4 oxygen
 vn = 'dye_01' # one variable at a time
@@ -195,7 +191,9 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
             transform=ax.transAxes)
     ax.text(0.04, 0.92, 'No Differences', color='turquoise', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
-    plt.suptitle('Locations where dye_01 and dye_02 differs between runs at any s-level\nWithin same run',
+    # plt.suptitle('Locations where dye_01 and dye_02 differs between runs at any s-level\nWithin same run',
+    #              fontsize=14,fontweight='bold')
+    plt.suptitle('Locations where dye_01 and dye_02 differs between runs at any s-level\nBetween two different runs',
                  fontsize=14,fontweight='bold')
     plt.xlabel('Lon', fontsize=12)
     plt.ylabel('Lat', fontsize=12)
@@ -294,8 +292,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
         vmax =  0.00001
     elif vn == 'dye_01':
         vn_name = vn
-        vmin = -0.0001
-        vmax =  0.0001
+        vmin = -0.00001
+        vmax =  0.00001
     else:
         print('vmin and vmax not provided for '+ vn)
 
@@ -342,7 +340,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
         ax.set_title('Dye difference at ' + stext + '[kg/m3]', fontsize=16)
-        fig.suptitle('dye_01 minus dye_02\n' + date,
+        fig.suptitle('dye_01 minus dye_02\nBetween two different runs' + date,
                     fontsize=14, fontweight='bold')
         
         if j == 1:
