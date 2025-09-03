@@ -57,7 +57,7 @@ timestep_interval = 60
 # gtagex of files to difference
 Ldir_WWTP   = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
 # Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
-Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2duplicate', ex_name='x11exdye2duplicate')
+Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2duplicate', ex_name='x11exdye2')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
 fn_list_WWTP   = Lfun.get_fn_list(list_type, Ldir_WWTP,
@@ -67,7 +67,7 @@ fn_list_noWWTP = Lfun.get_fn_list(list_type, Ldir_noWWTP,
 
 fn_list_WWTP[0]   = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
 # fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
-fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2duplicate_x11exdye2duplicate' / 'f2012.10.07' / 'ocean_his_0001.nc'
+fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2duplicate_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
 
 
 # vns = ['NH4'] #['NH4','NO3','oxygen','u','v','w','salt','temp'] # u, v, w, NO3, NH4 oxygen
