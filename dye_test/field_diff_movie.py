@@ -452,7 +452,7 @@ for i,fn_model1 in enumerate(fn_list_model1):
     bott_vn_model2 = ds_model2[vn2][0,0,745:765,586:606].values
 
     # Get list of vn2/vn1
-    ratio = 1 - ((bott_vn_model2/bott_vn_model1) * 1e-5 * i*3600)
+    ratio = 1 - ((bott_vn_model2 / np.where(bott_vn_model1==0, np.nan, bott_vn_model1)) * 1e-5 * i*3600)
 
     # add to lists of ratios
     dye_ratios.extend(ratio.ravel())   # flat list
