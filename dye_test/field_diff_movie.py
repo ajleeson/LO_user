@@ -471,13 +471,15 @@ ax.plot(time,expected,color='black',linewidth=3,
 
 # Fit decay
 time = np.linspace(0,86500,1000)
-# Define exponential decay with fixed A=1
+# Convert to arrays and automatically remove NaNs/Infs
+mask = np.isfinite(all_sec) & np.isfinite(dye_ratios)
+all_sec_arr = np.array(all_sec)[mask]
+dye_ratios_arr = np.array(dye_ratios)[mask]
+# Fit exponential decay with A=1
 def exp_decay_fixedA(t, k):
     return np.exp(-k * t)
-# Fit only k
-params, _ = curve_fit(exp_decay_fixedA, all_sec, dye_ratios, p0=[1e-5])
-k_fit = params[0]
-# Generate fitted curve
+k_fit, _ = curve_fit(exp_decay_fixedA, all_sec_arr, dye_ratios_arr, p0=[1e-5])
+# Fitted curve
 fit = np.exp(-k_fit * time)
 ax.plot(time,fit,color='royalblue',linewidth=3,
         linestyle='--',label='Fitted exponential decay')
