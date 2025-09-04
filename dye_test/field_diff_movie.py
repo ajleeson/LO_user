@@ -29,6 +29,7 @@ import cmocean
 import matplotlib.pylab as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.patheffects as PathEffects
+from scipy.optimize import curve_fit
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -461,15 +462,30 @@ for i,fn_model1 in enumerate(fn_list_model1):
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
 ax.plot(all_sec, dye_ratios, 'o', markersize=5, linestyle='None',
         alpha=0.2,color='hotpink',label='Actual decay')
+
+# expected decay
 time = np.linspace(0,86500,1000)
 expected = np.exp(-1*1e-5*time)
 ax.plot(time,expected,color='black',linewidth=3,
         label='Expected exponential decay')
 
+# Fit decay
+time = np.linspace(0,86500,1000)
+# Define exponential decay with fixed A=1
+def exp_decay_fixedA(t, k):
+    return np.exp(-k * t)
+# Fit only k
+params, _ = curve_fit(exp_decay_fixedA, all_sec, dye_ratios, p0=[1e-5])
+k_fit = params[0]
+# Generate fitted curve
+fit = np.exp(-k_fit * time)
+ax.plot(time,fit,color='royalblue',linewidth=3,
+        linestyle='--',label='Fitted exponential decay')
+
 ax.set_ylim(0,1)
 ax.set_xlim(0,86400)
 ax.set_xlabel('Seconds',fontsize=12)
-ax.set_ylabel('1 - ({}/{})*0.0001*t'.format(vn2,vn1),fontsize=12)
+ax.set_ylabel('1 - ({}/{})*0.00001*t'.format(vn2,vn1),fontsize=12)
 ax.grid(True,color='gainsboro')
 ax.legend(loc='best')
 
