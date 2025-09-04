@@ -446,9 +446,9 @@ for i,fn_model1 in enumerate(fn_list_model1):
     ds_model2 = xr.open_dataset(fn_model2)
 
     # Get model1 data
-    bott_vn_model1 = ds_model1[vn1][0,0,754:756,595:597].values
+    bott_vn_model1 = ds_model1[vn1][0,0,753:757,594:598].values
     # Get model2 data
-    bott_vn_model2 = ds_model2[vn2][0,0,754:756,595:597].values
+    bott_vn_model2 = ds_model2[vn2][0,0,753:757,594:598].values
 
     # Get list of vn2/vn1
     ratio = 1 - ((bott_vn_model2/bott_vn_model1) * 1e-5 * i*3600)
