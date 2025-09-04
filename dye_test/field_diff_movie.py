@@ -52,8 +52,8 @@ model1 = 'cas7_twindye_x11twindye'          # Both dyes decay, Different inputs
 
 # model2 = 'cas7_exdye2_x11exdye2'            # Dye 2 decays, Same inputs
 # model2 = 'cas7_exdye2duplicate_x11exdye2'   # Duplicate of above
-# model2 = 'cas7_twindye_x11twindye'          # Both dyes decay, Different inputs
-model2 = 'cas7_twindyeduplicate_x11twindye' # Duplicate of above
+model2 = 'cas7_twindye_x11twindye'          # Both dyes decay, Different inputs
+# model2 = 'cas7_twindyeduplicate_x11twindye' # Duplicate of above
 
 # Which variables to compare??
 vn1 = 'dye_01'
