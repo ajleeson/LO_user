@@ -468,6 +468,7 @@ ax.set_xlim(0,86400)
 ax.set_xlabel('Seconds',fontsize=12)
 ax.set_ylabel('1 - ({}/{})*0.0001*t'.format(vn2,vn1),fontsize=12)
 ax.grid(True,color='gainsboro')
+ax.legend(loc='best')
 
 ax.set_title('Exponential Decay at bottom waters of West Point WWTP')
 
