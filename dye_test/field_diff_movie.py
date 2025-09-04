@@ -446,9 +446,9 @@ for i,fn_model1 in enumerate(fn_list_model1):
     ds_model2 = xr.open_dataset(fn_model2)
 
     # Get model1 data
-    bott_vn_model1 = ds_model1[vn1][0,0,755,596].values
+    bott_vn_model1 = ds_model1[vn1][0,0,756,595].values
     # Get model2 data
-    bott_vn_model2 = ds_model2[vn2][0,0,755,596].values
+    bott_vn_model2 = ds_model2[vn2][0,0,756,595].values
 
     # Get list of vn2/vn1
     ratio = 1 - ((bott_vn_model2/bott_vn_model1) * 1e-5 * i*3600)
@@ -458,16 +458,18 @@ for i,fn_model1 in enumerate(fn_list_model1):
 
 # Plot
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
-ax.plot(hours, dye_ratios, 'o', markersize=8, linestyle='None')
+ax.plot(hours, dye_ratios, 'o', markersize=8, linestyle='None', label='Actual decay')
 time = np.linspace(0,86400,1000)
 expected = np.exp(-1*1e-5*time)
-ax.plot(time,expected)
+ax.plot(time,expected,label='Expected exponential decay')
 
 ax.set_ylim(0,1)
 ax.set_xlim(0,86400)
 ax.set_xlabel('Seconds',fontsize=12)
-ax.set_ylabel('{}/{}'.format(vn2,vn1),fontsize=12)
+ax.set_ylabel('1 - ({}/{})*0.0001*t'.format(vn2,vn1),fontsize=12)
 ax.grid(True,color='gainsboro')
+
+ax.set_title('Exponential Decay at bottom waters of West Point WWTP')
 
 plt.savefig(outdir0/'exp_decay_check')
 plt.close()
