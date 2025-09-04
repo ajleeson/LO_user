@@ -88,11 +88,11 @@ fn_list_model1   = Lfun.get_fn_list(list_type, Ldir_model1,
 fn_list_model2 = Lfun.get_fn_list(list_type, Ldir_model2,
     d0, d1, his_num)[0:his_num:]
 
-fn_list_model1[0] = Ldir['roms_out'] / model1 / 'f' + d0 / 'ocean_his_0001.nc'
-fn_list_model2[0] = Ldir['roms_out'] / model2 /'f' + d0 / 'ocean_his_0001.nc'
+fn_list_model1[0] = Ldir['roms_out'] / model1 / ('f' + d0) / 'ocean_his_0001.nc'
+fn_list_model2[0] = Ldir['roms_out'] / model2 / ('f' + d0) / 'ocean_his_0001.nc'
 
 # PLOTTING
-outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'dye_noise_tests' / model1 + '&' + model2
+outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'dye_noise_tests' / (model1 + '&' + model2)
 Lfun.make_dir(outdir0)
 
 if len(fn_list_model1) > 1:
