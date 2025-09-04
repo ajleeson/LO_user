@@ -434,10 +434,9 @@ plt.close()
 ##                 Verify exponential decay                      ##  
 ###################################################################
 
-# initialize empty lists
-all_ratios = []   # flat list of all ratios
-all_hours  = []   # flat list of hours matching each ratio
-dye_ratios = []   # grouped by hour (list of lists)
+# initialize empty list of dye ratios
+dye_ratios = []
+hours = np.linspace(0,24,25)
 
 for i,fn_model1 in enumerate(fn_list_model1):
 
@@ -456,12 +455,10 @@ for i,fn_model1 in enumerate(fn_list_model1):
 
     # add to lists of ratios
     dye_ratios.append(ratio)   # keep grouped by hour
-    all_ratios.extend(ratio)   # ungrouped
-    all_hours.extend([i] * len(ratio))
 
 # Plot
 fig, ax = plt.subplots(1,1, figsize=(8, 8))
-ax.plot(all_hours, all_ratios, 'o', markersize=8, linestyle='None')
+ax.plot(hours, dye_ratios, 'o', markersize=8, linestyle='None')
 plt.savefig(outdir0/'exp_decay_check')
 plt.close()
 
