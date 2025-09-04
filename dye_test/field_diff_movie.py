@@ -457,8 +457,15 @@ for i,fn_model1 in enumerate(fn_list_model1):
     dye_ratios.append(ratio)   # keep grouped by hour
 
 # Plot
-fig, ax = plt.subplots(1,1, figsize=(8, 8))
+fig, ax = plt.subplots(1,1, figsize=(8, 4))
 ax.plot(hours, dye_ratios, 'o', markersize=8, linestyle='None')
+
+ax.set_ylim(0,1)
+ax.set_xlim(0,24)
+ax.set_xlabel('Hour',fontsize=12)
+ax.set_ylabel('{}/{}'.format(vn2,vn1),fontsize=12)
+ax.grid(True,color='gainsboro')
+
 plt.savefig(outdir0/'exp_decay_check')
 plt.close()
 
