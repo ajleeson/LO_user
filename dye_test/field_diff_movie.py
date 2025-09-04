@@ -43,46 +43,59 @@ plt.close('all')
 ##                          User Inputs                          ##  
 ################################################################### 
 
+# Which models to compare??
+
+# model1 = 'cas7_exdye2_x11exdye2'            # Dye 2 decays, Same inputs
+# model1 = 'cas7_exdye2duplicate_x11exdye2'   # Duplicate of above
+model1 = 'cas7_twindye_x11twindye'          # Both dyes decay, Different inputs
+# model1 = 'cas7_twindyeduplicate_x11twindye' # Duplicate of above
+
+# model2 = 'cas7_exdye2_x11exdye2'            # Dye 2 decays, Same inputs
+# model2 = 'cas7_exdye2duplicate_x11exdye2'   # Duplicate of above
+# model2 = 'cas7_twindye_x11twindye'          # Both dyes decay, Different inputs
+model2 = 'cas7_twindyeduplicate_x11twindye' # Duplicate of above
+
+# Which variables to compare??
+vn1 = 'dye_01'
+vn2 = 'dye_02'
+
 # USER OPTIONS ----------------------------------------------------
 
 d0= '2012.10.07'
 d1 = '2012.10.07'
 
-list_type = 'hourly' #'snapshot', 'daily', 'hourly ', 'allhours'
-his_num = 25# 11
+list_type = 'hourly'
+his_num = 25
 timestep_interval = 60
 
 # ----------------------------------------------------------------
 
+# Some logic for naming things
+
+# split gtagex
+grid1, tag1, exec1 = model1.split('_', 2)
+grid2, tag2, exec2 = model2.split('_', 2)
+
+# ----------------------------------------------------------------
+
 # gtagex of files to difference
-Ldir_WWTP   = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
-# Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2', ex_name='x11exdye2')
-Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='exdye2duplicate', ex_name='x11exdye2')
+Ldir_model1 = Lfun.Lstart(gridname=grid1, tag=tag1, ex_name=exec1)
+Ldir_model2 = Lfun.Lstart(gridname=grid2, tag=tag2, ex_name=exec2)
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
-fn_list_WWTP   = Lfun.get_fn_list(list_type, Ldir_WWTP,
+fn_list_model1   = Lfun.get_fn_list(list_type, Ldir_model1,
     d0, d1, his_num)[0:his_num:]
-fn_list_noWWTP = Lfun.get_fn_list(list_type, Ldir_noWWTP,
+fn_list_model2 = Lfun.get_fn_list(list_type, Ldir_model2,
     d0, d1, his_num)[0:his_num:]
 
-fn_list_WWTP[0]   = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
-# fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
-fn_list_noWWTP[0] = Ldir['roms_out'] / 'cas7_exdye2duplicate_x11exdye2' / 'f2012.10.07' / 'ocean_his_0001.nc'
-
-
-# vns = ['NH4'] #['NH4','NO3','oxygen','u','v','w','salt','temp'] # u, v, w, NO3, NH4 oxygen
-vn = 'dye_01' # one variable at a time
-date = '2012.10.07'
-
-# filetype = 'ocean_avg_0001.nc'
-# filetype = 'ocean_his_0002.nc'
+fn_list_model1[0] = Ldir['roms_out'] / model1 / 'f' + d0 / 'ocean_his_0001.nc'
+fn_list_model2[0] = Ldir['roms_out'] / model2 /'f' + d0 / 'ocean_his_0001.nc'
 
 # PLOTTING
-# outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye2' / 'same_run'
-outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'expdecay_dye2' / 'two_different_runs'
+outdir0 = Ldir['LOo'] / 'AL_custom_plots' / 'dye_noise_tests' / model1 + '&' + model2
 Lfun.make_dir(outdir0)
 
-if len(fn_list_WWTP) > 1:
+if len(fn_list_model1) > 1:
     # prepare a directory for results if making a movie
     outdir = outdir0
     Lfun.make_dir(outdir / 'binary', clean=True)
@@ -91,10 +104,6 @@ if len(fn_list_WWTP) > 1:
 ###################################################################
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
-
-# # where to put output figures
-# out_dir = Ldir['LOo'] / 'AL_custom_plots'
-# Lfun.make_dir(out_dir)
 
 # Get grid data
 G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
@@ -106,26 +115,20 @@ lat_u = grid_ds.lat_u.values
 lon_v = grid_ds.lon_v.values
 lat_v = grid_ds.lat_v.values
 
-# # get model output
-# fp_model1 = Ldir['roms_out'] / model1 / ('f'+date) / filetype
-# fp_model2 = Ldir['roms_out'] / model2 / ('f'+date) / filetype
-# ds_model1 = xr.open_dataset(fp_model1)
-# ds_model2 = xr.open_dataset(fp_model2)
-
 ###################################################################
 ##                   Binary differences movie                    ##  
 ################################################################### 
 
-for i,fn_WWTP in enumerate(fn_list_WWTP):
+for i,fn_model1 in enumerate(fn_list_model1):
 
     # get model output
-    fn_noWWTP = fn_list_noWWTP[i]
-    ds_model1 = xr.open_dataset(fn_WWTP)
-    ds_model2 = xr.open_dataset(fn_noWWTP)
+    fn_model2 = fn_list_model2[i]
+    ds_model1 = xr.open_dataset(fn_model1)
+    ds_model2 = xr.open_dataset(fn_model2)
 
     # Get data, and get rid of ocean_time dim (because this is at a single time)
-    v1 = ds_model1[vn].squeeze()
-    v2 = ds_model2['dye_02'].squeeze()
+    v1 = ds_model1[vn1].squeeze()
+    v2 = ds_model2[vn2].squeeze()
 
     # Identify vertical and horizontal dims
     if 's_rho' in v1.dims:
@@ -133,7 +136,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     elif 's_w' in v1.dims:
         vert_dim = 's_w'
     else:
-        raise ValueError(f"No vertical dimension found for {vn}")
+        raise ValueError(f"No vertical dimension found for {vn1}")
 
     if ('eta_rho' in v1.dims) and ('xi_rho' in v1.dims):
         h_dims = ('eta_rho', 'xi_rho')
@@ -152,7 +155,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
         lon = ds_model1['lon_psi']
         lat = ds_model1['lat_psi']
     else:
-        raise ValueError(f"Unknown grid type for variable '{vn}'.")
+        raise ValueError(f"Unknown grid type for variable '{vn1}'.")
 
     # Compute strict difference (True where different, False where equal)
     diff_mask = (v1 != v2) | (v1.isnull() != v2.isnull())
@@ -177,8 +180,6 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
 
     # plot
     plt.pcolormesh(lon, lat, plot_data, cmap=cmap, norm=norm, shading='auto')
-    # cbar = plt.colorbar(map, ticks=[0, 1])
-    # cbar.ax.set_yticklabels(['No differences', 'Differences'],fontsize=12)
 
     # add West Point location
     wwtp_fn = Ldir['data'] / 'trapsD01' / 'processed_data'/ 'wwtp_data_wasielewski_etal_2024.nc'
@@ -194,37 +195,36 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
             transform=ax.transAxes)
     # plt.suptitle('Locations where dye_01 and dye_02 differs between runs at any s-level\nWithin same run',
     #              fontsize=14,fontweight='bold')
-    plt.suptitle('Locations where dye_01 and dye_02 differs between runs at any s-level\nBetween two different runs',
+    plt.suptitle('Locations where {} and {} differs between runs at any s-level\n{} & {}'.format(vn1,vn2,model1,model2),
                  fontsize=14,fontweight='bold')
     plt.xlabel('Lon', fontsize=12)
     plt.ylabel('Lat', fontsize=12)
     pfun.dar(ax)
 
-    ax.text(0.7, 0.95, 'Timestep {}'.format(i*timestep_interval), color='black', fontweight='bold', fontsize=12,
+    ax.text(0.7, 0.95, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
 
-    # # Salish Sea
-    # ax.set_ylim([46.5,50])
-    # ax.set_xlim([-126.5,-122])
+    # Salish Sea
+    ax.set_ylim([46.5,50])
+    ax.set_xlim([-126.5,-122])
 
-    # West Point
-    ax.set_ylim([47.4,48])
-    ax.set_xlim([-122.9,-122.1])
+    # # West Point
+    # ax.set_ylim([47.4,48])
+    # ax.set_xlim([-122.9,-122.1])
 
     plt.tight_layout()
-    # plt.show()
 
     # prepare a directory for results
     nouts = ('0000' + str(i))[-4:]
     outname = 'plot_' + nouts + '.png'
     outfile = outdir /'binary' / outname
-    print('Plotting ' + str(fn_WWTP))
+    print('Plotting ' + str(fn_model1))
     sys.stdout.flush()
     plt.savefig(outfile)
     plt.close()
 
 # make movie
-if len(fn_list_WWTP) > 1:
+if len(fn_list_model1) > 1:
     cmd_list = ['ffmpeg','-r','3','-i', str(outdir / 'binary')+'/plot_%04d.png', '-vcodec', 'libx264',
         '-pix_fmt', 'yuv420p', '-crf', '25', str(outdir / 'binary')+'/movie.mp4']
     proc = Po(cmd_list, stdout=Pi, stderr=Pi)
@@ -238,18 +238,18 @@ if len(fn_list_WWTP) > 1:
 ##                    Colormap differences                       ##  
 ################################################################### 
 
-for i,fn_WWTP in enumerate(fn_list_WWTP):
+for i,fn_model1 in enumerate(fn_list_model1):
 
     print(i)
 
     # get model output
-    fn_noWWTP = fn_list_noWWTP[i]
-    ds_model1 = xr.open_dataset(fn_WWTP)
-    ds_model2 = xr.open_dataset(fn_noWWTP)
+    fn_model2 = fn_list_model2[i]
+    ds_model1 = xr.open_dataset(fn_model1)
+    ds_model2 = xr.open_dataset(fn_model2)
 
     # Get data, and get rid of ocean_time dim (because this is at a single time)
-    v1 = ds_model1[vn].squeeze()
-    v2 = ds_model2['dye_02'].squeeze()
+    v1 = ds_model1[vn1].squeeze()
+    v2 = ds_model2[vn2].squeeze()
 
     if ('eta_rho' in v1.dims) and ('xi_rho' in v1.dims):
         h_dims = ('eta_rho', 'xi_rho')
@@ -268,42 +268,18 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
         lon = ds_model1['lon_psi']
         lat = ds_model1['lat_psi']
     else:
-        raise ValueError(f"Unknown grid type for variable '{vn}'.")
+        raise ValueError(f"Unknown grid type for variable '{vn1}'.")
 
     # set bounds
-    if vn in ['NO3','NH4']:
-        vn_name = vn
-        vmin = -0.00001
-        vmax =  0.00001
-    elif vn in ['u','v','w']:
-        vn_name = vn
-        vmin = -0.00001#-0.01
-        vmax =  0.00001#0.01
-    elif vn == 'oxygen':
-        vn_name = vn
-        vmin = -0.001
-        vmax =  0.001
-    elif vn == 'salt':
-        vn_name = vn
-        vmin = -0.00001
-        vmax =  0.00001
-    elif vn == 'temp':
-        vn_name = vn
-        vmin = -0.00001
-        vmax =  0.00001
-    elif vn == 'dye_01':
-        vn_name = vn
-        vmin = -0.00001
-        vmax =  0.00001
-    else:
-        print('vmin and vmax not provided for '+ vn)
+    vmin = -0.00001
+    vmax =  0.00001
 
     # Get model1 data
-    surf_vn_model1 = ds_model1[vn][0,-1,:,:].values
-    bott_vn_model1 = ds_model1[vn][0,0,:,:].values
+    surf_vn_model1 = ds_model1[vn1][0,-1,:,:].values
+    bott_vn_model1 = ds_model1[vn1][0,0,:,:].values
     # Get model2 data
-    surf_vn_model2 = ds_model2['dye_02'][0,-1,:,:].values
-    bott_vn_model2 = ds_model2['dye_02'][0,0,:,:].values
+    surf_vn_model2 = ds_model2[vn2][0,-1,:,:].values
+    bott_vn_model2 = ds_model2[vn2][0,0,:,:].values
     # Get difference
     surf_diff = (surf_vn_model1 - surf_vn_model2)
     bott_diff = (bott_vn_model1 - bott_vn_model2)
@@ -341,8 +317,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
         ax.set_title('Dye difference at ' + stext + '[kg/m3]', fontsize=16)
-        fig.suptitle('dye_01 minus dye_02\nBetween two different runs' + date,
-                    fontsize=14, fontweight='bold')
+        fig.suptitle('{} minus {}\nBetween {} & {}'.format(vn1,vn2,model1,model2) + d0,
+                    fontsize=11, fontweight='bold')
         
         if j == 1:
             ax.text(0.6, 0.1, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
@@ -352,13 +328,13 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     nouts = ('0000' + str(i))[-4:]
     outname = 'plot_' + nouts + '.png'
     outfile = outdir /'pcolormesh' / outname
-    print('Plotting ' + str(fn_WWTP))
+    print('Plotting ' + str(fn_model1))
     sys.stdout.flush()
     plt.savefig(outfile)
     plt.close()
 
 # make movie
-if len(fn_list_WWTP) > 1:
+if len(fn_list_model1) > 1:
     cmd_list = ['ffmpeg','-r','3','-i', str(outdir / 'pcolormesh')+'/plot_%04d.png', '-vcodec', 'libx264',
         '-pix_fmt', 'yuv420p', '-crf', '25', str(outdir / 'pcolormesh')+'/movie.mp4']
     proc = Po(cmd_list, stdout=Pi, stderr=Pi)
