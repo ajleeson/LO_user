@@ -349,8 +349,8 @@ if len(fn_list_model1) > 1:
 # West Point position
 lat0, lon0 = WP_lat, WP_lon
 
-ds_model1_lasthour = fn_list_model1[-1]
-ds_model2_lasthour = fn_list_model2[-1]
+ds_model1_lasthour = xr.open_dataset(fn_list_model1[-1])
+ds_model2_lasthour = xr.open_dataset(fn_list_model2[-1])
 
 # Compute residual and squeeze ocean_time
 res = ds_model1_lasthour[vn1].squeeze() - ds_model2_lasthour[vn2].squeeze()  # shape (s_rho, eta_rho, xi_rho)
