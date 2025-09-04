@@ -240,8 +240,6 @@ if len(fn_list_model1) > 1:
 
 for i,fn_model1 in enumerate(fn_list_model1):
 
-    print(i)
-
     # get model output
     fn_model2 = fn_list_model2[i]
     ds_model1 = xr.open_dataset(fn_model1)
@@ -351,12 +349,15 @@ if len(fn_list_model1) > 1:
 # West Point position
 lat0, lon0 = WP_lat, WP_lon
 
+ds_model1_lasthour = fn_list_model1[-1]
+ds_model2_lasthour = fn_list_model2[-1]
+
 # Compute residual and squeeze ocean_time
-res = ds_model1[vn1].squeeze() - ds_model2[vn2].squeeze()  # shape (s_rho, eta_rho, xi_rho)
+res = ds_model1_lasthour[vn1].squeeze() - ds_model2_lasthour[vn2].squeeze()  # shape (s_rho, eta_rho, xi_rho)
 
 # Load lat/lon on rho grid (shape (eta_rho, xi_rho))
-lat = ds_model1['lat_rho'].values
-lon = ds_model1['lon_rho'].values
+lat = ds_model1_lasthour['lat_rho'].values
+lon = ds_model1_lasthour['lon_rho'].values
 
 # get residual data: (s_rho, eta_rho, xi_rho)
 res_data = res.values  # (30, 1302, 663)
@@ -401,7 +402,7 @@ ax[0].scatter(distance, residuals, s=5, alpha=0.3,color='black',zorder=5)
 # format figure
 ax[0].set_ylabel('dye residual [kg/m3]',fontsize=12)
 ax[0].grid(True,color='gainsboro')
-ax[0].set_ylim([-0.2,3.6])
+# ax[0].set_ylim([-0.2,3.6])
 
 
 # Absolute value and log transform
@@ -412,7 +413,7 @@ ax[1].scatter(neg_distances, neg_residuals, s=5, alpha=0.3,color='crimson',
 # format figure
 ax[1].set_yscale('log')
 ax[1].set_xlim([0,25])
-ax[1].set_ylim([10e-12,10e1])
+# ax[1].set_ylim([10e-12,10e1])
 ax[1].set_xlabel('Distance from West Point [km]',fontsize=12)
 ax[1].set_ylabel('dye residual [kg/m3]',fontsize=12)
 ax[1].grid(True,color='gainsboro')
