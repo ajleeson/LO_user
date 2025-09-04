@@ -459,10 +459,12 @@ for i,fn_model1 in enumerate(fn_list_model1):
 
 # Plot
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
-ax.plot(all_sec, dye_ratios, 'o', markersize=8, linestyle='None', label='Actual decay')
+ax.plot(all_sec, dye_ratios, 'o', markersize=8, linestyle='None',
+        alpha=0.4,color='deeppink',label='Actual decay')
 time = np.linspace(0,86400,1000)
 expected = np.exp(-1*1e-5*time)
-ax.plot(time,expected,label='Expected exponential decay')
+ax.plot(time,expected,color='black',linewidth=2,
+        label='Expected exponential decay')
 
 ax.set_ylim(0,1)
 ax.set_xlim(0,86400)
