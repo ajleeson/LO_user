@@ -446,9 +446,9 @@ for i,fn_model1 in enumerate(fn_list_model1):
     ds_model2 = xr.open_dataset(fn_model2)
 
     # Get model1 data
-    bott_vn_model1 = ds_model1[vn1][0,0,753:757,594:598].values
+    bott_vn_model1 = ds_model1[vn1][0,0,750:760,591:601].values
     # Get model2 data
-    bott_vn_model2 = ds_model2[vn2][0,0,753:757,594:598].values
+    bott_vn_model2 = ds_model2[vn2][0,0,750:760,591:601].values
 
     # Get list of vn2/vn1
     ratio = 1 - ((bott_vn_model2/bott_vn_model1) * 1e-5 * i*3600)
@@ -459,8 +459,8 @@ for i,fn_model1 in enumerate(fn_list_model1):
 
 # Plot
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
-ax.plot(all_sec, dye_ratios, 'o', markersize=8, linestyle='None',
-        alpha=0.4,color='deeppink',label='Actual decay')
+ax.plot(all_sec, dye_ratios, 'o', markersize=5, linestyle='None',
+        alpha=0.2,color='deeppink',label='Actual decay')
 time = np.linspace(0,86400,1000)
 expected = np.exp(-1*1e-5*time)
 ax.plot(time,expected,color='black',linewidth=2,
