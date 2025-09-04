@@ -442,12 +442,12 @@ for i,fn_model1 in enumerate(fn_list_model1):
     ds_model2 = xr.open_dataset(fn_model2)
 
     # Get model1 data
-    bott_vn_model1 = ds_model1[vn1][0,0,:,:].values
+    bott_vn_model1 = ds_model1[vn1][0,0,755,596].values
     # Get model2 data
-    bott_vn_model2 = ds_model2[vn2][0,0,:,:].values
+    bott_vn_model2 = ds_model2[vn2][0,0,755,596].values
 
     # Get list of vn2/vn1
-    ratio = [x2 / x1 for x1, x2 in zip(bott_vn_model1.ravel(), bott_vn_model2.ravel())]
+    ratio = [x2 / x1 for x1, x2 in zip(bott_vn_model1, bott_vn_model2)]
 
     # add to lists of ratios
     dye_ratios.append(ratio)   # keep grouped by hour
@@ -456,7 +456,7 @@ for i,fn_model1 in enumerate(fn_list_model1):
 
 # Plot
 fig, ax = plt.subplots(1,1, figsize=(8, 8))
-ax.plot(all_hours, all_ratios, 'o', alpha=0.3, markersize=2, linestyle='None')
+ax.plot(all_hours, all_ratios, 'o', markersize=8, linestyle='None')
 plt.savefig(outdir0/'exp_decay_check')
 plt.close()
 
