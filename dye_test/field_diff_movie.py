@@ -12,6 +12,12 @@ Figures saved in LO_output/AL_custom_plots/noise_WestPoint/[vn]_diff.mp3
 ##                       import packages                         ##  
 ###################################################################      
 
+from subprocess import Popen as Po
+from subprocess import PIPE as Pi
+import matplotlib.colors as mcolors
+import numpy as np
+import xarray as xr
+import cmocean
 import numpy as np
 import xarray as xr
 import matplotlib.pylab as plt
