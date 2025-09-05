@@ -441,7 +441,10 @@ h = grid_ds['h'].values # height of water column
 z_rho, z_w = zrfun.get_z(h, 0*h, S) 
 dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m] 
 
-print(dzr)
+# get horizontal gridcell area
+DX = (grid_ds.pm.values)**-1
+DY = (grid_ds.pn.values)**-1
+DA = DX*DY # get area in m2
 
 # loop through days
 for i,fn_model1 in enumerate(fn_list_model1):
@@ -451,6 +454,7 @@ for i,fn_model1 in enumerate(fn_list_model1):
     ds_model1 = xr.open_dataset(fn_model1)
     ds_model2 = xr.open_dataset(fn_model2) 
 
+    # Vertical dye thickness
     # Now get dye values at every grid cell
     dye_kgm3_model1 = ds_model1[vn1].values
     dye_kgm3_model2 = ds_model2[vn2].values
@@ -461,10 +465,20 @@ for i,fn_model1 in enumerate(fn_list_model1):
     dye_thick_1 = np.nansum(dye_scell_thickness_1,axis=1)
     dye_thick_2 = np.nansum(dye_scell_thickness_2,axis=1)
 
-# # Plot
-# fig, ax = plt.subplots(1,1, figsize=(8, 4))
-# ax.plot(all_sec, dye_ratios, 'o', markersize=5, linestyle='None',
-#         alpha=0.2,color='hotpink',label='Actual decay')
+    # total dye mass
+    dye_mass_temp_1 = np.sum(dye_thick_1 * DA, axis=(1, 2)) # kg
+    dye_mass_temp_2 = np.sum(dye_thick_1 * DA, axis=(1, 2)) # kg
+    
+    # add to lists
+    dye_mass_1.extend(dye_mass_temp_1)
+    dye_mass_2.extend(dye_mass_temp_2)
+
+# Plot
+fig, ax = plt.subplots(1,1, figsize=(8, 4))
+ax.plot(seconds, dye_mass_1, 'o', markersize=5, linestyle='None',
+        alpha=0.5,color='hotpink',label='{} total mass'/format(vn1))
+ax.plot(seconds, dye_mass_2, 'o', markersize=5, linestyle='None',
+        alpha=0.5,color='royalblue',label='{} total mass'/format(vn2))
 
 # # expected decay
 # time = np.linspace(0,86500,1000)
@@ -488,16 +502,16 @@ for i,fn_model1 in enumerate(fn_list_model1):
 #         linestyle='--',label='Fitted exponential decay')
 
 # ax.set_ylim(0,1)
-# ax.set_xlim(0,86400)
-# ax.set_xlabel('Seconds',fontsize=12)
-# ax.set_ylabel('1 - ({}/{})*0.00001*t'.format(vn2,vn1),fontsize=12)
-# ax.grid(True,color='gainsboro')
-# ax.legend(loc='best')
+ax.set_xlim(0,86400)
+ax.set_xlabel('Seconds',fontsize=12)
+ax.set_ylabel('Dye Mass [kg]',fontsize=12)
+ax.grid(True,color='gainsboro')
+ax.legend(loc='best')
 
-# ax.set_title('Exponential Decay at bottom waters near West Point WWTP')
+ax.set_title('Total mass of dye')
 
-# plt.savefig(outdir0/'exp_decay_check')
-# plt.close()
+plt.savefig(outdir0/'exp_decay_check')
+plt.close()
 
 
 
