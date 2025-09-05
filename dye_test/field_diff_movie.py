@@ -467,7 +467,7 @@ for i,fn_model1 in enumerate(fn_list_model1):
 
     # total dye mass
     dye_mass_temp_1 = np.sum(dye_thick_1 * DA, axis=(1, 2)) # kg
-    dye_mass_temp_2 = np.sum(dye_thick_1 * DA, axis=(1, 2)) # kg
+    dye_mass_temp_2 = np.sum(dye_thick_2 * DA, axis=(1, 2)) # kg
     
     # add to lists
     dye_mass_1.extend(dye_mass_temp_1)
@@ -488,8 +488,8 @@ time = np.linspace(0,86500,1000)
 expected_dye01 = Q*C*time
 expected_dye02 = Q*C/a * (1-np.exp(-1*a*time))
 
-ax.plot(seconds, dye_mass_1, color='crimson',label='Expected {}'.format(vn1))
-ax.plot(seconds, dye_mass_2, color='navy',label='Expected {}'.format(vn2))
+ax.plot(seconds, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
+ax.plot(seconds, expected_dye02, color='navy',label='Expected {}'.format(vn2))
 
 
 # # expected decay
@@ -513,7 +513,7 @@ ax.plot(seconds, dye_mass_2, color='navy',label='Expected {}'.format(vn2))
 # ax.plot(time,fit,color='royalblue',linewidth=3,
 #         linestyle='--',label='Fitted exponential decay')
 
-# ax.set_ylim(0,1)
+ax.set_ylim(0,3.5e6)
 ax.set_xlim(0,86400)
 ax.set_xlabel('Seconds',fontsize=12)
 ax.set_ylabel('Dye Mass [kg]',fontsize=12)
