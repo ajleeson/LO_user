@@ -17,12 +17,12 @@ ds_clm = xr.open_dataset('../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye/oce
 
 # Ocean initial conditions
 # ds_ini['dye_01'] = xr.zeros_like(ds_ini['temp'])
-ds_ini['dye_01'] = xr.full_like(ds_ini['temp'], 0.1)
+ds_ini['dye_01'] = xr.full_like(ds_ini['temp'], 1e-6)
 ds_ini['dye_01'].attrs['long_name'] = 'Passive tracer dye concentration'
 ds_ini['dye_01'].attrs['units'] = 'kg m-3' 
 
 # ds_ini['dye_02'] = xr.zeros_like(ds_ini['temp'])
-ds_ini['dye_02'] = xr.full_like(ds_ini['temp'], 0.1)
+ds_ini['dye_02'] = xr.full_like(ds_ini['temp'], 1e-6)
 ds_ini['dye_02'].attrs['long_name'] = 'Passive tracer dye concentration'
 ds_ini['dye_02'].attrs['units'] = 'kg m-3' 
 
@@ -87,7 +87,7 @@ ds_clm['dye_time'].attrs = ds_clm['temp_time'].attrs.copy()
 ################################################################
 # Save .nc files
 print('Saving new files...')
-ds_ini.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye2ocnp1/ocean_ini.nc')
-ds_bry.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye2ocnp1/ocean_bry.nc')
-ds_clm.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye2ocnp1/ocean_clm.nc')
+ds_ini.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye2ocnTiny/ocean_ini.nc')
+ds_bry.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye2ocnTiny/ocean_bry.nc')
+ds_clm.to_netcdf(path='../../LO_output/forcing/cas7/f2012.10.07/ocnG00dye2ocnTiny/ocean_clm.nc')
 
