@@ -488,8 +488,8 @@ time = np.linspace(0,86500,1000)
 expected_dye01 = Q*C*time
 expected_dye02 = Q*C/a * (1-np.exp(-1*a*time))
 
-ax.plot(seconds, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
-ax.plot(seconds, expected_dye02, color='navy',label='Expected {}'.format(vn2))
+ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
+ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
 
 
 # # expected decay
