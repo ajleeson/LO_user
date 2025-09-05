@@ -473,12 +473,24 @@ for i,fn_model1 in enumerate(fn_list_model1):
     dye_mass_1.extend(dye_mass_temp_1)
     dye_mass_2.extend(dye_mass_temp_2)
 
-# Plot
+# Plot actual mass of dye
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
 ax.plot(seconds, dye_mass_1, 'o', markersize=5, linestyle='None',
-        alpha=0.5,color='hotpink',label='{} total mass'/format(vn1))
+        alpha=0.5,color='hotpink',label='{} total mass'.format(vn1))
 ax.plot(seconds, dye_mass_2, 'o', markersize=5, linestyle='None',
-        alpha=0.5,color='royalblue',label='{} total mass'/format(vn2))
+        alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
+
+# Plot expected mass of dye
+Q = 4.07676581702 # m3/s from West Point
+C = 10 # kg/m3
+a = 1e-5 # 1/s
+time = np.linspace(0,86500,1000)
+expected_dye01 = Q*C*time
+expected_dye02 = Q*C/a * (1-np.exp(-1*a*time))
+
+ax.plot(seconds, dye_mass_1, color='crimson',label='Expected {}'.format(vn1))
+ax.plot(seconds, dye_mass_2, color='navy',label='Expected {}'.format(vn2))
+
 
 # # expected decay
 # time = np.linspace(0,86500,1000)
