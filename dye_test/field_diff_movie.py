@@ -12,23 +12,10 @@ Figures saved in LO_output/AL_custom_plots/noise_WestPoint/[vn]_diff.mp3
 ##                       import packages                         ##  
 ###################################################################      
 
-from subprocess import Popen as Po
-from subprocess import PIPE as Pi
-from matplotlib.markers import MarkerStyle
-import matplotlib.dates as mdates
-import matplotlib.colors as mcolors
 import numpy as np
 import xarray as xr
-from datetime import datetime, timedelta
-from matplotlib.dates import DateFormatter
-from matplotlib.dates import MonthLocator
-from matplotlib.offsetbox import (OffsetImage, AnnotationBbox)
-import matplotlib.image as image
-import pandas as pd
-import cmocean
 import matplotlib.pylab as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib.patheffects as PathEffects
+import csv
 from scipy.optimize import curve_fit
 
 from lo_tools import Lfun, zfun, zrfun
@@ -102,19 +89,19 @@ if len(fn_list_model1) > 1:
     Lfun.make_dir(outdir / 'binary', clean=True)
     Lfun.make_dir(outdir / 'pcolormesh', clean=True)
 
-# ###################################################################
-# ##          load output folder, grid data, model output          ##  
-# ################################################################### 
+###################################################################
+##          load output folder, grid data, model output          ##  
+################################################################### 
 
-# # Get grid data
-# G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
-# grid_ds = xr.open_dataset(Ldir['data'] / 'grids/cas7/grid.nc')
-# lon = grid_ds.lon_rho.values
-# lat = grid_ds.lat_rho.values
-# lon_u = grid_ds.lon_u.values
-# lat_u = grid_ds.lat_u.values
-# lon_v = grid_ds.lon_v.values
-# lat_v = grid_ds.lat_v.values
+# Get grid data
+G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
+grid_ds = xr.open_dataset(Ldir['data'] / 'grids/cas7/grid.nc')
+lon = grid_ds.lon_rho.values
+lat = grid_ds.lat_rho.values
+lon_u = grid_ds.lon_u.values
+lat_u = grid_ds.lat_u.values
+lon_v = grid_ds.lon_v.values
+lat_v = grid_ds.lat_v.values
 
 # ###################################################################
 # ##                   Binary differences movie                    ##  
@@ -436,65 +423,81 @@ plt.close()
 ###################################################################
 
 # initialize empty list of dye ratios
-dye_ratios = []
-all_sec = [] #= np.linspace(0,86400,25) # np.linspace(0,24,25)
+dye_mass_1 = []
+dye_mass_2
+seconds = np.linspace(0,86400,25)
 
+# get thickness of dye in watercolumn at every lat/lon cell
+# units are in m (thickness of hypoxic layer)
+# get S for the whole grid
+Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
+reader = csv.DictReader(open(Sfp))
+S_dict = {}
+for row in reader:
+    S_dict[row['ITEMS']] = row['VALUES']
+S = zrfun.get_S(S_dict)
+# get cell thickness
+h = grid_ds['h'].values # height of water column
+z_rho, z_w = zrfun.get_z(h, 0*h, S) 
+dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m] 
+
+print(dzr)
+
+# loop through days
 for i,fn_model1 in enumerate(fn_list_model1):
 
     # get model output
     fn_model2 = fn_list_model2[i]
     ds_model1 = xr.open_dataset(fn_model1)
-    ds_model2 = xr.open_dataset(fn_model2)
+    ds_model2 = xr.open_dataset(fn_model2) 
 
-    # Get model1 data
-    bott_vn_model1 = ds_model1[vn1][0,0,745:765,586:606].values
-    # Get model2 data
-    bott_vn_model2 = ds_model2[vn2][0,0,745:765,586:606].values
+    # Now get dye values at every grid cell
+    dye_kgm3_model1 = ds_model1[vn1].values
+    dye_kgm3_model2 = ds_model2[vn2].values
+    # Multiple cell height array by dye concentration 
+    dye_scell_thickness_1 = dzr * dye_kgm3_model1 # kg/m2
+    dye_scell_thickness_2 = dzr * dye_kgm3_model2 # kg/m2
+    # Sum along z to get thickness of dye layer
+    dye_thick_1 = np.nansum(dye_scell_thickness_1,axis=1)
+    dye_thick_2 = np.nansum(dye_scell_thickness_2,axis=1)
 
-    # Get list of vn2/vn1
-    ratio = 1 - ((bott_vn_model2 / np.where(bott_vn_model1==0, np.nan, bott_vn_model1)) * 1e-5 * i*3600)
+# # Plot
+# fig, ax = plt.subplots(1,1, figsize=(8, 4))
+# ax.plot(all_sec, dye_ratios, 'o', markersize=5, linestyle='None',
+#         alpha=0.2,color='hotpink',label='Actual decay')
 
-    # add to lists of ratios
-    dye_ratios.extend(ratio.ravel())   # flat list
-    all_sec.extend([i * 3600] * ratio.size)
+# # expected decay
+# time = np.linspace(0,86500,1000)
+# expected = np.exp(-1*1e-5*time)
+# ax.plot(time,expected,color='black',linewidth=3,
+#         label='Expected exponential decay')
 
-# Plot
-fig, ax = plt.subplots(1,1, figsize=(8, 4))
-ax.plot(all_sec, dye_ratios, 'o', markersize=5, linestyle='None',
-        alpha=0.2,color='hotpink',label='Actual decay')
+# # Fit decay
+# time = np.linspace(0,86500,1000)
+# # Convert to arrays and automatically remove NaNs/Infs
+# mask = np.isfinite(all_sec) & np.isfinite(dye_ratios)
+# all_sec_arr = np.array(all_sec)[mask]
+# dye_ratios_arr = np.array(dye_ratios)[mask]
+# # Fit exponential decay with A=1
+# def exp_decay_fixedA(t, k):
+#     return np.exp(-k * t)
+# k_fit, _ = curve_fit(exp_decay_fixedA, all_sec_arr, dye_ratios_arr, p0=[1e-5])
+# # Fitted curve
+# fit = np.exp(-k_fit * time)
+# ax.plot(time,fit,color='royalblue',linewidth=3,
+#         linestyle='--',label='Fitted exponential decay')
 
-# expected decay
-time = np.linspace(0,86500,1000)
-expected = np.exp(-1*1e-5*time)
-ax.plot(time,expected,color='black',linewidth=3,
-        label='Expected exponential decay')
+# ax.set_ylim(0,1)
+# ax.set_xlim(0,86400)
+# ax.set_xlabel('Seconds',fontsize=12)
+# ax.set_ylabel('1 - ({}/{})*0.00001*t'.format(vn2,vn1),fontsize=12)
+# ax.grid(True,color='gainsboro')
+# ax.legend(loc='best')
 
-# Fit decay
-time = np.linspace(0,86500,1000)
-# Convert to arrays and automatically remove NaNs/Infs
-mask = np.isfinite(all_sec) & np.isfinite(dye_ratios)
-all_sec_arr = np.array(all_sec)[mask]
-dye_ratios_arr = np.array(dye_ratios)[mask]
-# Fit exponential decay with A=1
-def exp_decay_fixedA(t, k):
-    return np.exp(-k * t)
-k_fit, _ = curve_fit(exp_decay_fixedA, all_sec_arr, dye_ratios_arr, p0=[1e-5])
-# Fitted curve
-fit = np.exp(-k_fit * time)
-ax.plot(time,fit,color='royalblue',linewidth=3,
-        linestyle='--',label='Fitted exponential decay')
+# ax.set_title('Exponential Decay at bottom waters near West Point WWTP')
 
-ax.set_ylim(0,1)
-ax.set_xlim(0,86400)
-ax.set_xlabel('Seconds',fontsize=12)
-ax.set_ylabel('1 - ({}/{})*0.00001*t'.format(vn2,vn1),fontsize=12)
-ax.grid(True,color='gainsboro')
-ax.legend(loc='best')
-
-ax.set_title('Exponential Decay at bottom waters near West Point WWTP')
-
-plt.savefig(outdir0/'exp_decay_check')
-plt.close()
+# plt.savefig(outdir0/'exp_decay_check')
+# plt.close()
 
 
 
