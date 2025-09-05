@@ -424,7 +424,7 @@ plt.close()
 
 # initialize empty list of dye ratios
 dye_mass_1 = []
-dye_mass_2
+dye_mass_2 = []
 seconds = np.linspace(0,86400,25)
 
 # get thickness of dye in watercolumn at every lat/lon cell
