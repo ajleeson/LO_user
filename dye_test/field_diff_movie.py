@@ -507,9 +507,9 @@ p0 = 1e-5
 # Perform the fit
 params, covariance = curve_fit(exponential_decay, seconds, dye_mass_1, p0=p0)
 # Extract the fitted parameters
-k_fit = params
+k_fit, = params
 # Generate points for the fitted curve
-x_fit = np.linspace(min(seconds), max(dye_mass_1), 100)
+x_fit = np.linspace(min(seconds), max(seconds), 100)
 y_fit = exponential_decay(x_fit,k_fit)
 # Plot the results
 ax.plot(x_fit, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit))
