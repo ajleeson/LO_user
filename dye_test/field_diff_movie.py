@@ -103,19 +103,19 @@ if len(fn_list_model1) > 1:
     Lfun.make_dir(outdir / 'binary', clean=True)
     Lfun.make_dir(outdir / 'pcolormesh', clean=True)
 
-# ###################################################################
-# ##          load output folder, grid data, model output          ##  
-# ################################################################### 
+###################################################################
+##          load output folder, grid data, model output          ##  
+################################################################### 
 
-# # Get grid data
-# G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
-# grid_ds = xr.open_dataset(Ldir['data'] / 'grids/cas7/grid.nc')
-# lon = grid_ds.lon_rho.values
-# lat = grid_ds.lat_rho.values
-# lon_u = grid_ds.lon_u.values
-# lat_u = grid_ds.lat_u.values
-# lon_v = grid_ds.lon_v.values
-# lat_v = grid_ds.lat_v.values
+# Get grid data
+G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
+grid_ds = xr.open_dataset(Ldir['data'] / 'grids/cas7/grid.nc')
+lon = grid_ds.lon_rho.values
+lat = grid_ds.lat_rho.values
+lon_u = grid_ds.lon_u.values
+lat_u = grid_ds.lat_u.values
+lon_v = grid_ds.lon_v.values
+lat_v = grid_ds.lat_v.values
 
 # ###################################################################
 # ##                   Binary differences movie                    ##  
