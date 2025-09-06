@@ -536,14 +536,14 @@ ax.plot(seconds,[d1 - d2 for d1, d2 in zip(dye_mass_1, dye_mass_2)], 'o', marker
 # ax.plot(seconds, dye_mass_2, 'o', markersize=5, linestyle='None',
 #         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
 
-# # Plot expected mass of dye
-# Q = 4.07676581702 # m3/s from West Point
-# C_01 = 10 # kg/m3
-# C_02 = 5 # kg/m3
-# a = 1e-5 # 1/s
-# time = np.linspace(0,86500,1000)
-# expected_dye01 = Q*C_01/a * (1-np.exp(-1*a*time)) #Q*C_01*time
-# expected_dye02 = Q*C_02/a * (1-np.exp(-1*a*time))
+# Plot expected mass of dye
+Q = 4.07676581702 # m3/s from West Point
+C_01 = 10 # kg/m3
+C_02 = 5 # kg/m3
+a = 1e-5 # 1/s
+time = np.linspace(0,86500,1000)
+expected_dye01 = Q*C_01/a * (1-np.exp(-1*a*time)) #Q*C_01*time
+expected_dye02 = Q*C_02/a * (1-np.exp(-1*a*time))
 
 # ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
 # ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
