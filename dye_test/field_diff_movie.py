@@ -493,10 +493,10 @@ background_dye = dye_mass_1[0] * np.exp(-1*a*seconds)
 
 # Plot actual mass of dye
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
-ax.plot(seconds, dye_mass_1, 'o', markersize=5, linestyle='None',
+ax.plot(seconds, dye_mass_1-dye_mass_2, 'o', markersize=5, linestyle='None',
         alpha=0.5,color='hotpink',label='{} total mass'.format(vn1))
-ax.plot(seconds,dye_mass_2, 'o', markersize=5, linestyle='None',
-        alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
+# ax.plot(seconds,dye_mass_2, 'o', markersize=5, linestyle='None',
+#         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
 
 # print('Background =================================================')
 # print(background_dye)
@@ -509,22 +509,22 @@ ax.plot(seconds,dye_mass_2, 'o', markersize=5, linestyle='None',
 
 # ax.set_yscale('log')
 
-# fit exponential decay
-def exponential_decay(x, k):
-    return np.exp(-k * x)
-# Initial guess for parameter k
-# These values should be chosen to be somewhat close to the expected values
-p0 = 1e-5 * 3600
-hours = seconds/3600
-# Perform the fit
-params, covariance = curve_fit(exponential_decay, hours, dye_mass_1, p0=p0)
-# Extract the fitted parameters
-k_fit, = params
-# Generate points for the fitted curve
-x_fit = hours
-y_fit = exponential_decay(x_fit,k_fit)
-# Plot the results
-ax.plot(seconds, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit/3600))
+# # fit exponential decay
+# def exponential_decay(x, k):
+#     return np.exp(-k * x)
+# # Initial guess for parameter k
+# # These values should be chosen to be somewhat close to the expected values
+# p0 = 1e-5 * 3600
+# hours = seconds/3600
+# # Perform the fit
+# params, covariance = curve_fit(exponential_decay, hours, dye_mass_1, p0=p0)
+# # Extract the fitted parameters
+# k_fit, = params
+# # Generate points for the fitted curve
+# x_fit = hours
+# y_fit = exponential_decay(x_fit,k_fit)
+# # Plot the results
+# ax.plot(seconds, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit/3600))
 
 
 # # Plot actual mass of dye
