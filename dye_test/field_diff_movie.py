@@ -545,8 +545,8 @@ time = np.linspace(0,86500,1000)
 expected_dye01 = Q*C_01/a * (1-np.exp(-1*a*time)) #Q*C_01*time
 expected_dye02 = Q*C_02/a * (1-np.exp(-1*a*time))
 
-# ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
-# ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
+ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
+ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
 
 
 # ax.set_ylim(0,2.5e6)
