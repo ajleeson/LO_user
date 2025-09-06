@@ -493,9 +493,9 @@ background_dye = dye_mass_1[0] * np.exp(-1*a*seconds)
 
 # Plot actual mass of dye
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
-ax.plot(seconds, background_dye-dye_mass_1, 'o', markersize=5, linestyle='None',
+ax.plot(seconds, dye_mass_1, 'o', markersize=5, linestyle='None',
         alpha=0.5,color='hotpink',label='{} total mass'.format(vn1))
-ax.plot(seconds,background_dye-dye_mass_2, 'o', markersize=5, linestyle='None',
+ax.plot(seconds,dye_mass_2, 'o', markersize=5, linestyle='None',
         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
 
 # print('Background =================================================')
@@ -509,21 +509,22 @@ ax.plot(seconds,background_dye-dye_mass_2, 'o', markersize=5, linestyle='None',
 
 # ax.set_yscale('log')
 
-# # fit exponential decay
-# def exponential_decay(x, k):
-#     return np.exp(-k * x)
-# # Initial guess for parameter k
-# # These values should be chosen to be somewhat close to the expected values
-# p0 = 1e-5 
-# # Perform the fit
-# params, covariance = curve_fit(exponential_decay, seconds, dye_mass_1, p0=p0)
-# # Extract the fitted parameters
-# k_fit, = params
-# # Generate points for the fitted curve
-# x_fit = np.linspace(min(seconds), max(seconds), 100)
-# y_fit = exponential_decay(x_fit,k_fit)
-# # Plot the results
-# ax.plot(x_fit, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit))
+# fit exponential decay
+def exponential_decay(x, k):
+    return np.exp(-k * x)
+# Initial guess for parameter k
+# These values should be chosen to be somewhat close to the expected values
+p0 = 1e-5 * 3600
+hours = seconds/3600
+# Perform the fit
+params, covariance = curve_fit(exponential_decay, hours, dye_mass_1, p0=p0)
+# Extract the fitted parameters
+k_fit, = params
+# Generate points for the fitted curve
+x_fit = np.linspace(min(hours), max(hours), 100)
+y_fit = exponential_decay(x_fit,k_fit)
+# Plot the results
+ax.plot(seconds, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit/3600))
 
 
 # # Plot actual mass of dye
@@ -533,17 +534,17 @@ ax.plot(seconds,background_dye-dye_mass_2, 'o', markersize=5, linestyle='None',
 # ax.plot(seconds, dye_mass_2, 'o', markersize=5, linestyle='None',
 #         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
 
-# Plot expected mass of dye
-Q = 4.07676581702 # m3/s from West Point
-C_01 = 10 # kg/m3
-C_02 = 5 # kg/m3
-a = 1e-5 # 1/s
-time = np.linspace(0,86500,1000)
-expected_dye01 = Q*C_01/a * (1-np.exp(-1*a*time)) #Q*C_01*time
-expected_dye02 = Q*C_02/a * (1-np.exp(-1*a*time))
+# # Plot expected mass of dye
+# Q = 4.07676581702 # m3/s from West Point
+# C_01 = 10 # kg/m3
+# C_02 = 5 # kg/m3
+# a = 1e-5 # 1/s
+# time = np.linspace(0,86500,1000)
+# expected_dye01 = Q*C_01/a * (1-np.exp(-1*a*time)) #Q*C_01*time
+# expected_dye02 = Q*C_02/a * (1-np.exp(-1*a*time))
 
-ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
-ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
+# ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
+# ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
 
 
 # ax.set_ylim(0,2.5e6)
