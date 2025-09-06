@@ -493,19 +493,21 @@ background_dye = dye_mass_1[0] * np.exp(-1*a*seconds)
 
 # Plot actual mass of dye
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
-ax.plot(seconds, dye_mass_1-background_dye, 'o', markersize=5, linestyle='None',
+ax.plot(seconds, dye_mass_1, 'o', markersize=5, linestyle='None',
         alpha=0.5,color='hotpink',label='{} total mass'.format(vn1))
-ax.plot(seconds, dye_mass_2-background_dye, 'o', markersize=5, linestyle='None',
+ax.plot(seconds, dye_mass_2, 'o', markersize=5, linestyle='None',
         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
 
 print('Background =================================================')
 print(background_dye)
-print('dye_01 - Background =================================================')
-print(dye_mass_1-background_dye)
-print('dye_02 - Background =================================================')
-print(dye_mass_2-background_dye)
+print('dye_01 =================================================')
+print(dye_mass_1)
+print('dye_02 =================================================')
+print(dye_mass_2)
 
-# ax.plot(seconds, background_dye, color='k',label='Test exp fit')
+ax.plot(seconds, background_dye, color='k',label='Test exp fit')
+
+ax.set_yscale('log')
 
 # # fit exponential decay
 # def exponential_decay(x, k):
