@@ -498,21 +498,23 @@ ax.plot(seconds, dye_mass_1, 'o', markersize=5, linestyle='None',
 ax.plot(seconds, dye_mass_2, 'o', markersize=5, linestyle='None',
         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
 
-# fit exponential decay
-def exponential_decay(x, k):
-    return np.exp(-k * x)
-# Initial guess for parameter k
-# These values should be chosen to be somewhat close to the expected values
-p0 = 1e-5 
-# Perform the fit
-params, covariance = curve_fit(exponential_decay, seconds, dye_mass_1, p0=p0)
-# Extract the fitted parameters
-k_fit, = params
-# Generate points for the fitted curve
-x_fit = np.linspace(min(seconds), max(seconds), 100)
-y_fit = exponential_decay(x_fit,k_fit)
-# Plot the results
-ax.plot(x_fit, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit))
+ax.plot(seconds, background_dye, color='k',label='Test exp fit')
+
+# # fit exponential decay
+# def exponential_decay(x, k):
+#     return np.exp(-k * x)
+# # Initial guess for parameter k
+# # These values should be chosen to be somewhat close to the expected values
+# p0 = 1e-5 
+# # Perform the fit
+# params, covariance = curve_fit(exponential_decay, seconds, dye_mass_1, p0=p0)
+# # Extract the fitted parameters
+# k_fit, = params
+# # Generate points for the fitted curve
+# x_fit = np.linspace(min(seconds), max(seconds), 100)
+# y_fit = exponential_decay(x_fit,k_fit)
+# # Plot the results
+# ax.plot(x_fit, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit))
 
 
 # # Plot actual mass of dye
