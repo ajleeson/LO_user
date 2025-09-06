@@ -519,7 +519,7 @@ ax.set_ylabel('Dye Mass [kg]',fontsize=12)
 ax.grid(True,color='gainsboro')
 ax.legend(loc='best')
 
-ax.set_title('Mass of dye from West Point WWTP\n(Background dye subratcted out)')
+ax.set_title('Mass of dye from West Point WWTP\n(Background dye subtracted out)')
 
 plt.savefig(outdir0/'exp_decay_check')
 plt.close()
