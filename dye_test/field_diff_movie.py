@@ -497,10 +497,8 @@ fig, ax = plt.subplots(1,1, figsize=(8, 4))
 #         alpha=0.5,color='hotpink',label='{} total mass'.format(vn1))
 # ax.plot(seconds,dye_mass_2, 'o', markersize=5, linestyle='None',
 #         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
-ax.plot(seconds,[d1 - d2 for d2, de in zip(dye_mass_1, dye_mass_2)], 'o', markersize=5, linestyle='None',
+ax.plot(seconds,[d1 - d2 for d1, d2 in zip(dye_mass_1, dye_mass_2)], 'o', markersize=5, linestyle='None',
         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
-
-[ai - bi for ai, bi in zip(a, b)]
 
 # print('Background =================================================')
 # print(background_dye)
