@@ -488,9 +488,8 @@ for i,fn_model1 in enumerate(fn_list_model1):
     dye_mass_2.extend(dye_mass_temp_2)
 
 # calculate amount of background dye
-t_background = np.linspace(0,86400,25)
 a = 1e-5 # 1/s
-background_dye = dye_mass_1[0] * np.exp(-1*a*t_background)
+background_dye = dye_mass_1[0] * np.exp(-1*a*seconds)
 
 # Plot actual mass of dye
 fig, ax = plt.subplots(1,1, figsize=(8, 4))
@@ -519,7 +518,7 @@ ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
 ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
 
 
-ax.set_ylim(0,2.5e6)
+# ax.set_ylim(0,2.5e6)
 ax.set_xlim(0,86400)
 ax.set_xlabel('Seconds',fontsize=12)
 ax.set_ylabel('Dye Mass [kg]',fontsize=12)
