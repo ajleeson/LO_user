@@ -521,7 +521,7 @@ params, covariance = curve_fit(exponential_decay, hours, dye_mass_1, p0=p0)
 # Extract the fitted parameters
 k_fit, = params
 # Generate points for the fitted curve
-x_fit = np.linspace(min(hours), max(hours), 100)
+x_fit = hours
 y_fit = exponential_decay(x_fit,k_fit)
 # Plot the results
 ax.plot(seconds, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit/3600))
