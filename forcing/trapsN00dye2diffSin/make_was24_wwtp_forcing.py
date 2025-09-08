@@ -299,6 +299,9 @@ def make_forcing(N,NT,NRIV,NTRIV,NWWTP_moh,dt_ind, yd_ind,ot_vec,Ldir,enable,tra
                         B_mat[:, nn, rr] = 10 * np.ones(len(yd_ind))
                     if rn == 'King County West Point WWTP' and bvn in ['dye_02']:
                         B_mat[:, nn, rr] = 5 * np.ones(len(yd_ind))
+                    # Add tiny dye discharge from the two WWTPs in Sinclair Inlet
+                    if rn in ['BREMERTON STP', 'PORT ORCHARD WWTP'] and bvn in ['dye_01','dye_02']:
+                        B_mat[:, nn, rr] = 0.1 * np.ones(len(yd_ind))
             # check for nans
             if np.isnan(B_mat).any():
                 print('Error from traps: nans in B_mat for tiny river ' + vn)
