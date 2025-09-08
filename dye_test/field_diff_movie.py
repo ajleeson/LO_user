@@ -58,8 +58,8 @@ model1 = 'cas7_twindyeocnTinySin_x11twindye' # Both dyes decay, different inputs
 # model2 = 'cas7_twindyeocnp1duplicate_x11twindye' # Duplicate of above
 # model2 = 'cas7_twindyeocnTiny_x11twindye' # Both dyes decay, different inputs, tiny background ocean
 # model2 = 'cas7_twindyeocnTinyduplicate_x11twindye' # Duplicate of above
-model2 = 'cas7_twindyeocnTinySin_x11twindye' # Both dyes decay, different inputs, tiny background ocean, Sinclair WWTPs
-# model2 = 'cas7_twindyeocnTinySinduplicate_x11twindye' # Duplicate of above
+# model2 = 'cas7_twindyeocnTinySin_x11twindye' # Both dyes decay, different inputs, tiny background ocean, Sinclair WWTPs
+model2 = 'cas7_twindyeocnTinySinduplicate_x11twindye' # Duplicate of above
 
 # Which variables to compare??
 vn1 = 'dye_01' # model 1
@@ -210,9 +210,9 @@ for i,fn_model1 in enumerate(fn_list_model1):
     ax.text(0.7, 0.95, 'Hour {}'.format(i), color='black', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
 
-    # # Salish Sea
-    # ax.set_ylim([46.5,50])
-    # ax.set_xlim([-126.5,-122])
+    # Salish Sea
+    ax.set_ylim([46.5,50])
+    ax.set_xlim([-126.5,-122])
 
     # # West Point
     # ax.set_ylim([47.4,48])
