@@ -43,19 +43,23 @@ plt.close('all')
 # model1 = 'cas7_exdye2duplicate_x11exdye2'   # Duplicate of above
 # model1 = 'cas7_twindye_x11twindye'          # Both dyes decay, Different inputs
 # model1 = 'cas7_twindyeduplicate_x11twindye' # Duplicate of above
-model1 = 'cas7_twindyeocnp1_x11twindye'     # Both dyes decay, different inputs, background ocean
+# model1 = 'cas7_twindyeocnp1_x11twindye'     # Both dyes decay, different inputs, background ocean
 # model1 = 'cas7_twindyeocnp1duplicate_x11twindye' # Duplicate of above
 # model1 = 'cas7_twindyeocnTiny_x11twindye' # Both dyes decay, different inputs, tiny background ocean
 # model1 = 'cas7_twindyeocnTinyduplicate_x11twindye' # Duplicate of above
+model1 = 'cas7_twindyeocnTinySin_x11twindye' # Both dyes decay, different inputs, tiny background ocean, Sinclair WWTPs
+# model1 = 'cas7_twindyeocnTinySinduplicate_x11twindye' # Duplicate of above
 
 # model2 = 'cas7_exdye2_x11exdye2'            # Dye 2 decays, Same inputs
 # model2 = 'cas7_exdye2duplicate_x11exdye2'   # Duplicate of above
 # model2 = 'cas7_twindye_x11twindye'          # Both dyes decay, Different inputs
 # model2 = 'cas7_twindyeduplicate_x11twindye' # Duplicate of above
-model2 = 'cas7_twindyeocnp1_x11twindye'     # Both dyes decay, different inputs, background ocean
+# model2 = 'cas7_twindyeocnp1_x11twindye'     # Both dyes decay, different inputs, background ocean
 # model2 = 'cas7_twindyeocnp1duplicate_x11twindye' # Duplicate of above
 # model2 = 'cas7_twindyeocnTiny_x11twindye' # Both dyes decay, different inputs, tiny background ocean
 # model2 = 'cas7_twindyeocnTinyduplicate_x11twindye' # Duplicate of above
+model2 = 'cas7_twindyeocnTinySin_x11twindye' # Both dyes decay, different inputs, tiny background ocean, Sinclair WWTPs
+# model2 = 'cas7_twindyeocnTinySinduplicate_x11twindye' # Duplicate of above
 
 # Which variables to compare??
 vn1 = 'dye_01' # model 1
@@ -432,101 +436,60 @@ plt.tight_layout()
 plt.savefig(outdir0/'residuals')
 plt.close()
 
-###################################################################
-##                 Verify exponential decay                      ##  
-###################################################################
+# ###################################################################
+# ##                 Verify exponential decay                      ##  
+# ###################################################################
 
-# initialize empty list of dye ratios
-dye_mass_1 = []
-dye_mass_2 = []
-seconds = np.linspace(0,86400,25)
+# # initialize empty list of dye ratios
+# dye_mass_1 = []
+# dye_mass_2 = []
+# seconds = np.linspace(0,86400,25)
 
-# get thickness of dye in watercolumn at every lat/lon cell
-# units are in m (thickness of hypoxic layer)
-# get S for the whole grid
-Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
-reader = csv.DictReader(open(Sfp))
-S_dict = {}
-for row in reader:
-    S_dict[row['ITEMS']] = row['VALUES']
-S = zrfun.get_S(S_dict)
-# get cell thickness
-h = grid_ds['h'].values # height of water column
-z_rho, z_w = zrfun.get_z(h, 0*h, S) 
-dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m] 
+# # get thickness of dye in watercolumn at every lat/lon cell
+# # units are in m (thickness of hypoxic layer)
+# # get S for the whole grid
+# Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
+# reader = csv.DictReader(open(Sfp))
+# S_dict = {}
+# for row in reader:
+#     S_dict[row['ITEMS']] = row['VALUES']
+# S = zrfun.get_S(S_dict)
+# # get cell thickness
+# h = grid_ds['h'].values # height of water column
+# z_rho, z_w = zrfun.get_z(h, 0*h, S) 
+# dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m] 
 
-# get horizontal gridcell area
-DX = (grid_ds.pm.values)**-1
-DY = (grid_ds.pn.values)**-1
-DA = DX*DY # get area in m2
+# # get horizontal gridcell area
+# DX = (grid_ds.pm.values)**-1
+# DY = (grid_ds.pn.values)**-1
+# DA = DX*DY # get area in m2
 
-# loop through days
-for i,fn_model1 in enumerate(fn_list_model1):
+# # loop through days
+# for i,fn_model1 in enumerate(fn_list_model1):
 
-    # get model output
-    fn_model2 = fn_list_model2[i]
-    ds_model1 = xr.open_dataset(fn_model1)
-    ds_model2 = xr.open_dataset(fn_model2) 
+#     # get model output
+#     fn_model2 = fn_list_model2[i]
+#     ds_model1 = xr.open_dataset(fn_model1)
+#     ds_model2 = xr.open_dataset(fn_model2) 
 
-    # Vertical dye thickness
-    # Now get dye values at every grid cell
-    dye_kgm3_model1 = ds_model1[vn1].values
-    dye_kgm3_model2 = ds_model2[vn2].values
-    # Multiple cell height array by dye concentration 
-    dye_scell_thickness_1 = dzr * dye_kgm3_model1 # kg/m2
-    dye_scell_thickness_2 = dzr * dye_kgm3_model2 # kg/m2
-    # Sum along z to get thickness of dye layer
-    dye_thick_1 = np.nansum(dye_scell_thickness_1,axis=1)
-    dye_thick_2 = np.nansum(dye_scell_thickness_2,axis=1)
+#     # Vertical dye thickness
+#     # Now get dye values at every grid cell
+#     dye_kgm3_model1 = ds_model1[vn1].values
+#     dye_kgm3_model2 = ds_model2[vn2].values
+#     # Multiple cell height array by dye concentration 
+#     dye_scell_thickness_1 = dzr * dye_kgm3_model1 # kg/m2
+#     dye_scell_thickness_2 = dzr * dye_kgm3_model2 # kg/m2
+#     # Sum along z to get thickness of dye layer
+#     dye_thick_1 = np.nansum(dye_scell_thickness_1,axis=1)
+#     dye_thick_2 = np.nansum(dye_scell_thickness_2,axis=1)
 
-    # total dye mass
-    dye_mass_temp_1 = np.sum(dye_thick_1 * DA, axis=(1, 2)) # kg
-    dye_mass_temp_2 = np.sum(dye_thick_2 * DA, axis=(1, 2)) # kg
+#     # total dye mass
+#     dye_mass_temp_1 = np.sum(dye_thick_1 * DA, axis=(1, 2)) # kg
+#     dye_mass_temp_2 = np.sum(dye_thick_2 * DA, axis=(1, 2)) # kg
     
-    # add to lists
-    dye_mass_1.extend(dye_mass_temp_1)
-    dye_mass_2.extend(dye_mass_temp_2)
-
-# calculate amount of background dye
-a = 1e-5 # 1/s
-background_dye = dye_mass_1[0] * np.exp(-1*a*seconds)
-
-# Plot actual mass of dye
-fig, ax = plt.subplots(1,1, figsize=(8, 4))
-# ax.plot(seconds, dye_mass_1, 'o', markersize=5, linestyle='None',
-#         alpha=0.5,color='hotpink',label='{} total mass'.format(vn1))
-# ax.plot(seconds,dye_mass_2, 'o', markersize=5, linestyle='None',
-#         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
-ax.plot(seconds,[d1 - d2 for d1, d2 in zip(dye_mass_1, dye_mass_2)], 'o', markersize=5, linestyle='None',
-        alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
-
-# print('Background =================================================')
-# print(background_dye)
-# print('dye_01 =================================================')
-# print(dye_mass_1)
-# print('dye_02 =================================================')
-# print(dye_mass_2)
-
-# ax.plot(seconds, background_dye, color='k',label='Test exp fit')
-
-# ax.set_yscale('log')
-
-# # fit exponential decay
-# def exponential_decay(x, k):
-#     return np.exp(-k * x)
-# # Initial guess for parameter k
-# # These values should be chosen to be somewhat close to the expected values
-# p0 = 1e-5 * 3600
-# hours = seconds/3600
-# # Perform the fit
-# params, covariance = curve_fit(exponential_decay, hours, dye_mass_1, p0=p0)
-# # Extract the fitted parameters
-# k_fit, = params
-# # Generate points for the fitted curve
-# x_fit = hours
-# y_fit = exponential_decay(x_fit,k_fit)
-# # Plot the results
-# ax.plot(seconds, y_fit, color='red', label='Fitted Curve: a = {}'.format(k_fit/3600))
+#     # add to lists
+#     dye_mass_1.extend(dye_mass_temp_1)
+#     dye_mass_2.extend(dye_mass_temp_2)
 
 
 # # Plot actual mass of dye
@@ -536,30 +499,30 @@ ax.plot(seconds,[d1 - d2 for d1, d2 in zip(dye_mass_1, dye_mass_2)], 'o', marker
 # ax.plot(seconds, dye_mass_2, 'o', markersize=5, linestyle='None',
 #         alpha=0.5,color='royalblue',label='{} total mass'.format(vn2))
 
-# Plot expected mass of dye
-Q = 4.07676581702 # m3/s from West Point
-C_01 = 10 # kg/m3
-C_02 = 5 # kg/m3
-a = 1e-5 # 1/s
-time = np.linspace(0,86500,1000)
-expected_dye01 = Q*C_01/a * (1-np.exp(-1*a*time)) #Q*C_01*time
-expected_dye02 = Q*C_02/a * (1-np.exp(-1*a*time))
+# # Plot expected mass of dye
+# Q = 4.07676581702 # m3/s from West Point
+# C_01 = 10 # kg/m3
+# C_02 = 5 # kg/m3
+# a = 1e-5 # 1/s
+# time = np.linspace(0,86500,1000)
+# expected_dye01 = Q*C_01/a * (1-np.exp(-1*a*time)) #Q*C_01*time
+# expected_dye02 = Q*C_02/a * (1-np.exp(-1*a*time))
 
-ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
-ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
+# ax.plot(time, expected_dye01, color='crimson',label='Expected {}'.format(vn1))
+# ax.plot(time, expected_dye02, color='navy',label='Expected {}'.format(vn2))
 
 
-# ax.set_ylim(0,2.5e6)
-ax.set_xlim(0,86400)
-ax.set_xlabel('Seconds',fontsize=12)
-ax.set_ylabel('Dye Mass [kg]',fontsize=12)
-ax.grid(True,color='gainsboro')
-ax.legend(loc='best')
+# ax.set_ylim(0,3.5e6)
+# ax.set_xlim(0,86400)
+# ax.set_xlabel('Seconds',fontsize=12)
+# ax.set_ylabel('Dye Mass [kg]',fontsize=12)
+# ax.grid(True,color='gainsboro')
+# ax.legend(loc='best')
 
-ax.set_title('Mass of dye from West Point WWTP\n(Background dye subtracted out)')
+# ax.set_title('Mass of dye from West Point WWTP\n(Background dye subtracted out)')
 
-plt.savefig(outdir0/'exp_decay_check')
-plt.close()
+# plt.savefig(outdir0/'exp_decay_check')
+# plt.close()
 
 
 
