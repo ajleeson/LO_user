@@ -266,7 +266,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
             B_mat = np.zeros((NT, N, NWWTP))
             # check for nans
             if np.isnan(B_mat).any():
-                print('Error from traps: nans in was24 wwtp bio!')
+                print('Error from traps: nans in moh20 wwtp bio!')
                 sys.exit()
             # add metadata
             wwtp_ds[vn] = (dims, B_mat)
