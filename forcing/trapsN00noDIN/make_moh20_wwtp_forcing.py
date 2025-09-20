@@ -224,7 +224,8 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
 #################################################################################
 
         # Add biologeochemistry parameters
-        for var in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
+        for var in ['TIC', 'TAlk', 'Oxyg']:
+        # for var in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
             vn = 'river_' + var
             vinfo = zrfun.get_varinfo(vn, vartype='climatology')
             dims = (vinfo['time'],) + ('s_rho', 'river')
@@ -247,6 +248,25 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
             # check for nans
             if np.isnan(B_mat).any():
                 print('Error from traps: nans in moh20 wwtp bio!')
+                sys.exit()
+            # add metadata
+            wwtp_ds[vn] = (dims, B_mat)
+            wwtp_ds[vn].attrs['long_name'] = vinfo['long_name']
+            wwtp_ds[vn].attrs['units'] = vinfo['units']
+
+#################################################################################
+#                          Set NO3 and NH4 to zero                              #
+#################################################################################
+
+        # Add DIN, and make it zero
+        for var in ['NO3', 'NH4']:
+            vn = 'river_' + var
+            vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+            dims = (vinfo['time'],) + ('s_rho', 'river')
+            B_mat = np.zeros((NT, N, NWWTP))
+            # check for nans
+            if np.isnan(B_mat).any():
+                print('Error from traps: nans in was24 wwtp bio!')
                 sys.exit()
             # add metadata
             wwtp_ds[vn] = (dims, B_mat)
