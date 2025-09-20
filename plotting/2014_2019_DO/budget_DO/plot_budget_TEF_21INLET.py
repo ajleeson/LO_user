@@ -2978,25 +2978,25 @@ timeseries = True
 if timeseries == True:
     for i,station in enumerate(sta_dict):
         # plt.close('all')
-        if station != 'penn':
+        if station != 'lynchcove':
             continue
         # initialize figure
-        fig, ax = plt.subplots(1,1,figsize = (8,6))
+        fig, ax = plt.subplots(1,1,figsize = (8,3))
         ax.set_title(station,fontsize=18)
 
         # format grid
         # ax.set_facecolor('#EEEEEE')
         ax.tick_params(axis='x', labelrotation=30)
         ax.grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
-        ax.tick_params(axis='both', labelsize=12)
+        ax.tick_params(axis='both', labelsize=16)
         # ax.grid(True,color='w',linewidth=1,linestyle='-',axis='both')
         # for border in ['top','right','bottom','left']:
         #     ax.spines[border].set_visible(False)
-        ax.tick_params(axis='both', labelsize=12)
+        ax.tick_params(axis='both', labelsize=16)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
         ax.set_xlim([dates_no_crop[0],dates_no_crop[-1]])
         # ax.set_ylim([0,12])
-        ax.set_ylabel(r'DO$_{deep}$ [mg/L]', fontsize=12)
+        ax.set_ylabel(r'DO$_{deep}$ [mg/L]', fontsize=16)
 
         # get variables for plotting
         deep_layer_DO = DOconcen_dict[station]['Deep Layer']
@@ -3018,33 +3018,36 @@ if timeseries == True:
                 linestyle='-',label=r'DO$_{deep}$')
         ax.scatter(days,deep_lay_DO[i*intervals:(i+1)*intervals],s=80,facecolor=deepDO_color,edgecolor='white',zorder=7)
         # ax.plot(dates_local_daily,DOin,color='deeppink',linewidth=2,linestyle='--',label=r'TEF DO$_{in}$ (30-day Hanning Window)')
-        ax.legend(loc='upper left',fontsize=12)
+        ax.legend(loc='upper left',fontsize=14)
         ax.set_ylim([0,10])
         ticks = 5
 
+        ax.tick_params(axis='y', labelsize=16)
+
         # add Tflush
-        Tflush_color = 'mediumturquoise'
+        Tflush_color = 'tomato'
         ax2 = ax.twinx()
         for border in ['top','right','bottom','left']:
             ax2.spines[border].set_visible(False)
-        ax2.plot(dates_local_daily,Tflush,linewidth=2,linestyle='-',color=Tflush_color,
+        ax2.plot(dates_local_daily,Tflush,linewidth=2.5,linestyle='-',color=Tflush_color,
                  alpha=0.5,label=r'T$_{flush}$ (30-day Hanning Window)')
         # add scatter points of monthly mean
         ax2.scatter(days,mean_Tflush[i*intervals:(i+1)*intervals],s=80,facecolor=Tflush_color,edgecolor='white',zorder=7)
         # ax2.plot(dates_local_daily,Qin,linewidth=2,linestyle='-',color='darkturquoise',label='Qin (30-day Hanning Window)')
         # ax2.set_ylim([0,np.nanmax(Tflush)*4])
         # ax2.set_ylim([0,np.nanmax(Qin)*4])
-        ax2.set_ylabel(r'T$_{flush}$ [days]',color=Tflush_color,fontsize=12)
-        ax2.legend(loc='upper right',fontsize=12)
+        ax2.set_ylabel(r'T$_{flush}$ [days]',color=Tflush_color,fontsize=16)
+        ax2.legend(loc='upper right',fontsize=14)
         ymax = 1.2*np.nanmax(Tflush)
         # round to nearest multiple of 5
         ymax = int(5 * math.ceil(float(ymax)/5))
         ax2.set_ylim([0,ymax])
         ax2.set_yticks(np.arange(0, ymax+(ymax/ticks), ymax/ticks))
-        ax2.tick_params(axis='y', labelcolor=Tflush_color, labelsize=12)
+        ax2.tick_params(axis='y', labelcolor=Tflush_color, labelsize=16)
 
         out_dir_DOinTflush_ts = out_dir / 'DOin_Tflush_timeseries'
         Lfun.make_dir(out_dir_DOinTflush_ts)
+        plt.tight_layout()
         plt.savefig(out_dir_DOinTflush_ts / (station + '.png') )
 
 
