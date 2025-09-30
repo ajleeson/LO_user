@@ -44,14 +44,16 @@ import gfun
 Gr = gfun.gstart()
 Ldir = Lfun.Lstart()
 
+plt.close('all')
+
 ###################################################################
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['DIN']#['DIN','u','v'] # u, v, w, DIN
-# date = '2013.01.01'
-date = '2012.10.31'
-# date = '2012.10.07'
+vns = ['DIN']#['DIN','u','v','oxygen'] # u, v, w, DIN
+# date = '2013.04.04'
+# date = '2012.10.31'
+date = '2012.10.07'
 # date = '2014.01.09'
 
 ###################################################################
@@ -60,8 +62,8 @@ date = '2012.10.31'
 
 # gtagex_longhindcast = 'cas7_t0noN_x4b'
 # gtagex_noN = 'cas7_t0noN_x4b_perf10'
-gtagex_longhindcast = 'cas7_newtraps_x11ab'
-gtagex_noN = 'cas7_newtrapsnoN_x11ab'
+gtagex_longhindcast = 'cas7_t1_x11ab'
+gtagex_noN = 'cas7_t1noDIN_x11ab'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
@@ -137,16 +139,16 @@ for vn in vns:
         vn_nh4 = 'NH4'
         # vmin = -5
         # vmax =  5
-        vmin = -0.001
-        vmax =  0.001
+        vmin = -0.01 #-0.00001
+        vmax =  0.01 #0.00001
     elif vn == 'u' or vn == 'v':
         vn_name = vn
         vmin = -0.00001#-0.01
         vmax =  0.00001#0.01
     elif vn == 'oxygen':
         vn_name = vn
-        vmin = -0.001
-        vmax =  0.001
+        vmin = -0.01 #-0.001
+        vmax =  0.01 #0.001
     elif vn == 'salt':
         vn_name = vn
         vmin = -0.00001
@@ -200,8 +202,6 @@ for vn in vns:
     # ##                  Plotting and saving figure                   ##  
     # ################################################################### 
 
-    plt.close('all')
-
     # Initialize figure
     fig = plt.figure(figsize=(12,9)) # 15,11 for Puget sound and 18,8 for Salish Sea
     plt.tight_layout()
@@ -224,8 +224,8 @@ for vn in vns:
         cbar.ax.tick_params(labelsize=14)
         cbar.outline.set_visible(False)
         # format figure
-        # ax.set_xlim([xmin,xmax])
-        # ax.set_ylim([ymin,ymax])
+        ax.set_xlim([xmin,xmax])
+        ax.set_ylim([ymin,ymax])
         ax.set_yticklabels([])
         ax.set_xticklabels([])
         ax.axis('off')
@@ -246,9 +246,9 @@ for vn in vns:
         # ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
         #         horizontalalignment='center', fontsize=15)
         
-        # # add WWTP locations
-        # ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
-        #         facecolors='none',edgecolors='k')
+        # add WWTP locations
+        ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
+                facecolors='none',edgecolors='deeppink')
 
     # Generate plot
     plt.tight_layout
