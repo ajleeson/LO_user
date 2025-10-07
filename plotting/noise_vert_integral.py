@@ -9,6 +9,7 @@ import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 import cmocean
+from datetime import datetime
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from lo_tools import Lfun, zrfun, zfun
@@ -29,7 +30,7 @@ Ldir = Lfun.Lstart()
 d0 = '2012.10.07'
 d1 = '2013.10.07'
 
-list_type = 'weekly' #'weekly', 'daily', 'hourly ', 'allhours'
+list_type = 'weeklyaverage' #'weekly', 'daily', 'hourly ', 'allhours'
 
 
 # # dstr = 'f2012.10.07'
@@ -44,6 +45,92 @@ list_type = 'weekly' #'weekly', 'daily', 'hourly ', 'allhours'
 # gtagex of files to difference
 Ldir_WWTP   = Lfun.Lstart(gridname='cas7', tag='t1', ex_name='x11ab')
 Ldir_noWWTP = Lfun.Lstart(gridname='cas7', tag='t1noDIN', ex_name='x11ab')
+
+
+###################################################################
+##       Custom get fn list to do weekly from average files      ##  
+################################################################### 
+
+# format used for naming day folders
+ds_fmt = '%Y.%m.%d'
+
+def get_fn_list(list_type, Ldir, ds0, ds1, his_num=2):
+    """
+    INPUT:
+    A function for getting lists of history files.
+    List items are Path objects
+    
+    NEW 2023.10.05: for list_type = 'hourly', if you pass his_num = 1
+    it will start with ocean_his_0001.nc on the first day instead of the default which
+    is to start with ocean_his_0025.nc on the day before.
+
+    NEW 2025.06.20: for list_type = 'hourly0'
+    which will start with ocean_his_0001.nc on the first day instead of the default which
+    is to start with ocean_his_0025.nc on the day before.
+    This is identical to passing his_num = 1, but may be more convenient, especially
+    as we move to "continuation" start_type, which always writes an 0001 file.
+    """
+    dt0 = datetime.strptime(ds0, ds_fmt)
+    dt1 = datetime.strptime(ds1, ds_fmt)
+    dir0 = Ldir['roms_out'] / Ldir['gtagex']
+    if list_type == 'snapshot':
+        # a single file name in a list
+        his_string = ('0000' + str(his_num))[-4:]
+        fn_list = [dir0 / ('f' + ds0) / ('ocean_his_' + his_string + '.nc')]
+    elif list_type == 'hourly':
+        # list of hourly files over a date range
+        fn_list = Lfun.fn_list_utility(dt0,dt1,Ldir,his_num=his_num)
+    elif list_type == 'hourly0':
+        # list of hourly files over a date range, starting with 0001 of dt0.
+        fn_list = Lfun.fn_list_utility(dt0,dt1,Ldir,his_num=1)
+    elif list_type == 'daily':
+        # list of history file 21 (Noon PST) over a date range
+        fn_list = []
+        date_list = Lfun.date_list_utility(dt0, dt1)
+        for dl in date_list:
+            f_string = 'f' + dl
+            fn = dir0 / f_string / 'ocean_his_0021.nc'
+            fn_list.append(fn)
+    elif list_type == 'lowpass':
+        # list of lowpassed files (Noon PST) over a date range
+        fn_list = []
+        date_list = Lfun.date_list_utility(dt0, dt1)
+        for dl in date_list:
+            f_string = 'f' + dl
+            fn = dir0 / f_string / 'lowpassed.nc'
+            fn_list.append(fn)
+    elif list_type == 'average':
+        # list of daily averaged files (Noon PST) over a date range
+        fn_list = []
+        date_list = Lfun.date_list_utility(dt0, dt1)
+        for dl in date_list:
+            f_string = 'f' + dl
+            fn = dir0 / f_string / 'ocean_avg_0001.nc'
+            fn_list.append(fn)
+    elif list_type == 'weekly':
+        # like "daily" but at 7-day intervals
+        fn_list = []
+        date_list = Lfun.date_list_utility(dt0, dt1, daystep=7)
+        for dl in date_list:
+            f_string = 'f' + dl
+            fn = dir0 / f_string / 'ocean_his_0021.nc'
+            fn_list.append(fn)
+    elif list_type == 'weeklyaverage':
+        # like "daily" but at 7-day intervals
+        fn_list = []
+        date_list = Lfun.date_list_utility(dt0, dt1, daystep=7)
+        for dl in date_list:
+            f_string = 'f' + dl
+            fn = dir0 / f_string / 'ocean_his_0002.nc'
+            fn_list.append(fn)
+    elif list_type == 'allhours':
+        # a list of all the history files in a directory
+        # (this is the only list_type that actually finds files)
+        in_dir = dir0 / ('f' + ds0)
+        fn_list = [ff for ff in in_dir.glob('ocean_his*nc')]
+        fn_list.sort()
+
+    return fn_list
 
 # User Parker's LO_roms output on apogee for the with loading run (long hindcast)
 Ldir_WWTP['roms_out'] = Ldir['roms_out5']
