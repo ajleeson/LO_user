@@ -135,11 +135,9 @@ def get_fn_list(list_type, Ldir, ds0, ds1, his_num=2):
 # User Parker's LO_roms output on apogee for the with loading run (long hindcast)
 Ldir_WWTP['roms_out'] = Ldir['roms_out5']
 
-# get list of history files to plot (and skip ocean_his_0025 from previous day)
-fn_list_WWTP   = Lfun.get_fn_list(list_type, Ldir_WWTP,
-    d0, d1)
-fn_list_noWWTP = Lfun.get_fn_list(list_type, Ldir_noWWTP,
-    d0, d1)
+# get list of history files to plot
+fn_list_WWTP   = get_fn_list(list_type, Ldir_WWTP, d0, d1)
+fn_list_noWWTP = get_fn_list(list_type, Ldir_noWWTP, d0, d1)
 
 # prepare output directory for results
 outdir = Ldir['LOo'] / 'AL_custom_plots' / ('noise_test_loading_runs_' + list_type)
