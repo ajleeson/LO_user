@@ -28,9 +28,9 @@ Ldir = Lfun.Lstart()
 # USER OPTIONS ----------------------------------------------------
 
 d0 = '2012.10.07'
-d1 = '2013.09.27'
+d1 = '2012.10.21'
 
-list_type = 'weeklyaverage' #'weekly', 'daily', 'hourly ', 'allhours'
+list_type = 'average' #'weekly', 'daily', 'hourly ', 'allhours'
 
 
 # # dstr = 'f2012.10.07'
