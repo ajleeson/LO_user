@@ -28,6 +28,7 @@ Ldir = Lfun.Lstart()
 # USER OPTIONS ----------------------------------------------------
 
 d0 = '2012.10.07'
+# d1 = '2012.10.08'
 d1 = '2012.10.21'
 
 list_type = 'average' #'weekly', 'daily', 'hourly ', 'allhours'
@@ -230,6 +231,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     # format figure
     ax.set_yticklabels([])
     ax.set_xticklabels([])
+    ax.set_ylim([46.93,48.1])
+    ax.set_xlim([-123.2,-122])
     # ax.set_title(r'Percent of $\Delta$' + ' Normalized Total Integrated %s [mmol]' % (vn))
     ax.set_title(r'$\%$ of max($\Delta$' + ' Integrated %s [mmol])' % (vn))
 
