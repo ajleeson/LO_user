@@ -224,7 +224,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
 
     # Map plot
     x,y = pfun.get_plon_plat(G['lon_rho'],G['lat_rho'])
-    vv = 0.1#10#1e-1#1e-3
+    vv = 10#1e-1#1e-3
     cs = ax.pcolormesh(x,y,dc/maxval*100,cmap=cmap,vmin=-vv,vmax=vv)
     # cs = ax.pcolormesh(x,y,dc/np.nansum(dc)*100,cmap=cmap,vmin=-vv,vmax=vv)
     # cs = ax.pcolormesh(x,y,dc,cmap=cmap)#,vmin=-vv,vmax=vv)
