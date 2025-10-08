@@ -231,8 +231,10 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     # format figure
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    ax.set_ylim([46.93,48.1])
-    ax.set_xlim([-123.2,-122])
+    # ax.set_ylim([46.93,48.1])
+    # ax.set_xlim([-123.2,-122])
+    ax.set_ylim([46.93,50])
+    ax.set_xlim([-124,-122])
     # ax.set_title(r'Percent of $\Delta$' + ' Normalized Total Integrated %s [mmol]' % (vn))
     ax.set_title(r'$\%$ of max($\Delta$' + ' Integrated %s [mmol])' % (vn))
 
@@ -308,13 +310,13 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     plt.savefig(outfile)
     plt.close()
 
-# make movie
-if len(fn_list_WWTP) > 1:
-    cmd_list = ['ffmpeg','-r','3','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
-        '-pix_fmt', 'yuv420p', '-crf', '25', str(outdir)+'/movie.mp4']
-    proc = Po(cmd_list, stdout=Pi, stderr=Pi)
-    stdout, stderr = proc.communicate()
-    if len(stdout) > 0:
-        print('\n'+stdout.decode())
-    if len(stderr) > 0:
-        print('\n'+stderr.decode())
+# # make movie
+# if len(fn_list_WWTP) > 1:
+#     cmd_list = ['ffmpeg','-r','3','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
+#         '-pix_fmt', 'yuv420p', '-crf', '25', str(outdir)+'/movie.mp4']
+#     proc = Po(cmd_list, stdout=Pi, stderr=Pi)
+#     stdout, stderr = proc.communicate()
+#     if len(stdout) > 0:
+#         print('\n'+stdout.decode())
+#     if len(stderr) > 0:
+#         print('\n'+stderr.decode())
