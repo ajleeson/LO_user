@@ -358,7 +358,7 @@ ds = xr.Dataset()
 dims = ('time','eta_rho','xi_rho')
 val = ds0[vn0].values *0
 #if ds0.tair_time.values[0] == np.datetime64('2015-08-01T12:00:00.000000000'): # target OAE moment
-val[12,463,353] = 0.05597058575390731 # mmol m-2 s-1, add at 12:00, 2015.08.01 to 2015.08.14
+val[12,463,353] = 0.05597058575390731*14 # mmol m-2 s-1, add at 12:00, 2015.08.01 to 2015.08.14
 ds[vn] = (dims, val)
 ds[vn].attrs['units'] = "milliequivalents meter-2 second-1"
 ds[vn].attrs['lon_name'] = 'Surface flux of total alkalinity'
