@@ -11,12 +11,12 @@ LOd="/gscratch/macc/auroral/LO_user/driver"
 # 00 19 * * * source ~/.bashrc; tail -30 $LOd/loading_1.log | mail -s 'Loading' auroral@uw.edu
 # 00 22 * * * source ~/.bashrc; tail -30 $LOd/loading_1.log | mail -s 'Loading' auroral@uw.ed
 
-00 06 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
-00 09 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
-00 11 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
-00 14 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
-00 16 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
-00 19 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
-00 22 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
+# 00 06 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
+# 00 09 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
+# 00 11 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
+# 00 14 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
+# 00 16 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
+# 00 19 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
+# 00 22 * * * source ~/.bashrc; tail -30 $LOd/noDIN_04.log | mail -s 'No Loading' auroral@uw.edu
 
 
