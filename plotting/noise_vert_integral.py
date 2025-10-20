@@ -206,7 +206,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     dc = c1 - c2 
     dcmax = np.nanmax(dc)
 
-    print('{} mmol m'.format(dcmax))
+    # print('{} mmol m'.format(dcmax))
 
     #########################################
     ##           Aurora's plots            ##
@@ -238,8 +238,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     ax.set_xticklabels([])
     # ax.set_ylim([46.93,48.1])
     # ax.set_xlim([-123.2,-122])
-    ax.set_ylim([46.93,50])
-    ax.set_xlim([-124,-122])
+    # ax.set_ylim([46.93,50])
+    # ax.set_xlim([-124,-122])
     # ax.set_title(r'Percent of $\Delta$' + ' Normalized Total Integrated %s [mmol]' % (vn))
     ax.set_title(r'$\%$ of max($\Delta$' + ' Vertically Integrated %s [mmol m])' % (vn))
 
@@ -303,8 +303,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
 #     plt.setp(ax_right.get_yticklabels(), visible=False)
 
     # Add date to top of figure
-    plt.suptitle(str(ds1.ocean_time.values[0].astype('datetime64[D]')) +
-                  '\n'+ r'max $\Delta$TN: ' + '{} kmol'.format(round(dcmax/1000/1000,2)))
+    plt.suptitle(str(ds1.ocean_time.values[0].astype('datetime64[D]')))# +
+                #   '\n'+ r'max $\Delta$TN: ' + '{} kmol'.format(round(dcmax/1000/1000,2)))
 
     # prepare a directory for results
     nouts = ('0000' + str(i))[-4:]
