@@ -251,9 +251,16 @@ while dt <= dt1:
                 pass
             else:
                 force_choice = force_dict[force]
-                # get forcing from Parker's apogee account
-                cmd_list = ['scp','-r', 'auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
-                        Ldir['gridname'] + '/' + f_string + '/' + force_choice, str(force_dir)]
+                # either look in Aurora's apogee folder for atmos forcing...
+                if force_choice in ['atm00_oaecolumbia_onedaydump']:
+                    cmd_list = ['scp','-r',
+                        remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + f_string + '/' + force_choice,
+                        str(force_dir)]
+
+                # or look in Parker's apogee folder for atm and tide forcing
+                else:
+                    cmd_list = ['scp','-r', 'auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
+                            Ldir['gridname'] + '/' + f_string + '/' + force_choice, str(force_dir)]
                     
                 proc = Po(cmd_list, stdout=Pi, stderr=Pi)
                 stdout, stderr = proc.communicate()
