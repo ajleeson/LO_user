@@ -29,9 +29,9 @@ Ldir = Lfun.Lstart()
 
 d0 = '2012.10.07'
 # d1 = '2012.10.08'
-d1 = '2012.10.21'
+d1 = '2013.09.23'
 
-list_type = 'average' #'weekly', 'daily', 'hourly ', 'allhours'
+list_type = 'weeklyaverage' #'weekly', 'daily', 'hourly ', 'allhours'
 
 
 # # dstr = 'f2012.10.07'
@@ -192,131 +192,134 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     c1 = (fld1 * dz).sum(axis=0)
     c2 = (fld2 * dz).sum(axis=0)
 
-    # get dA to get total integral (total N in moles)
-    # get grid cell area
-    DX = (ds1.pm.values)**-1
-    DY = (ds1.pn.values)**-1
-    DA = DX*DY # get area in m^2
+    # # get dA to get total integral (total N in moles)
+    # # get grid cell area
+    # DX = (ds1.pm.values)**-1
+    # DY = (ds1.pn.values)**-1
+    # DA = DX*DY # get area in m^2
 
-    # Get total integral
-    c1 = c1 * DA
-    c2 = c2 * DA
+    # # Get total integral
+    # c1 = c1 * DA
+    # c2 = c2 * DA
 
     # get delta between the runs
     dc = c1 - c2 
-
-    #########################################
-    ##           Aurora's plots            ##
-    #########################################
-
-    plt.close('all')
-    fig, ax = plt.subplots(1,1,figsize = (9,9))
-
     dcmax = np.nanmax(dc)
 
-    maxval = np.nanmax(dc)
-    if maxval == 0:
-        maxval = 1
+    print('{} mmol m'.format(dcmax))
 
-    # crop colormap so we can see extremes
-    cmap = cmocean.tools.crop_by_percent(cmocean.cm.balance, 15, which='both')
-    cmap.set_bad('grey', alpha=1.0)
+#     #########################################
+#     ##           Aurora's plots            ##
+#     #########################################
 
-    # Map plot
-    x,y = pfun.get_plon_plat(G['lon_rho'],G['lat_rho'])
-    vv = 10#1e-1#1e-3
-    cs = ax.pcolormesh(x,y,dc/maxval*100,cmap=cmap,vmin=-vv,vmax=vv)
-    # cs = ax.pcolormesh(x,y,dc/np.nansum(dc)*100,cmap=cmap,vmin=-vv,vmax=vv)
-    # cs = ax.pcolormesh(x,y,dc,cmap=cmap)#,vmin=-vv,vmax=vv)
-    # format figure
-    ax.set_yticklabels([])
-    ax.set_xticklabels([])
-    # ax.set_ylim([46.93,48.1])
-    # ax.set_xlim([-123.2,-122])
-    ax.set_ylim([46.93,50])
-    ax.set_xlim([-124,-122])
-    # ax.set_title(r'Percent of $\Delta$' + ' Normalized Total Integrated %s [mmol]' % (vn))
-    ax.set_title(r'$\%$ of max($\Delta$' + ' Integrated %s [mmol])' % (vn))
+#     plt.close('all')
+#     fig, ax = plt.subplots(1,1,figsize = (9,9))
 
-    # Put colorbar on the left
-    cbar = fig.colorbar(cs, ax=ax, location='left', fraction=0.03, pad=0.04)
-    cbar.outline.set_visible(False)
+#     dcmax = np.nanmax(dc)
+
+#     maxval = np.nanmax(dc)
+#     if maxval == 0:
+#         maxval = 1
+
+#     # crop colormap so we can see extremes
+#     cmap = cmocean.tools.crop_by_percent(cmocean.cm.balance, 15, which='both')
+#     cmap.set_bad('grey', alpha=1.0)
+
+#     # Map plot
+#     x,y = pfun.get_plon_plat(G['lon_rho'],G['lat_rho'])
+#     vv = 10#1e-1#1e-3
+#     cs = ax.pcolormesh(x,y,dc/maxval*100,cmap=cmap,vmin=-vv,vmax=vv)
+#     # cs = ax.pcolormesh(x,y,dc/np.nansum(dc)*100,cmap=cmap,vmin=-vv,vmax=vv)
+#     # cs = ax.pcolormesh(x,y,dc,cmap=cmap)#,vmin=-vv,vmax=vv)
+#     # format figure
+#     ax.set_yticklabels([])
+#     ax.set_xticklabels([])
+#     # ax.set_ylim([46.93,48.1])
+#     # ax.set_xlim([-123.2,-122])
+#     ax.set_ylim([46.93,50])
+#     ax.set_xlim([-124,-122])
+#     # ax.set_title(r'Percent of $\Delta$' + ' Normalized Total Integrated %s [mmol]' % (vn))
+#     ax.set_title(r'$\%$ of max($\Delta$' + ' Integrated %s [mmol])' % (vn))
+
+#     # Put colorbar on the left
+#     cbar = fig.colorbar(cs, ax=ax, location='left', fraction=0.03, pad=0.04)
+#     cbar.outline.set_visible(False)
 
 
-#     # ==============================================================
-#     # CUMULATIVE PLOTS
-#     # ==============================================================
+# #     # ==============================================================
+# #     # CUMULATIVE PLOTS
+# #     # ==============================================================
 
-#     # Compute cumulative values
-#     lon = G['lon_rho'][0, :]
-#     lat = G['lat_rho'][:, 0]
-#     cum_lon = np.nansum(dc, axis=0)
-#     cum_lat = np.nansum(dc, axis=1)
+# #     # Compute cumulative values
+# #     lon = G['lon_rho'][0, :]
+# #     lat = G['lat_rho'][:, 0]
+# #     cum_lon = np.nansum(dc, axis=0)
+# #     cum_lat = np.nansum(dc, axis=1)
 
-#     # Create a divider linked to the main axis
-#     divider = make_axes_locatable(ax)
+# #     # Create a divider linked to the main axis
+# #     divider = make_axes_locatable(ax)
 
-#     # get positive and negative TN integrals
-#     pos_lon_frac = cum_lon[cum_lon >= 0]
-#     pos_lon      = lon[cum_lon >= 0]
-#     neg_lon_frac = cum_lon[cum_lon < 0]
-#     neg_lon      = lon[cum_lon < 0]
+# #     # get positive and negative TN integrals
+# #     pos_lon_frac = cum_lon[cum_lon >= 0]
+# #     pos_lon      = lon[cum_lon >= 0]
+# #     neg_lon_frac = cum_lon[cum_lon < 0]
+# #     neg_lon      = lon[cum_lon < 0]
 
-#     pos_lat_frac = cum_lat[cum_lat >= 0]
-#     pos_lat      = lat[cum_lat >= 0]
-#     neg_lat_frac = cum_lat[cum_lat < 0]
-#     neg_lat      = lat[cum_lat < 0]
+# #     pos_lat_frac = cum_lat[cum_lat >= 0]
+# #     pos_lat      = lat[cum_lat >= 0]
+# #     neg_lat_frac = cum_lat[cum_lat < 0]
+# #     neg_lat      = lat[cum_lat < 0]
 
-#     # Bottom axis, sharing x
-#     ax_bottom = divider.append_axes("bottom", size="15%", pad=0.1, sharex=ax)
-#     # ax_bottom.plot(lon, cum_lon/np.nansum(dc)*100, color='orchid', linewidth=2, alpha=0.5)
-#     ax_bottom.scatter(pos_lon, pos_lon_frac/np.nanmax(pos_lon_frac)*100, s=5, alpha=0.3,color='royalblue',
-#                 label=r'Positive $\%$',zorder=5)
-#     ax_bottom.scatter(neg_lon, neg_lon_frac/np.nanmax(pos_lon_frac)*100, s=5, alpha=0.3,color='crimson',
-#                 label=r'Negative $\%$',zorder=5)
-#     ax_bottom.set_ylim(1e-1,1e2)
-#     ax_bottom.set_yscale('log')
-#     ax_bottom.set_xlabel('Longitude')
-#     ax_bottom.set_ylabel(r'$\%$ of max$(\Delta$TN)'+'\nper Lon')
-#     ax_bottom.grid(True, color='gainsboro')
-#     plt.setp(ax_bottom.get_xticklabels(), rotation=45)
+# #     # Bottom axis, sharing x
+# #     ax_bottom = divider.append_axes("bottom", size="15%", pad=0.1, sharex=ax)
+# #     # ax_bottom.plot(lon, cum_lon/np.nansum(dc)*100, color='orchid', linewidth=2, alpha=0.5)
+# #     ax_bottom.scatter(pos_lon, pos_lon_frac/np.nanmax(pos_lon_frac)*100, s=5, alpha=0.3,color='royalblue',
+# #                 label=r'Positive $\%$',zorder=5)
+# #     ax_bottom.scatter(neg_lon, neg_lon_frac/np.nanmax(pos_lon_frac)*100, s=5, alpha=0.3,color='crimson',
+# #                 label=r'Negative $\%$',zorder=5)
+# #     ax_bottom.set_ylim(1e-1,1e2)
+# #     ax_bottom.set_yscale('log')
+# #     ax_bottom.set_xlabel('Longitude')
+# #     ax_bottom.set_ylabel(r'$\%$ of max$(\Delta$TN)'+'\nper Lon')
+# #     ax_bottom.grid(True, color='gainsboro')
+# #     plt.setp(ax_bottom.get_xticklabels(), rotation=45)
 
-#     # Right axis, sharing y
-#     ax_right = divider.append_axes("right", size="15%", pad=0.1, sharey=ax)
-#     # ax_right.plot(cum_lat/np.nansum(dc)*100, lat, color='orchid', linewidth=2, alpha=0.5)
-#     # ax_right.set_xlim(-0.1,5)
-#     ax_right.scatter(pos_lat_frac/np.nanmax(pos_lat_frac)*100, pos_lat, s=5, alpha=0.3,color='royalblue',
-#                 label=r'Positive $\%$',zorder=5)
-#     ax_right.scatter(neg_lat_frac/np.nanmax(pos_lat_frac)*100, neg_lat, s=5, alpha=0.3,color='crimson',
-#                 label=r'Negative $\%$',zorder=5)
-#     ax_right.set_xlim(1e-1,1e2)
-#     ax_right.set_xscale('log')
-#     ax_right.set_ylabel('Latitude')
-#     ax_right.set_xlabel(r'$\%$ of max$(\Delta$TN)'+'\nper Lat')
-#     ax_right.grid(True, color='gainsboro')
-#     ax_right.yaxis.set_label_position('right')
-#     plt.setp(ax_right.get_yticklabels(), visible=False)
+# #     # Right axis, sharing y
+# #     ax_right = divider.append_axes("right", size="15%", pad=0.1, sharey=ax)
+# #     # ax_right.plot(cum_lat/np.nansum(dc)*100, lat, color='orchid', linewidth=2, alpha=0.5)
+# #     # ax_right.set_xlim(-0.1,5)
+# #     ax_right.scatter(pos_lat_frac/np.nanmax(pos_lat_frac)*100, pos_lat, s=5, alpha=0.3,color='royalblue',
+# #                 label=r'Positive $\%$',zorder=5)
+# #     ax_right.scatter(neg_lat_frac/np.nanmax(pos_lat_frac)*100, neg_lat, s=5, alpha=0.3,color='crimson',
+# #                 label=r'Negative $\%$',zorder=5)
+# #     ax_right.set_xlim(1e-1,1e2)
+# #     ax_right.set_xscale('log')
+# #     ax_right.set_ylabel('Latitude')
+# #     ax_right.set_xlabel(r'$\%$ of max$(\Delta$TN)'+'\nper Lat')
+# #     ax_right.grid(True, color='gainsboro')
+# #     ax_right.yaxis.set_label_position('right')
+# #     plt.setp(ax_right.get_yticklabels(), visible=False)
 
-    # Add date to top of figure
-    plt.suptitle(str(ds1.ocean_time.values[0].astype('datetime64[D]')) +
-                  '\n'+ r'max $\Delta$TN: ' + '{} kmol'.format(round(dcmax/1000/1000,2)))
+#     # Add date to top of figure
+#     plt.suptitle(str(ds1.ocean_time.values[0].astype('datetime64[D]')) +
+#                   '\n'+ r'max $\Delta$TN: ' + '{} kmol'.format(round(dcmax/1000/1000,2)))
 
-    # prepare a directory for results
-    nouts = ('0000' + str(i))[-4:]
-    outname = 'plot_' + nouts + '.png'
-    outfile = outdir / outname
-    print('Plotting ' + str(fn_WWTP))
-    sys.stdout.flush()
-    plt.savefig(outfile)
-    plt.close()
+#     # prepare a directory for results
+#     nouts = ('0000' + str(i))[-4:]
+#     outname = 'plot_' + nouts + '.png'
+#     outfile = outdir / outname
+#     print('Plotting ' + str(fn_WWTP))
+#     sys.stdout.flush()
+#     plt.savefig(outfile)
+#     plt.close()
 
-# make movie
-if len(fn_list_WWTP) > 1:
-    cmd_list = ['ffmpeg','-r','3','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
-        '-pix_fmt', 'yuv420p', '-crf', '25', str(outdir)+'/movie.mp4']
-    proc = Po(cmd_list, stdout=Pi, stderr=Pi)
-    stdout, stderr = proc.communicate()
-    if len(stdout) > 0:
-        print('\n'+stdout.decode())
-    if len(stderr) > 0:
-        print('\n'+stderr.decode())
+# # make movie
+# if len(fn_list_WWTP) > 1:
+#     cmd_list = ['ffmpeg','-r','3','-i', str(outdir)+'/plot_%04d.png', '-vcodec', 'libx264',
+#         '-pix_fmt', 'yuv420p', '-crf', '25', str(outdir)+'/movie.mp4']
+#     proc = Po(cmd_list, stdout=Pi, stderr=Pi)
+#     stdout, stderr = proc.communicate()
+#     if len(stdout) > 0:
+#         print('\n'+stdout.decode())
+#     if len(stderr) > 0:
+#         print('\n'+stderr.decode())
