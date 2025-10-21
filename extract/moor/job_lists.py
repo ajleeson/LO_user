@@ -261,6 +261,12 @@ def get_sta_dict(job_name):
         'PSB003': (-122.44170379638672,47.65999984741211),
         'EAP001': (-122.37999725341797,47.41667175292969)
         }
+
+    # Columbia River mouth (location of massive alkalinity dump)
+    elif job_name == 'oae_mod_test':
+        sta_dict = {
+        'columbia_mouth': (-124.08447696,46.24604386),
+        }
             
             
     else:
