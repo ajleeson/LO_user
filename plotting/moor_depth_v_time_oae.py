@@ -25,10 +25,11 @@ Ldir = Lfun.Lstart()
 ##                    Define inputs                     ##
 ##########################################################
 
-gtagexes = ['cas7_t0noN_x4b', 'cas7_t0_x4b']
-jobname = 'noWWTPNtest'
-startdate = '2013.01.01'
-enddate = '2013.12.31'
+gtagexes = ['cas7_t1jxoae_x11b', 'cas7_t1jxoae_x11ecb']
+jobname = 'oae_mod_test'
+startdate = '2013.07.01'
+enddate = '2013.07.01'
+enddate_plus1 = '2013.07.02'
 year = '2013' # for making a date label
 
 # gtagexes = gtagexes[0:1]
@@ -61,7 +62,7 @@ sta_dict = job_lists.get_sta_dict(jobname)
 
 ###########################################################
 # where to put output figures
-out_dir = Ldir['LOo'] / 'AL_custom_plots' / 'depth_v_time_property'
+out_dir = Ldir['LOo'] / 'AL_custom_plots' / 'oae_test'
 Lfun.make_dir(out_dir)
 
 
@@ -81,7 +82,7 @@ for i,station in enumerate(sta_dict.keys()):
     lat = sta_dict[station][1]
 
     # Initialize Figure
-    fig, ax = plt.subplots(rows,2,figsize = (18,rows*2), sharex = True, sharey = True)
+    fig, ax = plt.subplots(rows,2,figsize = (10,rows*3.5), sharex = True, sharey = True)
     fig.suptitle(station, fontsize = ts)
     
     # loop through different state variables
@@ -90,100 +91,71 @@ for i,station in enumerate(sta_dict.keys()):
         # loop through two model runs
         for gtagex in gtagexes:
 
-            # no loading run
-            if gtagex == 'cas7_t0noN_x4b':
-                title = 'Natural'
+            # no oae module run
+            if gtagex == 'cas7_t1jxoae_x11b':
+                title = 'No OAE module'
                 # download .nc files
-                fn = '../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
-                ds = xr.open_dataset(fn)
+                fn = '../../LO_output/extract/' + gtagex + '/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+                ds_noModule = xr.open_dataset(fn)
                 # get depth values
-                z_rho = ds['z_rho'].transpose() # depth of u and v-velocities
-                z_w   = ds['z_w'].transpose()   # depth of w-velocities
+                z_rho = ds_noModule['z_rho'].transpose() # depth of u and v-velocities
+                z_w   = ds_noModule['z_w'].transpose()   # depth of w-velocities
                 z_min = np.min(z_w.values)
                 # column number
                 col = 0
-                # calculate density
-                if vn == 'rho':
-                    # Calculate density
-                    ds = ds.assign(p=gsw.p_from_z(ds['z_rho'],lat))
-                    # calculate absolute salinity from practical salinity
-                    ds = ds.assign(salt_abs=gsw.conversions.SA_from_SP(ds['salt'], ds['z_rho'], lon, lat))
-                    # calculate conservative temperature from potential temperature
-                    ds = ds.assign(temp_cons=gsw.conversions.CT_from_pt(ds['salt_abs'], ds['temp']))
-                    # calculate density
-                    ds = ds.assign(rho=gsw.rho(ds['salt_abs'],ds['temp_cons'],ds['p']))
-                    # set scale and units
-                    scale = 1
-                    units = ' $(kg\ m^{-3})$'
-                    vmin = 1015
-                    vmax = 1025
-                    cmap = 'gist_stern'
-                else:
-                    # get scale and units
-                    scale =  pinfo.fac_dict[vn]
-                    units = pinfo.units_dict[vn]
-                    vlims = pinfo.vlims_dict[vn]
-                    vmin = vlims[0]
-                    vmax = vlims[1]
-                    cmap = pinfo.cmap_dict[vn]
-                    # cmap = 'rainbow_r'
-                # get dataset
-                val = ds[vn].transpose() * scale
-                # autoscale nutrient colorbar
-                if vn == 'NO3' or vn == 'NH4':
-                    vmin = 0.9*np.nanmin(val)
-                    vmax = 1.1*np.nanmax(val)
 
-            elif gtagex == 'cas7_t0_x4b':
-                title = 'Anthropogenic minus Natural'
+                # get scale and units
+                scale =  pinfo.fac_dict[vn]
+                units = pinfo.units_dict[vn]
+                vlims = pinfo.vlims_dict[vn]
+                vmin = 0
+                vmax = 3000
+                cmap = 'rainbow_r'
+
+                # get dataset
+                val = ds_noModule[vn].transpose() * scale
+
+            elif gtagex == 'cas7_t1jxoae_x11ecb':
+                title = 'With module minus No module'
                 # download .nc files
-                fn = '../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
-                ds_withLoading = xr.open_dataset(fn)
+                fn = '../../LO_output/extract/' + gtagex + '/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+                ds_withModule = xr.open_dataset(fn)
                 # get depth values
-                z_rho = ds_withLoading['z_rho'].transpose() # depth of u and v-velocities
-                z_w   = ds_withLoading['z_w'].transpose()   # depth of w-velocities
+                z_rho = ds_withModule['z_rho'].transpose() # depth of u and v-velocities
+                z_w   = ds_withModule['z_w'].transpose()   # depth of w-velocities
                 z_min = np.min(z_w.values)
                 # column number
                 col = 1
-                # calculate density
-                if vn == 'rho':
-                    # Calculate density
-                    ds_withLoading = ds_withLoading.assign(p=gsw.p_from_z(ds_withLoading['z_rho'],lat))
-                    # calculate absolute salinity from practical salinity
-                    ds_withLoading = ds_withLoading.assign(salt_abs=gsw.conversions.SA_from_SP(ds_withLoading['salt'], ds_withLoading['z_rho'], lon, lat))
-                    # calculate conservative temperature from potential temperature
-                    ds_withLoading = ds_withLoading.assign(temp_cons=gsw.conversions.CT_from_pt(ds_withLoading['salt_abs'], ds_withLoading['temp']))
-                    # calculate density
-                    ds_withLoading = ds_withLoading.assign(rho=gsw.rho(ds_withLoading['salt_abs'],ds_withLoading['temp_cons'],ds_withLoading['p']))
-                    # set scale and units
-                    scale = 1
-                    units = ' $(kg\ m^{-3})$'
-                else:
-                    # get scale and units
-                    scale =  pinfo.fac_dict[vn]
-                    units = pinfo.units_dict[vn]
-                    vlims = pinfo.vlims_dict[vn]
-                # caculatate difference between runs
-                ds_withLoading = ds_withLoading.assign(t0_minus_t0noN=(ds_withLoading[vn]-ds[vn]))
-                val = ds_withLoading['t0_minus_t0noN'].transpose() * scale
+
+                # get scale and units
+                scale =  pinfo.fac_dict[vn]
+                units = pinfo.units_dict[vn]
+                vlims = pinfo.vlims_dict[vn]
+                vmin = 0
+                vmax = 3000
+
+                # # caculatate difference between runs
+                # ds_withModule = ds_withModule.assign(t0_minus_t0noN=(ds_withModule[vn]-ds_noModule[vn]))
+                # val = ds_withModule['t0_minus_t0noN'].transpose() * scale
+                val = ds_withModule[vn].transpose() * scale
                 
-                # get min and max for plotting
-                # (we use the average min/max value in time multiplied by a scale because using
-                # the straight min/max values obscures small differences-- since min/max are large)
-                factor = 4#3
-                vmin = np.nanmin(val.values,axis=0)
-                vmin = factor*np.nanmean(vmin)
-                vmax = np.nanmax(val.values,axis=0)
-                vmax = factor*np.nanmean(vmax)
-                # make sure colorbar axis contains zero
-                if vmin > 0 and vmax > 0:
-                    vmin = vmax*-1.01
-                if vmin < 0 and vmax < 0:
-                    vmax = vmin*-1.01
-                if vmin == 0 and vmax == 0:
-                    vmin = -0.11
-                    vmax = 0.1
-                cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
+                # # get min and max for plotting
+                # # (we use the average min/max value in time multiplied by a scale because using
+                # # the straight min/max values obscures small differences-- since min/max are large)
+                # factor = 4#3
+                # vmin = np.nanmin(val.values,axis=0)
+                # vmin = factor*np.nanmean(vmin)
+                # vmax = np.nanmax(val.values,axis=0)
+                # vmax = factor*np.nanmean(vmax)
+                # # make sure colorbar axis contains zero
+                # if vmin > 0 and vmax > 0:
+                #     vmin = vmax*-1.01
+                # if vmin < 0 and vmax < 0:
+                #     vmax = vmin*-1.01
+                # if vmin == 0 and vmax == 0:
+                #     vmin = -0.11
+                #     vmax = 0.1
+                # cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
 
             # need white text to see some of the labels on natural run (first column)
             if (vn == 'NH4' or vn == 'zooplankton' or vn == 'SdetritusN'
@@ -193,7 +165,7 @@ for i,station in enumerate(sta_dict.keys()):
                 font_color = 'black'
 
             # create time vector
-            dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+            dates = pd.date_range(start= startdate, end= enddate_plus1, freq= 'h')
             dates_local = [pfun.get_dt_local(x) for x in dates]
 
             # Plot pcolormesh
@@ -213,24 +185,24 @@ for i,station in enumerate(sta_dict.keys()):
             if j == rows-1:
                 ax[j,col].set_xlabel('2013', fontsize = fs)
                 ax[j,col].tick_params(axis='both', which='major', labelsize=ls)
-                ax[j,col].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+                # ax[j,col].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
                 ax[j,col].tick_params(axis='x', labelrotation=30, labelsize=ls)
 
             # add title
             ax[0,col].set_title(title,fontsize=ts)
 
-            # add note about colorbar
-            ax[0,1].text(0.95, 0.7, 'Anthropogenic higher',color='royalblue',
-                    verticalalignment='bottom', horizontalalignment='right',
-                    transform=ax[0,1].transAxes, fontsize=fs)
-            ax[0,1].text(0.95, 0.5, 'Natural higher',color='crimson',
-                    verticalalignment='bottom', horizontalalignment='right',
-                    transform=ax[0,1].transAxes, fontsize=fs)
+            # # add note about colorbar
+            # ax[0,1].text(0.95, 0.7, 'Anthropogenic higher',color='royalblue',
+            #         verticalalignment='bottom', horizontalalignment='right',
+            #         transform=ax[0,1].transAxes, fontsize=fs)
+            # ax[0,1].text(0.95, 0.5, 'Natural higher',color='crimson',
+            #         verticalalignment='bottom', horizontalalignment='right',
+            #         transform=ax[0,1].transAxes, fontsize=fs)
 
-            # Look at onset of spring bloom (march 1 - may 1)
-            if spring_bloom_only:
-                ax[j,col].set_xlim(dates_local[59],dates_local[121])
-                ax[rows-1,col].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
+            # # Look at onset of spring bloom (march 1 - may 1)
+            # if spring_bloom_only:
+            #     ax[j,col].set_xlim(dates_local[59],dates_local[121])
+            #     ax[rows-1,col].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
 
     plt.tight_layout
     plt.subplots_adjust(left=0.05, right=0.95, top=0.90, wspace=0.02)
