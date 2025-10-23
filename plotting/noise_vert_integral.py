@@ -29,9 +29,10 @@ Ldir = Lfun.Lstart()
 
 d0 = '2012.10.07'
 # d1 = '2012.10.08'
-d1 = '2013.09.23'
+# d1 = '2013.09.23'
+d1 = '2012.10.22'
 
-list_type = 'weeklyaverage' #'weekly', 'daily', 'hourly ', 'allhours'
+list_type = 'average' #'weekly', 'daily', 'hourly ', 'allhours'
 
 
 # # dstr = 'f2012.10.07'
@@ -229,7 +230,7 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
 
     # Map plot
     x,y = pfun.get_plon_plat(G['lon_rho'],G['lat_rho'])
-    vv = 10#1e-1#1e-3
+    vv = 1e-1#10#1e-1#1e-3
     cs = ax.pcolormesh(x,y,dc/maxval*100,cmap=cmap,vmin=-vv,vmax=vv)
     # cs = ax.pcolormesh(x,y,dc/np.nansum(dc)*100,cmap=cmap,vmin=-vv,vmax=vv)
     # cs = ax.pcolormesh(x,y,dc,cmap=cmap)#,vmin=-vv,vmax=vv)
@@ -238,8 +239,8 @@ for i,fn_WWTP in enumerate(fn_list_WWTP):
     ax.set_xticklabels([])
     # ax.set_ylim([46.93,48.1])
     # ax.set_xlim([-123.2,-122])
-    # ax.set_ylim([46.93,50])
-    # ax.set_xlim([-124,-122])
+    ax.set_ylim([46.93,50])
+    ax.set_xlim([-124,-122])
     # ax.set_title(r'Percent of $\Delta$' + ' Normalized Total Integrated %s [mmol]' % (vn))
     ax.set_title(r'$\%$ of max($\Delta$' + ' Vertically Integrated %s [mmol m])' % (vn))
 
