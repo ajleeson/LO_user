@@ -134,28 +134,28 @@ for i,station in enumerate(sta_dict.keys()):
                 vmin = 0
                 vmax = 3000
 
-                # # caculatate difference between runs
-                # ds_withModule = ds_withModule.assign(t0_minus_t0noN=(ds_withModule[vn]-ds_noModule[vn]))
-                # val = ds_withModule['t0_minus_t0noN'].transpose() * scale
-                val = ds_withModule[vn].transpose() * scale
+                # caculatate difference between runs
+                ds_withModule = ds_withModule.assign(t0_minus_t0noN=(ds_withModule[vn]-ds_noModule[vn]))
+                val = ds_withModule['t0_minus_t0noN'].transpose() * scale
+                # val = ds_withModule[vn].transpose() * scale
                 
-                # # get min and max for plotting
-                # # (we use the average min/max value in time multiplied by a scale because using
-                # # the straight min/max values obscures small differences-- since min/max are large)
-                # factor = 4#3
-                # vmin = np.nanmin(val.values,axis=0)
-                # vmin = factor*np.nanmean(vmin)
-                # vmax = np.nanmax(val.values,axis=0)
-                # vmax = factor*np.nanmean(vmax)
-                # # make sure colorbar axis contains zero
-                # if vmin > 0 and vmax > 0:
-                #     vmin = vmax*-1.01
-                # if vmin < 0 and vmax < 0:
-                #     vmax = vmin*-1.01
-                # if vmin == 0 and vmax == 0:
-                #     vmin = -0.11
-                #     vmax = 0.1
-                # cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
+                # get min and max for plotting
+                # (we use the average min/max value in time multiplied by a scale because using
+                # the straight min/max values obscures small differences-- since min/max are large)
+                factor = 4#3
+                vmin = np.nanmin(val.values,axis=0)
+                vmin = factor*np.nanmean(vmin)
+                vmax = np.nanmax(val.values,axis=0)
+                vmax = factor*np.nanmean(vmax)
+                # make sure colorbar axis contains zero
+                if vmin > 0 and vmax > 0:
+                    vmin = vmax*-1.01
+                if vmin < 0 and vmax < 0:
+                    vmax = vmin*-1.01
+                if vmin == 0 and vmax == 0:
+                    vmin = -0.11
+                    vmax = 0.1
+                cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
 
             # need white text to see some of the labels on natural run (first column)
             if (vn == 'NH4' or vn == 'zooplankton' or vn == 'SdetritusN'
