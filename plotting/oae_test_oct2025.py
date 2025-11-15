@@ -56,7 +56,7 @@ cmap = 'plasma'
 units = pinfo.units_dict[vn]
 
 # Initialize figure
-fig, ax = plt.subplots(1,3,figsize = (15,6), sharex = True, sharey = True)
+fig, ax = plt.subplots(1,2,figsize = (8,6), sharex = True, sharey = True)
 
 # get data
 fp = Ldir['roms_out'] / 'cas7_t1jxoae_x11bjx' / 'f2013.07.01' / his_file
@@ -119,110 +119,34 @@ ax[0].set_xlim([xmin,xmax])
 ax[0].set_ylim([ymin,ymax])
 pfun.dar(ax[0])
 
-# plot with module
-cs = ax[1].pcolormesh(px,py,surf_alk_withmodule, vmin=vmin, vmax=vmax, cmap=cmap)#cmocean.cm.balance_r)
-# cs = ax.pcolormesh(px,py,ARAG)
-cbar = fig.colorbar(cs, location='left')
-cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
-cbar.outline.set_visible(False)
-ax[1].set_title('With Module', fontsize=14)
-# format figure
-ax[1].set_xlim([xmin,xmax])
-ax[1].set_ylim([ymin,ymax])
-pfun.dar(ax[1])
+# # plot with module
+# cs = ax[1].pcolormesh(px,py,surf_alk_withmodule, vmin=vmin, vmax=vmax, cmap=cmap)#cmocean.cm.balance_r)
+# # cs = ax.pcolormesh(px,py,ARAG)
+# cbar = fig.colorbar(cs, location='left')
+# cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
+# cbar.outline.set_visible(False)
+# ax[1].set_title('With Module', fontsize=14)
+# # format figure
+# ax[1].set_xlim([xmin,xmax])
+# ax[1].set_ylim([ymin,ymax])
+# pfun.dar(ax[1])
 
 print(ds['alkalinity'])
 
 # plot difference
 difference = surf_alk_nomodule - surf_alk_withmodule
-cs = ax[2].pcolormesh(px,py,difference, vmin=-5, vmax=5, cmap=cmocean.cm.balance_r)
+cs = ax[1].pcolormesh(px,py,difference, vmin=-100, vmax=100, cmap=cmocean.cm.balance_r)
 # cs = ax.pcolormesh(px,py,ARAG)
 cbar = fig.colorbar(cs, location='left')
 cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
 cbar.outline.set_visible(False)
-ax[2].set_title('No Module minus With Module', fontsize=14)
+ax[1].set_title('No Module minus With Module', fontsize=14)
 # format figure
-ax[2].set_xlim([xmin,xmax])
-ax[2].set_ylim([ymin,ymax])
-pfun.dar(ax[2])
+ax[1].set_xlim([xmin,xmax])
+ax[1].set_ylim([ymin,ymax])
+pfun.dar(ax[1])
 
-# # loop through and plot both conditions
-# for i,year in enumerate(years):
-                
-#     v  = val_dict[year] 
-
-#     # plot natural condition
-#     if i == 0:
-#         cs = ax[i].pcolormesh(px,py,v, vmin=vmin, vmax=vmax, cmap=cmap)#cmocean.cm.balance_r)
-#         cbar = fig.colorbar(cs, location='left')
-#         cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
-#         cbar.outline.set_visible(False)
-#         ax[i].set_title('Natural', fontsize=38)
+plt.suptitle(r'Surface Alkalinity [meq/m$^3$]' + '\n', fontsize=14, fontweight='bold')
 
 
-#     if i == 1:
-#         diff = (val_dict[years[i]] - val_dict[years[i-1]])
-#         mindiff = np.nanmin(diff)
-#         maxdiff = np.nanmax(diff)
-#         # make sure colorbar axis contains zero
-#         if mindiff > 0 and maxdiff > 0:
-#             mindiff = maxdiff*-1.01
-#         if mindiff < 0 and maxdiff < 0:
-#             maxdiff = mindiff*-1.01
-#         # don't let colorbar axis scale get too large
-#         if maxdiff > vmax:
-#             maxdiff = vmax
-#         # make sure the colorbar is always centered about zero
-#         cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
-#         cs = ax[i].pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
-#         ax[i].set_title('Anthropogenic - Natural', fontsize=38)
-#         cbar = fig.colorbar(cs, location='right')
-#         cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
-#         cbar.outline.set_visible(False)
-
-#     # format figure
-#     ax[i].set_xlim([xmin,xmax])
-#     ax[i].set_ylim([ymin,ymax])
-#     ax[i].set_yticklabels([])
-#     ax[i].set_xticklabels([])
-#     ax[i].axis('off')
-#     pfun.dar(ax[i])
-
-# # add wwtp locations
-# if WWTP_loc == True:
-#     ax[1].scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
-#     leg_szs = [100, 1000, 10000]
-#     szs = [0.3*(leg_sz) for leg_sz in leg_szs]
-#     l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=3)
-#     l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=3)
-#     l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=3)
-#     labels = ['< 100', '1,000', '10,000']
-#     legend = ax[1].legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
-#         title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
-#     plt.setp(legend.get_title(),fontsize=20)
-
-# # add 10 km bar
-# lat0 = 46.94
-# lon0 = -123.05
-# lat1 = lat0
-# lon1 = -122.91825
-# distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
-# x_dist_km = round(distances_m[0]/1000)
-# ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
-# ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
-
-# # format figure
-# ax[0].set_xlim([xmin,xmax])
-# ax[0].set_ylim([ymin,ymax])
-# ax[0].set_yticklabels([])
-# ax[0].set_xticklabels([])
-# ax[0].axis('off')
-                                
-# # Add colormap title
-# plt.suptitle('2014 ' + start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,
-#             fontsize=44, fontweight='bold', y=0.95)
-
-# # Generate plot
-# plt.tight_layout
-# plt.subplots_adjust(left=0.05, right=0.95, top=0.85, wspace=0.02)
-# plt.savefig(out_dir / (vn+'_'+stext+'_avg_2014A-N_'+ start + 'THRU'+end+'.png'))
+plt.tight_layout()

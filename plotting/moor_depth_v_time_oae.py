@@ -136,7 +136,7 @@ for j,vn in enumerate(vn_list):
 
     # with oae module run ----------------------------------------------------------------
     # add title
-    ax[0,2].set_title('With OAE module\n(minus ambient)',fontsize=ts)
+    ax[0,1].set_title('With OAE module\n(minus ambient)',fontsize=ts)
     # download .nc files
     fn = '../../LO_output/extract/' + gtagex_module + '/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
     ds_Module = xr.open_dataset(fn)
@@ -163,7 +163,7 @@ for j,vn in enumerate(vn_list):
 
     # difference between runs ----------------------------------------------------------------
     # add title
-    ax[0,1].set_title('With OAE module minus No Module',fontsize=ts)
+    ax[0,2].set_title('With OAE module minus No Module',fontsize=ts)
 
     # caculatate difference between runs
     ds_Module = ds_Module.assign(t0_minus_t0noN=(ds_Module[vn]-ds_noModule[vn]))
@@ -203,79 +203,34 @@ for j,vn in enumerate(vn_list):
     ax[j,2].set_ylim((z_min,z_max))
     ax[j,2].grid(True,color='k',linewidth=1,linestyle=':',axis='x')
 
-    #     elif gtagex == 'cas7_t1jxoae_x11ecb':
-    #         title = 'With module minus No module'
-    #         # download .nc files
-    #         fn = '../../LO_output/extract/' + gtagex + '/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
-    #         ds_withModule = xr.open_dataset(fn)
-    #         # get depth values
-    #         z_rho = ds_withModule['z_rho'].transpose() # depth of u and v-velocities
-    #         z_w   = ds_withModule['z_w'].transpose()   # depth of w-velocities
-    #         z_min = np.min(z_w.values)
-    #         # column number
-    #         col = 1
-
-    #         # get scale and units
-    #         scale =  pinfo.fac_dict[vn]
-    #         units = pinfo.units_dict[vn]
-    #         vlims = pinfo.vlims_dict[vn]
-    #         vmin = 0
-    #         vmax = 3000
-
-    #         # caculatate difference between runs
-    #         ds_withModule = ds_withModule.assign(t0_minus_t0noN=(ds_withModule[vn]-ds_noModule[vn]))
-    #         val = ds_withModule['t0_minus_t0noN'].transpose() * scale
-    #         # val = ds_withModule[vn].transpose() * scale
-            
-    #         # get min and max for plotting
-    #         # (we use the average min/max value in time multiplied by a scale because using
-    #         # the straight min/max values obscures small differences-- since min/max are large)
-    #         factor = 4#3
-    #         vmin = np.nanmin(val.values,axis=0)
-    #         vmin = factor*np.nanmean(vmin)
-    #         vmax = np.nanmax(val.values,axis=0)
-    #         vmax = factor*np.nanmean(vmax)
-    #         # make sure colorbar axis contains zero
-    #         if vmin > 0 and vmax > 0:
-    #             vmin = vmax*-1.01
-    #         if vmin < 0 and vmax < 0:
-    #             vmax = vmin*-1.01
-    #         if vmin == 0 and vmax == 0:
-    #             vmin = -0.11
-    #             vmax = 0.1
-    #         vmin = -10
-    #         vmax = 10
-    #         # cmap = cmocean.tools.crop(cmocean.cm.balance_r, vmin, vmax, 0)
-    #         cmap = cmocean.tools.crop_by_percent(cmocean.cm.balance_r, 20, which='both', N=None)
-
-    #     # need white text to see some of the labels on natural run (first column)
-    #     if (vn == 'NH4' or vn == 'zooplankton' or vn == 'SdetritusN'
-    #         or vn == 'LdetritusN' or vn == 'phytoplankton') and col == 0:
-    #         font_color = 'white'
-    #     else:
-    #         font_color = 'black'
-
-        # # add bottom axis
-        # if j == rows-1:
-        #     ax[j,col].set_xlabel('2013', fontsize = fs)
-        #     ax[j,col].tick_params(axis='both', which='major', labelsize=ls)
-        #     # ax[j,col].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-        #     ax[j,col].tick_params(axis='x', labelrotation=30, labelsize=ls)
-
-
-        # # add note about colorbar
-        # ax[0,1].text(0.95, 0.7, 'Anthropogenic higher',color='royalblue',
-        #         verticalalignment='bottom', horizontalalignment='right',
-        #         transform=ax[0,1].transAxes, fontsize=fs)
-        # ax[0,1].text(0.95, 0.5, 'Natural higher',color='crimson',
-        #         verticalalignment='bottom', horizontalalignment='right',
-        #         transform=ax[0,1].transAxes, fontsize=fs)
-
-        # # Look at onset of spring bloom (march 1 - may 1)
-        # if spring_bloom_only:
-        #     ax[j,col].set_xlim(dates_local[59],dates_local[121])
-        #     ax[rows-1,col].xaxis.set_major_formatter(mdates.DateFormatter("%b-%d"))
-
 plt.tight_layout
 # plt.subplots_adjust(left=0.05, right=0.95, top=0.90, wspace=0.02)
-plt.savefig(out_dir / (station + '(' + str(round(lon,2)) + ',' + str(round(lat,2)) + ').png'))
+plt.show()
+
+
+##########################################################
+##                   Depth Profile                      ##
+##########################################################
+
+
+# Initialize Figure
+fig, ax = plt.subplots(1,2,figsize = (8,6))
+fig.suptitle(station, fontsize = ts)
+
+hour = 12
+
+ax[0].set_title('Alkalinity profile [meq/m3]')
+ax[0].plot(ds_noModule['alkalinity'][hour,:],z_rho[:,hour],
+           color='hotpink', linewidth=3, linestyle='-',label='No Module')
+ax[0].plot(ds_Module['alkalinity'][hour,:],z_rho[:,hour],
+           color='black', linewidth=3, linestyle='--', label='With Module',)
+
+ax[0].legend(loc='best')
+
+ax[1].set_title('TIC profile [mmol/m3]')
+ax[1].plot(ds_noModule['TIC'][hour,:],z_rho[:,hour],
+           color='hotpink', linewidth=3, linestyle='-',label='No Module')
+ax[1].plot(ds_Module['TIC'][hour,:],z_rho[:,hour],
+           color='black', linewidth=3, linestyle='--', label='With Module',)
+
+plt.show()

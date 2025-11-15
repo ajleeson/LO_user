@@ -266,6 +266,7 @@ def get_sta_dict(job_name):
     elif job_name == 'oae_mod_test':
         sta_dict = {
         'columbia_mouth': (-124.08447696,46.24604386),
+        'columbia_plume': (-124.56,46.15),
         }
             
             
