@@ -214,23 +214,23 @@ plt.show()
 
 
 # Initialize Figure
-fig, ax = plt.subplots(1,2,figsize = (8,6))
+fig, ax = plt.subplots(1,2,figsize = (9,5),sharey=True)
 fig.suptitle(station, fontsize = ts)
 
-hour = 12
+hour = 17 #17
 
 ax[0].set_title('Alkalinity profile [meq/m3]')
 ax[0].plot(ds_noModule['alkalinity'][hour,:],z_rho[:,hour],
-           color='hotpink', linewidth=3, linestyle='-',label='No Module')
+           color='hotpink', linewidth=1, linestyle='-',label='No Module')
 ax[0].plot(ds_Module['alkalinity'][hour,:],z_rho[:,hour],
-           color='black', linewidth=3, linestyle='--', label='With Module',)
+           color='black', linewidth=1, linestyle='--', label='With Module',)
 
 ax[0].legend(loc='best')
 
 ax[1].set_title('TIC profile [mmol/m3]')
 ax[1].plot(ds_noModule['TIC'][hour,:],z_rho[:,hour],
-           color='hotpink', linewidth=3, linestyle='-',label='No Module')
+           color='hotpink', linewidth=1, linestyle='-',label='No Module')
 ax[1].plot(ds_Module['TIC'][hour,:],z_rho[:,hour],
-           color='black', linewidth=3, linestyle='--', label='With Module',)
+           color='black', linewidth=1, linestyle='--', label='With Module',)
 
 plt.show()
