@@ -56,7 +56,7 @@ cmap = 'plasma'
 units = pinfo.units_dict[vn]
 
 # Initialize figure
-fig, ax = plt.subplots(1,2,figsize = (8,6), sharex = True, sharey = True)
+fig, ax = plt.subplots(1,2,figsize = (10.5,5), sharex = True, sharey = True)
 
 # get data
 fp = Ldir['roms_out'] / 'cas7_t1jxoae_x11bjx' / 'f2013.07.01' / his_file
@@ -114,9 +114,13 @@ cbar = fig.colorbar(cs, location='left')
 cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
 cbar.outline.set_visible(False)
 ax[0].set_title('No Module', fontsize=14)
+# add injection site
+ax[0].scatter(-124.08447696,46.24604386,
+              marker='*',color='cyan',s=130)
 # format figure
 ax[0].set_xlim([xmin,xmax])
 ax[0].set_ylim([ymin,ymax])
+cbar.set_label(r'Surface Alkalinity [meq/m$^3$]', fontsize=14)
 pfun.dar(ax[0])
 
 # # plot with module
@@ -144,9 +148,10 @@ ax[1].set_title('No Module minus With Module', fontsize=14)
 # format figure
 ax[1].set_xlim([xmin,xmax])
 ax[1].set_ylim([ymin,ymax])
+cbar.set_label(r'Difference in Surface Alkalinity [meq/m$^3$]', fontsize=14)
 pfun.dar(ax[1])
 
-plt.suptitle(r'Surface Alkalinity [meq/m$^3$]' + '\n', fontsize=14, fontweight='bold')
+
 
 
 plt.tight_layout()
