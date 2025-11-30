@@ -137,7 +137,7 @@ elif (str(HOME) == '/home/auroral') & ('apogee' in HOSTNAME):
     roms_out1 = Path('/boildat1/parker/LiveOcean_roms/output')  # LiveOcean current
     roms_out2 = Path('/pgdat1/parker/LiveOcean_roms/output')     # LiveOcean past I on perigee
     roms_out3 = Path('/pgdat2/parker/LiveOcean_roms/output')     # LiveOcean past II on perigee
-    roms_out4 = Path('/boildat1/parker/LO_roms')                # LO boiler
+    roms_out4 = Path('/dat2/parker/LO_roms')                  # Old LO output on apogee
     roms_out5 = Path('/dat1/parker/LO_roms')                  # LO output on apogee
 
 Ldir0 = dict()
