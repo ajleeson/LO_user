@@ -46,13 +46,13 @@ remove_straits = True
 
 vn = 'oxygen'
 
-years =  ['2014']
+year =  '2014'
 
 # which  model run to look at?
-gtagexes = ['cas7_t0_x4b'] # long hindcast (anthropogenic)
+gtagexes = ['cas7_t0_x4b','cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
+out_dir = Ldir['LOo'] / 'chapter_2' / 'figures'
 Lfun.make_dir(out_dir)
 
 region = 'Puget Sound'
@@ -73,17 +73,20 @@ else:
 DO_bot_dict = {} # dictionary with DO_bot values
 hyp_thick_dict = {}
 
-for year in years:
+for gtagex in gtagexes:
     # add ds to dictionary
-    ds = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / (year + '_DO_info_' + straits + '.nc'))
+    ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + year + '_DO_info_' + straits + '.nc'))
     DO_bot = ds['DO_bot'].values
     hyp_thick = ds['hyp_thick'].values
     # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
-    if np.mod(int(years[0]),4) != 0: 
+    if np.mod(int(year),4) != 0: 
         DO_bot = np.insert(DO_bot,59,'nan',axis=0)
         hyp_thick = np.insert(hyp_thick,59,'nan',axis=0)
-    DO_bot_dict[year] = DO_bot
-    hyp_thick_dict[year] = hyp_thick
+    if gtagex == 'cas7_t1_x11ab': # july 23, 2014 was missing
+        DO_bot = np.insert(DO_bot,205,'nan',axis=0)
+        hyp_thick = np.insert(hyp_thick,205,'nan',axis=0)
+    DO_bot_dict[gtagex] = DO_bot
+    hyp_thick_dict[gtagex] = hyp_thick
 
 # get grid cell area
 fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
@@ -94,11 +97,11 @@ DA = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
 
 # initialize dictionary for hypoxic volume [km3]
 hyp_vol = {}
-for year in years:
+for gtagex in gtagexes:
     # get hypoxic thickness
-    hyp_thick = hyp_thick_dict[year]/1000 # [km]
+    hyp_thick = hyp_thick_dict[gtagex]/1000 # [km]
     hyp_vol_timeseries = np.sum(hyp_thick * DA, axis=(1, 2)) # km^3
-    hyp_vol[year] = hyp_vol_timeseries
+    hyp_vol[gtagex] = hyp_vol_timeseries
 
 # get plotting limits based on region
 if region == 'Puget Sound':
@@ -180,16 +183,16 @@ enddate = '2020.12.31'
 dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 dates_local = [pfun.get_dt_local(x) for x in dates]
 
-colors = ['#62B6CB','#A8C256','#96031A']
-linewidths = [4,4,4]
-alphas = [0.9,0.9,0.9]
-linestyles = ['-','-','-']
+colors = ['gray','deeppink','black']
+linewidths = [4,3,2]
+alphas = [0.5,0.5,1]
+linestyles = ['-','-','--']
 labels=gtagexes
 
 # plot timeseries
-for i,year in enumerate(years):
+for i,gtagex in enumerate(gtagexes):
     # plot hypoxic area timeseries
-    ax1.plot(dates_local,hyp_vol[year],color=colors[i],linestyle=linestyles[i],
+    ax1.plot(dates_local,hyp_vol[gtagex],color=colors[i],linestyle=linestyles[i],
              linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
 
 # format figure
