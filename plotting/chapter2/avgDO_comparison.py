@@ -39,21 +39,23 @@ Gr = gfun.gstart()
 
 Ldir = Lfun.Lstart()
 
+plt.close('all')
+
 ##############################################################
 ##                       USER INPUTS                        ##
 ##############################################################
 
 # Show WWTP locations?
-WWTP_loc = True
+WWTP_loc = False
 
-remove_straits = False
+remove_straits = True
 
 vn = 'oxygen'
 
-years =  ['2014noN','2014']
+year = '2014'
 
 # which  model run to look at?
-gtagexes = ['cas7_t0noN_x4b','cas7_t0_x4b'] # long hindcast (anthropogenic)
+gtagexes = ['cas7_t1noDIN_x11ab','cas7_t1_x11ab']
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
@@ -62,8 +64,8 @@ Lfun.make_dir(out_dir)
 region = 'Puget Sound'
 
 # start date
-start = '08-01'
-end = '09-30'
+start = '09-01'
+end = '10-31'
 
 ##############################################################
 ##                    HELPER FUNCTIONS                      ##
@@ -158,10 +160,10 @@ else:
     straits = 'withStraits'
 # initialize empty dictionary
 ds_dict = {}
-# add ds to dictionary
-for year in years:
-    ds = xr.open_dataset(Ldir['LOo'] / 'pugetsound_DO' / 'data' / 'older_202470708' / (year + '_DO_info_' + straits + '.nc'))
-    ds_dict[year] = ds
+for gtagex in gtagexes:
+    # add ds to dictionary
+    ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + year + '_DO_info_' + straits + '.nc'))
+    ds_dict[gtagex] = ds
 
 ##############################################################
 ##                         MAKE MAP                         ##
@@ -212,8 +214,8 @@ units = pinfo.units_dict[vn]
 
 # Initialize figure
 fs = 10
-pfun.start_plot(fs=fs, figsize=(21,21))
-fig,axes = plt.subplots(1,len(years))
+pfun.start_plot(fs=fs, figsize=(8,8))
+fig,axes = plt.subplots(1,len(gtagexes))
 ax = axes.ravel()
 
 # get lat and lon
@@ -225,33 +227,32 @@ px, py = pfun.get_plon_plat(lons,lats)
 
 # store all values in new dictionary (the averages over hypoxic season)
 val_dict = {}
-# plot average year
-for year in years:
-    ds = ds_dict[year]
+for gtagex in gtagexes:
+    ds = ds_dict[gtagex]
     # crop to just hypoxic season
-    ds = ds.sel(ocean_time=slice(np.datetime64(years[1]+'-'+start),np.datetime64(years[1]+'-'+end)))
+    ds = ds.sel(ocean_time=slice(np.datetime64(year+'-'+start),np.datetime64(year+'-'+end)))
     v = ds[var].values
     # take average over season
     v = np.nanmean(v,axis=0)
-    val_dict[year] = v
+    val_dict[gtagex] = v
 
 
 # loop through and plot both conditions
-for i,year in enumerate(years):
+for i,gtagex in enumerate(gtagexes):
                 
-    v  = val_dict[year] 
+    v  = val_dict[gtagex] 
 
     # plot natural condition
     if i == 0:
         cs = ax[i].pcolormesh(px,py,v, vmin=vmin, vmax=vmax, cmap=cmap)#cmocean.cm.balance_r)
         cbar = fig.colorbar(cs, location='left')
-        cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+        cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
         cbar.outline.set_visible(False)
-        ax[i].set_title('Natural', fontsize=38)
+        ax[i].set_title('Natural', fontsize=14)
 
 
     if i == 1:
-        diff = (val_dict[years[i]] - val_dict[years[i-1]])
+        diff = (val_dict[gtagexes[i]] - val_dict[gtagexes[i-1]])
         mindiff = np.nanmin(diff)
         maxdiff = np.nanmax(diff)
         # make sure colorbar axis contains zero
@@ -265,9 +266,9 @@ for i,year in enumerate(years):
         # make sure the colorbar is always centered about zero
         cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
         cs = ax[i].pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
-        ax[i].set_title('Anthropogenic - Natural', fontsize=38)
+        ax[i].set_title('Anthropogenic - Natural', fontsize=14)
         cbar = fig.colorbar(cs, location='right')
-        cbar.ax.tick_params(labelsize=32)#,length=10, width=2)
+        cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
         cbar.outline.set_visible(False)
 
     # format figure
@@ -289,7 +290,7 @@ if WWTP_loc == True:
     labels = ['< 100', '1,000', '10,000']
     legend = ax[1].legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
         title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
-    plt.setp(legend.get_title(),fontsize=20)
+    plt.setp(legend.get_title(),fontsize=12)
 
 # add 10 km bar
 lat0 = 46.94
@@ -298,8 +299,8 @@ lat1 = lat0
 lon1 = -122.91825
 distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
 x_dist_km = round(distances_m[0]/1000)
-ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=8)
-ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=24)
+ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=2)
+ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=10)
 
 # format figure
 ax[0].set_xlim([xmin,xmax])
@@ -311,9 +312,8 @@ pfun.dar(ax[0])
                                 
 # Add colormap title
 plt.suptitle('2014 ' + start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,
-            fontsize=44, fontweight='bold', y=0.95)
+            fontsize=14, fontweight='bold', y=0.95)
 
 # Generate plot
 plt.tight_layout
 plt.subplots_adjust(left=0.05, right=0.95, top=0.85, wspace=0.02)
-plt.savefig(out_dir / (vn+'_'+stext+'_avg_2014A-N_'+ start + 'THRU'+end+'.png'))
