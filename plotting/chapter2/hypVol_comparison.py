@@ -85,19 +85,20 @@ for year in years:
     DO_bot_dict[year] = DO_bot
     hyp_thick_dict[year] = hyp_thick
 
+# get grid cell area
+fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
+PSbox_ds = xr.open_dataset(fp)
+DX = (PSbox_ds.pm.values)**-1
+DY = (PSbox_ds.pn.values)**-1
+DA = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
+
 # initialize dictionary for hypoxic volume [km3]
 hyp_vol = {}
 for year in years:
     # get hypoxic thickness
-    hyp_thick = hyp_thick_dict[year] # [m]
-    # get timeseries of hypoxic volume (by summing over spatial dimensions)
-    hyp_thick_timeseries = np.nansum(hyp_thick,axis=1)
-    hyp_thick_timeseries = np.nansum(hyp_thick_timeseries,axis=1)
-    # calculate hypoxic volume
-    # area of grid cell = 0.5 km by 0.5 km times thickness of hypoxic layer (converted from m to km)
-    hyp_vol_timeseries = 0.5 * 0.5 * (hyp_thick_timeseries/1000) 
+    hyp_thick = hyp_thick_dict[year]/1000 # [km]
+    hyp_vol_timeseries = np.sum(hyp_thick * DA, axis=(1, 2)) # km^3
     hyp_vol[year] = hyp_vol_timeseries
-    print(np.nansum(hyp_vol_timeseries))
 
 # get plotting limits based on region
 if region == 'Puget Sound':
@@ -107,51 +108,71 @@ if region == 'Puget Sound':
     ymin = 46.95 - 0.1 # to make room for legend key
     ymax = 48.93
 
+# get grid data
+grid_ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
+z = -grid_ds.h.values
+mask_rho = np.transpose(grid_ds.mask_rho.values)
+lon = grid_ds.lon_rho.values
+lat = grid_ds.lat_rho.values
+plon, plat = pfun.get_plon_plat(lon,lat)
+# make a version of z with nans where masked
+# this gives us a binary map of land and water cells
+zm = z.copy()
+zm[np.transpose(mask_rho) == 0] = np.nan
+zm[np.transpose(mask_rho) != 0] = -1
+
 ##############################################################
-##                HYPOXIC VOLUME TIMESERIES                 ##
+##             Plot hypoxic volume time series              ##
 ##############################################################
 
+# Puget Sound bounds
+xmin = -123.29
+xmax = -122.1
+ymin = 46.95
+ymax = 48.93
+
 # initialize figure
-plt.close('all)')
-pfun.start_plot(figsize=(16,8))
-f, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 3]})
+fig, (ax0, ax1) = plt.subplots(1,2,figsize = (12,5.5),gridspec_kw={'width_ratios': [1, 4]})
 
 # format figure
 ax0.set_xlim([xmin,xmax])
 ax0.set_ylim([ymin,ymax])
-ax0.set_yticklabels([])
-ax0.set_xticklabels([])
-# ax0.axis('off')
+ax0.set_ylabel('Latitude', fontsize=12)
+ax0.set_xlabel('Longitude', fontsize=12)
+ax0.tick_params(axis='both', labelsize=12)
+ax0.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 pfun.dar(ax0)
-pfun.add_coast(ax0)
 # Create a Rectangle patch to omit Straits
-if remove_straits:
-    # get lat and lon
-    fp = Ldir['LOo'] / 'extract' / gtagexes[0] / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
-    ds = xr.open_dataset(fp)
-    lons = ds.coords['lon_rho'].values
-    lats = ds.coords['lat_rho'].values
-    lon = lons[0,:]
-    lat = lats[:,0]
-    # Straits
-    lonmax = -122.76
-    lonmin = xmin
-    latmax = ymax
-    latmin = 48.14
-    # convert lat/lon to eta/xi
-    diff = np.absolute(lon-lonmin)
-    ximin = diff.argmin()
-    diff = np.absolute(lon-lonmax)
-    ximax = diff.argmin()
-    diff = np.absolute(lat-latmin)
-    etamin = diff.argmin()
-    diff = np.absolute(lat-latmax)
-    etamax = diff.argmin()
-    rect = patches.Rectangle((lon[ximin], lat[etamin]), lon[ximax]-lon[ximin], lat[etamax]-lat[etamin],
-                            edgecolor='none', facecolor='gray', alpha=0.5)
-    # Add the patch to the Axes
-    ax0.add_patch(rect)
-    ax0.text(-123.2,48.25,'Straits\nomitted')
+# get lat and lon
+# fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
+# PSbox_ds = xr.open_dataset(fp)
+lons = PSbox_ds.coords['lon_rho'].values
+lats = PSbox_ds.coords['lat_rho'].values
+lon = lons[0,:]
+lat = lats[:,0]
+# Straits
+lonmax = -122.76
+lonmin = xmin
+latmax = ymax
+latmin = 48.14
+# convert lat/lon to eta/xi
+diff = np.absolute(lon-lonmin)
+ximin = diff.argmin()
+diff = np.absolute(lon-lonmax)
+ximax = diff.argmin()
+diff = np.absolute(lat-latmin)
+etamin = diff.argmin()
+diff = np.absolute(lat-latmax)
+etamax = diff.argmin()
+rect = patches.Rectangle((lon[ximin], lat[etamin]), lon[ximax]-lon[ximin], lat[etamax]-lat[etamin],
+                        edgecolor='none', facecolor='white', alpha=0.9)
+# Add the patch to the Axes
+ax0.add_patch(rect)
+ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontsize=12)
+ax0.set_title('(a)', fontsize = 14, loc='left', fontweight='bold')
+
+# Puget Sound volume with straits omitted
+PS_vol = 195.2716230839466 # [km^3]
 
 # create time vector
 startdate = '2020.01.01'
@@ -159,10 +180,10 @@ enddate = '2020.12.31'
 dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 dates_local = [pfun.get_dt_local(x) for x in dates]
 
-colors = ['darkturquoise','black', 'deeppink']
-linewidths = [5,2,2]
-alphas = [0.5,1,0.7]
-linestyles = ['-',':','-']
+colors = ['#62B6CB','#A8C256','#96031A']
+linewidths = [4,4,4]
+alphas = [0.9,0.9,0.9]
+linestyles = ['-','-','-']
 labels=gtagexes
 
 # plot timeseries
@@ -172,14 +193,24 @@ for i,year in enumerate(years):
              linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
 
 # format figure
-ax1.grid(visible=True, color='w')
-# format background color
-ax1.set_facecolor('#EEEEEE')
-for border in ['top','right','bottom','left']:
-    ax1.spines[border].set_visible(False)
+# ax1.grid(visible=True, axis='x', color='w')
+ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-plt.legend(loc='best')
-plt.title('2014 Puget Sound hypoxic volume (DO < 2 mg/L) ' + r'[km$^3$]')
+ax1.tick_params(axis='both', labelsize=12)
+ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
+plt.legend(loc='upper left', fontsize=12)
+plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
 ax1.set_xlim([dates_local[0],dates_local[-1]])
+ax1.set_ylim([0,10])
 
-plt.savefig(out_dir / 'anthro_natural_hypVol')
+ # convert hypoxic volume to percent hypoxic volume
+percent = lambda hyp_vol: hyp_vol/PS_vol*100
+# get left axis limits
+ymin, ymax = ax1.get_ylim()
+# match ticks
+ax2 = ax1.twinx()
+ax2.set_ylim((percent(ymin),percent(ymax)))
+ax2.plot([],[])
+for border in ['top','right','bottom','left']:
+    ax2.spines[border].set_visible(False)
+ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=14)
