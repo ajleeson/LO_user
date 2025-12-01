@@ -229,6 +229,6 @@ for year in years:
         straits = 'noStraits'
     else:
         straits = 'withStraits'
-    ds.to_netcdf(out_dir / (year + '_DO_info_' + straits + '.nc'))
+    ds.to_netcdf(out_dir / (gtagex + '_' + year + '_DO_info_' + straits + '.nc'))
 
 print('Done')
