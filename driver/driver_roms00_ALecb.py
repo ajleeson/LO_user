@@ -252,7 +252,7 @@ while dt <= dt1:
             else:
                 force_choice = force_dict[force]
                 # either look in Aurora's apogee folder for atmos forcing...
-                if force_choice in ['atm00_oaecolumbia_onedaydump']:
+                if force_choice in ['atm00_oaecolumbia_onedaydump','atm00_oaecolumbia_NOdump']:
                     cmd_list = ['scp','-r',
                         remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + f_string + '/' + force_choice,
                         str(force_dir)]
