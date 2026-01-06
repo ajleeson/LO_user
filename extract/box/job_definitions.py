@@ -79,5 +79,17 @@ def get_box(job, Lon, Lat):
         aa = [-123.29, -122.1, 46.95, 48.93]
         vn_list =  ('h,pm,pn,mask_rho,salt,temp,zeta,NO3,NH4,phytoplankton,'
                 + 'zooplankton,SdetritusN,LdetritusN,oxygen,ubar,vbar,AKv,AKs')
+    elif job == 'HC_up': # upper hood canal for chapter 2
+        aa = [-123.24, -122.72, 47.5, 47.86]
+        vn_list =  ('h,pm,pn,mask_rho,salt,temp,zeta,NO3,NH4,phytoplankton,'
+                + 'zooplankton,SdetritusN,LdetritusN,oxygen,ubar,vbar,AKv,AKs')
+    elif job == 'HC_low': # lower hood canal for chapter 2
+        aa = [-123.24, -122.88, 47.305, 47.5]
+        vn_list =  ('h,pm,pn,mask_rho,salt,temp,zeta,NO3,NH4,phytoplankton,'
+                + 'zooplankton,SdetritusN,LdetritusN,oxygen,ubar,vbar,AKv,AKs')
+    elif job == 'SS_and_HC_low': # south sound and lower hood canal for chapter 2
+        aa = [-123.24, -122.57, 46.96, 47.5]
+        vn_list =  ('h,pm,pn,mask_rho,salt,temp,zeta,NO3,NH4,phytoplankton,'
+                + 'zooplankton,SdetritusN,LdetritusN,oxygen,ubar,vbar,AKv,AKs')
         
     return aa, vn_list
