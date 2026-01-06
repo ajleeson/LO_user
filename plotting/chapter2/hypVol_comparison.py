@@ -174,6 +174,36 @@ ax0.add_patch(rect)
 ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontsize=12)
 ax0.set_title('(a)', fontsize = 14, loc='left', fontweight='bold')
 
+# # upper hood canal
+# hcminlat = 47.5
+# hcmaxlat = 47.86
+# hcminlon = -123.24
+# hcmaxlon = -122.72
+# rect = patches.Rectangle((hcminlon, hcminlat), hcmaxlon-hcminlon, hcmaxlat-hcminlat,
+#                         edgecolor='black', facecolor='none')
+# # Add the patch to the Axes
+# ax0.add_patch(rect)
+
+# # lower hood canal
+# hclowminlat = 47.305
+# hclowmaxlat = hcminlat
+# hclowminlon = hcminlon
+# hclowmaxlon = -122.88
+# rect = patches.Rectangle((hclowminlon, hclowminlat), hclowmaxlon-hclowminlon, hclowmaxlat-hclowminlat,
+#                         edgecolor='black', facecolor='none')
+# # Add the patch to the Axes
+# ax0.add_patch(rect)
+
+# # south sound
+# ssminlat = 46.96
+# ssmaxlat = hclowmaxlat
+# ssminlon = hclowminlon
+# ssmaxlon = -122.57
+# rect = patches.Rectangle((ssminlon, ssminlat), ssmaxlon-ssminlon, ssmaxlat-ssminlat,
+#                         edgecolor='black', facecolor='none')
+# # Add the patch to the Axes
+# ax0.add_patch(rect)
+
 # Puget Sound volume with straits omitted
 PS_vol = 195.2716230839466 # [km^3]
 
