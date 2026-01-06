@@ -46,7 +46,7 @@ plt.close('all')
 ##############################################################
 
 # Show WWTP locations?
-WWTP_loc = False
+WWTP_loc = True
 
 remove_straits = True
 
@@ -106,7 +106,7 @@ if WWTP_loc == True:
     # Get LiveOcean grid info --------------------------------------------------
 
     # get the grid data
-    ds = xr.open_dataset('../../../../LO_data/grids/cas7/grid.nc')
+    ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
     z = -ds.h.values
     mask_rho = np.transpose(ds.mask_rho.values)
     lon = ds.lon_rho.values
@@ -119,33 +119,74 @@ if WWTP_loc == True:
     zm[np.transpose(mask_rho) == 0] = np.nan
     zm[np.transpose(mask_rho) != 0] = -1
 
+    # # get flow, nitrate, and ammonium values
+    # fp_wwtps = '../../../LO_output/pre/trapsP00/point_sources/lo_base/Data_historical/'
+    # moh20_flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    # moh20_no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    # moh20_nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
+
+    # # calculate total DIN concentration in mg/L
+    # moh20_dindf_wwtps = (moh20_no3df_wwtps + moh20_nh4df_wwtps)/71.4    # mg/L
+
+    # # calculate daily loading timeseries in kg/d
+    # moh20_dailyloaddf_wwtps = 86.4*moh20_dindf_wwtps*moh20_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
+
+    # # calculate average daily load over the year (kg/d)
+    # moh20_avgload_wwtps = moh20_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+
+    # # add row and col index for plotting on LiveOcean grid
+    # griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas6/wwtp_info.csv')
+    # griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
+    # moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    # moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+
+    # # get point source lat and lon
+    # moh20_lon_wwtps = [X[int(col)] for col in moh20_avgload_wwtps['col_py']]
+    # moh20_lat_wwtps = [Y[int(row)] for row in moh20_avgload_wwtps['row_py']]
+
     # get flow, nitrate, and ammonium values
-    fp_wwtps = '../../../../LO_output/pre/trapsP00/point_sources/lo_base/Data_historical/'
-    flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
-    no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
-    nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
+    fp_wwtps = '../../../LO_output/pre/trapsP01/moh20_wwtps/lo_base/Data_historical/'
+    moh20_flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    moh20_no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    moh20_nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
+
+    fp_wwtps = '../../../LO_output/pre/trapsP01/was24_wwtps/lo_base/Data_historical/'
+    was24_flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    was24_no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    was24_nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
 
     # calculate total DIN concentration in mg/L
-    dindf_wwtps = (no3df_wwtps + nh4df_wwtps)/71.4    # mg/L
+    moh20_dindf_wwtps = (moh20_no3df_wwtps + moh20_nh4df_wwtps)/71.4    # mg/L
+    was24_dindf_wwtps = (was24_no3df_wwtps + was24_nh4df_wwtps)/71.4    # mg/L
 
     # calculate daily loading timeseries in kg/d
-    dailyloaddf_wwtps = 86.4*dindf_wwtps*flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
+    moh20_dailyloaddf_wwtps = 86.4*moh20_dindf_wwtps*moh20_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
+    was24_dailyloaddf_wwtps = 86.4*was24_dindf_wwtps*was24_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
 
     # calculate average daily load over the year (kg/d)
-    avgload_wwtps = dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+    moh20_avgload_wwtps = moh20_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+    was24_avgload_wwtps = was24_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
 
     # add row and col index for plotting on LiveOcean grid
-    griddf0_wwtps = pd.read_csv('../../../../LO_data/grids/cas6/wwtp_info.csv')
+    griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas7/moh20_wwtp_info.csv')
     griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
-    avgload_wwtps = avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
-    avgload_wwtps = avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+    moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+
+    griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas7/was24_wwtp_info.csv')
+    griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
+    was24_avgload_wwtps = was24_avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    was24_avgload_wwtps = was24_avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
 
     # get point source lat and lon
-    lon_wwtps = [X[int(col)] for col in avgload_wwtps['col_py']]
-    lat_wwtps = [Y[int(row)] for row in avgload_wwtps['row_py']]
+    moh20_lon_wwtps = [X[int(col)] for col in moh20_avgload_wwtps['col_py']]
+    moh20_lat_wwtps = [Y[int(row)] for row in moh20_avgload_wwtps['row_py']]
+    was24_lon_wwtps = [X[int(col)] for col in was24_avgload_wwtps['col_py']]
+    was24_lat_wwtps = [Y[int(row)] for row in was24_avgload_wwtps['row_py']]
     
     # define marker sizes (minimum size is 10 so dots don't get too small)
-    sizes_wwtps = [max(0.3*load,30) for load in avgload_wwtps['avg-daily-load(kg/d)']]
+    moh20_sizes_wwtps = [max(0.05*load,5) for load in moh20_avgload_wwtps['avg-daily-load(kg/d)']]
+    was24_sizes_wwtps = [max(0.05*load,5) for load in was24_avgload_wwtps['avg-daily-load(kg/d)']]
 
 ##############################################################
 ##                      PROCESS DATA                        ##
@@ -214,7 +255,7 @@ units = pinfo.units_dict[vn]
 
 # Initialize figure
 fs = 10
-pfun.start_plot(fs=fs, figsize=(8,8))
+pfun.start_plot(fs=fs, figsize=(6,6))
 fig,axes = plt.subplots(1,len(gtagexes))
 ax = axes.ravel()
 
@@ -248,7 +289,7 @@ for i,gtagex in enumerate(gtagexes):
         cbar = fig.colorbar(cs, location='left')
         cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
         cbar.outline.set_visible(False)
-        ax[i].set_title('Natural', fontsize=14)
+        ax[i].set_title('No-Loading', fontsize=14)
 
 
     if i == 1:
@@ -266,7 +307,7 @@ for i,gtagex in enumerate(gtagexes):
         # make sure the colorbar is always centered about zero
         cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
         cs = ax[i].pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
-        ax[i].set_title('Anthropogenic - Natural', fontsize=14)
+        ax[i].set_title('Loading minus No-Loading', fontsize=14)
         cbar = fig.colorbar(cs, location='right')
         cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
         cbar.outline.set_visible(False)
@@ -281,16 +322,17 @@ for i,gtagex in enumerate(gtagexes):
 
 # add wwtp locations
 if WWTP_loc == True:
-    ax[1].scatter(lon_wwtps,lat_wwtps,color='none', edgecolors='k', linewidth=3, s=sizes_wwtps, label='WWTPs')
+    ax[1].scatter(moh20_lon_wwtps,moh20_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=moh20_sizes_wwtps, label='WWTPs')
+    ax[1].scatter(was24_lon_wwtps,was24_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=was24_sizes_wwtps)
     leg_szs = [100, 1000, 10000]
-    szs = [0.3*(leg_sz) for leg_sz in leg_szs]
-    l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=3)
-    l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=3)
-    l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=3)
+    szs = [0.05*(leg_sz) for leg_sz in leg_szs]
+    l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=1)
+    l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=1)
+    l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=1)
     labels = ['< 100', '1,000', '10,000']
-    legend = ax[1].legend([l0, l1, l2], labels, fontsize = 18, markerfirst=False,
-        title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
-    plt.setp(legend.get_title(),fontsize=12)
+    # legend = ax[1].legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
+    #     title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
+    # plt.setp(legend.get_title(),fontsize=9)
 
 # add 10 km bar
 lat0 = 46.94
@@ -316,4 +358,4 @@ plt.suptitle('2014 ' + start+' to '+end+' average ' + stext + ' ' + vn + ' ' + u
 
 # Generate plot
 plt.tight_layout
-plt.subplots_adjust(left=0.05, right=0.95, top=0.85, wspace=0.02)
+plt.subplots_adjust(left=0.05, right=0.92, top=0.85, wspace=0.02)
