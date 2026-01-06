@@ -20,6 +20,7 @@ import matplotlib.image as image
 import pandas as pd
 import cmocean
 import matplotlib.pylab as plt
+from matplotlib.ticker import FuncFormatter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.patheffects as PathEffects
 import pinfo
@@ -69,8 +70,8 @@ if remove_straits:
 else:
     straits = 'withStraits'
 
-letters = ['(a) ','(b) ','(c) ','(d) ','(e) ','(f) ']
-vars = ['NO3','phytoplankton','zooplankton','NH4','LdetritusN','SdetritusN']
+letters = ['(a) ','(b) ','(c) ','(d) ','(e) ','(f) ', '(g)']
+vars = ['NO3','NH4','phytoplankton','zooplankton','LdetritusN','SdetritusN','oxygen']
 
 # initialize empty dictionaries
 NO3_vert_dict = {}
@@ -79,6 +80,7 @@ zoop_vert_dict = {}
 NH4_vert_dict = {}
 Ldet_vert_dict = {}
 Sdet_vert_dict = {}
+DO_vert_dict = {}
 
 for gtagex in gtagexes:
     # add ds to dictionary
@@ -89,6 +91,7 @@ for gtagex in gtagexes:
     NH4_vert_int = ds['NH4_vert_int'].values
     LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
     SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
+    DO_vert_int = ds['DO_vert_int'].values
     # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
     if np.mod(int(year),4) != 0: 
         NO3_vert_int = np.insert(NO3_vert_int,59,'nan',axis=0)
@@ -97,6 +100,7 @@ for gtagex in gtagexes:
         NH4_vert_int = np.insert(NH4_vert_int,59,'nan',axis=0)
         LdetritusN_vert_int = np.insert(LdetritusN_vert_int,59,'nan',axis=0)
         SdetritusN_vert_int = np.insert(SdetritusN_vert_int,59,'nan',axis=0)
+        DO_vert_int = np.insert(DO_vert_int,59,'nan',axis=0)
     if gtagex == 'cas7_t1_x11ab': # july 23, 2014 was missing
         NO3_vert_int = np.insert(NO3_vert_int,205,'nan',axis=0)
         phyto_vert_int = np.insert(phyto_vert_int,205,'nan',axis=0)
@@ -104,12 +108,14 @@ for gtagex in gtagexes:
         NH4_vert_int = np.insert(NH4_vert_int,205,'nan',axis=0)
         LdetritusN_vert_int = np.insert(LdetritusN_vert_int,205,'nan',axis=0)
         SdetritusN_vert_int = np.insert(SdetritusN_vert_int,205,'nan',axis=0)
+        DO_vert_int = np.insert(DO_vert_int,205,'nan',axis=0)
     NO3_vert_dict[gtagex] = NO3_vert_int
     phyto_vert_dict[gtagex] = phyto_vert_int
     zoop_vert_dict[gtagex] = zoop_vert_int
     NH4_vert_dict[gtagex] = NH4_vert_int
     Ldet_vert_dict[gtagex] = LdetritusN_vert_int
     Sdet_vert_dict[gtagex] = SdetritusN_vert_int
+    DO_vert_dict[gtagex] = DO_vert_int
 
 # get grid cell area
 fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
@@ -125,6 +131,7 @@ zoop_vol = {}
 NH4_vol = {}
 Ldet_vol = {}
 Sdet_vol = {}
+DO_vol = {}
 for gtagex in gtagexes:
 
     NO3_vert_int = NO3_vert_dict[gtagex]
@@ -150,6 +157,10 @@ for gtagex in gtagexes:
     Sdet_vert_int = Sdet_vert_dict[gtagex]
     Sdet_vol_timeseries = np.sum(Sdet_vert_int * DA, axis=(1, 2)) # [mol]
     Sdet_vol[gtagex] = Sdet_vol_timeseries
+
+    DO_vert_int = DO_vert_dict[gtagex]
+    DO_vol_timeseries = np.sum(DO_vert_int * DA, axis=(1, 2)) # [mol]
+    DO_vol[gtagex] = DO_vol_timeseries
 
 # get plotting limits based on region
 if region == 'Puget Sound':
@@ -178,7 +189,7 @@ zm[np.transpose(mask_rho) != 0] = -1
 
 
 # initialize figure
-fig, axes = plt.subplots(2,3,figsize=(14,9),sharex=True)
+fig, axes = plt.subplots(2,4,figsize=(11,5),sharex=True)
 ax = axes.ravel()
 
 # create time vector
@@ -191,29 +202,31 @@ dates_local = [pfun.get_dt_local(x) for x in dates]
 # first is with loading, second is no-loading
 linestyles = ['-','--']
 linewidths = [3,1]
-alphas = [0.3,1]
+alphas = [0.5,1]
+colors = ['mediumorchid','black']
 
 # plot timeseries
-for j,var_vol in enumerate([NO3_vol,phyto_vol,zoop_vol,NH4_vol,Ldet_vol,Sdet_vol]):
+for j,var_vol in enumerate([NO3_vol,NH4_vol,phyto_vol,zoop_vol,Ldet_vol,Sdet_vol,DO_vol]):
 
     for i,gtagex in enumerate(gtagexes):
         ax[j].plot(dates_local,var_vol[gtagex],linestyle=linestyles[i],
-                   color='black',linewidth=linewidths[i],alpha=alphas[i])
+                   color=colors[i],linewidth=linewidths[i],alpha=alphas[i])
 
 
     # format figure
     if j == 0:
-        ax[j].text(0.02,0.08,'Natural: dashed', fontsize = 12, ha='left', 
+        ax[j].text(0.02,0.2,'No-loading', fontsize = 12, ha='left', 
                transform=ax[j].transAxes)
-        ax[j].text(0.02,0.03,'Anthropogenic: solid', fontsize = 12, ha='left', 
-               transform=ax[j].transAxes,fontweight='bold',color='black',alpha=0.5)
+        ax[j].text(0.02,0.08,'Loading', fontsize = 12, ha='left', 
+               transform=ax[j].transAxes,fontweight='bold',color='mediumorchid',alpha=0.7)
     ax[j].grid(visible=True, axis='both', color='silver', linestyle='--')
-    ax[j].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-    ax[j].tick_params(axis='both', labelsize=12)
-    if np.mod(j,3) == 0:
-        ax[j].set_ylabel(r'Moles of Nitrogen [mol]', fontsize=12)
-    ax[j].set_ylim([0,np.nanmax(var_vol[gtagexes[0]])*1.1])
-    ax[j].text(0.02,0.92,letters[j] + vars[j], fontsize = 12, ha='left', 
+    # ax[j].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+    ax[j].xaxis.set_major_formatter(FuncFormatter(lambda x, pos: mdates.num2date(x).strftime('%b')[0]))
+    ax[j].tick_params(axis='both', labelsize=12, rotation=30)
+    if np.mod(j,4) == 0:
+        ax[j].set_ylabel(r'Moles [mol]', fontsize=12)
+    ax[j].set_ylim([0,np.nanmax(var_vol[gtagexes[0]])*1.2])
+    ax[j].text(0.02,0.88,letters[j] + vars[j], fontsize = 12, ha='left', 
                fontweight='bold', transform=ax[j].transAxes)
     ax[j].set_xlim([dates_local[0],dates_local[-1]])
 

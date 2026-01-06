@@ -50,11 +50,12 @@ plt.close('all')
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['DIN']#['DIN','u','v','oxygen'] # u, v, w, DIN
+vns = ['salt']#['DIN','u','v','oxygen'] # u, v, w, DIN
 # date = '2013.04.04'
 # date = '2012.10.31'
-date = '2012.10.07'
+# date = '2012.10.07'
 # date = '2014.01.09'
+date = '2018.06.12'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
@@ -224,8 +225,8 @@ for vn in vns:
         cbar.ax.tick_params(labelsize=14)
         cbar.outline.set_visible(False)
         # format figure
-        ax.set_xlim([xmin,xmax])
-        ax.set_ylim([ymin,ymax])
+        # ax.set_xlim([xmin,xmax])
+        # ax.set_ylim([ymin,ymax])
         ax.set_yticklabels([])
         ax.set_xticklabels([])
         ax.axis('off')
@@ -235,16 +236,16 @@ for vn in vns:
         fig.suptitle('Loading minus No-loading\n' + date + ' ocean_avg_0001',
                     fontsize=18, fontweight='bold')
 
-        # add 10 km bar
-        lat0 = 47
-        lon0 = -122.4
-        lat1 = lat0
-        lon1 = -122.27
-        distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
-        x_dist_km = round(distances_m[0]/1000)
-        # ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=6)
-        # ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
-        #         horizontalalignment='center', fontsize=15)
+        # # add 10 km bar
+        # lat0 = 47
+        # lon0 = -122.4
+        # lat1 = lat0
+        # lon1 = -122.27
+        # distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
+        # x_dist_km = round(distances_m[0]/1000)
+        # # ax.plot([lon0,lon1],[lat0,lat1],color='k',linewidth=6)
+        # # ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
+        # #         horizontalalignment='center', fontsize=15)
         
         # add WWTP locations
         ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,

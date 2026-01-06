@@ -135,7 +135,7 @@ ymin = 46.95
 ymax = 48.93
 
 # initialize figure
-fig, (ax0, ax1) = plt.subplots(1,2,figsize = (12,5.5),gridspec_kw={'width_ratios': [1, 4]})
+fig, (ax0, ax1) = plt.subplots(1,2,figsize = (12,5.5),gridspec_kw={'width_ratios': [1, 2]})
 
 # format figure
 ax0.set_xlim([xmin,xmax])
