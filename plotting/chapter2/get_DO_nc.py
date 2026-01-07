@@ -167,7 +167,7 @@ for year in years:
     print('    Calculating depth of DO minima')
     # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
     srho_min = ds_raw['oxygen'].idxmin(dim='s_rho', skipna=True).values
-    # get depths, but also flatten the time dimension
+    # get depths, but also flatten the time dimension since h doesn't vary with time
     depths = ds_raw['h'].expand_dims(ocean_time=ds_raw['ocean_time']).values
     # depths = ds_raw['h'].values
     # # reshape
