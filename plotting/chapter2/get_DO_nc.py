@@ -40,7 +40,8 @@ remove_straits = True
 years = ['2014']
 
 # which  model run to look at?
-gtagex = 'cas7_t1_x11ab' # 
+# gtagex = 'cas7_t1_x11ab'  
+gtagex = 'cas7_t1noDIN_x11ab'  
 
 # where to put output files
 out_dir = Ldir['LOo'] / 'chapter_2' / 'data'
