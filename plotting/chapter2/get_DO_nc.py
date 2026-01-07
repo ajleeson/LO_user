@@ -33,6 +33,8 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
+region = 'pugetsoundDO'
+
 remove_straits = True
 
 years = ['2014']
@@ -112,21 +114,23 @@ for year in years:
     print(year)
 
     # get data
-    fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_'+year+'.01.01_'+year+'.12.31.nc')
+    fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / (region+'_'+year+'.01.01_'+year+'.12.31.nc')
     ds_raw = xr.open_dataset(fp)
 
     # set values in strait of juan de fuca and strait of georgia to nan 
     # (so they don't interfere with analysis)
-    if remove_straits:
-        print('    Removing Straits...')
-        lat_threshold = 48.14
-        lon_threshold = -122.76
-        # Create a mask for latitudes and longitudes in the Straits
-        mask = (ds_raw['lat_rho'] > lat_threshold) & (ds_raw['lon_rho'] < lon_threshold)
-        # Expand mask dimensions to match 'oxygen' dimensions
-        expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['ocean_time']), s_rho=len(ds_raw['s_rho']))
-        # Apply the mask to the 'oxygen' variable
-        ds_raw['oxygen'] = xr.where(expanded_mask, np.nan, ds_raw['oxygen'])
+    # only need to do this over the whole Puget Sound region
+    if region == 'pugetsoundDO':
+        if remove_straits:
+            print('    Removing Straits...')
+            lat_threshold = 48.14
+            lon_threshold = -122.76
+            # Create a mask for latitudes and longitudes in the Straits
+            mask = (ds_raw['lat_rho'] > lat_threshold) & (ds_raw['lon_rho'] < lon_threshold)
+            # Expand mask dimensions to match 'oxygen' dimensions
+            expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['ocean_time']), s_rho=len(ds_raw['s_rho']))
+            # Apply the mask to the 'oxygen' variable
+            ds_raw['oxygen'] = xr.where(expanded_mask, np.nan, ds_raw['oxygen'])
 
     # initialize dataset
     ds = start_ds(ds_raw['ocean_time'],
@@ -229,6 +233,6 @@ for year in years:
         straits = 'noStraits'
     else:
         straits = 'withStraits'
-    ds.to_netcdf(out_dir / (gtagex + '_' + year + '_DO_info_' + straits + '.nc'))
+    ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_DO_info_' + straits + '.nc'))
 
 print('Done')
