@@ -125,7 +125,7 @@ zm[np.transpose(mask_rho) == 0] = np.nan
 zm[np.transpose(mask_rho) != 0] = -1
 
 ##############################################################
-##             Plot hypoxic volume time series              ##
+##   Puget Sound hypoxic volume & comparison to old model   ##
 ##############################################################
 
 # Puget Sound bounds
@@ -174,36 +174,6 @@ ax0.add_patch(rect)
 ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontsize=12)
 ax0.set_title('(a)', fontsize = 14, loc='left', fontweight='bold')
 
-# # upper hood canal
-# hcminlat = 47.5
-# hcmaxlat = 47.86
-# hcminlon = -123.24
-# hcmaxlon = -122.72
-# rect = patches.Rectangle((hcminlon, hcminlat), hcmaxlon-hcminlon, hcmaxlat-hcminlat,
-#                         edgecolor='black', facecolor='none')
-# # Add the patch to the Axes
-# ax0.add_patch(rect)
-
-# # lower hood canal
-# hclowminlat = 47.305
-# hclowmaxlat = hcminlat
-# hclowminlon = hcminlon
-# hclowmaxlon = -122.88
-# rect = patches.Rectangle((hclowminlon, hclowminlat), hclowmaxlon-hclowminlon, hclowmaxlat-hclowminlat,
-#                         edgecolor='black', facecolor='none')
-# # Add the patch to the Axes
-# ax0.add_patch(rect)
-
-# # south sound
-# ssminlat = 46.96
-# ssmaxlat = hclowmaxlat
-# ssminlon = hclowminlon
-# ssmaxlon = -122.57
-# rect = patches.Rectangle((ssminlon, ssminlat), ssmaxlon-ssminlon, ssmaxlat-ssminlat,
-#                         edgecolor='black', facecolor='none')
-# # Add the patch to the Axes
-# ax0.add_patch(rect)
-
 # Puget Sound volume with straits omitted
 PS_vol = 195.2716230839466 # [km^3]
 
@@ -226,7 +196,6 @@ for i,gtagex in enumerate(gtagexes):
              linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
 
 # format figure
-# ax1.grid(visible=True, axis='x', color='w')
 ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
 ax1.tick_params(axis='both', labelsize=12)
@@ -247,3 +216,132 @@ ax2.plot([],[])
 for border in ['top','right','bottom','left']:
     ax2.spines[border].set_visible(False)
 ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=14)
+
+plt.show()
+
+##############################################################
+##                  Sub-basin hypoxic volume                ##
+##############################################################
+
+gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
+
+# Puget Sound bounds
+xmin = -123.29
+xmax = -122.1
+ymin = 46.95
+ymax = 48.93
+
+# initialize figure
+fig, (ax0, ax1) = plt.subplots(1,2,figsize = (12,5.5),gridspec_kw={'width_ratios': [1, 2]})
+
+# format figure
+ax0.set_xlim([xmin,xmax])
+ax0.set_ylim([ymin,ymax])
+ax0.set_ylabel('Latitude', fontsize=12)
+ax0.set_xlabel('Longitude', fontsize=12)
+ax0.tick_params(axis='both', labelsize=12)
+ax0.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+pfun.dar(ax0)
+# Create a Rectangle patch to omit Straits
+# get lat and lon
+# fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
+# PSbox_ds = xr.open_dataset(fp)
+lons = PSbox_ds.coords['lon_rho'].values
+lats = PSbox_ds.coords['lat_rho'].values
+lon = lons[0,:]
+lat = lats[:,0]
+# Straits
+lonmax = -122.76
+lonmin = xmin
+latmax = ymax
+latmin = 48.14
+# convert lat/lon to eta/xi
+diff = np.absolute(lon-lonmin)
+ximin = diff.argmin()
+diff = np.absolute(lon-lonmax)
+ximax = diff.argmin()
+diff = np.absolute(lat-latmin)
+etamin = diff.argmin()
+diff = np.absolute(lat-latmax)
+etamax = diff.argmin()
+rect = patches.Rectangle((lon[ximin], lat[etamin]), lon[ximax]-lon[ximin], lat[etamax]-lat[etamin],
+                        edgecolor='none', facecolor='white', alpha=0.9)
+# Add the patch to the Axes
+ax0.add_patch(rect)
+ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontsize=12)
+ax0.set_title('(a)', fontsize = 14, loc='left', fontweight='bold')
+
+# upper hood canal
+hcminlat = 47.5
+hcmaxlat = 47.86
+hcminlon = -123.24
+hcmaxlon = -122.72
+rect = patches.Rectangle((hcminlon, hcminlat), hcmaxlon-hcminlon, hcmaxlat-hcminlat,
+                        edgecolor='black', facecolor='yellow', alpha=0.3)
+# Add the patch to the Axes
+ax0.add_patch(rect)
+
+# lower hood canal
+hclowminlat = 47.305
+hclowmaxlat = hcminlat
+hclowminlon = hcminlon
+hclowmaxlon = -122.88
+rect = patches.Rectangle((hclowminlon, hclowminlat), hclowmaxlon-hclowminlon, hclowmaxlat-hclowminlat,
+                        edgecolor='black', facecolor='yellow', alpha=0.3)
+# Add the patch to the Axes
+ax0.add_patch(rect)
+
+# south sound
+ssminlat = 46.96
+ssmaxlat = hclowmaxlat
+ssminlon = hclowminlon
+ssmaxlon = -122.57
+rect = patches.Rectangle((ssminlon, ssminlat), ssmaxlon-ssminlon, ssmaxlat-ssminlat,
+                        edgecolor='black', facecolor='pink', alpha=0.3)
+# Add the patch to the Axes
+ax0.add_patch(rect)
+
+# Puget Sound volume with straits omitted
+PS_vol = 195.2716230839466 # [km^3]
+
+# create time vector
+startdate = '2020.01.01'
+enddate = '2020.12.31'
+dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+dates_local = [pfun.get_dt_local(x) for x in dates]
+
+colors = ['deeppink','black']
+linewidths = [3,2]
+alphas = [0.5,1]
+linestyles = ['-','--']
+labels=gtagexes
+
+# plot timeseries
+for i,gtagex in enumerate(gtagexes):
+    # plot hypoxic area timeseries
+    ax1.plot(dates_local,hyp_vol[gtagex],color=colors[i],linestyle=linestyles[i],
+             linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
+
+# format figure
+ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
+ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+ax1.tick_params(axis='both', labelsize=12)
+ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
+plt.legend(loc='upper left', fontsize=12)
+plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
+ax1.set_xlim([dates_local[0],dates_local[-1]])
+ax1.set_ylim([0,1.25])
+
+ # convert hypoxic volume to percent hypoxic volume
+percent = lambda hyp_vol: hyp_vol/PS_vol*100
+# get left axis limits
+ymin, ymax = ax1.get_ylim()
+# match ticks
+ax2 = ax1.twinx()
+ax2.set_ylim((percent(ymin),percent(ymax)))
+ax2.plot([],[])
+for border in ['top','right','bottom','left']:
+    ax2.spines[border].set_visible(False)
+ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=14)
+
+plt.show()
