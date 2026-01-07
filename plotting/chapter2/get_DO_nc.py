@@ -41,8 +41,8 @@ remove_straits = True
 years = ['2014']
 
 # which  model run to look at?
-# gtagex = 'cas7_t1_x11ab'  
-gtagex = 'cas7_t1noDIN_x11ab'  
+gtagex = 'cas7_t1_x11ab'  
+# gtagex = 'cas7_t1noDIN_x11ab'  
 
 # where to put output files
 out_dir = Ldir['LOo'] / 'chapter_2' / 'data'
@@ -213,7 +213,7 @@ for year in years:
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     # depth of water column
-    ds['depth_bot'] = xr.DataArray(depths_reshape.reshape((441,177)),
+    ds['depth_bot'] = xr.DataArray(depths.reshape((441,177)),
                                 coords={'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['eta_rho', 'xi_rho'])
