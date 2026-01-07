@@ -167,12 +167,13 @@ for year in years:
     print('    Calculating depth of DO minima')
     # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
     srho_min = ds_raw['oxygen'].idxmin(dim='s_rho', skipna=True).values
-    # get depths
-    depths = ds_raw['h'].values
-    # reshape
-    depths_reshape = depths.reshape((1,441,177))
+    # get depths, but also flatten the time dimension
+    depths = ds_raw['h'].expand_dims(ocean_time=ds_raw['ocean_time']).values
+    # depths = ds_raw['h'].values
+    # # reshape
+    # depths_reshape = depths.reshape((1,441,177))
     # convert srho to depths
-    depth_min = depths_reshape * srho_min
+    depth_min = depths * srho_min
 
     print('    Calculating s-level of DO minima')
     # get s-level of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
