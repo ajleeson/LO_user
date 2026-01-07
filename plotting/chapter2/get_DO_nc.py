@@ -34,7 +34,7 @@ Ldir = Lfun.Lstart()
 ##############################################################
 
 # region = 'pugetsoundDO'
-region = 'HC_up'
+region = 'HC_low'
 
 remove_straits = True
 
@@ -233,10 +233,13 @@ for year in years:
 
     print('    Saving dataset')
     # save dataset
-    if remove_straits:
-        straits = 'noStraits'
+    if region == 'pugetsoundDO':
+        if remove_straits:
+            straits = 'noStraits'
+        else:
+            straits = 'withStraits'
+        ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_DO_info_' + straits + '.nc'))
     else:
-        straits = 'withStraits'
-    ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_DO_info_' + straits + '.nc'))
+        ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
 
 print('Done')
