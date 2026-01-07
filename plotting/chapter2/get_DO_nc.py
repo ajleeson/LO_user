@@ -33,7 +33,8 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-region = 'pugetsoundDO'
+# region = 'pugetsoundDO'
+region = 'HC_up'
 
 remove_straits = True
 
