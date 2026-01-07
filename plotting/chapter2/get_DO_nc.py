@@ -165,15 +165,16 @@ for year in years:
     hyp_thick = np.nansum(hyp_cell_thick,axis=1)
 
     print('    Calculating depth of DO minima')
-    # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
-    srho_min = ds_raw['oxygen'].idxmin(dim='s_rho', skipna=True).values
-    # get depths, but also flatten the time dimension since h doesn't vary with time
-    depths = ds_raw['h'].expand_dims(ocean_time=ds_raw['ocean_time']).values
-    # depths = ds_raw['h'].values
-    # # reshape
-    # depths_reshape = depths.reshape((1,441,177))
+    # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: eta_size, xi_rho: xi_size))
+    eta_size = ds_raw['h'].sizes['eta_rho']
+    xi_size  = ds_raw['h'].sizes['xi_rho']
+    srho_min = ds_raw['oxygen'].idxmin(dim='s_rho', skipna=True)#.values
+    # get depths, but also flatten the time dimension
+    depths = ds_raw['h'].values
+    # reshape
+    depths_reshape = depths.reshape((1,eta_size,xi_size))
     # convert srho to depths
-    depth_min = depths * srho_min
+    depth_min = depths_reshape * srho_min
 
     print('    Calculating s-level of DO minima')
     # get s-level of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
@@ -213,7 +214,7 @@ for year in years:
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['ocean_time','eta_rho', 'xi_rho'])
     # depth of water column
-    ds['depth_bot'] = xr.DataArray(depths,
+    ds['depth_bot'] = xr.DataArray(depths_reshape.reshape((eta_size,xi_size)),
                                 coords={'eta_rho': ds_raw['eta_rho'].values,
                                         'xi_rho': ds_raw['xi_rho'].values},
                                 dims=['eta_rho', 'xi_rho'])
