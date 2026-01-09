@@ -35,7 +35,8 @@ Ldir = Lfun.Lstart()
 
 # region = 'pugetsoundDO'
 # region = 'SS_and_HC_low'
-region = 'HC_low'
+# region = 'HC_low'
+region = 'HC_up'
 
 remove_straits = True
 
