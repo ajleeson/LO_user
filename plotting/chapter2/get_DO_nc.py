@@ -33,12 +33,12 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-# region = 'pugetsoundDO'
-region = 'SS_and_HC_low'
+region = 'pugetsoundDO'
+# region = 'SS_and_HC_low'
 
 remove_straits = True
 
-years = ['2014']
+years = ['2015']
 
 # which  model run to look at?
 gtagex = 'cas7_t1_x11ab'  
