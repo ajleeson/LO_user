@@ -46,7 +46,7 @@ remove_straits = True
 
 vn = 'oxygen'
 
-year =  '2014'
+years =  ['2014','2015']
 
 # which  model run to look at?
 gtagexes = ['cas7_t0_x4b','cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
@@ -74,26 +74,27 @@ regions = ['pugetsoundDO','HC_up','HC_low','SS_and_HC_low']
 DO_bot_dict = {} # dictionary with DO_bot values
 hyp_thick_dict = {}
 
-for region in regions:
-    for gtagex in gtagexes:
-        # add ds to dictionary
-        if region == 'pugetsoundDO':
-            # only include strait infor when looking at the whole of puget sound
-            ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info_' + straits + '.nc'))
-        else:
-            if gtagex == 'cas7_t0_x4b':
-                # don't compare old version of LiveOcean in the sub-basins
-                continue
+for year in years:
+    for region in regions:
+        for gtagex in gtagexes:
+            # add ds to dictionary
+            if region == 'pugetsoundDO':
+                # only include strait infor when looking at the whole of puget sound
+                ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info_' + straits + '.nc'))
             else:
-                ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
-        DO_bot = ds['DO_bot'].values
-        hyp_thick = ds['hyp_thick'].values
-        # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
-        if np.mod(int(year),4) != 0: 
-            DO_bot = np.insert(DO_bot,59,'nan',axis=0)
-            hyp_thick = np.insert(hyp_thick,59,'nan',axis=0)
-        DO_bot_dict[gtagex+region] = DO_bot
-        hyp_thick_dict[gtagex+region] = hyp_thick
+                if gtagex == 'cas7_t0_x4b':
+                    # don't compare old version of LiveOcean in the sub-basins
+                    continue
+                else:
+                    ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
+            DO_bot = ds['DO_bot'].values
+            hyp_thick = ds['hyp_thick'].values
+            # # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
+            # if np.mod(int(year),4) != 0: 
+            #     DO_bot = np.insert(DO_bot,59,'nan',axis=0)
+            #     hyp_thick = np.insert(hyp_thick,59,'nan',axis=0)
+            DO_bot_dict[gtagex+region+year] = DO_bot
+            hyp_thick_dict[gtagex+region+year] = hyp_thick
 
 # initialize empty dictionary to get grid cell areas
 DA = {}
@@ -108,20 +109,21 @@ for region in regions:
 
 # initialize dictionary for hypoxic volume [km3]
 hyp_vol = {}
-for region in regions:
-    for gtagex in gtagexes:
-        # don't use old version of LiveOcean for the sub-basins
-        if gtagex == 'cas7_t0_x4b' and region != 'pugetsoundDO':
-            continue
-        else:
-            # get hypoxic thickness
-            hyp_thick = hyp_thick_dict[gtagex+region]/1000 # [km]
-            # subtract the bottom row of grid cells for the HC_up region
-            # (so we don't double count cells when we add them to HC_low)
-            if region == 'HC_up':
-                hyp_thick[:, 0, :] = 0 # dimensions of (t,y,x), so y=0 is the lowest latitude of HC_up
-            hyp_vol_timeseries = np.sum(hyp_thick * DA[region], axis=(1, 2)) # km^3
-            hyp_vol[gtagex+region] = hyp_vol_timeseries
+for year in years:
+    for region in regions:
+        for gtagex in gtagexes:
+            # don't use old version of LiveOcean for the sub-basins
+            if gtagex == 'cas7_t0_x4b' and region != 'pugetsoundDO':
+                continue
+            else:
+                # get hypoxic thickness
+                hyp_thick = hyp_thick_dict[gtagex+region+year]/1000 # [km]
+                # subtract the bottom row of grid cells for the HC_up region
+                # (so we don't double count cells when we add them to HC_low)
+                if region == 'HC_up':
+                    hyp_thick[:, 0, :] = 0 # dimensions of (t,y,x), so y=0 is the lowest latitude of HC_up
+                hyp_vol_timeseries = np.sum(hyp_thick * DA[region], axis=(1, 2)) # km^3
+                hyp_vol[gtagex+region+year] = hyp_vol_timeseries
 
 # get grid data
 grid_ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
@@ -189,11 +191,11 @@ ax0.set_title('(a)', fontsize = 14, loc='left', fontweight='bold')
 # Puget Sound volume with straits omitted
 PS_vol = 195.2716230839466 # [km^3]
 
-# create time vector
-startdate = '2020.01.01'
-enddate = '2020.12.31'
-dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-dates_local = [pfun.get_dt_local(x) for x in dates]
+# # create time vector
+# startdate = year+'.01.01'
+# enddate = year+'.12.31'
+# dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+# dates_local = [pfun.get_dt_local(x) for x in dates]
 
 colors = ['gray','deeppink','black']
 linewidths = [4,3,2]
@@ -202,20 +204,38 @@ linestyles = ['-','-','--']
 labels=gtagexes
 
 # plot timeseries
-for i,gtagex in enumerate(gtagexes):
-    # plot hypoxic area timeseries
-    ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'],color=colors[i],linestyle=linestyles[i],
-             linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
+for year in years:
+    # create time vector
+    startdate = year+'.01.01'
+    enddate = year+'.12.31'
+    dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+    # plot the loading and no-loading runs
+    for i,gtagex in enumerate(gtagexes):
+        # plot hypoxic area timeseries
+        if year == '2014':
+            ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
+                linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
+        else:
+            # only add label for 2014
+            ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
+                linewidth=linewidths[i],alpha=alphas[i])
 
 # format figure
 ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
-ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b-%Y"))
 ax1.tick_params(axis='both', labelsize=12)
+ax1.tick_params(axis='x',rotation=30)
 ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
 plt.legend(loc='upper left', fontsize=12)
 plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
+# create time vector
+startdate = years[0]+'.01.01'
+enddate = years[-1]+'.12.31'
+dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+dates_local = [pfun.get_dt_local(x) for x in dates]
 ax1.set_xlim([dates_local[0],dates_local[-1]])
-ax1.set_ylim([0,10])
+ax1.set_ylim([0,12])
 
  # convert hypoxic volume to percent hypoxic volume
 percent = lambda hyp_vol: hyp_vol/PS_vol*100
@@ -313,11 +333,11 @@ rect = patches.Rectangle((ssminlon, ssminlat), ssmaxlon-ssminlon, ssmaxlat-ssmin
 # Add the patch to the Axes
 ax0.add_patch(rect)
 
-# create time vector
-startdate = '2020.01.01'
-enddate = '2020.12.31'
-dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-dates_local = [pfun.get_dt_local(x) for x in dates]
+# # create time vector
+# startdate = '2020.01.01'
+# enddate = '2020.12.31'
+# dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+# dates_local = [pfun.get_dt_local(x) for x in dates]
 
 colors = ['black','turquoise','hotpink']
 linewidths = [3,2]
@@ -326,40 +346,52 @@ linestyles = ['-','--']
 
 # plot timeseries
 basins = ['Puget Sound','Hood Canal','South Sound']
-for j,basin in enumerate(basins):
-    for i,gtagex in enumerate(gtagexes):
-        # plot hypoxic area timeseries
-        if basin == 'Puget Sound':
-            hypoxic_volume = hyp_vol[gtagex+'pugetsoundDO']
-        elif basin == 'Hood Canal':
-            hypoxic_volume = hyp_vol[gtagex+'HC_up'] + hyp_vol[gtagex+'HC_low']
-        elif basin == 'South Sound':
-            hypoxic_volume = hyp_vol[gtagex+'SS_and_HC_low'] - hyp_vol[gtagex+'HC_low']
+for year in years:
+    # create time vector
+    startdate = year+'.01.01'
+    enddate = year+'.12.31'
+    dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+    # loop through regions
+    for j,basin in enumerate(basins):
+        for i,gtagex in enumerate(gtagexes):
+            # plot hypoxic area timeseries
+            if basin == 'Puget Sound':
+                hypoxic_volume = hyp_vol[gtagex+'pugetsoundDO'+year]
+            elif basin == 'Hood Canal':
+                hypoxic_volume = hyp_vol[gtagex+'HC_up'+year] + hyp_vol[gtagex+'HC_low'+year]
+            elif basin == 'South Sound':
+                hypoxic_volume = hyp_vol[gtagex+'SS_and_HC_low'+year] - hyp_vol[gtagex+'HC_low'+year]
 
-        if basin == 'Puget Sound':
-            if i == 0:
-                loading = '; Loading'
-            else:
-                loading = '; No-Loading'
-            ax1.plot(dates_local,hypoxic_volume,color=colors[j],linestyle=linestyles[i],
-                    linewidth=linewidths[i],alpha=alphas[i],label=basin+loading)
-        else:
-            if i == 0:
+            if year == '2014' and basin == 'Puget Sound':
+                if i == 0:
+                    loading = '; Loading'
+                else:
+                    loading = '; No-Loading'
                 ax1.plot(dates_local,hypoxic_volume,color=colors[j],linestyle=linestyles[i],
-                    linewidth=linewidths[i],alpha=alphas[i],label=basin)
+                        linewidth=linewidths[i],alpha=alphas[i],label=basin+loading)
             else:
-                ax1.plot(dates_local,hypoxic_volume,color=colors[j],linestyle=linestyles[i],
-                    linewidth=linewidths[i],alpha=alphas[i])
+                if i == 0 and year == '2014':
+                    ax1.plot(dates_local,hypoxic_volume,color=colors[j],linestyle=linestyles[i],
+                        linewidth=linewidths[i],alpha=alphas[i],label=basin)
+                else:
+                    ax1.plot(dates_local,hypoxic_volume,color=colors[j],linestyle=linestyles[i],
+                        linewidth=linewidths[i],alpha=alphas[i])
 
 # format figure
 ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
-ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+ax1.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%b"))
 ax1.tick_params(axis='both', labelsize=12)
 ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
 plt.legend(loc='upper left', fontsize=12)
 plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
+# create time vector
+startdate = years[0]+'.01.01'
+enddate = years[-1]+'.12.31'
+dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+dates_local = [pfun.get_dt_local(x) for x in dates]
 ax1.set_xlim([dates_local[0],dates_local[-1]])
-ax1.set_ylim([0,1.25])
+ax1.set_ylim([0,5])
 
 #  # convert hypoxic volume to percent hypoxic volume
 # percent = lambda hyp_vol: hyp_vol/PS_vol*100
