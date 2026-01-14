@@ -46,7 +46,7 @@ remove_straits = True
 
 vn = 'oxygen'
 
-years =  ['2014','2015']
+years =  ['2014','2015','2016','2017']
 
 # which  model run to look at?
 gtagexes = ['cas7_t0_x4b','cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
@@ -382,6 +382,7 @@ for year in years:
 ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%b"))
 ax1.tick_params(axis='both', labelsize=12)
+ax1.tick_params(axis='x',rotation=30)
 ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
 plt.legend(loc='upper left', fontsize=12)
 plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
