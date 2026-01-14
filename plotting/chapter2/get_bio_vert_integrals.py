@@ -35,10 +35,13 @@ Ldir = Lfun.Lstart()
 
 remove_straits = True
 
-years = ['2014']
+regions = ['HC_up','HC_low','SS_and_HC_low','pugetsoundDO']
+
+years = ['2014','2015','2016','2017']
 
 # which  model run to look at?
-gtagex = 'cas7_t1noDIN_x11ab' # 
+# gtagex = 'cas7_t1noDIN_x11ab' # 
+gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab']
 
 # where to put output files
 out_dir = Ldir['LOo'] / 'chapter_2' / 'data'
@@ -120,163 +123,170 @@ def add_metadata(ds):
 
 print('Processing started...\n')
 
-for year in years:
-    print(year)
+for gtagex in gtagexes:
+    for region in regions:
+        for year in years:
+            print('{}, {}, {}'.format(gtagex,region,year))
 
-    # get data
-    fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_'+year+'.01.01_'+year+'.12.31.nc')
-    ds_raw = xr.open_dataset(fp)
+            # get data
+            fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / (region+'_'+year+'.01.01_'+year+'.12.31.nc')
+            ds_raw = xr.open_dataset(fp)
 
-    # original units --------------------------------
-        # DO: mmol O2 /m3
-        # phyto: mmol N /m3
-        # zoop: mmol N /m3
-        # NO3: mmol N /m3
-        # NH4: mmol N /m3
-        # LdetritusN: mmol N /m3
-        # SdetritusN mmol N /m3
-    # to conver to new units ------------------------
-        # divide by 1000 (mmol to mol)
-        # multiple by water column thickness (/m3 to /m2)
+            # original units --------------------------------
+                # DO: mmol O2 /m3
+                # phyto: mmol N /m3
+                # zoop: mmol N /m3
+                # NO3: mmol N /m3
+                # NH4: mmol N /m3
+                # LdetritusN: mmol N /m3
+                # SdetritusN mmol N /m3
+            # to convert to new units ------------------------
+                # divide by 1000 (mmol to mol)
+                # multiple by water column thickness (/m3 to /m2)
 
-    # set values in strait of juan de fuca and strait of georgia to nan 
-    # (so they don't interfere with analysis)
-    if remove_straits:
-        print('    Removing Straits...')
-        lat_threshold = 48.14
-        lon_threshold = -122.76
-        # Create a mask for latitudes and longitudes in the Straits
-        mask = (ds_raw['lat_rho'] > lat_threshold) & (ds_raw['lon_rho'] < lon_threshold)
-        # Expand mask dimensions to match 'oxygen' dimensions
-        expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['ocean_time']), s_rho=len(ds_raw['s_rho']))
-        # Apply the mask to the 'oxygen' variable
-        ds_raw['oxygen'] = xr.where(expanded_mask, np.nan, ds_raw['oxygen'])
+            # set values in strait of juan de fuca and strait of georgia to nan 
+            # (so they don't interfere with analysis)
+            # only need to do this over the whole Puget Sound region
+            if region == 'pugetsoundDO':
+                if remove_straits:
+                    print('    Removing Straits...')
+                    lat_threshold = 48.14
+                    lon_threshold = -122.76
+                    # Create a mask for latitudes and longitudes in the Straits
+                    mask = (ds_raw['lat_rho'] > lat_threshold) & (ds_raw['lon_rho'] < lon_threshold)
+                    # Expand mask dimensions to match 'oxygen' dimensions
+                    expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['ocean_time']), s_rho=len(ds_raw['s_rho']))
+                    # Apply the mask to the 'oxygen' variable
+                    ds_raw['oxygen'] = xr.where(expanded_mask, np.nan, ds_raw['oxygen'])
 
-    # initialize dataset
-    ds = start_ds(ds_raw['ocean_time'],
-                  ds_raw['eta_rho'],
-                  ds_raw['xi_rho'],)
-    # add metadata
-    ds = add_metadata(ds)
+            # initialize dataset
+            ds = start_ds(ds_raw['ocean_time'],
+                        ds_raw['eta_rho'],
+                        ds_raw['xi_rho'],)
+            # add metadata
+            ds = add_metadata(ds)
 
-    print('    Calculating vertical thickness of all cells')
-    # get thickness of hypoxic layer in watercolumn at ever lat/lon cell (ocean_time: 365, eta_rho: 441, xi_rho: 177)
-    # units are in m (thickness of hypoxic layer)
-    # get S for the whole grid
-    Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
-    reader = csv.DictReader(open(Sfp))
-    S_dict = {}
-    for row in reader:
-        S_dict[row['ITEMS']] = row['VALUES']
-    S = zrfun.get_S(S_dict)
-    # get cell thickness
-    h = ds_raw['h'].values # height of water column
-    z_rho, z_w = zrfun.get_z(h, 0*h, S) 
-    dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
+            print('    Calculating vertical thickness of all cells')
+            # get thickness of hypoxic layer in watercolumn at ever lat/lon cell (ocean_time: 365, eta_rho: 441, xi_rho: 177)
+            # units are in m (thickness of hypoxic layer)
+            # get S for the whole grid
+            Sfp = Ldir['data'] / 'grids' / 'cas7' / 'S_COORDINATE_INFO.csv'
+            reader = csv.DictReader(open(Sfp))
+            S_dict = {}
+            for row in reader:
+                S_dict[row['ITEMS']] = row['VALUES']
+            S = zrfun.get_S(S_dict)
+            # get cell thickness
+            h = ds_raw['h'].values # height of water column
+            z_rho, z_w = zrfun.get_z(h, 0*h, S) 
+            dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
 
-    print('    Calculating DO vertical integral')
-    # Now get oxygen values at every grid cell and convert to mol/m3,
-    # and multipy by cell height array
-    DO_mol_m2 = dzr * ds_raw['oxygen'].values / 1000
-    # Sum along z to get thickness of hypoxic layer
-    DO_vert_int = np.nansum(DO_mol_m2,axis=1)
+            print('    Calculating DO vertical integral')
+            # Now get oxygen values at every grid cell and convert to mol/m3,
+            # and multipy by cell height array
+            DO_mol_m2 = dzr * ds_raw['oxygen'].values / 1000
+            # Sum along z to get thickness of hypoxic layer
+            DO_vert_int = np.nansum(DO_mol_m2,axis=1)
 
-    print('    Calculating phyto vertical integral')
-    # Now get oxygen values at every grid cell and convert to mol/m3,
-    # and multipy by cell height array
-    phyto_mol_m2 = dzr * ds_raw['phytoplankton'].values / 1000
-    # Sum along z to get thickness of hypoxic layer
-    phyto_vert_int = np.nansum(phyto_mol_m2,axis=1)
+            print('    Calculating phyto vertical integral')
+            # Now get oxygen values at every grid cell and convert to mol/m3,
+            # and multipy by cell height array
+            phyto_mol_m2 = dzr * ds_raw['phytoplankton'].values / 1000
+            # Sum along z to get thickness of hypoxic layer
+            phyto_vert_int = np.nansum(phyto_mol_m2,axis=1)
 
-    print('    Calculating zoop vertical integral')
-    # Now get oxygen values at every grid cell and convert to mol/m3,
-    # and multipy by cell height array
-    zoop_mol_m2 = dzr * ds_raw['zooplankton'].values / 1000
-    # Sum along z to get thickness of hypoxic layer
-    zoop_vert_int = np.nansum(zoop_mol_m2,axis=1)
+            print('    Calculating zoop vertical integral')
+            # Now get oxygen values at every grid cell and convert to mol/m3,
+            # and multipy by cell height array
+            zoop_mol_m2 = dzr * ds_raw['zooplankton'].values / 1000
+            # Sum along z to get thickness of hypoxic layer
+            zoop_vert_int = np.nansum(zoop_mol_m2,axis=1)
 
-    print('    Calculating NO3 vertical integral')
-    # Now get oxygen values at every grid cell and convert to mol/m3,
-    # and multipy by cell height array
-    NO3_mol_m2 = dzr * ds_raw['NO3'].values / 1000
-    # Sum along z to get thickness of hypoxic layer
-    NO3_vert_int = np.nansum(NO3_mol_m2,axis=1)
+            print('    Calculating NO3 vertical integral')
+            # Now get oxygen values at every grid cell and convert to mol/m3,
+            # and multipy by cell height array
+            NO3_mol_m2 = dzr * ds_raw['NO3'].values / 1000
+            # Sum along z to get thickness of hypoxic layer
+            NO3_vert_int = np.nansum(NO3_mol_m2,axis=1)
 
-    print('    Calculating NH4 vertical integral')
-    # Now get oxygen values at every grid cell and convert to mol/m3,
-    # and multipy by cell height array
-    NH4_mol_m2 = dzr * ds_raw['NH4'].values / 1000
-    # Sum along z to get thickness of hypoxic layer
-    NH4_vert_int = np.nansum(NH4_mol_m2,axis=1)
+            print('    Calculating NH4 vertical integral')
+            # Now get oxygen values at every grid cell and convert to mol/m3,
+            # and multipy by cell height array
+            NH4_mol_m2 = dzr * ds_raw['NH4'].values / 1000
+            # Sum along z to get thickness of hypoxic layer
+            NH4_vert_int = np.nansum(NH4_mol_m2,axis=1)
 
-    print('    Calculating small detritus vertical integral')
-    # Now get oxygen values at every grid cell and convert to mol/m3,
-    # and multipy by cell height array
-    Sdet_mol_m2 = dzr * ds_raw['SdetritusN'].values / 1000
-    # Sum along z to get thickness of hypoxic layer
-    SdetritusN_vert_int = np.nansum(Sdet_mol_m2,axis=1)
+            print('    Calculating small detritus vertical integral')
+            # Now get oxygen values at every grid cell and convert to mol/m3,
+            # and multipy by cell height array
+            Sdet_mol_m2 = dzr * ds_raw['SdetritusN'].values / 1000
+            # Sum along z to get thickness of hypoxic layer
+            SdetritusN_vert_int = np.nansum(Sdet_mol_m2,axis=1)
 
-    print('    Calculating large detritus vertical integral')
-    # Now get oxygen values at every grid cell and convert to mol/m3,
-    # and multipy by cell height array
-    Ldet_mol_m2 = dzr * ds_raw['LdetritusN'].values / 1000
-    # Sum along z to get thickness of hypoxic layer
-    LdetritusN_vert_int = np.nansum(Ldet_mol_m2,axis=1)
-
-
-    # add data to ds --------------------------------
-    print('    Adding data to dataset')
+            print('    Calculating large detritus vertical integral')
+            # Now get oxygen values at every grid cell and convert to mol/m3,
+            # and multipy by cell height array
+            Ldet_mol_m2 = dzr * ds_raw['LdetritusN'].values / 1000
+            # Sum along z to get thickness of hypoxic layer
+            LdetritusN_vert_int = np.nansum(Ldet_mol_m2,axis=1)
 
 
-    ds['DO_vert_int'] = xr.DataArray(DO_vert_int,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    ds['phyto_vert_int'] = xr.DataArray(phyto_vert_int,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    ds['zoop_vert_int'] = xr.DataArray(zoop_vert_int,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    ds['NO3_vert_int'] = xr.DataArray(NO3_vert_int,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    ds['NH4_vert_int'] = xr.DataArray(NH4_vert_int,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    ds['SdetritusN_vert_int'] = xr.DataArray(SdetritusN_vert_int,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
-    ds['LdetritusN_vert_int'] = xr.DataArray(LdetritusN_vert_int,
-                                coords={'ocean_time': ds_raw['ocean_time'].values,
-                                        'eta_rho': ds_raw['eta_rho'].values,
-                                        'xi_rho': ds_raw['xi_rho'].values},
-                                dims=['ocean_time','eta_rho', 'xi_rho'])
-    
+            # add data to ds --------------------------------
+            print('    Adding data to dataset')
 
-    print('    Saving dataset')
-    # save dataset
-    if remove_straits:
-        straits = 'noStraits'
-    else:
-        straits = 'withStraits'
-    ds.to_netcdf(out_dir / (gtagex + '_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
+
+            ds['DO_vert_int'] = xr.DataArray(DO_vert_int,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+            ds['phyto_vert_int'] = xr.DataArray(phyto_vert_int,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+            ds['zoop_vert_int'] = xr.DataArray(zoop_vert_int,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+            ds['NO3_vert_int'] = xr.DataArray(NO3_vert_int,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+            ds['NH4_vert_int'] = xr.DataArray(NH4_vert_int,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+            ds['SdetritusN_vert_int'] = xr.DataArray(SdetritusN_vert_int,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+            ds['LdetritusN_vert_int'] = xr.DataArray(LdetritusN_vert_int,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+
+            print('    Saving dataset')
+            # save dataset
+            if region == 'pugetsoundDO':
+                if remove_straits:
+                    straits = 'noStraits'
+                else:
+                    straits = 'withStraits'
+                ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
+            else:
+                ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints.nc'))
 
 print('Done')
