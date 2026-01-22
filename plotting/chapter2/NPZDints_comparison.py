@@ -47,7 +47,8 @@ remove_straits = True
 
 vn = 'oxygen'
 
-year =  '2014'
+# year =  '2014'
+years =  ['2014','2015','2016','2017']
 
 # which  model run to look at?
 gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
@@ -254,45 +255,30 @@ Ldet_vert_dict = {}
 Sdet_vert_dict = {}
 DO_vert_dict = {}
 
-
-for region in regions:
-    for gtagex in gtagexes:
-        # add ds to dictionary
-        if region == 'pugetsoundDO':
-            # only include strait infor when looking at the whole of puget sound
-            ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
-        else:
-            ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints.nc'))
-        NO3_vert_int = ds['NO3_vert_int'].values
-        phyto_vert_int = ds['phyto_vert_int'].values
-        zoop_vert_int = ds['zoop_vert_int'].values
-        NH4_vert_int = ds['NH4_vert_int'].values
-        LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
-        SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
-        DO_vert_int = ds['DO_vert_int'].values
-        # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
-        if np.mod(int(year),4) != 0: 
-            NO3_vert_int = np.insert(NO3_vert_int,59,'nan',axis=0)
-            phyto_vert_int = np.insert(phyto_vert_int,59,'nan',axis=0)
-            zoop_vert_int = np.insert(zoop_vert_int,59,'nan',axis=0)
-            NH4_vert_int = np.insert(NH4_vert_int,59,'nan',axis=0)
-            LdetritusN_vert_int = np.insert(LdetritusN_vert_int,59,'nan',axis=0)
-            SdetritusN_vert_int = np.insert(SdetritusN_vert_int,59,'nan',axis=0)
-            DO_vert_int = np.insert(DO_vert_int,59,'nan',axis=0)
-        NO3_vert_dict[gtagex+region] = NO3_vert_int
-        phyto_vert_dict[gtagex+region] = phyto_vert_int
-        zoop_vert_dict[gtagex+region] = zoop_vert_int
-        NH4_vert_dict[gtagex+region] = NH4_vert_int
-        Ldet_vert_dict[gtagex+region] = LdetritusN_vert_int
-        Sdet_vert_dict[gtagex+region] = SdetritusN_vert_int
-        DO_vert_dict[gtagex+region] = DO_vert_int
-
-# # get grid cell area
-# fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
-# PSbox_ds = xr.open_dataset(fp)
-# DX = (PSbox_ds.pm.values)**-1
-# DY = (PSbox_ds.pn.values)**-1
-# DA = DX*DY # get area in m2
+for year in years:
+    for region in regions:
+        for gtagex in gtagexes:
+            # add ds to dictionary
+            if region == 'pugetsoundDO':
+                # only include strait infor when looking at the whole of puget sound
+                ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
+            else:
+                ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints.nc'))
+            NO3_vert_int = ds['NO3_vert_int'].values
+            phyto_vert_int = ds['phyto_vert_int'].values
+            zoop_vert_int = ds['zoop_vert_int'].values
+            NH4_vert_int = ds['NH4_vert_int'].values
+            LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
+            SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
+            DO_vert_int = ds['DO_vert_int'].values
+            # add data to dictionaries
+            NO3_vert_dict[gtagex+region+year] = NO3_vert_int
+            phyto_vert_dict[gtagex+region+year] = phyto_vert_int
+            zoop_vert_dict[gtagex+region+year] = zoop_vert_int
+            NH4_vert_dict[gtagex+region+year] = NH4_vert_int
+            Ldet_vert_dict[gtagex+region+year] = LdetritusN_vert_int
+            Sdet_vert_dict[gtagex+region+year] = SdetritusN_vert_int
+            DO_vert_dict[gtagex+region+year] = DO_vert_int
 
 # initialize empty dictionary to get grid cell areas
 DA = {}
@@ -303,7 +289,7 @@ for region in regions:
         PSbox_ds = box_ds # save Puget Sound bounds for later
     DX = (box_ds.pm.values)**-1
     DY = (box_ds.pn.values)**-1
-    DA[region] = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
+    DA[region] = DX*DY # get area in m2
 
 # initialize dictionary for vertical integrals [mol]
 NO3_vol = {}
@@ -314,52 +300,53 @@ Ldet_vol = {}
 Sdet_vol = {}
 DO_vol = {}
 
-for region in regions:
-    for gtagex in gtagexes:
+for year in years:
+    for region in regions:
+        for gtagex in gtagexes:
 
-        NO3_vert_int = NO3_vert_dict[gtagex+region]
-        # subtract the bottom row of grid cells for the HC_up region
-        # (so we don't double count cells when we add them to HC_low)
-        if region == 'HC_up':
-            NO3_vert_int[:, 0, :] = 0 # dimensions of (t,y,x), so y=0 is the lowest latitude of HC_up
-        NO3_vol_timeseries = np.sum(NO3_vert_int * DA[region], axis=(1, 2)) # [mol]
-        NO3_vol[gtagex+region] = NO3_vol_timeseries
+            NO3_vert_int = NO3_vert_dict[gtagex+region+year]
+            # subtract the bottom row of grid cells for the HC_up region
+            # (so we don't double count cells when we add them to HC_low)
+            if region == 'HC_up':
+                NO3_vert_int[:, 0, :] = 0 # dimensions of (t,y,x), so y=0 is the lowest latitude of HC_up
+            NO3_vol_timeseries = np.sum(NO3_vert_int * DA[region], axis=(1, 2)) # [mol]
+            NO3_vol[gtagex+region+year] = NO3_vol_timeseries
 
-        phyto_vert_int = phyto_vert_dict[gtagex+region]
-        if region == 'HC_up':
-            phyto_vert_int[:, 0, :] = 0
-        phyto_vol_timeseries = np.sum(phyto_vert_int * DA[region], axis=(1, 2)) # [mol]
-        phyto_vol[gtagex+region] = phyto_vol_timeseries
+            phyto_vert_int = phyto_vert_dict[gtagex+region+year]
+            if region == 'HC_up':
+                phyto_vert_int[:, 0, :] = 0
+            phyto_vol_timeseries = np.sum(phyto_vert_int * DA[region], axis=(1, 2)) # [mol]
+            phyto_vol[gtagex+region+year] = phyto_vol_timeseries
 
-        zoop_vert_int = zoop_vert_dict[gtagex+region]
-        if region == 'HC_up':
-            zoop_vert_int[:, 0, :] = 0
-        zoop_vol_timeseries = np.sum(zoop_vert_int * DA[region], axis=(1, 2)) # [mol]
-        zoop_vol[gtagex+region] = zoop_vol_timeseries
+            zoop_vert_int = zoop_vert_dict[gtagex+region+year]
+            if region == 'HC_up':
+                zoop_vert_int[:, 0, :] = 0
+            zoop_vol_timeseries = np.sum(zoop_vert_int * DA[region], axis=(1, 2)) # [mol]
+            zoop_vol[gtagex+region+year] = zoop_vol_timeseries
 
-        NH4_vert_int = NH4_vert_dict[gtagex+region]
-        if region == 'HC_up':
-            NH4_vert_int[:, 0, :] = 0
-        NH4_vol_timeseries = np.sum(NH4_vert_int * DA[region], axis=(1, 2)) # [mol]
-        NH4_vol[gtagex+region] = NH4_vol_timeseries
+            NH4_vert_int = NH4_vert_dict[gtagex+region+year]
+            if region == 'HC_up':
+                NH4_vert_int[:, 0, :] = 0
+            NH4_vol_timeseries = np.sum(NH4_vert_int * DA[region], axis=(1, 2)) # [mol]
+            NH4_vol[gtagex+region+year] = NH4_vol_timeseries
 
-        Ldet_vert_int = Ldet_vert_dict[gtagex+region]
-        if region == 'HC_up':
-            Ldet_vert_int[:, 0, :] = 0
-        Ldet_vol_timeseries = np.sum(Ldet_vert_int * DA[region], axis=(1, 2)) # [mol]
-        Ldet_vol[gtagex+region] = Ldet_vol_timeseries
+            Ldet_vert_int = Ldet_vert_dict[gtagex+region+year]
+            if region == 'HC_up':
+                Ldet_vert_int[:, 0, :] = 0
+            Ldet_vol_timeseries = np.sum(Ldet_vert_int * DA[region], axis=(1, 2)) # [mol]
+            Ldet_vol[gtagex+region+year] = Ldet_vol_timeseries
 
-        Sdet_vert_int = Sdet_vert_dict[gtagex+region]
-        if region == 'HC_up':
-            Sdet_vert_int[:, 0, :] = 0
-        Sdet_vol_timeseries = np.sum(Sdet_vert_int * DA[region], axis=(1, 2)) # [mol]
-        Sdet_vol[gtagex+region] = Sdet_vol_timeseries
+            Sdet_vert_int = Sdet_vert_dict[gtagex+region+year]
+            if region == 'HC_up':
+                Sdet_vert_int[:, 0, :] = 0
+            Sdet_vol_timeseries = np.sum(Sdet_vert_int * DA[region], axis=(1, 2)) # [mol]
+            Sdet_vol[gtagex+region+year] = Sdet_vol_timeseries
 
-        DO_vert_int = DO_vert_dict[gtagex+region]
-        if region == 'HC_up':
-            DO_vert_int[:, 0, :] = 0
-        DO_vol_timeseries = np.sum(DO_vert_int * DA[region], axis=(1, 2)) # [mol]
-        DO_vol[gtagex+region] = DO_vol_timeseries
+            DO_vert_int = DO_vert_dict[gtagex+region+year]
+            if region == 'HC_up':
+                DO_vert_int[:, 0, :] = 0
+            DO_vol_timeseries = np.sum(DO_vert_int * DA[region], axis=(1, 2)) # [mol]
+            DO_vol[gtagex+region+year] = DO_vol_timeseries
 
 # get grid data
 grid_ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
@@ -398,54 +385,90 @@ basins = ['Puget Sound','Hood Canal','South Sound']
 for j,var_vol in enumerate([NO3_vol,NH4_vol,phyto_vol,zoop_vol,Ldet_vol,Sdet_vol,DO_vol]):
 
     # initialize figure
-    fig, axes = plt.subplots(3,1,figsize=(10,8.5),sharex=True)
+    fig, axes = plt.subplots(len(basins),1,figsize=(10,8.5),sharex=True)
+    fig.suptitle(vars[j], fontsize = 14, fontweight='bold')
 
     # loop through basins
     for i,basin in enumerate(basins):
 
         # define axes
         axis = axes[i]
+
+        # label basins
+        axis.text(0.1,0.8,basin, fontsize = 12, ha='left', 
+                transform=axis.transAxes)
+        
+        for year in years:
+            # create time vector
+            startdate = year+'.01.01'
+            enddate = year+'.12.31'
+            dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+            dates_local = [pfun.get_dt_local(x) for x in dates]
+            # loop through model runs
+            for k,gtagex in enumerate(gtagexes):
+                # get data for the basin and gtagex and year
+                if basin == 'Puget Sound':
+                    vert_int = var_vol[gtagex+'pugetsoundDO'+year]
+                elif basin == 'Hood Canal':
+                    vert_int = var_vol[gtagex+'HC_up'+year] + var_vol[gtagex+'HC_low'+year]
+                elif basin == 'South Sound':
+                    vert_int = var_vol[gtagex+'SS_and_HC_low'+year] - var_vol[gtagex+'HC_low'+year]
+                # plot data
+                axis.plot(dates_local,vert_int,linestyle=linestyles[k],
+                        color=colors[k],linewidth=linewidths[k],alpha=alphas[k])
+            
+        # add Loading and No-Loading labels
+        if i == 0:
+            axis.text(0.8,0.2,'No-loading', fontsize = 12, ha='left', 
+                transform=axis.transAxes)
+            axis.text(0.8,0.08,'Loading', fontsize = 12, ha='left', 
+                transform=axis.transAxes,fontweight='bold',color='mediumorchid',alpha=0.7)
+        # format figure
+        axis.grid(visible=True, axis='both', color='silver', linestyle='--')
+        # ax[j].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+        axis.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: mdates.num2date(x).strftime('%b')[0]))
+        axis.tick_params(axis='both', labelsize=12, rotation=30)
+        axis.set_ylabel(r'Moles [mol]', fontsize=12)
+        # create time vector
+        startdate = years[0]+'.01.01'
+        enddate = years[-1]+'.12.31'
+        dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+        dates_local = [pfun.get_dt_local(x) for x in dates]
+        axis.set_xlim([dates_local[0],dates_local[-1]])
+        axis.set_ylim([0,np.nanmax(vert_int)*1.2])
+            
         # add percent change plot
         divider = make_axes_locatable(axis)
-        ax2 = divider.append_axes("bottom", size='20%', pad=0)
+        ax2 = divider.append_axes("bottom", size='30%', pad=0.1)
         axis.figure.add_axes(ax2)
-
-        
-        for i,gtagex in enumerate(gtagexes):
-
-            # get data for the basin and gtagex
-            if basin == 'Puget Sound':
-                vert_int = var_vol[gtagex+'pugetsoundDO']
-            elif basin == 'Hood Canal':
-                vert_int = var_vol[gtagex+'HC_up'] + var_vol[gtagex+'HC_low']
-            elif basin == 'South Sound':
-                vert_int = var_vol[gtagex+'SS_and_HC_low'] - var_vol[gtagex+'HC_low']
-
-            # plot data
-            axis.plot(dates_local,vert_int,linestyle=linestyles[i],
-                    color=colors[i],linewidth=linewidths[i],alpha=alphas[i])
+        ax2.set_xlim([dates_local[0],dates_local[-1]])
         
     # # plot percentage change
-    # percentage_change = (var_vol['cas7_t1noDIN_x11ab']-var_vol['cas7_t1_x11ab'])/var_vol['cas7_t1_x11ab'] * 100
-    # ax2.plot(dates_local,percentage_change,color='crimson')
+    # for i,basin in enumerate(basins):
+        for year in years:
+            # create time vector
+            startdate = year+'.01.01'
+            enddate = year+'.12.31'
+            dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+            dates_local = [pfun.get_dt_local(x) for x in dates]
 
+            if basin == 'Puget Sound':
+                loading = var_vol['cas7_t1_x11ab'+'pugetsoundDO'+year]
+                no_loading = var_vol['cas7_t1noDIN_x11ab'+'pugetsoundDO'+year]
+            elif basin == 'Hood Canal':
+                loading = var_vol['cas7_t1_x11ab'+'HC_up'+year] + var_vol['cas7_t1_x11ab'+'HC_low'+year]
+                no_loading = var_vol['cas7_t1noDIN_x11ab'+'HC_up'+year] + var_vol['cas7_t1noDIN_x11ab'+'HC_low'+year]
+            elif basin == 'South Sound':
+                loading = var_vol['cas7_t1_x11ab'+'SS_and_HC_low'+year] - var_vol['cas7_t1_x11ab'+'HC_low'+year]
+                no_loading = var_vol['cas7_t1noDIN_x11ab'+'SS_and_HC_low'+year] - var_vol['cas7_t1noDIN_x11ab'+'HC_low'+year]
 
-    # # format figure
-    # if j == 0:
-    #     axis.text(0.02,0.2,'No-loading', fontsize = 12, ha='left', 
-    #            transform=axis.transAxes)
-    #     axis.text(0.02,0.08,'Loading', fontsize = 12, ha='left', 
-    #            transform=axis.transAxes,fontweight='bold',color='mediumorchid',alpha=0.7)
-    # axis.grid(visible=True, axis='both', color='silver', linestyle='--')
-    # # ax[j].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-    # axis.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: mdates.num2date(x).strftime('%b')[0]))
-    # axis.tick_params(axis='both', labelsize=12, rotation=30)
-    # if np.mod(j,2) == 0:
-    #     axis.set_ylabel(r'Moles [mol]', fontsize=12)
-    # axis.set_ylim([0,np.nanmax(var_vol[gtagexes[0]])*1.2])
-    # axis.text(0.02,0.88,letters[j] + vars[j], fontsize = 12, ha='left', 
-    #            fontweight='bold', transform=axis.transAxes)
-    # axis.set_xlim([dates_local[0],dates_local[-1]])
+            # percentage_change = (1 - (no_loading/loading)) * 100
+            # ax2.plot(dates_local,percentage_change,color='crimson')
+
+            diff = loading - no_loading
+            ax2.plot(dates_local,diff,color='crimson')
+
+    
 
     plt.tight_layout()
     plt.show()

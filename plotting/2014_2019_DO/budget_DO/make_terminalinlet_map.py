@@ -26,7 +26,7 @@ sta_dict = job_lists.get_sta_dict(jobname)
 
 # colors
 shallow = 'steelblue'
-hypoxic = 'hotpink'
+hypoxic = 'crimson'
 oxygenated = 'dimgrey'
 
 # Get LiveOcean grid info --------------------------------------------------
@@ -50,11 +50,11 @@ plt.close('all')
 fig = plt.figure(figsize=(7.7,8.7))
 ax = fig.add_subplot(1,1,1)
 lon_low = -123.6#42
-lon_high =  -122
+lon_high =  -121.9#-122
 lat_low = 46.93
 lat_high = 48.46
 ax.add_patch(Rectangle((lon_low, lat_low), lon_high-lon_low,lat_high-lat_low, facecolor='white'))#, facecolor='#EEEEEE'))
-ax.tick_params(axis='both', labelsize=10)
+ax.tick_params(axis='both', labelsize=12)
 ax.set_ylabel('Latitude',fontsize=12)
 ax.set_xlabel('Longitude',fontsize=12)
 plt.xticks(rotation=30)
@@ -111,7 +111,7 @@ for stn,station in enumerate(['lynchcove','holmes','dabob','penn','portsusan','c
     # set values of 1 for everything that is in the inlet
     inlet_loc[jj,ii] = 40
     # add inlet locations
-    plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=100, cmap=plt.get_cmap('spring'))
+    plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=50, cmap=plt.get_cmap('Reds'))
 
 # format
 # ax.axes.xaxis.set_visible(False)
@@ -175,16 +175,18 @@ for sta in sta_dict:
         ha = 'right'
         lon_off = -0.05
         lat_off = -0.016
-    ax.text(sta_lon+lon_off,sta_lat+lat_off,sta,va='center',ha=ha,color=color,fontsize = 10, fontweight='bold')
+    if sta == 'elliot':
+        sta = 'elliott'
+    ax.text(sta_lon+lon_off,sta_lat+lat_off,sta,va='center',ha=ha,color=color,fontsize = 12, fontweight='bold')
 
 # add labels
-ax.add_patch(Rectangle((-123.58, 48.12), 0.7,0.3, facecolor='white',alpha=0.7,edgecolor='gray'))
-ax.text(-123.54,48.37,'Shallow inlets\n(mean depth < 10 m)',va='center',ha='left',
-        color=shallow,fontsize = 11, fontweight='bold')
-ax.text(-123.54,48.27,'Hypoxic deep inlets\n(mean depth > 10 m)',va='center',ha='left',
-        color=hypoxic,fontsize = 11, fontweight='bold')
-ax.text(-123.54,48.17,'Oxygenated deep inlets\n(mean depth > 10 m)',va='center',ha='left',
-        color=oxygenated,fontsize = 11, fontweight='bold')
+ax.add_patch(Rectangle((-123.58, 48.18), 0.67,0.23, facecolor='white',alpha=0.7,edgecolor='gray'))
+ax.text(-123.54,48.37,'Shallow inlets',va='center',ha='left',
+        color=shallow,fontsize = 13, fontweight='bold')
+ax.text(-123.54,48.3,'Hypoxic inlets',va='center',ha='left',
+        color=hypoxic,fontsize = 13, fontweight='bold')
+ax.text(-123.54,48.23,'Oxygenated inlets',va='center',ha='left',
+        color=oxygenated,fontsize = 13, fontweight='bold')
 
 ##########################################################
 ##                 Plot station locations               ##

@@ -96,9 +96,9 @@ terminl_stns = {
     'lynchcove': 'HCB007',
     'lynchcove2': 'HCB004',
     'commencement': 'CMB003',
-    'hammersley': 'OAK004',
+    # 'hammersley': 'OAK004',
     # 'totten': 'TOT002',
-    'budd': 'BUD005',
+    # 'budd': 'BUD005',
     'carr': 'CRR001',
     'sinclair': 'SIN001',
 }
@@ -135,6 +135,22 @@ deep_stns = {
 PS_stns = ['ADM002','PTH005','ADM001',
            'ADM003','PSB003','EAP001']
 
+
+stations = ['ADM002','PTH005','ADM001',
+           'ADM003','PSB003','EAP001',
+           'ELB015','HCB007','HCB004',
+           'CMB003','CRR001','SIN001']
+# only look at inlets of interest
+df_obs = df_obs.loc[df_obs.name.isin(stations),:]
+df_model = df_model.loc[df_model.name.isin(stations),:]
+
+# only keep columns of interest
+df_obs = df_obs[['time', 'lat', 'lon', 'name', 'z','DO (uM)']]
+df_model = df_model[['time', 'lat', 'lon', 'name', 'z','DO (uM)']]
+
+# save as csv files
+df_obs.to_csv('CTD_cast_observations.csv', index=False)
+df_model.to_csv('CTD_cast_model.csv', index=False)
 
 #####################################################################################################################################
 
@@ -362,7 +378,8 @@ plt.tight_layout()
 
 # create time vector
 dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-dates_local = [pfun.get_dt_local(x) for x in dates]
+# dates_local = [pfun.get_dt_local(x) for x in dates]
+dates_local = dates
 
 # dictionary of selected stations in terminal inlets for time series
 selected_stns = {
@@ -426,8 +443,8 @@ for i,vn in enumerate(vns):
             ds_moor['DO (mg/L)'] = ds_moor['oxygen'] * 32/1000
             val = ds_moor['DO (mg/L)'].transpose()
 
-        if stn == 4:
-            print(h)
+        # if stn == 4:
+        #     print(h)
             # print(df_ob_stn.to_string())
 
         # if deeper than 10 m, split into top 5 m and bottom 5 m layer
@@ -466,6 +483,8 @@ for i,vn in enumerate(vns):
             # plot model output
             axis.plot(dates_local, surf_mod_avg, color='lightseagreen', linewidth=2, alpha=0.5, zorder=5)
             axis.plot(dates_local, bott_mod_avg, color='black', linewidth=2, alpha=0.5, zorder=5,label='model')
+            if stn == 0:
+                print(dates_local)
 
             # observation
             surf_obs_df = df_ob_stn.where(z >= -(d/2))
@@ -484,8 +503,8 @@ for i,vn in enumerate(vns):
             if stn == 4:
                 bott_obs_avg.loc[pd.Timestamp("2017-08-10 20:18:08")] = np.nan
                 bott_obs_avg = bott_obs_avg.sort_index()    
-                print(unique_time)
-                print(bott_obs_avg)
+                # print(unique_time)
+                # print(bott_obs_avg)
             axis.scatter(unique_time, bott_obs_avg, color='navy', s=20,zorder=10, label='obs')
             # if stn == 4:
             #     axis.scatter(unique_time[1::], bott_obs_avg, color='black', s=20,zorder=10, label='obs')
