@@ -45,9 +45,12 @@ Ldir = Lfun.Lstart()
 
 remove_straits = True
 
-vn = 'oxygen'
+WWTP_loc = True
 
-# year =  '2014'
+# Hanning window length
+nwin = 20
+
+# years =  ['2014']
 years =  ['2014','2015','2016','2017']
 
 # which  model run to look at?
@@ -57,185 +60,126 @@ gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab']
 out_dir = Ldir['LOo'] / 'chapter_2' / 'figures'
 Lfun.make_dir(out_dir)
 
-regions = ['pugetsoundDO','HC_up','HC_low','SS_and_HC_low']
+regions = ['Hood Canal', 'South Sound', 'Whidbey Basin', 'Main Basin', 'All Puget Sound']
+colors = ['hotpink','purple','dodgerblue','yellowgreen','black']
 
 plt.close('all')
 
-# ##############################################################
-# ##                 PROCESS DATA (original)                  ##
-# ##############################################################
+##############################################################
+##                    HELPER FUNCTIONS                      ##
+##############################################################
 
-# # open datasets
-# if remove_straits:
-#     straits = 'noStraits'
-# else:
-#     straits = 'withStraits'
+# helper function to convert Ecology name to LO name
+def SSM2LO_name(rname):
+    """
+    Given a river name in LiveOcean, find corresponding river name in SSM
+    """
+    repeatrivs_fn = '../../../LO_data/trapsD00/LiveOcean_SSM_rivers.xlsx'
+    repeatrivs_df = pd.read_excel(repeatrivs_fn)
+    rname_LO = repeatrivs_df.loc[repeatrivs_df['SSM_rname'] == rname, 'LO_rname'].values[0]
+    return rname_LO
 
-# letters = ['(a) ','(b) ','(c) ','(d) ','(e) ','(f) ', '(g)']
-# vars = ['NO3','NH4','phytoplankton','zooplankton','LdetritusN','SdetritusN','oxygen']
-
-# # initialize empty dictionaries
-# NO3_vert_dict = {}
-# phyto_vert_dict = {}
-# zoop_vert_dict = {}
-# NH4_vert_dict = {}
-# Ldet_vert_dict = {}
-# Sdet_vert_dict = {}
-# DO_vert_dict = {}
-
-# for gtagex in gtagexes:
-#     # add ds to dictionary
-#     ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
-#     NO3_vert_int = ds['NO3_vert_int'].values
-#     phyto_vert_int = ds['phyto_vert_int'].values
-#     zoop_vert_int = ds['zoop_vert_int'].values
-#     NH4_vert_int = ds['NH4_vert_int'].values
-#     LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
-#     SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
-#     DO_vert_int = ds['DO_vert_int'].values
-#     # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
-#     if np.mod(int(year),4) != 0: 
-#         NO3_vert_int = np.insert(NO3_vert_int,59,'nan',axis=0)
-#         phyto_vert_int = np.insert(phyto_vert_int,59,'nan',axis=0)
-#         zoop_vert_int = np.insert(zoop_vert_int,59,'nan',axis=0)
-#         NH4_vert_int = np.insert(NH4_vert_int,59,'nan',axis=0)
-#         LdetritusN_vert_int = np.insert(LdetritusN_vert_int,59,'nan',axis=0)
-#         SdetritusN_vert_int = np.insert(SdetritusN_vert_int,59,'nan',axis=0)
-#         DO_vert_int = np.insert(DO_vert_int,59,'nan',axis=0)
-#     if gtagex == 'cas7_t1_x11ab': # july 23, 2014 was missing
-#         NO3_vert_int = np.insert(NO3_vert_int,205,'nan',axis=0)
-#         phyto_vert_int = np.insert(phyto_vert_int,205,'nan',axis=0)
-#         zoop_vert_int = np.insert(zoop_vert_int,205,'nan',axis=0)
-#         NH4_vert_int = np.insert(NH4_vert_int,205,'nan',axis=0)
-#         LdetritusN_vert_int = np.insert(LdetritusN_vert_int,205,'nan',axis=0)
-#         SdetritusN_vert_int = np.insert(SdetritusN_vert_int,205,'nan',axis=0)
-#         DO_vert_int = np.insert(DO_vert_int,205,'nan',axis=0)
-#     NO3_vert_dict[gtagex] = NO3_vert_int
-#     phyto_vert_dict[gtagex] = phyto_vert_int
-#     zoop_vert_dict[gtagex] = zoop_vert_int
-#     NH4_vert_dict[gtagex] = NH4_vert_int
-#     Ldet_vert_dict[gtagex] = LdetritusN_vert_int
-#     Sdet_vert_dict[gtagex] = SdetritusN_vert_int
-#     DO_vert_dict[gtagex] = DO_vert_int
-
-# # get grid cell area
-# fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
-# PSbox_ds = xr.open_dataset(fp)
-# DX = (PSbox_ds.pm.values)**-1
-# DY = (PSbox_ds.pn.values)**-1
-# DA = DX*DY # get area in m2
-
-# # initialize dictionary for vertical integrals [mol]
-# NO3_vol = {}
-# phyto_vol = {}
-# zoop_vol = {}
-# NH4_vol = {}
-# Ldet_vol = {}
-# Sdet_vol = {}
-# DO_vol = {}
-# for gtagex in gtagexes:
-
-#     NO3_vert_int = NO3_vert_dict[gtagex]
-#     NO3_vol_timeseries = np.sum(NO3_vert_int * DA, axis=(1, 2)) # [mol]
-#     NO3_vol[gtagex] = NO3_vol_timeseries
-
-#     phyto_vert_int = phyto_vert_dict[gtagex]
-#     phyto_vol_timeseries = np.sum(phyto_vert_int * DA, axis=(1, 2)) # [mol]
-#     phyto_vol[gtagex] = phyto_vol_timeseries
-
-#     zoop_vert_int = zoop_vert_dict[gtagex]
-#     zoop_vol_timeseries = np.sum(zoop_vert_int * DA, axis=(1, 2)) # [mol]
-#     zoop_vol[gtagex] = zoop_vol_timeseries
-
-#     NH4_vert_int = NH4_vert_dict[gtagex]
-#     NH4_vol_timeseries = np.sum(NH4_vert_int * DA, axis=(1, 2)) # [mol]
-#     NH4_vol[gtagex] = NH4_vol_timeseries
-
-#     Ldet_vert_int = Ldet_vert_dict[gtagex]
-#     Ldet_vol_timeseries = np.sum(Ldet_vert_int * DA, axis=(1, 2)) # [mol]
-#     Ldet_vol[gtagex] = Ldet_vol_timeseries
-
-#     Sdet_vert_int = Sdet_vert_dict[gtagex]
-#     Sdet_vol_timeseries = np.sum(Sdet_vert_int * DA, axis=(1, 2)) # [mol]
-#     Sdet_vol[gtagex] = Sdet_vol_timeseries
-
-#     DO_vert_int = DO_vert_dict[gtagex]
-#     DO_vol_timeseries = np.sum(DO_vert_int * DA, axis=(1, 2)) # [mol]
-#     DO_vol[gtagex] = DO_vol_timeseries
-
-# # get plotting limits based on region
-# if region == 'Puget Sound':
-#     # box extracion limits: [-123.29, -122.1, 46.95, 48.93]
-#     xmin = -123.29
-#     xmax = -122.1 + 0.1 # to make room for legend key
-#     ymin = 46.95 - 0.1 # to make room for legend key
-#     ymax = 48.93
-
-# # get grid data
-# grid_ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
-# z = -grid_ds.h.values
-# mask_rho = np.transpose(grid_ds.mask_rho.values)
-# lon = grid_ds.lon_rho.values
-# lat = grid_ds.lat_rho.values
-# plon, plat = pfun.get_plon_plat(lon,lat)
-# # make a version of z with nans where masked
-# # this gives us a binary map of land and water cells
-# zm = z.copy()
-# zm[np.transpose(mask_rho) == 0] = np.nan
-# zm[np.transpose(mask_rho) != 0] = -1
-
-# ##############################################################
-# ##     Plot NPZD vert integral time series (original)       ##
-# ##############################################################
+def LO2SSM_name(rname):
+    """
+    Given a river name in LiveOcean, find corresponding river name in SSM
+    """
+    repeatrivs_fn = Ldir['data'] / 'trapsD00' / 'LiveOcean_SSM_rivers.xlsx'
+    repeatrivs_df = pd.read_excel(repeatrivs_fn)
+    rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
+    return rname_SSM
 
 
-# # initialize figure
-# fig, axes = plt.subplots(2,4,figsize=(11,5),sharex=True)
-# ax = axes.ravel()
+if WWTP_loc == True:
+    # set up the time index for the record
+    Ldir = Lfun.Lstart()
+    dsf = Ldir['ds_fmt']
+    dt0 = datetime.strptime('2020.01.01',dsf)
+    dt1 = datetime.strptime('2020.12.31',dsf)
+    days = (dt0, dt1)
+        
+    # pandas Index objects
+    dt_ind = pd.date_range(start=dt0, end=dt1)
+    yd_ind = pd.Index(dt_ind.dayofyear)
 
-# # create time vector
-# startdate = '2020.01.01'
-# enddate = '2020.12.31'
-# dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-# dates_local = [pfun.get_dt_local(x) for x in dates]
+    # Get LiveOcean grid info --------------------------------------------------
 
-# # define linestyles and linewidths and alpha
-# # first is with loading, second is no-loading
-# linestyles = ['-','--']
-# linewidths = [3,1]
-# alphas = [0.5,1]
-# colors = ['mediumorchid','black']
+    # get the grid data
+    ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
+    z = -ds.h.values
+    mask_rho = np.transpose(ds.mask_rho.values)
+    lon = ds.lon_rho.values
+    lat = ds.lat_rho.values
+    X = lon[0,:] # grid cell X values
+    Y = lat[:,0] # grid cell Y values
+    plon, plat = pfun.get_plon_plat(lon,lat)
+    # make a version of z with nans where masked
+    zm = z.copy()
+    zm[np.transpose(mask_rho) == 0] = np.nan
+    zm[np.transpose(mask_rho) != 0] = -1
 
-# # plot timeseries
-# for j,var_vol in enumerate([NO3_vol,NH4_vol,phyto_vol,zoop_vol,Ldet_vol,Sdet_vol,DO_vol]):
+    # get flow, nitrate, and ammonium values
+    fp_wwtps = '../../../LO_output/pre/trapsP01/moh20_wwtps/lo_base/Data_historical/'
+    moh20_flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    moh20_no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    moh20_nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
 
-#     for i,gtagex in enumerate(gtagexes):
-#         ax[j].plot(dates_local,var_vol[gtagex],linestyle=linestyles[i],
-#                    color=colors[i],linewidth=linewidths[i],alpha=alphas[i])
+    fp_wwtps = '../../../LO_output/pre/trapsP01/was24_wwtps/lo_base/Data_historical/'
+    was24_flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    was24_no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    was24_nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
 
+    # calculate total DIN concentration in mg/L
+    moh20_dindf_wwtps = (moh20_no3df_wwtps + moh20_nh4df_wwtps)/71.4    # mg/L
+    was24_dindf_wwtps = (was24_no3df_wwtps + was24_nh4df_wwtps)/71.4    # mg/L
 
-#     # format figure
-#     if j == 0:
-#         ax[j].text(0.02,0.2,'No-loading', fontsize = 12, ha='left', 
-#                transform=ax[j].transAxes)
-#         ax[j].text(0.02,0.08,'Loading', fontsize = 12, ha='left', 
-#                transform=ax[j].transAxes,fontweight='bold',color='mediumorchid',alpha=0.7)
-#     ax[j].grid(visible=True, axis='both', color='silver', linestyle='--')
-#     # ax[j].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-#     ax[j].xaxis.set_major_formatter(FuncFormatter(lambda x, pos: mdates.num2date(x).strftime('%b')[0]))
-#     ax[j].tick_params(axis='both', labelsize=12, rotation=30)
-#     if np.mod(j,4) == 0:
-#         ax[j].set_ylabel(r'Moles [mol]', fontsize=12)
-#     ax[j].set_ylim([0,np.nanmax(var_vol[gtagexes[0]])*1.2])
-#     ax[j].text(0.02,0.88,letters[j] + vars[j], fontsize = 12, ha='left', 
-#                fontweight='bold', transform=ax[j].transAxes)
-#     ax[j].set_xlim([dates_local[0],dates_local[-1]])
+    # calculate daily loading timeseries in kg/d
+    moh20_dailyloaddf_wwtps = 86.4*moh20_dindf_wwtps*moh20_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
+    was24_dailyloaddf_wwtps = 86.4*was24_dindf_wwtps*was24_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
 
-# plt.tight_layout()
+    # calculate average daily load over the year (kg/d)
+    moh20_avgload_wwtps = moh20_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+    was24_avgload_wwtps = was24_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+
+    # add row and col index for plotting on LiveOcean grid
+    griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas7/moh20_wwtp_info.csv')
+    griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
+    moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+
+    griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas7/was24_wwtp_info.csv')
+    griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
+    was24_avgload_wwtps = was24_avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    was24_avgload_wwtps = was24_avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+
+    # get point source lat and lon
+    moh20_lon_wwtps = [X[int(col)] for col in moh20_avgload_wwtps['col_py']]
+    moh20_lat_wwtps = [Y[int(row)] for row in moh20_avgload_wwtps['row_py']]
+    was24_lon_wwtps = [X[int(col)] for col in was24_avgload_wwtps['col_py']]
+    was24_lat_wwtps = [Y[int(row)] for row in was24_avgload_wwtps['row_py']]
+    
+    # define marker sizes (minimum size is 10 so dots don't get too small)
+    moh20_sizes_wwtps = [max(0.05*load,5) for load in moh20_avgload_wwtps['avg-daily-load(kg/d)']]
+    was24_sizes_wwtps = [max(0.05*load,5) for load in was24_avgload_wwtps['avg-daily-load(kg/d)']]
+
 
 ##############################################################
 ##                      PROCESS DATA                        ##
 ##############################################################
+
+# read in masks
+basin_mask_ds = grid_ds = xr.open_dataset('../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
+mask_rho = basin_mask_ds.mask_rho.values
+mask_hc = basin_mask_ds.mask_hoodcanal.values
+mask_ss = basin_mask_ds.mask_southsound.values
+mask_wb = basin_mask_ds.mask_whidbeybasin.values
+mask_mb = basin_mask_ds.mask_mainbasin.values
+lon = basin_mask_ds['lon_rho'].values
+lat = basin_mask_ds['lat_rho'].values
+h = basin_mask_ds['h'].values
+plon, plat = pfun.get_plon_plat(lon,lat)
+
+##############################################################
+# get average concentration per basin
 
 # open datasets
 if remove_straits:
@@ -243,10 +187,7 @@ if remove_straits:
 else:
     straits = 'withStraits'
 
-letters = ['(a) ','(b) ','(c) ','(d) ','(e) ','(f) ', '(g)']
-vars = ['NO3','NH4','phytoplankton','zooplankton','LdetritusN','SdetritusN','oxygen']
-
-# initialize empty dictionaries
+# initialize empty dictionaries and fill with vertical integrals
 NO3_vert_dict = {}
 phyto_vert_dict = {}
 zoop_vert_dict = {}
@@ -256,219 +197,277 @@ Sdet_vert_dict = {}
 DO_vert_dict = {}
 
 for year in years:
-    for region in regions:
-        for gtagex in gtagexes:
-            # add ds to dictionary
-            if region == 'pugetsoundDO':
-                # only include strait infor when looking at the whole of puget sound
-                ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
-            else:
-                ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints.nc'))
-            NO3_vert_int = ds['NO3_vert_int'].values
-            phyto_vert_int = ds['phyto_vert_int'].values
-            zoop_vert_int = ds['zoop_vert_int'].values
-            NH4_vert_int = ds['NH4_vert_int'].values
-            LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
-            SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
-            DO_vert_int = ds['DO_vert_int'].values
-            # add data to dictionaries
-            NO3_vert_dict[gtagex+region+year] = NO3_vert_int
-            phyto_vert_dict[gtagex+region+year] = phyto_vert_int
-            zoop_vert_dict[gtagex+region+year] = zoop_vert_int
-            NH4_vert_dict[gtagex+region+year] = NH4_vert_int
-            Ldet_vert_dict[gtagex+region+year] = LdetritusN_vert_int
-            Sdet_vert_dict[gtagex+region+year] = SdetritusN_vert_int
-            DO_vert_dict[gtagex+region+year] = DO_vert_int
+    for gtagex in gtagexes:
+        ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
+        NO3_vert_int = ds['NO3_vert_int'].values
+        phyto_vert_int = ds['phyto_vert_int'].values
+        zoop_vert_int = ds['zoop_vert_int'].values
+        NH4_vert_int = ds['NH4_vert_int'].values
+        LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
+        SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
+        DO_vert_int = ds['DO_vert_int'].values
+        # add data to dictionaries
+        NO3_vert_dict[gtagex+year] = NO3_vert_int
+        phyto_vert_dict[gtagex+year] = phyto_vert_int
+        zoop_vert_dict[gtagex+year] = zoop_vert_int
+        NH4_vert_dict[gtagex+year] = NH4_vert_int
+        Ldet_vert_dict[gtagex+year] = LdetritusN_vert_int
+        Sdet_vert_dict[gtagex+year] = SdetritusN_vert_int
+        DO_vert_dict[gtagex+year] = DO_vert_int
 
-# initialize empty dictionary to get grid cell areas
-DA = {}
-for region in regions:
-    fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / (region + '_2014.01.01_2014.12.31.nc')
-    box_ds = xr.open_dataset(fp)
-    if region == 'pugetsoundDO':
-        PSbox_ds = box_ds # save Puget Sound bounds for later
-    DX = (box_ds.pm.values)**-1
-    DY = (box_ds.pn.values)**-1
-    DA[region] = DX*DY # get area in m2
+# grid cell areas
+fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
+box_ds = xr.open_dataset(fp)
+DX = (box_ds.pm.values)**-1
+DY = (box_ds.pn.values)**-1
+DA = DX*DY # get area in m2
 
-# initialize dictionary for vertical integrals [mol]
-NO3_vol = {}
-phyto_vol = {}
-zoop_vol = {}
-NH4_vol = {}
-Ldet_vol = {}
-Sdet_vol = {}
-DO_vol = {}
+
+# initialize dictionary for average concentration (volume integrals [mol], normalized by volume)
+NO3_vol_norm = {}
+phyto_vol_norm = {}
+zoop_vol_norm = {}
+NH4_vol_norm = {}
+Ldet_vol_norm = {}
+Sdet_vol_norm = {}
+DO_vol_norm = {}
 
 for year in years:
     for region in regions:
+
+        # get mask for the region
+        if region == 'Hood Canal':
+            mask = mask_hc
+        elif region == 'South Sound':
+            mask = mask_ss
+        elif region == 'Whidbey Basin':
+            mask = mask_wb
+        elif region == 'Main Basin':
+            mask = mask_mb
+        elif region == 'All Puget Sound':
+            mask = mask_hc + mask_ss + mask_wb + mask_mb
+
+        # basin volume
+        h_masked = h * mask
+        basin_vol = np.sum(h_masked * DA) # [m3]
+
         for gtagex in gtagexes:
 
-            NO3_vert_int = NO3_vert_dict[gtagex+region+year]
-            # subtract the bottom row of grid cells for the HC_up region
-            # (so we don't double count cells when we add them to HC_low)
-            if region == 'HC_up':
-                NO3_vert_int[:, 0, :] = 0 # dimensions of (t,y,x), so y=0 is the lowest latitude of HC_up
-            NO3_vol_timeseries = np.sum(NO3_vert_int * DA[region], axis=(1, 2)) # [mol]
-            NO3_vol[gtagex+region+year] = NO3_vol_timeseries
+            NO3_vert_int = NO3_vert_dict[gtagex+year]
+            NO3_vert_int_masked = NO3_vert_int * mask
+            NO3_vol_timeseries = np.sum(NO3_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            NO3_vol_norm[gtagex+region+year] = NO3_vol_timeseries / basin_vol *1000 # [mmol/m3]
 
-            phyto_vert_int = phyto_vert_dict[gtagex+region+year]
-            if region == 'HC_up':
-                phyto_vert_int[:, 0, :] = 0
-            phyto_vol_timeseries = np.sum(phyto_vert_int * DA[region], axis=(1, 2)) # [mol]
-            phyto_vol[gtagex+region+year] = phyto_vol_timeseries
+            NH4_vert_int = NH4_vert_dict[gtagex+year]
+            NH4_vert_int_masked = NH4_vert_int * mask
+            NH4_vol_timeseries = np.sum(NH4_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            NH4_vol_norm[gtagex+region+year] = NH4_vol_timeseries / basin_vol *1000 # [mmol/m3]
 
-            zoop_vert_int = zoop_vert_dict[gtagex+region+year]
-            if region == 'HC_up':
-                zoop_vert_int[:, 0, :] = 0
-            zoop_vol_timeseries = np.sum(zoop_vert_int * DA[region], axis=(1, 2)) # [mol]
-            zoop_vol[gtagex+region+year] = zoop_vol_timeseries
+            phyto_vert_int = phyto_vert_dict[gtagex+year]
+            phyto_vert_int_masked = phyto_vert_int * mask
+            phyto_vol_timeseries = np.sum(phyto_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            phyto_vol_norm[gtagex+region+year] = phyto_vol_timeseries / basin_vol *1000 # [mmol/m3]
 
-            NH4_vert_int = NH4_vert_dict[gtagex+region+year]
-            if region == 'HC_up':
-                NH4_vert_int[:, 0, :] = 0
-            NH4_vol_timeseries = np.sum(NH4_vert_int * DA[region], axis=(1, 2)) # [mol]
-            NH4_vol[gtagex+region+year] = NH4_vol_timeseries
+            zoop_vert_int = zoop_vert_dict[gtagex+year]
+            zoop_vert_int_masked = zoop_vert_int * mask
+            zoop_vol_timeseries = np.sum(zoop_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            zoop_vol_norm[gtagex+region+year] = zoop_vol_timeseries / basin_vol *1000 # [mmol/m3]
 
-            Ldet_vert_int = Ldet_vert_dict[gtagex+region+year]
-            if region == 'HC_up':
-                Ldet_vert_int[:, 0, :] = 0
-            Ldet_vol_timeseries = np.sum(Ldet_vert_int * DA[region], axis=(1, 2)) # [mol]
-            Ldet_vol[gtagex+region+year] = Ldet_vol_timeseries
 
-            Sdet_vert_int = Sdet_vert_dict[gtagex+region+year]
-            if region == 'HC_up':
-                Sdet_vert_int[:, 0, :] = 0
-            Sdet_vol_timeseries = np.sum(Sdet_vert_int * DA[region], axis=(1, 2)) # [mol]
-            Sdet_vol[gtagex+region+year] = Sdet_vol_timeseries
+            Ldet_vert_int = Ldet_vert_dict[gtagex+year]
+            Ldet_vert_int_masked = Ldet_vert_int * mask
+            Ldet_vol_timeseries = np.sum(Ldet_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            Ldet_vol_norm[gtagex+region+year] = Ldet_vol_timeseries / basin_vol *1000 # [mmol/m3]
 
-            DO_vert_int = DO_vert_dict[gtagex+region+year]
-            if region == 'HC_up':
-                DO_vert_int[:, 0, :] = 0
-            DO_vol_timeseries = np.sum(DO_vert_int * DA[region], axis=(1, 2)) # [mol]
-            DO_vol[gtagex+region+year] = DO_vol_timeseries
+            Sdet_vert_int = Sdet_vert_dict[gtagex+year]
+            Sdet_vert_int_masked = Sdet_vert_int * mask
+            Sdet_vol_timeseries = np.sum(Sdet_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            Sdet_vol_norm[gtagex+region+year] = Sdet_vol_timeseries / basin_vol *1000 # [mmol/m3]
 
-# get grid data
-grid_ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
-z = -grid_ds.h.values
-mask_rho = np.transpose(grid_ds.mask_rho.values)
-lon = grid_ds.lon_rho.values
-lat = grid_ds.lat_rho.values
-plon, plat = pfun.get_plon_plat(lon,lat)
-# make a version of z with nans where masked
-# this gives us a binary map of land and water cells
-zm = z.copy()
-zm[np.transpose(mask_rho) == 0] = np.nan
-zm[np.transpose(mask_rho) != 0] = -1
+            DO_vert_int = DO_vert_dict[gtagex+year]
+            DO_vert_int_masked = DO_vert_int * mask
+            DO_vol_timeseries = np.sum(DO_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            DO_vol_norm[gtagex+region+year] = DO_vol_timeseries / basin_vol *1000 # [mmol/m3]
+
+##############################################################
+##                    Plot basin map                        ##
+##############################################################
+
+# Puget Sound bounds
+xmin = -123.29
+xmax = -122.1
+ymin = 46.95
+ymax = 48.50#48.93
+
+# variables
+vars = ['NO3','NH4','Phytoplankton','Zooplankton','Large Detritus','Small Detritus','Dissolved Oxygen']
+for j,var_vol_norm in enumerate([NO3_vol_norm,NH4_vol_norm,phyto_vol_norm,zoop_vol_norm,Ldet_vol_norm,Sdet_vol_norm,DO_vol_norm]):
+
+    # initialize figure
+    fig, (ax0, ax1) = plt.subplots(1,2,figsize = (14,8),gridspec_kw={'width_ratios': [1, 2]})
+    fig.suptitle(vars[j], fontsize = 16)
+
+    # Hood Canal
+    ax0.pcolormesh(plon, plat, np.where(mask_hc == 0, np.nan, mask_hc),
+                vmin=0, vmax=2.5, cmap='RdPu' )
+    # South Sound
+    ax0.pcolormesh(plon, plat, np.where(mask_ss == 0, np.nan, mask_ss),
+                vmin=0, vmax=3, cmap='magma' )
+    # Whidbey Basin
+    ax0.pcolormesh(plon, plat, np.where(mask_wb == 0, np.nan, mask_wb),
+                vmin=0, vmax=3, cmap='cool' )
+    # Main Basin
+    ax0.pcolormesh(plon, plat, np.where(mask_mb == 0, np.nan, mask_mb),
+                vmin=0, vmax=1.5, cmap='summer' )
+
+
+    # format figure
+    ax0.set_xlim([xmin,xmax])
+    ax0.set_ylim([ymin,ymax])
+    ax0.set_ylabel('Latitude', fontsize=12)
+    ax0.set_xlabel('Longitude', fontsize=12)
+    ax0.tick_params(axis='both', labelsize=12)
+    ax0.set_title('(a) Basins', loc='left', fontsize=14, fontweight='bold')
+    pfun.dar(ax0)
+
+    # add wwtp locations
+    if WWTP_loc == True:
+        edgecolor = 'red'
+        facecolor = 'white'
+        ax0.scatter(moh20_lon_wwtps,moh20_lat_wwtps,color=facecolor, edgecolors=edgecolor, alpha=0.5,
+                     linewidth=1, s=moh20_sizes_wwtps, label='WWTPs')
+        ax0.scatter(was24_lon_wwtps,was24_lat_wwtps,color=facecolor, edgecolors=edgecolor, alpha=0.5,
+                     linewidth=1, s=was24_sizes_wwtps)
+        leg_szs = [100, 1000, 10000]
+        szs = [0.05*(leg_sz) for leg_sz in leg_szs]
+        l0 = plt.scatter([],[], s=szs[0], color=facecolor, alpha=0.5, edgecolors=edgecolor, linewidth=1)
+        l1 = plt.scatter([],[], s=szs[1], color=facecolor, alpha=0.5, edgecolors=edgecolor, linewidth=1)
+        l2 = plt.scatter([],[], s=szs[2], color=facecolor, alpha=0.5, edgecolors=edgecolor, linewidth=1)
+        labels = ['< 100', '1,000', '10,000']
+        legend = ax0.legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
+            title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
+        plt.setp(legend.get_title(),fontsize=9)
 
 ##############################################################
 ##    Sub-basins and multiple years and percent change      ##
 ##############################################################
 
-# create time vector
-startdate = '2020.01.01'
-enddate = '2020.12.31'
-dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-dates_local = [pfun.get_dt_local(x) for x in dates]
-
-# define linestyles and linewidths and alpha
-# first is with loading, second is no-loading
-linestyles = ['-','--']
-linewidths = [3,1]
-alphas = [0.5,1]
-colors = ['mediumorchid','black']
-
-# define basins
-basins = ['Puget Sound','Hood Canal','South Sound']
-
 # plot timeseries
-for j,var_vol in enumerate([NO3_vol,NH4_vol,phyto_vol,zoop_vol,Ldet_vol,Sdet_vol,DO_vol]):
-
-    # initialize figure
-    fig, axes = plt.subplots(len(basins),1,figsize=(10,8.5),sharex=True)
-    fig.suptitle(vars[j], fontsize = 14, fontweight='bold')
-
-    # loop through basins
-    for i,basin in enumerate(basins):
-
-        # define axes
-        axis = axes[i]
-
-        # label basins
-        axis.text(0.1,0.8,basin, fontsize = 12, ha='left', 
-                transform=axis.transAxes)
-        
-        for year in years:
-            # create time vector
-            startdate = year+'.01.01'
-            enddate = year+'.12.31'
-            dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-            dates_local = [pfun.get_dt_local(x) for x in dates]
-            # loop through model runs
-            for k,gtagex in enumerate(gtagexes):
-                # get data for the basin and gtagex and year
-                if basin == 'Puget Sound':
-                    vert_int = var_vol[gtagex+'pugetsoundDO'+year]
-                elif basin == 'Hood Canal':
-                    vert_int = var_vol[gtagex+'HC_up'+year] + var_vol[gtagex+'HC_low'+year]
-                elif basin == 'South Sound':
-                    vert_int = var_vol[gtagex+'SS_and_HC_low'+year] - var_vol[gtagex+'HC_low'+year]
-                # plot data
-                axis.plot(dates_local,vert_int,linestyle=linestyles[k],
-                        color=colors[k],linewidth=linewidths[k],alpha=alphas[k])
-            
-        # add Loading and No-Loading labels
-        if i == 0:
-            axis.text(0.8,0.2,'No-loading', fontsize = 12, ha='left', 
-                transform=axis.transAxes)
-            axis.text(0.8,0.08,'Loading', fontsize = 12, ha='left', 
-                transform=axis.transAxes,fontweight='bold',color='mediumorchid',alpha=0.7)
-        # format figure
-        axis.grid(visible=True, axis='both', color='silver', linestyle='--')
-        # ax[j].xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-        axis.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: mdates.num2date(x).strftime('%b')[0]))
-        axis.tick_params(axis='both', labelsize=12, rotation=30)
-        axis.set_ylabel(r'Moles [mol]', fontsize=12)
+    for year in years:
         # create time vector
-        startdate = years[0]+'.01.01'
-        enddate = years[-1]+'.12.31'
+        startdate = year+'.01.01'
+        enddate = year+'.12.31'
         dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
         dates_local = [pfun.get_dt_local(x) for x in dates]
-        axis.set_xlim([dates_local[0],dates_local[-1]])
-        axis.set_ylim([0,np.nanmax(vert_int)*1.2])
-            
-        # add percent change plot
-        divider = make_axes_locatable(axis)
-        ax2 = divider.append_axes("bottom", size='30%', pad=0.1)
-        axis.figure.add_axes(ax2)
-        ax2.set_xlim([dates_local[0],dates_local[-1]])
-        
-    # # plot percentage change
-    # for i,basin in enumerate(basins):
-        for year in years:
-            # create time vector
-            startdate = year+'.01.01'
-            enddate = year+'.12.31'
-            dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-            dates_local = [pfun.get_dt_local(x) for x in dates]
+        # loop through model runs
+        for k,region in enumerate(regions):
+            # get data for the basin and gtagex and year
+            gtagex = 'cas7_t1noDIN_x11ab'
+            avg_concentration = var_vol_norm[gtagex+region+year]
+            # pass through hanning window
+            avg_concentration_filtered = zfun.lowpass(avg_concentration,n=nwin)
+            # plot data
+            if region == 'All Puget Sound':
+                ax1.plot(dates_local,avg_concentration_filtered,linewidth=1,
+                        color=colors[k], alpha=1,linestyle='--')
+            else:
+                ax1.plot(dates_local,avg_concentration_filtered,linewidth=2,
+                    color=colors[k], alpha=0.8)
+                
+    # format figure
+    ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
+    ax1.set_xticklabels([])
+    ax1.tick_params(axis='y', labelsize=12, rotation=30)
+    ax1.set_ylabel(r'mmol/m3', fontsize=12)
+    # create time vector
+    startdate = years[0]+'.01.01'
+    enddate = years[-1]+'.12.31'
+    dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+    ax1.set_xlim([dates_local[0],dates_local[-1]])
+    ax1.set_title('(b) No-Loading Avg. Conc. ({}-day Hanning Window)'.format(nwin), loc='left', fontsize=14, fontweight='bold')
 
-            if basin == 'Puget Sound':
-                loading = var_vol['cas7_t1_x11ab'+'pugetsoundDO'+year]
-                no_loading = var_vol['cas7_t1noDIN_x11ab'+'pugetsoundDO'+year]
-            elif basin == 'Hood Canal':
-                loading = var_vol['cas7_t1_x11ab'+'HC_up'+year] + var_vol['cas7_t1_x11ab'+'HC_low'+year]
-                no_loading = var_vol['cas7_t1noDIN_x11ab'+'HC_up'+year] + var_vol['cas7_t1noDIN_x11ab'+'HC_low'+year]
-            elif basin == 'South Sound':
-                loading = var_vol['cas7_t1_x11ab'+'SS_and_HC_low'+year] - var_vol['cas7_t1_x11ab'+'HC_low'+year]
-                no_loading = var_vol['cas7_t1noDIN_x11ab'+'SS_and_HC_low'+year] - var_vol['cas7_t1noDIN_x11ab'+'HC_low'+year]
+    # set y-lims
+    if vars[j] == 'NO3':
+        ymax_conc = 35
+    elif vars[j] == 'NH4':
+        ymax_conc = 2
+    elif vars[j] == 'Phytoplankton':
+        ymax_conc = 1.75
+    elif vars[j] == 'Zooplankton':
+        ymax_conc = 0.175
+    elif vars[j] == 'Large Detritus':
+        ymax_conc = 0.04
+    elif vars[j] == 'Small Detritus':
+        ymax_conc = 1.2
+    elif vars[j] == 'Dissolved Oxygen':
+        ymax_conc = 300
+    ax1.set_ylim([0,ymax_conc])
 
-            # percentage_change = (1 - (no_loading/loading)) * 100
-            # ax2.plot(dates_local,percentage_change,color='crimson')
+    # add difference plot -----------------------------------------------------------
+    divider = make_axes_locatable(ax1)
+    ax2 = divider.append_axes("bottom", size='30%', pad=0.4)
+    ax1.figure.add_axes(ax2)
+    ax2.set_xlim([dates_local[0],dates_local[-1]])
 
-            diff = loading - no_loading
-            ax2.plot(dates_local,diff,color='crimson')
+    # plot difference
+    for year in years:
+        # create time vector
+        startdate = year+'.01.01'
+        enddate = year+'.12.31'
+        dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+        dates_local = [pfun.get_dt_local(x) for x in dates]
+        # loop through model runs
+        for k,region in enumerate(regions):
+            # get data for the basin and gtagex and year
+            noloading = 'cas7_t1noDIN_x11ab'
+            avg_concentration_noloading = var_vol_norm[noloading+region+year]
+            loading = 'cas7_t1_x11ab'
+            avg_concentration_loading = var_vol_norm[loading+region+year]
+            # calculate difference
+            diff =  avg_concentration_loading - avg_concentration_noloading
+            # pass through hanning window
+            diff_filtered = zfun.lowpass(diff,n=nwin)
+            # plot data
+            if region == 'All Puget Sound':
+                ax2.plot(dates_local,diff_filtered,linewidth=1,
+                        color=colors[k], alpha=1,linestyle='--')
+            else:
+                ax2.plot(dates_local,diff_filtered,linewidth=2,
+                    color=colors[k], alpha=0.8)
+                
+    # format figure
+    # ax2.grid(visible=True, axis='both', color='silver', linestyle='--')
+    ax2.tick_params(axis='both', labelsize=12, rotation=30)
+    ax2.set_ylabel(r'mmol/m3', fontsize=12)
+    # create time vector
+    startdate = years[0]+'.01.01'
+    enddate = years[-1]+'.12.31'
+    dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+    ax2.set_xlim([dates_local[0],dates_local[-1]])
+    ax2.hlines(y=0, xmin=dates_local[0], xmax=dates_local[-1],
+               color='silver', linestyle='--', linewidth=0.75)
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+    ax2.set_title('(c) Loading - No-Loading ({}-day Hanning Window)'.format(nwin), loc='left', fontsize=14, fontweight='bold')
 
-    
+    # set y-lims
+    if vars[j] == 'NO3':
+        ymin_diff = -4
+    elif vars[j] == 'NH4':
+        ymin_diff = -0.4
+    elif vars[j] == 'Phytoplankton':
+        ymin_diff = -0.12
+    elif vars[j] == 'Zooplankton':
+        ymin_diff = -0.01
+    elif vars[j] == 'Large Detritus':
+        ymin_diff = -0.005
+    elif vars[j] == 'Small Detritus':
+        ymin_diff = -0.07
+    elif vars[j] == 'Dissolved Oxygen':
+        ymin_diff = -4
+    ymax_diff = ymin_diff*-1
+    ax2.set_ylim([ymin_diff,ymax_diff])
 
     plt.tight_layout()
     plt.show()
