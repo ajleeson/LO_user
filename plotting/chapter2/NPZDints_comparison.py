@@ -51,7 +51,7 @@ WWTP_loc = True
 nwin = 20
 
 # years =  ['2014']
-years =  ['2014','2015','2016','2017','2018']
+years =  ['2014','2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
 gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
