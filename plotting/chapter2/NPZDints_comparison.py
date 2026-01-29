@@ -51,7 +51,7 @@ WWTP_loc = True
 nwin = 20
 
 # years =  ['2014']
-years =  ['2014','2015','2016','2017']
+years =  ['2014','2015','2016','2017','2018']
 
 # which  model run to look at?
 gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
@@ -61,7 +61,7 @@ out_dir = Ldir['LOo'] / 'chapter_2' / 'figures'
 Lfun.make_dir(out_dir)
 
 regions = ['Hood Canal', 'South Sound', 'Whidbey Basin', 'Main Basin', 'All Puget Sound']
-colors = ['hotpink','purple','dodgerblue','yellowgreen','black']
+colors = ['hotpink','mediumpurple','dodgerblue','yellowgreen','black']
 
 plt.close('all')
 
@@ -312,7 +312,7 @@ for j,var_vol_norm in enumerate([NO3_vol_norm,NH4_vol_norm,phyto_vol_norm,zoop_v
                 vmin=0, vmax=2.5, cmap='RdPu' )
     # South Sound
     ax0.pcolormesh(plon, plat, np.where(mask_ss == 0, np.nan, mask_ss),
-                vmin=0, vmax=3, cmap='magma' )
+                vmin=0, vmax=2, cmap='Purples' )
     # Whidbey Basin
     ax0.pcolormesh(plon, plat, np.where(mask_wb == 0, np.nan, mask_wb),
                 vmin=0, vmax=3, cmap='cool' )
@@ -332,17 +332,18 @@ for j,var_vol_norm in enumerate([NO3_vol_norm,NH4_vol_norm,phyto_vol_norm,zoop_v
 
     # add wwtp locations
     if WWTP_loc == True:
-        edgecolor = 'red'
-        facecolor = 'white'
-        ax0.scatter(moh20_lon_wwtps,moh20_lat_wwtps,color=facecolor, edgecolors=edgecolor, alpha=0.5,
+        edgecolor = 'black'
+        facecolor = 'none'
+        alpha = 1
+        ax0.scatter(moh20_lon_wwtps,moh20_lat_wwtps,color=facecolor, edgecolors=edgecolor, alpha=alpha,
                      linewidth=1, s=moh20_sizes_wwtps, label='WWTPs')
-        ax0.scatter(was24_lon_wwtps,was24_lat_wwtps,color=facecolor, edgecolors=edgecolor, alpha=0.5,
+        ax0.scatter(was24_lon_wwtps,was24_lat_wwtps,color=facecolor, edgecolors=edgecolor, alpha=alpha,
                      linewidth=1, s=was24_sizes_wwtps)
         leg_szs = [100, 1000, 10000]
         szs = [0.05*(leg_sz) for leg_sz in leg_szs]
-        l0 = plt.scatter([],[], s=szs[0], color=facecolor, alpha=0.5, edgecolors=edgecolor, linewidth=1)
-        l1 = plt.scatter([],[], s=szs[1], color=facecolor, alpha=0.5, edgecolors=edgecolor, linewidth=1)
-        l2 = plt.scatter([],[], s=szs[2], color=facecolor, alpha=0.5, edgecolors=edgecolor, linewidth=1)
+        l0 = plt.scatter([],[], s=szs[0], color=facecolor, alpha=alpha, edgecolors=edgecolor, linewidth=1)
+        l1 = plt.scatter([],[], s=szs[1], color=facecolor, alpha=alpha, edgecolors=edgecolor, linewidth=1)
+        l2 = plt.scatter([],[], s=szs[2], color=facecolor, alpha=alpha, edgecolors=edgecolor, linewidth=1)
         labels = ['< 100', '1,000', '10,000']
         legend = ax0.legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
             title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
@@ -385,13 +386,14 @@ for j,var_vol_norm in enumerate([NO3_vol_norm,NH4_vol_norm,phyto_vol_norm,zoop_v
     dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
     dates_local = [pfun.get_dt_local(x) for x in dates]
     ax1.set_xlim([dates_local[0],dates_local[-1]])
+    ax1.xaxis.set_major_locator(mdates.YearLocator())
     ax1.set_title('(b) No-Loading Avg. Conc. ({}-day Hanning Window)'.format(nwin), loc='left', fontsize=14, fontweight='bold')
 
     # set y-lims
     if vars[j] == 'NO3':
         ymax_conc = 35
     elif vars[j] == 'NH4':
-        ymax_conc = 2
+        ymax_conc = 1.75
     elif vars[j] == 'Phytoplankton':
         ymax_conc = 1.75
     elif vars[j] == 'Zooplankton':
@@ -406,7 +408,7 @@ for j,var_vol_norm in enumerate([NO3_vol_norm,NH4_vol_norm,phyto_vol_norm,zoop_v
 
     # add difference plot -----------------------------------------------------------
     divider = make_axes_locatable(ax1)
-    ax2 = divider.append_axes("bottom", size='30%', pad=0.4)
+    ax2 = divider.append_axes("bottom", size='50%', pad=0.4)
     ax1.figure.add_axes(ax2)
     ax2.set_xlim([dates_local[0],dates_local[-1]])
 
@@ -437,7 +439,7 @@ for j,var_vol_norm in enumerate([NO3_vol_norm,NH4_vol_norm,phyto_vol_norm,zoop_v
                     color=colors[k], alpha=0.8)
                 
     # format figure
-    # ax2.grid(visible=True, axis='both', color='silver', linestyle='--')
+    ax2.grid(visible=True, axis='x', color='silver', linestyle='--')
     ax2.tick_params(axis='both', labelsize=12, rotation=30)
     ax2.set_ylabel(r'mmol/m3', fontsize=12)
     # create time vector
@@ -448,6 +450,7 @@ for j,var_vol_norm in enumerate([NO3_vol_norm,NH4_vol_norm,phyto_vol_norm,zoop_v
     ax2.set_xlim([dates_local[0],dates_local[-1]])
     ax2.hlines(y=0, xmin=dates_local[0], xmax=dates_local[-1],
                color='silver', linestyle='--', linewidth=0.75)
+    ax2.xaxis.set_major_locator(mdates.YearLocator())
     ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
     ax2.set_title('(c) Loading - No-Loading ({}-day Hanning Window)'.format(nwin), loc='left', fontsize=14, fontweight='bold')
 
