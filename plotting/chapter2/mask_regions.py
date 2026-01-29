@@ -111,7 +111,7 @@ mask_wb[cond] = 0
 cond = (lat >= 48.25) & (lat <= 48.50) & (lon < -122.66)
 mask_wb[cond] = 0
 
-cond = (lon >= -122.6) & (lon <= -122.45) & (lat > 48.46)
+cond = (lon >= -122.8) & (lon <= -122.38) & (lat > 48.46)
 mask_wb[cond] = 0
 
 # #########################################
@@ -145,8 +145,8 @@ ax.pcolormesh(plon, plat, np.where(mask_wb == 0, np.nan, mask_wb),
               vmin=0, vmax=3, cmap='cool' )
 
 # format figure
-ax.set_xlim([xmin,xmax])
-ax.set_ylim([ymin,ymax])
+# ax.set_xlim([xmin,xmax])
+# ax.set_ylim([ymin,ymax])
 ax.set_ylabel('Latitude', fontsize=12)
 ax.set_xlabel('Longitude', fontsize=12)
 ax.tick_params(axis='both', labelsize=12)
