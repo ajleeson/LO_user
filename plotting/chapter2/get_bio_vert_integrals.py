@@ -37,7 +37,7 @@ remove_straits = True
 
 regions = ['pugetsoundDO']
 
-years = ['2018']
+years = ['2019','2020']
 
 # which  model run to look at?
 # gtagex = 'cas7_t1noDIN_x11ab' # 
