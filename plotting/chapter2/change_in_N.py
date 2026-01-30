@@ -572,8 +572,19 @@ print('Vol-integrated NH4 in Puget Sound decreased by: {} perc'.format( round(
 print('Vol-integrated DO in Puget Sound decreased by: {} perc'.format( round(
     (DO_mols_daily_avg_noloading-DO_mols_daily_avg_loading)/DO_mols_daily_avg_noloading * 100 ,2)))
 
-
-
+# calculate total Puget Sound volume
+# get mask for the region
+mask = mask_hc + mask_ss + mask_wb + mask_mb
+# basin volume
+h_masked = h * mask
+PugetSound_vol = np.sum(h_masked * DA) # [m3]
+print('Change in concentrations ----------------')
+print('Puget Sound TN Loading: {} mmol/m3'.format( round((TN_loading / PugetSound_vol *1000),2)))
+print('Puget Sound TN No-Loading: {} mmol/m3'.format( round((TN_noloading / PugetSound_vol *1000),2)))
+print('Puget Sound NO3 Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_loading / PugetSound_vol *1000),2)))
+print('Puget Sound NO3 No-Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
+print('Puget Sound NH4 Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_loading / PugetSound_vol *1000),2)))
+print('Puget Sound NH4 No-Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
 
 ##############################################################
 ##                    Plot basin map                        ##

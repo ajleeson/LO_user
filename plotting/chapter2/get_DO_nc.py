@@ -39,9 +39,9 @@ Ldir = Lfun.Lstart()
 # region = 'HC_up'
 regions = ['pugetsoundDO']
 
-remove_straits = True
+remove_straits = False
 
-years = ['2018','2019','2020']
+years = ['2014','2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
 # gtagex = 'cas7_t1_x11ab'  
