@@ -48,11 +48,11 @@ plt.close('all')
 # Show WWTP locations?
 WWTP_loc = True
 
-remove_straits = True
+remove_straits = False
 
 vn = 'oxygen'
 
-year = '2014'
+year = '2017'
 
 # which  model run to look at?
 gtagexes = ['cas7_t1noDIN_x11ab','cas7_t1_x11ab']
