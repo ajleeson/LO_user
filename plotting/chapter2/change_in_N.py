@@ -169,9 +169,15 @@ if WWTP_loc == True:
     was24_nh4_dailyloaddf_wwtps = 86.4*was24_nh4df_wwtps*was24_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
 
     no3_dailyloaddf_triv = 86.4*no3df_trivs*flowdf_trivs # kg/d = 86.4 * mg/L * m3/s
-    nh4_dailyloaddf_triv = 86.4*nh4df_trivs*nh4df_trivs # kg/d = 86.4 * mg/L * m3/s
+    nh4_dailyloaddf_triv = 86.4*nh4df_trivs*flowdf_trivs # kg/d = 86.4 * mg/L * m3/s
     no3_dailyloaddf_LOrivbio = 86.4*no3df_LOrivbio*flowdf_LOrivflo # kg/d = 86.4 * mg/L * m3/s
     nh4_dailyloaddf_LOrivbio = 86.4*nh4df_LOrivbio*flowdf_LOrivflo # kg/d = 86.4 * mg/L * m3/s
+
+    # total_m3_s = (np.nansum(moh20_flowdf_wwtps.mean(axis=0)) +
+    #                 np.nansum(was24_flowdf_wwtps.mean(axis=0)) +
+    #                 np.nansum(flowdf_trivs.mean(axis=0)) +
+    #                 np.nansum(flowdf_LOrivflo.mean(axis=0)))
+    # print('Total river+WWTP flow: {} m3/s'.format(round(total_m3_s,2)))
 
     # calculate average daily load over the year (kg/d)
     moh20_avgload_wwtps = moh20_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
@@ -187,6 +193,11 @@ if WWTP_loc == True:
     was24_avgload_wwtps = was24_avgload_wwtps.join(was24_no3_avgload_wwtps['avg-daily-no3-load(kg/d)'])
     was24_avgload_wwtps = was24_avgload_wwtps.join(was24_nh4_avgload_wwtps['avg-daily-nh4-load(kg/d)'])
 
+    avgflow_moh20wwtp = moh20_flowdf_wwtps.mean(axis=0).to_frame(name='avg-daily-flow(m3/s)')
+    moh20_avgload_wwtps = moh20_avgload_wwtps.join(avgflow_moh20wwtp['avg-daily-flow(m3/s)'])
+    avgflow_was24wwtp = was24_flowdf_wwtps.mean(axis=0).to_frame(name='avg-daily-flow(m3/s)')
+    was24_avgload_wwtps = was24_avgload_wwtps.join(avgflow_was24wwtp['avg-daily-flow(m3/s)'])
+
     avgload_trivs = no3_dailyloaddf_triv.mean(axis=0).to_frame(name='avg-daily-no3-load(kg/d)')
     nh4_avgload_triv = nh4_dailyloaddf_triv.mean(axis=0).to_frame(name='avg-daily-nh4-load(kg/d)')
     avgload_trivs = avgload_trivs.join(nh4_avgload_triv['avg-daily-nh4-load(kg/d)'])
@@ -194,6 +205,11 @@ if WWTP_loc == True:
     avgload_LOriv = no3_dailyloaddf_LOrivbio.mean(axis=0).to_frame(name='avg-daily-no3-load(kg/d)')
     nh4_avgload_LOrivbio = nh4_dailyloaddf_LOrivbio.mean(axis=0).to_frame(name='avg-daily-nh4-load(kg/d)')
     avgload_LOriv = avgload_LOriv.join(nh4_avgload_LOrivbio['avg-daily-nh4-load(kg/d)'])
+
+    avgflow_triv = flowdf_trivs.mean(axis=0).to_frame(name='avg-daily-flow(m3/s)')
+    avgload_trivs = avgload_trivs.join(avgflow_triv['avg-daily-flow(m3/s)'])
+    avgflow_LOriv = flowdf_LOrivflo.mean(axis=0).to_frame(name='avg-daily-flow(m3/s)')
+    avgload_LOriv = avgload_LOriv.join(avgflow_LOriv['avg-daily-flow(m3/s)'])
 
     # add row and col index for plotting on LiveOcean grid
     griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas7/moh20_wwtp_info.csv')
@@ -310,6 +326,13 @@ if WWTP_loc == True:
         (was24_avgload_wwtps['lat'] >= lat_min) &
         (was24_avgload_wwtps['lon'] <= lon_max) &
         (was24_avgload_wwtps['lon'] >= lon_min))]
+    # remove WWTPs outside of Puget Sound
+    lat_min = 47
+    moh20_avgload_wwtps = moh20_avgload_wwtps[~(moh20_avgload_wwtps['lat'] <= lat_min)]
+    was24_avgload_wwtps = was24_avgload_wwtps[~(was24_avgload_wwtps['lat'] <= lat_min)]
+    # remove rivers outside of Puget Sound
+    avgload_trivs = avgload_trivs[~(avgload_trivs['lat'] <= lat_min)]
+    avgload_LOriv = avgload_LOriv[~(avgload_LOriv['lat'] <= lat_min)]
 
 
     # get point source lat and lon
@@ -366,6 +389,20 @@ if WWTP_loc == True:
     print('Land-based NO3 loads decreased by: {} perc'.format( round( (loading_no3-noloading_no3)/loading_no3 * 100 ,2)))
     print('Land-based NH4 loads decreased by: {} perc'.format( round( (loading_nh4-noloading_nh4)/loading_nh4 * 100 ,2)))
 
+    print('---------')
+    total_river_flow = np.sum(avgload_trivs['avg-daily-flow(m3/s)']) + np.sum(avgload_LOriv['avg-daily-flow(m3/s)'])
+    print('Total River Flow = {} m3/s'.format(total_river_flow))
+    total_wwtp_flow = np.sum(moh20_avgload_wwtps['avg-daily-flow(m3/s)']) + np.sum(was24_avgload_wwtps['avg-daily-flow(m3/s)'])
+    print('Total WWTP Flow = {} m3/s'.format(total_wwtp_flow))
+    print('Total River+WWTP Flow = {} m3/s'.format(total_river_flow+total_wwtp_flow))
+
+    print('---------')
+    # concentrations
+    C_loading = total_wwtp_DIN_load / total_wwtp_flow / 86.4 * 71.4 # kg/d / m3/s convert to mmol/m3
+    print('Average WWTP DIN concentration = {} mmol/m3'.format(C_loading))
+
+
+
 
 ##############################################################
 ##                      PROCESS DATA                        ##
@@ -383,218 +420,218 @@ lat = basin_mask_ds['lat_rho'].values
 h = basin_mask_ds['h'].values
 plon, plat = pfun.get_plon_plat(lon,lat)
 
-##############################################################
-# get average concentration per basin
+# ##############################################################
+# # get average concentration per basin
 
-# open datasets
-if remove_straits:
-    straits = 'noStraits'
-else:
-    straits = 'withStraits'
+# # open datasets
+# if remove_straits:
+#     straits = 'noStraits'
+# else:
+#     straits = 'withStraits'
 
-# initialize empty dictionaries and fill with vertical integrals
-NO3_vert_dict = {}
-phyto_vert_dict = {}
-zoop_vert_dict = {}
-NH4_vert_dict = {}
-Ldet_vert_dict = {}
-Sdet_vert_dict = {}
-DO_vert_dict = {}
+# # initialize empty dictionaries and fill with vertical integrals
+# NO3_vert_dict = {}
+# phyto_vert_dict = {}
+# zoop_vert_dict = {}
+# NH4_vert_dict = {}
+# Ldet_vert_dict = {}
+# Sdet_vert_dict = {}
+# DO_vert_dict = {}
 
-for year in years:
-    for gtagex in gtagexes:
-        ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
-        NO3_vert_int = ds['NO3_vert_int'].values
-        phyto_vert_int = ds['phyto_vert_int'].values
-        zoop_vert_int = ds['zoop_vert_int'].values
-        NH4_vert_int = ds['NH4_vert_int'].values
-        LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
-        SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
-        DO_vert_int = ds['DO_vert_int'].values
-        # add data to dictionaries
-        NO3_vert_dict[gtagex+year] = NO3_vert_int
-        phyto_vert_dict[gtagex+year] = phyto_vert_int
-        zoop_vert_dict[gtagex+year] = zoop_vert_int
-        NH4_vert_dict[gtagex+year] = NH4_vert_int
-        Ldet_vert_dict[gtagex+year] = LdetritusN_vert_int
-        Sdet_vert_dict[gtagex+year] = SdetritusN_vert_int
-        DO_vert_dict[gtagex+year] = DO_vert_int
+# for year in years:
+#     for gtagex in gtagexes:
+#         ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
+#         NO3_vert_int = ds['NO3_vert_int'].values
+#         phyto_vert_int = ds['phyto_vert_int'].values
+#         zoop_vert_int = ds['zoop_vert_int'].values
+#         NH4_vert_int = ds['NH4_vert_int'].values
+#         LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
+#         SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
+#         DO_vert_int = ds['DO_vert_int'].values
+#         # add data to dictionaries
+#         NO3_vert_dict[gtagex+year] = NO3_vert_int
+#         phyto_vert_dict[gtagex+year] = phyto_vert_int
+#         zoop_vert_dict[gtagex+year] = zoop_vert_int
+#         NH4_vert_dict[gtagex+year] = NH4_vert_int
+#         Ldet_vert_dict[gtagex+year] = LdetritusN_vert_int
+#         Sdet_vert_dict[gtagex+year] = SdetritusN_vert_int
+#         DO_vert_dict[gtagex+year] = DO_vert_int
 
-# grid cell areas
-fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
-box_ds = xr.open_dataset(fp)
-DX = (box_ds.pm.values)**-1
-DY = (box_ds.pn.values)**-1
-DA = DX*DY # get area in m2
-
-
-# initialize dictionary for average concentration (volume integrals [mol], normalized by volume)
-NO3_vol_norm = {}
-phyto_vol_norm = {}
-zoop_vol_norm = {}
-NH4_vol_norm = {}
-Ldet_vol_norm = {}
-Sdet_vol_norm = {}
-DO_vol_norm = {}
-
-for year in years:
-    for region in regions:
-
-        # get mask for the region
-        if region == 'Hood Canal':
-            mask = mask_hc
-        elif region == 'South Sound':
-            mask = mask_ss
-        elif region == 'Whidbey Basin':
-            mask = mask_wb
-        elif region == 'Main Basin':
-            mask = mask_mb
-        elif region == 'All Puget Sound':
-            mask = mask_hc + mask_ss + mask_wb + mask_mb
-
-        # basin volume
-        h_masked = h * mask
-        basin_vol = np.sum(h_masked * DA) # [m3]
-
-        for gtagex in gtagexes:
-
-            NO3_vert_int = NO3_vert_dict[gtagex+year]
-            NO3_vert_int_masked = NO3_vert_int * mask
-            NO3_vol_timeseries = np.sum(NO3_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            NO3_vol_norm[gtagex+region+year] = NO3_vol_timeseries
-
-            NH4_vert_int = NH4_vert_dict[gtagex+year]
-            NH4_vert_int_masked = NH4_vert_int * mask
-            NH4_vol_timeseries = np.sum(NH4_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            NH4_vol_norm[gtagex+region+year] = NH4_vol_timeseries
-
-            phyto_vert_int = phyto_vert_dict[gtagex+year]
-            phyto_vert_int_masked = phyto_vert_int * mask
-            phyto_vol_timeseries = np.sum(phyto_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            phyto_vol_norm[gtagex+region+year] = phyto_vol_timeseries
-
-            zoop_vert_int = zoop_vert_dict[gtagex+year]
-            zoop_vert_int_masked = zoop_vert_int * mask
-            zoop_vol_timeseries = np.sum(zoop_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            zoop_vol_norm[gtagex+region+year] = zoop_vol_timeseries
+# # grid cell areas
+# fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
+# box_ds = xr.open_dataset(fp)
+# DX = (box_ds.pm.values)**-1
+# DY = (box_ds.pn.values)**-1
+# DA = DX*DY # get area in m2
 
 
-            Ldet_vert_int = Ldet_vert_dict[gtagex+year]
-            Ldet_vert_int_masked = Ldet_vert_int * mask
-            Ldet_vol_timeseries = np.sum(Ldet_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            Ldet_vol_norm[gtagex+region+year] = Ldet_vol_timeseries
+# # initialize dictionary for average concentration (volume integrals [mol], normalized by volume)
+# NO3_vol_norm = {}
+# phyto_vol_norm = {}
+# zoop_vol_norm = {}
+# NH4_vol_norm = {}
+# Ldet_vol_norm = {}
+# Sdet_vol_norm = {}
+# DO_vol_norm = {}
 
-            Sdet_vert_int = Sdet_vert_dict[gtagex+year]
-            Sdet_vert_int_masked = Sdet_vert_int * mask
-            Sdet_vol_timeseries = np.sum(Sdet_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            Sdet_vol_norm[gtagex+region+year] = Sdet_vol_timeseries
+# for year in years:
+#     for region in regions:
 
-            DO_vert_int = DO_vert_dict[gtagex+year]
-            DO_vert_int_masked = DO_vert_int * mask
-            DO_vol_timeseries = np.sum(DO_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            DO_vol_norm[gtagex+region+year] = DO_vol_timeseries
+#         # get mask for the region
+#         if region == 'Hood Canal':
+#             mask = mask_hc
+#         elif region == 'South Sound':
+#             mask = mask_ss
+#         elif region == 'Whidbey Basin':
+#             mask = mask_wb
+#         elif region == 'Main Basin':
+#             mask = mask_mb
+#         elif region == 'All Puget Sound':
+#             mask = mask_hc + mask_ss + mask_wb + mask_mb
+
+#         # basin volume
+#         h_masked = h * mask
+#         basin_vol = np.sum(h_masked * DA) # [m3]
+
+#         for gtagex in gtagexes:
+
+#             NO3_vert_int = NO3_vert_dict[gtagex+year]
+#             NO3_vert_int_masked = NO3_vert_int * mask
+#             NO3_vol_timeseries = np.sum(NO3_vert_int_masked * DA, axis=(1, 2)) # [mol]
+#             NO3_vol_norm[gtagex+region+year] = NO3_vol_timeseries
+
+#             NH4_vert_int = NH4_vert_dict[gtagex+year]
+#             NH4_vert_int_masked = NH4_vert_int * mask
+#             NH4_vol_timeseries = np.sum(NH4_vert_int_masked * DA, axis=(1, 2)) # [mol]
+#             NH4_vol_norm[gtagex+region+year] = NH4_vol_timeseries
+
+#             phyto_vert_int = phyto_vert_dict[gtagex+year]
+#             phyto_vert_int_masked = phyto_vert_int * mask
+#             phyto_vol_timeseries = np.sum(phyto_vert_int_masked * DA, axis=(1, 2)) # [mol]
+#             phyto_vol_norm[gtagex+region+year] = phyto_vol_timeseries
+
+#             zoop_vert_int = zoop_vert_dict[gtagex+year]
+#             zoop_vert_int_masked = zoop_vert_int * mask
+#             zoop_vol_timeseries = np.sum(zoop_vert_int_masked * DA, axis=(1, 2)) # [mol]
+#             zoop_vol_norm[gtagex+region+year] = zoop_vol_timeseries
 
 
-NO3_timeseries_noloading = []
-NH4_timeseries_noloading = []
-phyto_timeseries_noloading = []
-zoop_timeseries_noloading = []
-Ldet_timeseries_noloading = []
-Sdet_timeseries_noloading = []
-DO_timeseries_noloading = []
+#             Ldet_vert_int = Ldet_vert_dict[gtagex+year]
+#             Ldet_vert_int_masked = Ldet_vert_int * mask
+#             Ldet_vol_timeseries = np.sum(Ldet_vert_int_masked * DA, axis=(1, 2)) # [mol]
+#             Ldet_vol_norm[gtagex+region+year] = Ldet_vol_timeseries
 
-NO3_timeseries_loading = []
-NH4_timeseries_loading = []
-phyto_timeseries_loading = []
-zoop_timeseries_loading = []
-Ldet_timeseries_loading = []
-Sdet_timeseries_loading = []
-DO_timeseries_loading = []
+#             Sdet_vert_int = Sdet_vert_dict[gtagex+year]
+#             Sdet_vert_int_masked = Sdet_vert_int * mask
+#             Sdet_vol_timeseries = np.sum(Sdet_vert_int_masked * DA, axis=(1, 2)) # [mol]
+#             Sdet_vol_norm[gtagex+region+year] = Sdet_vol_timeseries
 
-# get full time series
-for year in years:
-    region = 'All Puget Sound'
+#             DO_vert_int = DO_vert_dict[gtagex+year]
+#             DO_vert_int_masked = DO_vert_int * mask
+#             DO_vol_timeseries = np.sum(DO_vert_int_masked * DA, axis=(1, 2)) # [mol]
+#             DO_vol_norm[gtagex+region+year] = DO_vol_timeseries
 
-    NO3_timeseries_noloading.extend(NO3_vol_norm['cas7_t1noDIN_x11ab'+region+year])
-    NH4_timeseries_noloading.extend(NH4_vol_norm['cas7_t1noDIN_x11ab'+region+year])
-    phyto_timeseries_noloading.extend(phyto_vol_norm['cas7_t1noDIN_x11ab'+region+year])
-    zoop_timeseries_noloading.extend(zoop_vol_norm['cas7_t1noDIN_x11ab'+region+year])
-    Sdet_timeseries_noloading.extend(Sdet_vol_norm['cas7_t1noDIN_x11ab'+region+year])
-    Ldet_timeseries_noloading.extend(Ldet_vol_norm['cas7_t1noDIN_x11ab'+region+year])
-    DO_timeseries_noloading.extend(DO_vol_norm['cas7_t1noDIN_x11ab'+region+year])
 
-    NO3_timeseries_loading.extend(NO3_vol_norm['cas7_t1_x11ab'+region+year])
-    NH4_timeseries_loading.extend(NH4_vol_norm['cas7_t1_x11ab'+region+year])
-    phyto_timeseries_loading.extend(phyto_vol_norm['cas7_t1_x11ab'+region+year])
-    zoop_timeseries_loading.extend(zoop_vol_norm['cas7_t1_x11ab'+region+year])
-    Sdet_timeseries_loading.extend(Sdet_vol_norm['cas7_t1_x11ab'+region+year])
-    Ldet_timeseries_loading.extend(Ldet_vol_norm['cas7_t1_x11ab'+region+year])
-    DO_timeseries_loading.extend(DO_vol_norm['cas7_t1_x11ab'+region+year])
+# NO3_timeseries_noloading = []
+# NH4_timeseries_noloading = []
+# phyto_timeseries_noloading = []
+# zoop_timeseries_noloading = []
+# Ldet_timeseries_noloading = []
+# Sdet_timeseries_noloading = []
+# DO_timeseries_noloading = []
 
-# get average molar quantity
-NO3_mols_daily_avg_noloading = np.nanmean(NO3_timeseries_noloading)
-NH4_mols_daily_avg_noloading = np.nanmean(NH4_timeseries_noloading)
-phyto_mols_daily_avg_noloading = np.nanmean(phyto_timeseries_noloading)
-zoop_mols_daily_avg_noloading = np.nanmean(zoop_timeseries_noloading)
-Sdet_mols_daily_avg_noloading = np.nanmean(Sdet_timeseries_noloading)
-Ldet_mols_daily_avg_noloading = np.nanmean(Ldet_timeseries_noloading)
-DO_mols_daily_avg_noloading = np.nanmean(DO_timeseries_noloading)
+# NO3_timeseries_loading = []
+# NH4_timeseries_loading = []
+# phyto_timeseries_loading = []
+# zoop_timeseries_loading = []
+# Ldet_timeseries_loading = []
+# Sdet_timeseries_loading = []
+# DO_timeseries_loading = []
 
-NO3_mols_daily_avg_loading = np.nanmean(NO3_timeseries_loading)
-NH4_mols_daily_avg_loading = np.nanmean(NH4_timeseries_loading)
-phyto_mols_daily_avg_loading = np.nanmean(phyto_timeseries_loading)
-zoop_mols_daily_avg_loading = np.nanmean(zoop_timeseries_loading)
-Sdet_mols_daily_avg_loading = np.nanmean(Sdet_timeseries_loading)
-Ldet_mols_daily_avg_loading = np.nanmean(Ldet_timeseries_loading)
-DO_mols_daily_avg_loading = np.nanmean(DO_timeseries_loading)
+# # get full time series
+# for year in years:
+#     region = 'All Puget Sound'
 
-# get total TN
-TN_noloading = (NO3_mols_daily_avg_noloading +
-                NH4_mols_daily_avg_noloading +
-                phyto_mols_daily_avg_noloading +
-                zoop_mols_daily_avg_noloading +
-                Sdet_mols_daily_avg_noloading +
-                Ldet_mols_daily_avg_noloading)
-TN_loading = (NO3_mols_daily_avg_loading +
-                NH4_mols_daily_avg_loading +
-                phyto_mols_daily_avg_loading +
-                zoop_mols_daily_avg_loading +
-                Sdet_mols_daily_avg_loading +
-                Ldet_mols_daily_avg_loading)
+#     NO3_timeseries_noloading.extend(NO3_vol_norm['cas7_t1noDIN_x11ab'+region+year])
+#     NH4_timeseries_noloading.extend(NH4_vol_norm['cas7_t1noDIN_x11ab'+region+year])
+#     phyto_timeseries_noloading.extend(phyto_vol_norm['cas7_t1noDIN_x11ab'+region+year])
+#     zoop_timeseries_noloading.extend(zoop_vol_norm['cas7_t1noDIN_x11ab'+region+year])
+#     Sdet_timeseries_noloading.extend(Sdet_vol_norm['cas7_t1noDIN_x11ab'+region+year])
+#     Ldet_timeseries_noloading.extend(Ldet_vol_norm['cas7_t1noDIN_x11ab'+region+year])
+#     DO_timeseries_noloading.extend(DO_vol_norm['cas7_t1noDIN_x11ab'+region+year])
 
-print('----------')
-print('Vol-integrated TN in Puget Sound decreased by: {} perc'.format( round(
-    (TN_loading-TN_noloading)/TN_noloading * 100 ,2)))
-print('Vol-integrated NO3 in Puget Sound decreased by: {} perc'.format( round(
-    (NO3_mols_daily_avg_loading-NO3_mols_daily_avg_noloading)/NO3_mols_daily_avg_noloading * 100 ,2)))
-print('Vol-integrated NH4 in Puget Sound decreased by: {} perc'.format( round(
-    (NH4_mols_daily_avg_loading-NH4_mols_daily_avg_noloading)/NH4_mols_daily_avg_noloading * 100 ,2)))
-print('Vol-integrated DO in Puget Sound decreased by: {} perc'.format( round(
-    (DO_mols_daily_avg_noloading-DO_mols_daily_avg_loading)/DO_mols_daily_avg_noloading * 100 ,2)))
+#     NO3_timeseries_loading.extend(NO3_vol_norm['cas7_t1_x11ab'+region+year])
+#     NH4_timeseries_loading.extend(NH4_vol_norm['cas7_t1_x11ab'+region+year])
+#     phyto_timeseries_loading.extend(phyto_vol_norm['cas7_t1_x11ab'+region+year])
+#     zoop_timeseries_loading.extend(zoop_vol_norm['cas7_t1_x11ab'+region+year])
+#     Sdet_timeseries_loading.extend(Sdet_vol_norm['cas7_t1_x11ab'+region+year])
+#     Ldet_timeseries_loading.extend(Ldet_vol_norm['cas7_t1_x11ab'+region+year])
+#     DO_timeseries_loading.extend(DO_vol_norm['cas7_t1_x11ab'+region+year])
 
-# calculate total Puget Sound volume
-# get mask for the region
-mask = mask_hc + mask_ss + mask_wb + mask_mb
-# basin volume
-h_masked = h * mask
-PugetSound_vol = np.sum(h_masked * DA) # [m3]
-print('Change in concentrations ----------------')
-print('Puget Sound TN Loading: {} mmol/m3'.format( round((TN_loading / PugetSound_vol *1000),2)))
-print('Puget Sound TN No-Loading: {} mmol/m3'.format( round((TN_noloading / PugetSound_vol *1000),2)))
-print('Puget Sound NO3 Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_loading / PugetSound_vol *1000),2)))
-print('Puget Sound NO3 No-Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
-print('Puget Sound NH4 Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_loading / PugetSound_vol *1000),2)))
-print('Puget Sound NH4 No-Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
+# # get average molar quantity
+# NO3_mols_daily_avg_noloading = np.nanmean(NO3_timeseries_noloading)
+# NH4_mols_daily_avg_noloading = np.nanmean(NH4_timeseries_noloading)
+# phyto_mols_daily_avg_noloading = np.nanmean(phyto_timeseries_noloading)
+# zoop_mols_daily_avg_noloading = np.nanmean(zoop_timeseries_noloading)
+# Sdet_mols_daily_avg_noloading = np.nanmean(Sdet_timeseries_noloading)
+# Ldet_mols_daily_avg_noloading = np.nanmean(Ldet_timeseries_noloading)
+# DO_mols_daily_avg_noloading = np.nanmean(DO_timeseries_noloading)
+
+# NO3_mols_daily_avg_loading = np.nanmean(NO3_timeseries_loading)
+# NH4_mols_daily_avg_loading = np.nanmean(NH4_timeseries_loading)
+# phyto_mols_daily_avg_loading = np.nanmean(phyto_timeseries_loading)
+# zoop_mols_daily_avg_loading = np.nanmean(zoop_timeseries_loading)
+# Sdet_mols_daily_avg_loading = np.nanmean(Sdet_timeseries_loading)
+# Ldet_mols_daily_avg_loading = np.nanmean(Ldet_timeseries_loading)
+# DO_mols_daily_avg_loading = np.nanmean(DO_timeseries_loading)
+
+# # get total TN
+# TN_noloading = (NO3_mols_daily_avg_noloading +
+#                 NH4_mols_daily_avg_noloading +
+#                 phyto_mols_daily_avg_noloading +
+#                 zoop_mols_daily_avg_noloading +
+#                 Sdet_mols_daily_avg_noloading +
+#                 Ldet_mols_daily_avg_noloading)
+# TN_loading = (NO3_mols_daily_avg_loading +
+#                 NH4_mols_daily_avg_loading +
+#                 phyto_mols_daily_avg_loading +
+#                 zoop_mols_daily_avg_loading +
+#                 Sdet_mols_daily_avg_loading +
+#                 Ldet_mols_daily_avg_loading)
+
+# print('----------')
+# print('Vol-integrated TN in Puget Sound decreased by: {} perc'.format( round(
+#     (TN_loading-TN_noloading)/TN_noloading * 100 ,2)))
+# print('Vol-integrated NO3 in Puget Sound decreased by: {} perc'.format( round(
+#     (NO3_mols_daily_avg_loading-NO3_mols_daily_avg_noloading)/NO3_mols_daily_avg_noloading * 100 ,2)))
+# print('Vol-integrated NH4 in Puget Sound decreased by: {} perc'.format( round(
+#     (NH4_mols_daily_avg_loading-NH4_mols_daily_avg_noloading)/NH4_mols_daily_avg_noloading * 100 ,2)))
+# print('Vol-integrated DO in Puget Sound decreased by: {} perc'.format( round(
+#     (DO_mols_daily_avg_noloading-DO_mols_daily_avg_loading)/DO_mols_daily_avg_noloading * 100 ,2)))
+
+# # calculate total Puget Sound volume
+# # get mask for the region
+# mask = mask_hc + mask_ss + mask_wb + mask_mb
+# # basin volume
+# h_masked = h * mask
+# PugetSound_vol = np.sum(h_masked * DA) # [m3]
+# print('Change in concentrations ----------------')
+# print('Puget Sound TN Loading: {} mmol/m3'.format( round((TN_loading / PugetSound_vol *1000),2)))
+# print('Puget Sound TN No-Loading: {} mmol/m3'.format( round((TN_noloading / PugetSound_vol *1000),2)))
+# print('Puget Sound NO3 Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_loading / PugetSound_vol *1000),2)))
+# print('Puget Sound NO3 No-Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
+# print('Puget Sound NH4 Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_loading / PugetSound_vol *1000),2)))
+# print('Puget Sound NH4 No-Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
 
 ##############################################################
 ##                    Plot basin map                        ##
 ##############################################################
 
 # Puget Sound bounds
-xmin = -123.29 #-125
+xmin = -130#-123.29
 xmax = -122.1
-ymin = 46.95
-ymax = 48.50 #49.5
+ymin = 43#46.95
+ymax = 52#48.50
 
 
 # initialize figure

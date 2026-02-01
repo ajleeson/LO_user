@@ -50,12 +50,13 @@ plt.close('all')
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['salt']#['DIN','u','v','oxygen'] # u, v, w, DIN
+vns = ['salt','u','temp','DIN']#['DIN','u','v','oxygen'] # u, v, w, DIN
 # date = '2013.04.04'
 # date = '2012.10.31'
 # date = '2012.10.07'
 # date = '2014.01.09'
-date = '2018.06.12'
+# date = '2018.06.12'
+date = '2017.02.12'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
@@ -63,8 +64,8 @@ date = '2018.06.12'
 
 # gtagex_longhindcast = 'cas7_t0noN_x4b'
 # gtagex_noN = 'cas7_t0noN_x4b_perf10'
-gtagex_longhindcast = 'cas7_t1_x11ab'
-gtagex_noN = 'cas7_t1noDIN_x11ab'
+gtagex_longhindcast = 'cas7_t1_x11ab'#'cas7_t1_x11ab'
+gtagex_noN = 'cas7_t1_x11b'#'cas7_t1noDIN_x11ab'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots'
@@ -114,8 +115,8 @@ ymax = 48.45
 # get model output
 # fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_his_0025.nc'
 # fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0025.nc'
-fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_avg_0001.nc'
-fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_avg_0001.nc'
+fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_his_0001.nc'
+fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0001.nc'
 ds_hindcast = xr.open_dataset(fp_hindcast)
 ds_noN = xr.open_dataset(fp_noN)
 
@@ -233,7 +234,7 @@ for vn in vns:
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
         ax.set_title(vn + ' difference at ' + stext + pinfo.units_dict[vn_name], fontsize=16)
-        fig.suptitle('Loading minus No-loading\n' + date + ' ocean_avg_0001',
+        fig.suptitle('{} minus {}\n'.format(gtagex_longhindcast,gtagex_noN) + date + ' ocean_avg_0001',
                     fontsize=18, fontweight='bold')
 
         # # add 10 km bar
@@ -247,9 +248,9 @@ for vn in vns:
         # # ax.text((lon0+lon1)/2,lat0+0.02,'{} km'.format(x_dist_km),color='k',
         # #         horizontalalignment='center', fontsize=15)
         
-        # add WWTP locations
-        ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
-                facecolors='none',edgecolors='deeppink')
+        # # add WWTP locations
+        # ax.scatter(wwtp_lon,wwtp_lat,s=30,alpha=0.5,
+        #         facecolors='none',edgecolors='deeppink')
 
     # Generate plot
     plt.tight_layout
