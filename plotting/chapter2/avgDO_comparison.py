@@ -28,11 +28,10 @@ from lo_tools import plotting_functions as pfun
 
 import sys
 from pathlib import Path
-pth = Path(__file__).absolute().parent.parent.parent.parent.parent / 'LO' / 'pgrid'
+pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
 print(pth)
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
-import gfun_utility as gfu
 import gfun
 
 Gr = gfun.gstart()
@@ -203,22 +202,22 @@ else:
 ds_dict = {}
 for gtagex in gtagexes:
     # add ds to dictionary
-    ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + year + '_DO_info_' + straits + '.nc'))
+    ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_DO_info_' + straits + '.nc'))
     ds_dict[gtagex] = ds
 
 ##############################################################
 ##                         MAKE MAP                         ##
 ##############################################################
 
-cbar_pad = 0.02
+cbar_pad = 0.2
 
 # get plotting limits based on region
 if region == 'Puget Sound':
     # box extracion limits: [-123.29, -122.1, 46.95, 48.93]
     xmin = -123.29
-    xmax = -122.1 + 0.1 # to make room for legend key
-    ymin = 46.95 - 0.1 # to make room for legend key
-    ymax = 48.93
+    xmax = -122.1 # to make room for legend key
+    ymin = 46.95 
+    ymax = 48.5#48.93
 
 # set axes range for different state variables
 if vn == 'NO3':
@@ -255,7 +254,7 @@ units = pinfo.units_dict[vn]
 
 # Initialize figure
 fs = 10
-pfun.start_plot(fs=fs, figsize=(6,6))
+pfun.start_plot(fs=fs, figsize=(9,7.2))
 fig,axes = plt.subplots(1,len(gtagexes))
 ax = axes.ravel()
 
@@ -286,10 +285,10 @@ for i,gtagex in enumerate(gtagexes):
     # plot natural condition
     if i == 0:
         cs = ax[i].pcolormesh(px,py,v, vmin=vmin, vmax=vmax, cmap=cmap)#cmocean.cm.balance_r)
-        cbar = fig.colorbar(cs, location='left')
+        cbar = fig.colorbar(cs, location='left',pad=cbar_pad)
         cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
         cbar.outline.set_visible(False)
-        ax[i].set_title('No-Loading', fontsize=14)
+        ax[i].set_title('(a) No-Loading', fontsize=14, loc='left')
 
 
     if i == 1:
@@ -304,20 +303,27 @@ for i,gtagex in enumerate(gtagexes):
         # don't let colorbar axis scale get too large
         if maxdiff > vmax:
             maxdiff = vmax
+        mindiff = -0.25
+        maxdiff = 0.05
         # make sure the colorbar is always centered about zero
         cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
         cs = ax[i].pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
-        ax[i].set_title('Loading minus No-Loading', fontsize=14)
-        cbar = fig.colorbar(cs, location='right')
+        ax[i].set_title('(b) Loading minus No-Loading', fontsize=14, loc='left')
+        cbar = fig.colorbar(cs, location='right',pad=cbar_pad)
         cbar.ax.tick_params(labelsize=12)#,length=10, width=2)
         cbar.outline.set_visible(False)
 
     # format figure
     ax[i].set_xlim([xmin,xmax])
     ax[i].set_ylim([ymin,ymax])
-    ax[i].set_yticklabels([])
-    ax[i].set_xticklabels([])
-    ax[i].axis('off')
+    ax[i].tick_params(axis='both',rotation=30)
+    ax[i].set_xlabel('Lon',fontsize=12)
+    if i == 0:
+        ax[i].set_ylabel('Lat',fontsize=12)
+    if i == 1:
+        ax[i].set_yticklabels([])
+    # ax[i].set_xticklabels([])
+    # ax[i].axis('off')
     pfun.dar(ax[i])
 
 # add wwtp locations
@@ -330,32 +336,32 @@ if WWTP_loc == True:
     l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=1)
     l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=1)
     labels = ['< 100', '1,000', '10,000']
-    # legend = ax[1].legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
-    #     title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='lower right', labelspacing=1, borderpad=0.8)
-    # plt.setp(legend.get_title(),fontsize=9)
+    legend = ax[1].legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
+        title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
+    plt.setp(legend.get_title(),fontsize=9)
 
 # add 10 km bar
-lat0 = 46.94
-lon0 = -123.05
+lat0 = 46.94 + 0.1
+lon0 = -123.05 +0.7
 lat1 = lat0
-lon1 = -122.91825
+lon1 = -122.91825+0.7
 distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
 x_dist_km = round(distances_m[0]/1000)
 ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=2)
 ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=10)
 
-# format figure
-ax[0].set_xlim([xmin,xmax])
-ax[0].set_ylim([ymin,ymax])
-ax[0].set_yticklabels([])
-ax[0].set_xticklabels([])
-ax[0].axis('off')
-pfun.dar(ax[0])
+# # format figure
+# ax[0].set_xlim([xmin,xmax])
+# ax[0].set_ylim([ymin,ymax])
+# ax[0].set_yticklabels([])
+# ax[0].set_xticklabels([])
+# ax[0].axis('off')
+# pfun.dar(ax[0])
                                 
 # Add colormap title
-plt.suptitle('2014 ' + start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,
+plt.suptitle(year + ' ' + start+' to '+end+' average ' + stext + ' ' + vn + ' ' + units,
             fontsize=14, fontweight='bold', y=0.95)
 
 # Generate plot
 plt.tight_layout
-plt.subplots_adjust(left=0.05, right=0.92, top=0.85, wspace=0.02)
+plt.subplots_adjust(left=0.05, right=0.92, top=0.85, wspace=0.1)
