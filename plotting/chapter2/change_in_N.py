@@ -401,6 +401,13 @@ if WWTP_loc == True:
     C_loading = total_wwtp_DIN_load / total_wwtp_flow / 86.4 * 71.4 # kg/d / m3/s convert to mmol/m3
     print('Average WWTP DIN concentration = {} mmol/m3'.format(C_loading))
 
+    # concentrations
+    C_R_loading = loading_din / (total_river_flow+total_wwtp_flow) / 86.4 * 71.4 # kg/d / m3/s convert to mmol/m3
+    C_R_noloading = noloading_din / (total_river_flow) / 86.4 * 71.4 # kg/d / m3/s convert to mmol/m3
+    print('Average WWTP DIN concentration (loading) = {} mmol/m3'.format(C_R_loading))
+    print('Average WWTP DIN concentration (noloading) = {} mmol/m3'.format(C_R_noloading))
+    print('Difference = {} mmol/m3'.format(C_R_loading-C_R_noloading))
+
 
 
 
@@ -609,6 +616,7 @@ print('Vol-integrated NH4 in Puget Sound increased by: {} perc'.format( round(
 print('Vol-integrated DO in Puget Sound decreased by: {} perc'.format( round(
     (DO_mols_daily_avg_noloading-DO_mols_daily_avg_loading)/DO_mols_daily_avg_noloading * 100 ,2)))
 
+
 # calculate total Puget Sound volume
 # get mask for the region
 mask = mask_hc + mask_ss + mask_wb + mask_mb
@@ -622,6 +630,9 @@ print('Puget Sound NO3 Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_lo
 print('Puget Sound NO3 No-Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
 print('Puget Sound NH4 Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_loading / PugetSound_vol *1000),2)))
 print('Puget Sound NH4 No-Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
+
+print('DO loading {} mmol/m3'.format(DO_mols_daily_avg_loading/PugetSound_vol*1000))
+print('DO no-loading {} mmol/m3'.format(DO_mols_daily_avg_noloading/PugetSound_vol*1000))
 
 ##############################################################
 ##                    Plot basin map                        ##
