@@ -34,7 +34,6 @@ parser.add_argument('-0', '--ds0', type=str)        # e.g. 2019.07.04
 parser.add_argument('-ro', '--roms_out_num', type=int) # 2 = Ldir['roms_out2'], etc.
 
 args = parser.parse_args()
-Ldir = Lfun.Lstart()
 
 gridname, tag, ex_name = args.gtagex.split('_')
 # get the dict Ldir
@@ -46,6 +45,12 @@ gtagex_new = 'cas7_t1d_x11ad'
 
 ##################################################
 
+# get all information from arguments
+argsd = args.__dict__
+# add more entries to Ldir
+for a in argsd.keys():
+    if a not in Ldir.keys():
+        Ldir[a] = argsd[a]
 # set where to look for model output
 if Ldir['roms_out_num'] == 0:
     pass
