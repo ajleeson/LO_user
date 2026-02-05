@@ -636,7 +636,7 @@ Hout(idMtls) == F       ! gls                turbulent length scale
 ! dyes, pollutants, oil spills, etc. NPT values are expected. However, these
 ! switches can be activated using compact parameter specification.
 
- Hout(inert) == F       ! dye_01, ...        inert passive tracers
+ Hout(inert) == T       ! dye_01, ...        inert passive tracers
 
 ! Logical switches (TRUE/FALSE) to activate writing of fields into
 ! QUICKSAVE output file.
