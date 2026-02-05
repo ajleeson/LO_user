@@ -46,6 +46,12 @@ gtagex_new = 'cas7_t1d_x11ad'
 
 ##################################################
 
+# set where to look for model output
+if Ldir['roms_out_num'] == 0:
+    pass
+elif Ldir['roms_out_num'] > 0:
+    Ldir['roms_out'] = Ldir['roms_out' + str(Ldir['roms_out_num'])]
+
 
 ds0 = args.ds0
 dt0 = datetime.strptime(ds0, Lfun.ds_fmt)
