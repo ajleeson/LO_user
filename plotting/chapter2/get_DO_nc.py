@@ -234,10 +234,11 @@ for gtagex in gtagexes:
             #                                     'xi_rho': ds_raw['xi_rho'].values},
             #                             dims=['ocean_time','eta_rho', 'xi_rho'])
             # depth of water column
-            ds['depth_bot'] = xr.DataArray(z_w_all[:,0,:,:], # get bottom most value
-                                        coords={'eta_rho': ds_raw['eta_rho'].values,
+            ds['depth_bot'] = xr.DataArray(z_w_all[:,0,:,:], # get bottom most value, which varies with time due to SSH
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
                                                 'xi_rho': ds_raw['xi_rho'].values},
-                                        dims=['eta_rho', 'xi_rho'])
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
             # DO concentration at bottom
             ds['DO_bot'] = xr.DataArray(DO_bot,
                                         coords={'ocean_time': ds_raw['ocean_time'].values,
