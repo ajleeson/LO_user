@@ -158,10 +158,12 @@ for gtagex in gtagexes:
             Nt = zeta.shape[0]
             Nz = S['N']
             dzr_all = np.empty((Nt, Nz, *h.shape))
+            z_w_all = np.empty((Nt, Nz + 1, *h.shape))
             for t in range(Nt):
                 # make sure to use zeta as an input to account for SSH variability!!!
                 z_rho, z_w = zrfun.get_z(h, zeta[t, :, :], S)
-                dzr_all[t, :, :, :] = np.diff(z_w, axis=0)
+                dzr_all[t, :, :, :] = np.diff(z_w, axis=0) # sigma layer thickness at one time
+                z_w_all[t, :, :, :] = z_w # sigma layer boundaries at one time
             # z_rho, z_w = zrfun.get_z(h, ds_raw.zeta.to_numpy(), S) # make sure to use zeta as an input to account for SSH variability!!!
             # dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
 
@@ -232,7 +234,7 @@ for gtagex in gtagexes:
             #                                     'xi_rho': ds_raw['xi_rho'].values},
             #                             dims=['ocean_time','eta_rho', 'xi_rho'])
             # depth of water column
-            ds['depth_bot'] = xr.DataArray(z_w[0,0,:,:], # get bottom most value
+            ds['depth_bot'] = xr.DataArray(z_w_all[:,0,:,:], # get bottom most value
                                         coords={'eta_rho': ds_raw['eta_rho'].values,
                                                 'xi_rho': ds_raw['xi_rho'].values},
                                         dims=['eta_rho', 'xi_rho'])
