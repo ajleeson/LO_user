@@ -66,8 +66,8 @@ def start_ds(ocean_time,eta_rho,xi_rho):
     Nxi = len(xi_rho.values)
 
     ds = xr.Dataset(data_vars=dict(
-        # depth of DO minima
-        depth_min   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # # depth of DO minima
+        # depth_min   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # # slevel of DO minima
         # slev_min    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # concentration of DO minima
@@ -91,8 +91,8 @@ def add_metadata(ds):
     Create metadata for processed DO data
     '''
 
-    ds['depth_min'].attrs['long_name'] = 'depth of watercolumn DO minima'
-    ds['depth_min'].attrs['units'] = 'm'
+    # ds['depth_min'].attrs['long_name'] = 'depth of watercolumn DO minima'
+    # ds['depth_min'].attrs['units'] = 'm'
 
     # ds['slev_min'].attrs['long_name'] = 's-level of watercolumn DO minima'
     # ds['slev_min'].attrs['units'] = 'unitless'
@@ -169,18 +169,18 @@ for gtagex in gtagexes:
             one_mgL_thick = np.nansum(one_mgL_cell_thick,axis=1)
             three_mgL_thick = np.nansum(three_mgL_cell_thick,axis=1)
 
-            print('    Calculating depth of DO minima')
-            # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: eta_size, xi_rho: xi_size))
-            eta_size = ds_raw['h'].sizes['eta_rho']
-            xi_size  = ds_raw['h'].sizes['xi_rho']
-            srho_min = ds_raw['oxygen'].idxmin(dim='s_rho', skipna=True)#.values
-            # get depths, but also flatten the time dimension
-            # depths = ds_raw['h'].values
-            # # reshape
-            # depths_reshape = depths.reshape((1,eta_size,xi_size))
-            depths_reshape = z_rho.reshape((1,eta_size,xi_size))
-            # convert srho to depths
-            depth_min = depths_reshape * srho_min
+            # print('    Calculating depth of DO minima')
+            # # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: eta_size, xi_rho: xi_size))
+            # eta_size = ds_raw['h'].sizes['eta_rho']
+            # xi_size  = ds_raw['h'].sizes['xi_rho']
+            # srho_min = ds_raw['oxygen'].idxmin(dim='s_rho', skipna=True)#.values
+            # # get depths, but also flatten the time dimension
+            # # depths = ds_raw['h'].values
+            # # # reshape
+            # # depths_reshape = depths.reshape((1,eta_size,xi_size))
+            # depths_reshape = z_rho.reshape((1,eta_size,xi_size))
+            # # convert srho to depths
+            # depth_min = depths_reshape * srho_min
 
             # print('    Calculating s-level of DO minima')
             # # get s-level of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
@@ -201,12 +201,12 @@ for gtagex in gtagexes:
 
             # add data to ds
             print('    Adding data to dataset')
-            # depth of DO minima
-            ds['depth_min'] = xr.DataArray(depth_min,
-                                        coords={'ocean_time': ds_raw['ocean_time'].values,
-                                                'eta_rho': ds_raw['eta_rho'].values,
-                                                'xi_rho': ds_raw['xi_rho'].values},
-                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            # # depth of DO minima
+            # ds['depth_min'] = xr.DataArray(depth_min,
+            #                             coords={'ocean_time': ds_raw['ocean_time'].values,
+            #                                     'eta_rho': ds_raw['eta_rho'].values,
+            #                                     'xi_rho': ds_raw['xi_rho'].values},
+            #                             dims=['ocean_time','eta_rho', 'xi_rho'])
             # # slevel
             # ds['slev_min'] = xr.DataArray(slev_min,
             #                             coords={'ocean_time': ds_raw['ocean_time'].values,
