@@ -152,8 +152,19 @@ for gtagex in gtagexes:
             S = zrfun.get_S(S_dict)
             # get cell thickness
             h = ds_raw['h'].values # height of water column
-            z_rho, z_w = zrfun.get_z(h, ds_raw.zeta.to_numpy(), S) # make sure to use zeta as an input to account for SSH variability!!!
-            dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
+
+            # loop over time to get z_rho and z_w:
+            zeta = ds_raw['zeta'].values
+            Nt = zeta.shape[0]
+            Nz = S['N']
+            dzr_all = np.empty((Nt, Nz, *h.shape))
+            for t in range(Nt):
+                # make sure to use zeta as an input to account for SSH variability!!!
+                z_rho, z_w = zrfun.get_z(h, zeta[t, :, :], S)
+                dzr_all[t, :, :, :] = np.diff(z_w, axis=0)
+            # z_rho, z_w = zrfun.get_z(h, ds_raw.zeta.to_numpy(), S) # make sure to use zeta as an input to account for SSH variability!!!
+            # dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
+
             # Now get oxygen values at every grid cell and convert to mg/L
             oxy_mgL = pinfo.fac_dict['oxygen'] * ds_raw['oxygen'].values
             # remove all non-hypoxic values (greater than 2 mg/L)
@@ -161,9 +172,9 @@ for gtagex in gtagexes:
             one_mgL = np.where(oxy_mgL <= 1, 1, np.nan) # array of nans and ones. one means hypoxic, nan means nonhypoxic
             three_mgL = np.where(oxy_mgL <= 3, 1, np.nan) # array of nans and ones. one means hypoxic, nan means nonhypoxic
             # Multiple cell height array by hypoxic array boolean array
-            hyp_cell_thick = dzr * hypoxic
-            one_mgL_cell_thick = dzr * one_mgL
-            three_mgL_cell_thick = dzr * three_mgL
+            hyp_cell_thick = dzr_all * hypoxic
+            one_mgL_cell_thick = dzr_all * one_mgL
+            three_mgL_cell_thick = dzr_all * three_mgL
             # Sum along z to get thickness of hypoxic layer
             hyp_thick = np.nansum(hyp_cell_thick,axis=1)
             one_mgL_thick = np.nansum(one_mgL_cell_thick,axis=1)
