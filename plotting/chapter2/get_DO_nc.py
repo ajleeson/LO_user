@@ -39,8 +39,6 @@ Ldir = Lfun.Lstart()
 # region = 'HC_up'
 regions = ['pugetsoundDO']
 
-remove_straits = False
-
 years = ['2014','2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
@@ -70,8 +68,8 @@ def start_ds(ocean_time,eta_rho,xi_rho):
     ds = xr.Dataset(data_vars=dict(
         # depth of DO minima
         depth_min   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # slevel of DO minima
-        slev_min    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # # slevel of DO minima
+        # slev_min    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # concentration of DO minima
         DO_min      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # depth of water column
@@ -79,7 +77,11 @@ def start_ds(ocean_time,eta_rho,xi_rho):
         # DO concentration at bottom
         DO_bot      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # thickness of hypoxic layer
-        hyp_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
+        hyp_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # thickness of 1mg/L layer
+        one_mgL_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # thickness of 3mg/L layer
+        three_mgL_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
     coords=dict(ocean_time=ocean_time, eta_rho=eta_rho, xi_rho=xi_rho,),)
     
     return ds
@@ -92,13 +94,13 @@ def add_metadata(ds):
     ds['depth_min'].attrs['long_name'] = 'depth of watercolumn DO minima'
     ds['depth_min'].attrs['units'] = 'm'
 
-    ds['slev_min'].attrs['long_name'] = 's-level of watercolumn DO minima'
-    ds['slev_min'].attrs['units'] = 'unitless'
+    # ds['slev_min'].attrs['long_name'] = 's-level of watercolumn DO minima'
+    # ds['slev_min'].attrs['units'] = 'unitless'
 
     ds['DO_min'].attrs['long_name'] = 'concentration of watercolumn DO minima'
     ds['DO_min'].attrs['units'] = 'mg/L'
 
-    ds['depth_bot'].attrs['long_name'] = 'watercolumn depth'
+    ds['depth_bot'].attrs['long_name'] = 'watercolumn depth (accounting for zeta)'
     ds['depth_bot'].attrs['units'] = 'm'
 
     ds['DO_bot'].attrs['long_name'] = 'DO concentration at bottom'
@@ -106,6 +108,12 @@ def add_metadata(ds):
 
     ds['hyp_thick'].attrs['long_name'] = 'thickness of hypoxic layer'
     ds['hyp_thick'].attrs['units'] = 'm'
+
+    ds['one_mgL_thick'].attrs['long_name'] = 'thickness of 1 mg/L layer (or lower concentration)'
+    ds['one_mgL_thick'].attrs['units'] = 'm'
+
+    ds['three_mgL_thick'].attrs['long_name'] = 'thickness of 3 mg/L layer (or lower concentration)'
+    ds['three_mgL_thick'].attrs['units'] = 'm'
 
     return ds
 
@@ -124,21 +132,6 @@ for gtagex in gtagexes:
             # get data
             fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / (region+'_'+year+'.01.01_'+year+'.12.31.nc')
             ds_raw = xr.open_dataset(fp)
-
-            # set values in strait of juan de fuca and strait of georgia to nan 
-            # (so they don't interfere with analysis)
-            # only need to do this over the whole Puget Sound region
-            if region == 'pugetsoundDO':
-                if remove_straits:
-                    print('    Removing Straits...')
-                    lat_threshold = 48.14
-                    lon_threshold = -122.76
-                    # Create a mask for latitudes and longitudes in the Straits
-                    mask = (ds_raw['lat_rho'] > lat_threshold) & (ds_raw['lon_rho'] < lon_threshold)
-                    # Expand mask dimensions to match 'oxygen' dimensions
-                    expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['ocean_time']), s_rho=len(ds_raw['s_rho']))
-                    # Apply the mask to the 'oxygen' variable
-                    ds_raw['oxygen'] = xr.where(expanded_mask, np.nan, ds_raw['oxygen'])
 
             # initialize dataset
             ds = start_ds(ds_raw['ocean_time'],
@@ -159,16 +152,22 @@ for gtagex in gtagexes:
             S = zrfun.get_S(S_dict)
             # get cell thickness
             h = ds_raw['h'].values # height of water column
-            z_rho, z_w = zrfun.get_z(h, 0*h, S) 
+            z_rho, z_w = zrfun.get_z(h, ds_raw.zeta[0,:,:].to_numpy(), S) # make sure to use zeta as an input to account for SSH variability!!!
             dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
             # Now get oxygen values at every grid cell and convert to mg/L
             oxy_mgL = pinfo.fac_dict['oxygen'] * ds_raw['oxygen'].values
             # remove all non-hypoxic values (greater than 2 mg/L)
             hypoxic = np.where(oxy_mgL <= 2, 1, np.nan) # array of nans and ones. one means hypoxic, nan means nonhypoxic
+            one_mgL = np.where(oxy_mgL <= 1, 1, np.nan) # array of nans and ones. one means hypoxic, nan means nonhypoxic
+            three_mgL = np.where(oxy_mgL <= 3, 1, np.nan) # array of nans and ones. one means hypoxic, nan means nonhypoxic
             # Multiple cell height array by hypoxic array boolean array
             hyp_cell_thick = dzr * hypoxic
+            one_mgL_cell_thick = dzr * one_mgL
+            three_mgL_cell_thick = dzr * three_mgL
             # Sum along z to get thickness of hypoxic layer
             hyp_thick = np.nansum(hyp_cell_thick,axis=1)
+            one_mgL_thick = np.nansum(one_mgL_cell_thick,axis=1)
+            three_mgL_thick = np.nansum(three_mgL_cell_thick,axis=1)
 
             print('    Calculating depth of DO minima')
             # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: eta_size, xi_rho: xi_size))
@@ -176,21 +175,22 @@ for gtagex in gtagexes:
             xi_size  = ds_raw['h'].sizes['xi_rho']
             srho_min = ds_raw['oxygen'].idxmin(dim='s_rho', skipna=True)#.values
             # get depths, but also flatten the time dimension
-            depths = ds_raw['h'].values
-            # reshape
-            depths_reshape = depths.reshape((1,eta_size,xi_size))
+            # depths = ds_raw['h'].values
+            # # reshape
+            # depths_reshape = depths.reshape((1,eta_size,xi_size))
+            depths_reshape = z_rho.reshape((1,eta_size,xi_size))
             # convert srho to depths
             depth_min = depths_reshape * srho_min
 
-            print('    Calculating s-level of DO minima')
-            # get s-level of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
-            # add new dimension with s-levels
-            s_level = np.linspace(0,29,30)
-            # natural
-            ds_raw['oxygen'] = ds_raw['oxygen'].assign_coords({'s_level': ('s_rho',s_level)})
-            ds_raw['oxygen'] = ds_raw['oxygen'].swap_dims({'s_rho': 's_level'})
-            # calculate slevel corresponding to DO min
-            slev_min = ds_raw['oxygen'].idxmin(dim='s_level', skipna=True).values
+            # print('    Calculating s-level of DO minima')
+            # # get s-level of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: 441, xi_rho: 177))
+            # # add new dimension with s-levels
+            # s_level = np.linspace(0,29,30)
+            # # natural
+            # ds_raw['oxygen'] = ds_raw['oxygen'].assign_coords({'s_level': ('s_rho',s_level)})
+            # ds_raw['oxygen'] = ds_raw['oxygen'].swap_dims({'s_rho': 's_level'})
+            # # calculate slevel corresponding to DO min
+            # slev_min = ds_raw['oxygen'].idxmin(dim='s_level', skipna=True).values
 
             print('    Calculating concentration of DO minima')
             # get corresponding DO minima concentration (mg/L)
@@ -207,12 +207,12 @@ for gtagex in gtagexes:
                                                 'eta_rho': ds_raw['eta_rho'].values,
                                                 'xi_rho': ds_raw['xi_rho'].values},
                                         dims=['ocean_time','eta_rho', 'xi_rho'])
-            # slevel
-            ds['slev_min'] = xr.DataArray(slev_min,
-                                        coords={'ocean_time': ds_raw['ocean_time'].values,
-                                                'eta_rho': ds_raw['eta_rho'].values,
-                                                'xi_rho': ds_raw['xi_rho'].values},
-                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            # # slevel
+            # ds['slev_min'] = xr.DataArray(slev_min,
+            #                             coords={'ocean_time': ds_raw['ocean_time'].values,
+            #                                     'eta_rho': ds_raw['eta_rho'].values,
+            #                                     'xi_rho': ds_raw['xi_rho'].values},
+            #                             dims=['ocean_time','eta_rho', 'xi_rho'])
             # concentration of DO minima
             ds['DO_min'] = xr.DataArray(DO_min,
                                         coords={'ocean_time': ds_raw['ocean_time'].values,
@@ -220,7 +220,7 @@ for gtagex in gtagexes:
                                                 'xi_rho': ds_raw['xi_rho'].values},
                                         dims=['ocean_time','eta_rho', 'xi_rho'])
             # depth of water column
-            ds['depth_bot'] = xr.DataArray(depths_reshape.reshape((eta_size,xi_size)),
+            ds['depth_bot'] = xr.DataArray(z_w[0,0,:,:], # get bottom most value
                                         coords={'eta_rho': ds_raw['eta_rho'].values,
                                                 'xi_rho': ds_raw['xi_rho'].values},
                                         dims=['eta_rho', 'xi_rho'])
@@ -236,16 +236,30 @@ for gtagex in gtagexes:
                                                 'eta_rho': ds_raw['eta_rho'].values,
                                                 'xi_rho': ds_raw['xi_rho'].values},
                                         dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+            # < 1 mg/L layer thickness
+            ds['one_mgL_thick'] = xr.DataArray(one_mgL_thick,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            
+            # < 1 mg/L layer thickness
+            ds['three_mgL_thick'] = xr.DataArray(three_mgL_thick,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
 
             print('    Saving dataset')
             # save dataset
-            if region == 'pugetsoundDO':
-                if remove_straits:
-                    straits = 'noStraits'
-                else:
-                    straits = 'withStraits'
-                ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_DO_info_' + straits + '.nc'))
-            else:
-                ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
+            # if region == 'pugetsoundDO':
+            #     if remove_straits:
+            #         straits = 'noStraits'
+            #     else:
+            #         straits = 'withStraits'
+            #     ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_DO_info_' + straits + '.nc'))
+            # else:
+            ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
 
 print('Done')
