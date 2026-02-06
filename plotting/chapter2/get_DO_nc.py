@@ -70,8 +70,8 @@ def start_ds(ocean_time,eta_rho,xi_rho):
         # depth_min   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # # slevel of DO minima
         # slev_min    = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # concentration of DO minima
-        DO_min      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # # concentration of DO minima
+        # DO_min      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # depth of water column
         depth_bot   = (['eta_rho','xi_rho'], np.zeros((Neta,Nxi))),
         # DO concentration at bottom
@@ -97,8 +97,8 @@ def add_metadata(ds):
     # ds['slev_min'].attrs['long_name'] = 's-level of watercolumn DO minima'
     # ds['slev_min'].attrs['units'] = 'unitless'
 
-    ds['DO_min'].attrs['long_name'] = 'concentration of watercolumn DO minima'
-    ds['DO_min'].attrs['units'] = 'mg/L'
+    # ds['DO_min'].attrs['long_name'] = 'concentration of watercolumn DO minima'
+    # ds['DO_min'].attrs['units'] = 'mg/L'
 
     ds['depth_bot'].attrs['long_name'] = 'watercolumn depth (accounting for zeta)'
     ds['depth_bot'].attrs['units'] = 'm'
@@ -192,10 +192,11 @@ for gtagex in gtagexes:
             # # calculate slevel corresponding to DO min
             # slev_min = ds_raw['oxygen'].idxmin(dim='s_level', skipna=True).values
 
-            print('    Calculating concentration of DO minima')
-            # get corresponding DO minima concentration (mg/L)
-            DO_min = pinfo.fac_dict['oxygen'] * ds_raw['oxygen'].min(dim='s_level', skipna=True).values
+            # print('    Calculating concentration of DO minima')
+            # # get corresponding DO minima concentration (mg/L)
+            # DO_min = pinfo.fac_dict['oxygen'] * ds_raw['oxygen'].min(dim='s_level', skipna=True).values
 
+            print('    Calculating bottom DO concentration')
             # get bottom DO concentration
             DO_bot = pinfo.fac_dict['oxygen'] * ds_raw['oxygen'][:,0,:,:].values
 
@@ -213,12 +214,12 @@ for gtagex in gtagexes:
             #                                     'eta_rho': ds_raw['eta_rho'].values,
             #                                     'xi_rho': ds_raw['xi_rho'].values},
             #                             dims=['ocean_time','eta_rho', 'xi_rho'])
-            # concentration of DO minima
-            ds['DO_min'] = xr.DataArray(DO_min,
-                                        coords={'ocean_time': ds_raw['ocean_time'].values,
-                                                'eta_rho': ds_raw['eta_rho'].values,
-                                                'xi_rho': ds_raw['xi_rho'].values},
-                                        dims=['ocean_time','eta_rho', 'xi_rho'])
+            # # concentration of DO minima
+            # ds['DO_min'] = xr.DataArray(DO_min,
+            #                             coords={'ocean_time': ds_raw['ocean_time'].values,
+            #                                     'eta_rho': ds_raw['eta_rho'].values,
+            #                                     'xi_rho': ds_raw['xi_rho'].values},
+            #                             dims=['ocean_time','eta_rho', 'xi_rho'])
             # depth of water column
             ds['depth_bot'] = xr.DataArray(z_w[0,0,:,:], # get bottom most value
                                         coords={'eta_rho': ds_raw['eta_rho'].values,
