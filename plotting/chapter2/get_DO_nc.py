@@ -152,7 +152,7 @@ for gtagex in gtagexes:
             S = zrfun.get_S(S_dict)
             # get cell thickness
             h = ds_raw['h'].values # height of water column
-            z_rho, z_w = zrfun.get_z(h, ds_raw.zeta[0,:,:].to_numpy(), S) # make sure to use zeta as an input to account for SSH variability!!!
+            z_rho, z_w = zrfun.get_z(h, ds_raw.zeta.to_numpy(), S) # make sure to use zeta as an input to account for SSH variability!!!
             dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
             # Now get oxygen values at every grid cell and convert to mg/L
             oxy_mgL = pinfo.fac_dict['oxygen'] * ds_raw['oxygen'].values
