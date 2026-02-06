@@ -61,7 +61,7 @@ mask_hc[cond] = 0
 ########################################
 # create South Sound mask
 
-# make a mask for Hood Canal basin
+# make a mask for South Sound basin
 mask_ss = np.ones(np.shape(mask_rho)) # copy shape of original land mask
 mask_ss[mask_rho==0] = 0 # copy values of original land mask
 mask_ss[mask_hc==1] = 0 # copy values of Hood Canal mask
@@ -75,7 +75,7 @@ mask_ss[cond] = 0
 ########################################
 # create Main Basin mask
 
-# make a mask for Hood Canal basin
+# make a mask for Main basin
 mask_mb = np.ones(np.shape(mask_rho)) # copy shape of original land mask
 mask_mb[mask_rho==0] = 0 # copy values of original land mask
 mask_mb[mask_hc==1] = 0 # copy values of Hood Canal mask
@@ -97,7 +97,7 @@ mask_mb[cond] = 0
 ########################################
 # create Whibdey Basin mask
 
-# make a mask for Hood Canal basin
+# make a mask for Whidbey basin
 mask_wb = np.ones(np.shape(mask_rho)) # copy shape of original land mask
 mask_wb[mask_rho==0] = 0 # copy values of original land mask
 mask_wb[mask_hc==1] = 0 # copy values of Hood Canal mask
@@ -113,6 +113,12 @@ mask_wb[cond] = 0
 
 cond = (lon >= -122.8) & (lon <= -122.38) & (lat > 48.46)
 mask_wb[cond] = 0
+
+########################################
+# create Puget Sound mask
+
+# make a mask for Puget Sound (just sum of all other basin masks)
+mask_ps = mask_hc + mask_ss + mask_wb + mask_mb
 
 # #########################################
 # # plot mask
@@ -207,6 +213,13 @@ new_ds['mask_whidbeybasin'].attrs['long_name'] = 'mask on RHO-points'
 new_ds['mask_whidbeybasin'].attrs['flag_values'] = np.array([0.,1.])
 new_ds['mask_whidbeybasin'].attrs['flag_meanings'] = 'notbasin basin'
 new_ds['mask_whidbeybasin'].attrs['grid'] =  'cas7'
+
+new_ds['mask_pugetsound'] = (('eta_rho', 'xi_rho'),mask_ps,{'units': 'm'})
+new_ds['mask_pugetsound'].attrs['standard_name'] = 'basin_mask_at_cell_center'
+new_ds['mask_pugetsound'].attrs['long_name'] = 'mask on RHO-points'
+new_ds['mask_pugetsound'].attrs['flag_values'] = np.array([0.,1.])
+new_ds['mask_pugetsound'].attrs['flag_meanings'] = 'notbasin basin'
+new_ds['mask_pugetsound'].attrs['grid'] =  'cas7'
 
 fn_f = Ldir['LOo'] / 'chapter_2' / 'data' / 'basin_masks_from_pugetsoundDObox.nc'
 new_ds.to_netcdf(fn_f)
