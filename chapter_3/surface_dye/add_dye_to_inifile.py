@@ -5,7 +5,7 @@ Modify ocean history file to add
 Based on Parker's driver_roms00oae script
 and my modify_ocn_forcing script
 
-run add_dye_to_inifile -gtx cas7_t1_x11ab -0 2020.01.01 -ro 0
+run add_dye_to_inifile -gtx cas7_t1_x11ab -0 2020.01.02 -ro 0
 
 Note that this script can only be run for one day at a time
 
@@ -93,6 +93,9 @@ for bio_var in bio_vars:
 # replace values in ini file with values from his file
 for vn in list(ds_new.keys()):
     ds_new[vn].loc[dict(ocean_time=ds_new.ocean_time[0])] = ds_og_his[vn].isel(ocean_time=0)
+
+# update ocean_time
+ds_new = ds_new.assign_coords(ocean_time=[np.datetime64(dt0)])
 
 # add dye variable to dataset, using a copy of temp as a reference
 # and set all values to be zero
@@ -218,6 +221,10 @@ dye_vert_int = (dye_conc * dz).sum(axis=0) # [kg/m2]
 print('Vertical integral of dye should be nominally 5 kg/m2 +/- floating point error')
 print('    Min vertical integral: {} kg/m2'.format(np.nanmin(dye_vert_int)))
 print('    Max vertical integral: {} kg/m2'.format(np.nanmax(dye_vert_int)))
+
+print('\n=================')
+print('Time check:')
+print(ds_new.ocean_time)
 
 
 ################################################################
