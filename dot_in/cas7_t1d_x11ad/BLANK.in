@@ -470,7 +470,7 @@ LtracerSponge == F F F                           ! temperature, salinity, inert
       Lm2CLM == T                          ! 2D momentum
       Lm3CLM == T                          ! 3D momentum
 
-  LtracerCLM == T T F                      ! temperature, salinity, inert
+  LtracerCLM == T T T                      ! temperature, salinity, inert
 
 ! Logical switches (TRUE/FALSE) to nudge the desired climatology field(s).
 ! If not analytical climatology fields, users need to turn ON the logical
@@ -480,7 +480,7 @@ LtracerSponge == F F F                           ! temperature, salinity, inert
  LnudgeM2CLM == T                          ! 2D momentum
  LnudgeM3CLM == T                          ! 3D momentum
 
-  LnudgeTCLM == T T F                       ! temperature, salinity, inert
+  LnudgeTCLM == T T T                       ! temperature, salinity, inert
 
 ! Starting (DstrS) and ending (DendS) day for adjoint sensitivity forcing.
 ! DstrS must be less or equal to DendS. If both values are zero, their

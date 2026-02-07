@@ -1,0 +1,355 @@
+"""
+Compare average bottom DO between multiple years
+(Set up to run for 6 years)
+
+"""
+
+# import things
+from subprocess import Popen as Po
+from subprocess import PIPE as Pi
+from matplotlib.markers import MarkerStyle
+import matplotlib.dates as mdates
+import numpy as np
+import xarray as xr
+from datetime import datetime, timedelta
+from matplotlib.dates import DateFormatter
+from matplotlib.dates import MonthLocator
+from matplotlib.offsetbox import (OffsetImage, AnnotationBbox)
+import matplotlib.image as image
+import pandas as pd
+import cmocean
+import matplotlib.pylab as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib.patheffects as PathEffects
+import pinfo
+
+from lo_tools import Lfun, zfun, zrfun
+from lo_tools import plotting_functions as pfun
+
+import sys
+from pathlib import Path
+pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
+print(pth)
+if str(pth) not in sys.path:
+    sys.path.append(str(pth))
+import gfun
+
+Gr = gfun.gstart()
+
+Ldir = Lfun.Lstart()
+
+plt.close('all')
+
+##############################################################
+##                       USER INPUTS                        ##
+##############################################################
+
+# Show WWTP locations?
+WWTP_loc = False
+
+years = ['2014','2015','2016','2017','2018','2019','2020']
+
+# which  model run to look at?
+gtagexes = ['cas7_t1noDIN_x11ab','cas7_t1_x11ab']
+
+# where to put output figures
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
+Lfun.make_dir(out_dir)
+
+region = 'Puget Sound'
+
+# hypoxic season
+start = '09-01'
+end = '10-31'
+
+##############################################################
+##                    HELPER FUNCTIONS                      ##
+##############################################################
+
+# helper function to convert Ecology name to LO name
+def SSM2LO_name(rname):
+    """
+    Given a river name in LiveOcean, find corresponding river name in SSM
+    """
+    repeatrivs_fn = '../../../LO_data/trapsD00/LiveOcean_SSM_rivers.xlsx'
+    repeatrivs_df = pd.read_excel(repeatrivs_fn)
+    rname_LO = repeatrivs_df.loc[repeatrivs_df['SSM_rname'] == rname, 'LO_rname'].values[0]
+    return rname_LO
+
+def LO2SSM_name(rname):
+    """
+    Given a river name in LiveOcean, find corresponding river name in SSM
+    """
+    repeatrivs_fn = Ldir['data'] / 'trapsD00' / 'LiveOcean_SSM_rivers.xlsx'
+    repeatrivs_df = pd.read_excel(repeatrivs_fn)
+    rname_SSM = repeatrivs_df.loc[repeatrivs_df['LO_rname'] == rname, 'SSM_rname'].values[0]
+    return rname_SSM
+
+
+if WWTP_loc == True:
+    # set up the time index for the record
+    Ldir = Lfun.Lstart()
+    dsf = Ldir['ds_fmt']
+    dt0 = datetime.strptime('2020.01.01',dsf)
+    dt1 = datetime.strptime('2020.12.31',dsf)
+    days = (dt0, dt1)
+        
+    # pandas Index objects
+    dt_ind = pd.date_range(start=dt0, end=dt1)
+    yd_ind = pd.Index(dt_ind.dayofyear)
+
+    # Get LiveOcean grid info --------------------------------------------------
+
+    # get the grid data
+    ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
+    z = -ds.h.values
+    mask_rho = np.transpose(ds.mask_rho.values)
+    lon = ds.lon_rho.values
+    lat = ds.lat_rho.values
+    X = lon[0,:] # grid cell X values
+    Y = lat[:,0] # grid cell Y values
+    plon, plat = pfun.get_plon_plat(lon,lat)
+    # make a version of z with nans where masked
+    zm = z.copy()
+    zm[np.transpose(mask_rho) == 0] = np.nan
+    zm[np.transpose(mask_rho) != 0] = -1
+
+    # # get flow, nitrate, and ammonium values
+    # fp_wwtps = '../../../LO_output/pre/trapsP00/point_sources/lo_base/Data_historical/'
+    # moh20_flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    # moh20_no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    # moh20_nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
+
+    # # calculate total DIN concentration in mg/L
+    # moh20_dindf_wwtps = (moh20_no3df_wwtps + moh20_nh4df_wwtps)/71.4    # mg/L
+
+    # # calculate daily loading timeseries in kg/d
+    # moh20_dailyloaddf_wwtps = 86.4*moh20_dindf_wwtps*moh20_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
+
+    # # calculate average daily load over the year (kg/d)
+    # moh20_avgload_wwtps = moh20_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+
+    # # add row and col index for plotting on LiveOcean grid
+    # griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas6/wwtp_info.csv')
+    # griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
+    # moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    # moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+
+    # # get point source lat and lon
+    # moh20_lon_wwtps = [X[int(col)] for col in moh20_avgload_wwtps['col_py']]
+    # moh20_lat_wwtps = [Y[int(row)] for row in moh20_avgload_wwtps['row_py']]
+
+    # get flow, nitrate, and ammonium values
+    fp_wwtps = '../../../LO_output/pre/trapsP01/moh20_wwtps/lo_base/Data_historical/'
+    moh20_flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    moh20_no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    moh20_nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
+
+    fp_wwtps = '../../../LO_output/pre/trapsP01/was24_wwtps/lo_base/Data_historical/'
+    was24_flowdf_wwtps = pd.read_pickle(fp_wwtps+'CLIM_flow.p')    # m3/s
+    was24_no3df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NO3.p')      # mmol/m3
+    was24_nh4df_wwtps = pd.read_pickle(fp_wwtps+'CLIM_NH4.p')      # mmol/m3
+
+    # calculate total DIN concentration in mg/L
+    moh20_dindf_wwtps = (moh20_no3df_wwtps + moh20_nh4df_wwtps)/71.4    # mg/L
+    was24_dindf_wwtps = (was24_no3df_wwtps + was24_nh4df_wwtps)/71.4    # mg/L
+
+    # calculate daily loading timeseries in kg/d
+    moh20_dailyloaddf_wwtps = 86.4*moh20_dindf_wwtps*moh20_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
+    was24_dailyloaddf_wwtps = 86.4*was24_dindf_wwtps*was24_flowdf_wwtps # kg/d = 86.4 * mg/L * m3/s
+
+    # calculate average daily load over the year (kg/d)
+    moh20_avgload_wwtps = moh20_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+    was24_avgload_wwtps = was24_dailyloaddf_wwtps.mean(axis=0).to_frame(name='avg-daily-load(kg/d)')
+
+    # add row and col index for plotting on LiveOcean grid
+    griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas7/moh20_wwtp_info.csv')
+    griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
+    moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    moh20_avgload_wwtps = moh20_avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+
+    griddf0_wwtps = pd.read_csv('../../../LO_data/grids/cas7/was24_wwtp_info.csv')
+    griddf_wwtps = griddf0_wwtps.set_index('rname') # use point source name as index
+    was24_avgload_wwtps = was24_avgload_wwtps.join(griddf_wwtps['row_py']) # add row to avg load df (uses rname to index)
+    was24_avgload_wwtps = was24_avgload_wwtps.join(griddf_wwtps['col_py']) # do the same for cols
+
+    # get point source lat and lon
+    moh20_lon_wwtps = [X[int(col)] for col in moh20_avgload_wwtps['col_py']]
+    moh20_lat_wwtps = [Y[int(row)] for row in moh20_avgload_wwtps['row_py']]
+    was24_lon_wwtps = [X[int(col)] for col in was24_avgload_wwtps['col_py']]
+    was24_lat_wwtps = [Y[int(row)] for row in was24_avgload_wwtps['row_py']]
+    
+    # define marker sizes (minimum size is 10 so dots don't get too small)
+    moh20_sizes_wwtps = [max(0.05*load,5) for load in moh20_avgload_wwtps['avg-daily-load(kg/d)']]
+    was24_sizes_wwtps = [max(0.05*load,5) for load in was24_avgload_wwtps['avg-daily-load(kg/d)']]
+
+##############################################################
+##                      PROCESS DATA                        ##
+##############################################################
+
+# open dataset for every year, and add to dictionary, with year as key
+
+# open datasets
+# initialize empty dictionary
+ds_loading_dict = {}
+ds_noloading_dict = {}
+for year in years:
+    # open datasets
+    ds_loading = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / ('cas7_t1_x11ab_pugetsoundDO_' + year + '_DO_info.nc'))
+    ds_noloading = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / ('cas7_t1noDIN_x11ab_pugetsoundDO_' + year + '_DO_info.nc'))
+    # drop leap day if 2016 or 2020
+    if year in ['2016','2020']:
+        ds_loading = ds_loading.sel(ocean_time=~((ds_loading.ocean_time.dt.month == 2) & (ds_loading.ocean_time.dt.day == 29)))
+        ds_noloading = ds_noloading.sel(ocean_time=~((ds_noloading.ocean_time.dt.month == 2) & (ds_noloading.ocean_time.dt.day == 29)))
+    # add ds to dictionary
+    ds_loading_dict[year] = ds_loading
+    ds_noloading_dict[year] = ds_noloading
+
+# get climatology of bottom DO for all seven years
+botDO_loading_arrays = [ds['DO_bot'].data for ds in ds_loading_dict.values()]  # [365, y, x]
+botDO_noloading_arrays = [ds['DO_bot'].data for ds in ds_noloading_dict.values()]  # [365, y, x]
+# stack the arrays
+botDO_loading_stacked = np.stack(botDO_loading_arrays, axis=0)  # [7, 365, y, x]
+botDO_noloading_stacked = np.stack(botDO_noloading_arrays, axis=0)  # [7, 365, y, x]
+# average over all seven years
+bottDO_clim_loading = botDO_loading_stacked.mean(axis=0)  # [365, y, x]
+bottDO_clim_noloading = botDO_noloading_stacked.mean(axis=0)  # [365, y, x]
+
+
+# read in masks
+basin_mask_ds = grid_ds = xr.open_dataset('../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
+mask_rho = basin_mask_ds.mask_rho.values
+mask_ps = basin_mask_ds.mask_pugetsound.values
+
+
+##############################################################
+##                    AVERAGE BOTTOM DO                     ##
+##############################################################
+
+cbar_pad = 0.1
+
+# get plotting limits based on region
+if region == 'Puget Sound':
+    # box extracion limits: [-123.29, -122.1, 46.95, 48.93]
+    xmin = -123.29
+    xmax = -122.1 # to make room for legend key
+    ymin = 46.95 
+    ymax = 48.5#48.93
+
+# set axes range for different state variables
+vmin = 0
+vmax = 10
+cmap = plt.cm.get_cmap('rainbow_r', 10)
+
+# Initialize figure
+fs = 10
+pfun.start_plot(fs=fs, figsize=(9,7.2))
+fig,axes = plt.subplots(1,len(gtagexes))
+ax = axes.ravel()
+
+# get lat and lon
+fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
+ds = xr.open_dataset(fp)
+lons = ds.coords['lon_rho'].values
+lats = ds.coords['lat_rho'].values
+px, py = pfun.get_plon_plat(lons,lats)
+
+# average over hypoxic season
+# get julian day of hypoxic season (subtract one because python indexes from 0)
+start_day_index = pd.to_datetime('2001-' + start).dayofyear - 1
+end_day_index   = pd.to_datetime('2001-' + end).dayofyear - 1
+# crop to hypoxic season
+hypseason_botDO_loading = bottDO_clim_loading[start_day_index:end_day_index,:,:]
+hypseason_botDO_noloading = bottDO_clim_noloading[start_day_index:end_day_index,:,:]
+# aveage over hypoxic season
+mean_botDO_loading = np.average(hypseason_botDO_loading,axis=0)    
+mean_botDO_noloading = np.average(hypseason_botDO_noloading,axis=0)
+
+# plot no loading
+cs = ax[0].pcolormesh(px,py,mean_botDO_noloading, vmin=vmin, vmax=vmax, cmap=cmap)#cmocean.cm.balance_r)
+cbar = fig.colorbar(cs, location='left',pad=cbar_pad)
+cbar.ax.tick_params(labelsize=14)#,length=10, width=2)
+cbar.outline.set_visible(False)
+ax[0].set_title('(a) No-Loading', fontsize=14,
+                loc='left', fontweight='bold')
+
+
+diff = (mean_botDO_loading - mean_botDO_noloading)
+mindiff = np.nanmin(diff)
+maxdiff = np.nanmax(diff)
+# make sure colorbar axis contains zero
+if mindiff > 0 and maxdiff > 0:
+    mindiff = maxdiff*-1.01
+if mindiff < 0 and maxdiff < 0:
+    maxdiff = mindiff*-1.01
+# don't let colorbar axis scale get too large
+if maxdiff > vmax:
+    maxdiff = vmax
+mindiff = -0.25
+maxdiff = 0.05
+# make sure the colorbar is always centered about zero
+cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
+cs = ax[1].pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
+ax[1].set_title(r'(b) Loading $-$ No-Loading', fontsize=14,
+                loc='left', fontweight='bold')
+cbar = fig.colorbar(cs, location='right',pad=cbar_pad)
+cbar.ax.tick_params(labelsize=14)#,length=10, width=2)
+cbar.outline.set_visible(False)
+
+# calculate mean difference in Puget Sound
+mean_ps_diff = np.nanmean(diff * np.where(mask_ps == 0, np.nan, mask_ps))
+print('\n=========================\n'+
+      'Average difference across Puget Sound of\n'+
+      'mean climatological bottom DO concentration\n'+
+      'during {} to {}: {} mg/L'.format(
+    start, end, round(mean_ps_diff,3)))
+
+# format figure
+for axis in ax:
+    axis.set_xlim([xmin,xmax])
+    axis.set_ylim([ymin,ymax])
+    # axis.tick_params(axis='both',rotation=30)
+    # axis.set_xlabel('Lon',fontsize=12)
+    pfun.dar(axis)
+    axis.axes.xaxis.set_visible(False)
+    axis.axes.yaxis.set_visible(False)
+
+# # add wwtp locations
+# if WWTP_loc == True:
+#     ax[1].scatter(moh20_lon_wwtps,moh20_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=moh20_sizes_wwtps, label='WWTPs')
+#     ax[1].scatter(was24_lon_wwtps,was24_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=was24_sizes_wwtps)
+#     leg_szs = [100, 1000, 10000]
+#     szs = [0.05*(leg_sz) for leg_sz in leg_szs]
+#     l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=1)
+#     l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=1)
+#     l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=1)
+#     labels = ['< 100', '1,000', '10,000']
+#     legend = ax[1].legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
+#         title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
+#     plt.setp(legend.get_title(),fontsize=9)
+
+# # add 10 km bar
+# lat0 = 46.94 + 0.1
+# lon0 = -123.05 +0.7
+# lat1 = lat0
+# lon1 = -122.91825+0.7
+# distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
+# x_dist_km = round(distances_m[0]/1000)
+# ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=2)
+# ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=10)
+
+# # # format figure
+# # ax[0].set_xlim([xmin,xmax])
+# # ax[0].set_ylim([ymin,ymax])
+# # ax[0].set_yticklabels([])
+# # ax[0].set_xticklabels([])
+# # ax[0].axis('off')
+# # pfun.dar(ax[0])
+                                                     
+# Add colormap title
+plt.suptitle('Sep-Oct average bottom DO [mg/L]',
+            fontsize=16, y=0.95)
+
+# Generate plot
+plt.tight_layout
+plt.subplots_adjust(left=0.05, right=0.92, top=0.85, wspace=0.1)

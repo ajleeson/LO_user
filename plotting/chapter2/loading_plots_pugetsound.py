@@ -463,21 +463,21 @@ l0 = plt.scatter([],[], s=szs[0], color='grey', alpha=alpha, edgecolors=edgecolo
 l1 = plt.scatter([],[], s=szs[1], color='grey', alpha=alpha, edgecolors=edgecolor, linewidth=1)
 l2 = plt.scatter([],[], s=szs[2], color='grey', alpha=alpha, edgecolors=edgecolor, linewidth=1)
 labels = ['< 100', '1,000', '10,000']
-legend = ax0.legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
+legend = ax0.legend([l0, l1, l2], labels, fontsize = 12, markerfirst=False,
     title='Loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
-plt.setp(legend.get_title(),fontsize=9)
+plt.setp(legend.get_title(),fontsize=12)
 # format figure
 ax0.set_xlim([xmin,xmax])
 ax0.set_ylim([ymin,ymax])
-ax0.set_ylabel('Latitude', fontsize=12)
-ax0.set_xlabel('Longitude', fontsize=12)
-ax0.tick_params(axis='both', labelsize=12)
+# ax0.set_ylabel('Latitude', fontsize=12)
+# ax0.set_xlabel('Longitude', fontsize=12)
+# ax0.tick_params(axis='both', labelsize=12)
 # ax0.set_title('(a) Basins', loc='left', fontsize=14, fontweight='bold')
 pfun.dar(ax0)
 # add load
 ax0.text(-122.15,47.0, f'{int(total_wwtp_DIN_load):,d}' + r' kg d$^{-1}$',
          fontsize=12, fontweight='bold', ha='right')
-ax1.set_title('(a) WWTPs',loc='left',fontsize=14,fontweight='bold')
+ax0.set_title('(a) WWTPs',loc='left',fontsize=14,fontweight='bold')
 
 
 # add river locations
@@ -497,8 +497,8 @@ ax1.scatter(LOriv_lon,LOriv_lat,color=facecolor, edgecolors=edgecolor, alpha=alp
 # format figure
 ax1.set_xlim([xmin,xmax])
 ax1.set_ylim([ymin,ymax])
-ax1.set_xlabel('Longitude', fontsize=12)
-ax1.tick_params(axis='both', labelsize=12)
+# ax1.set_xlabel('Longitude', fontsize=12)
+# ax1.tick_params(axis='both', labelsize=12)
 # ax0.set_title('(a) Basins', loc='left', fontsize=14, fontweight='bold')
 pfun.dar(ax1)
 ax1.text(-122.15,47.0, f'{int(total_river_DIN_load):,d}' + r' kg d$^{-1}$',
@@ -527,12 +527,12 @@ ax2.scatter(ocn_lon,ocn_lat,color=facecolor, edgecolors=edgecolor, alpha=alpha,
 ax2.set_xlim([xmin,xmax])
 ax2.set_ylim([ymin,ymax])
 # ax2.set_xlabel('Longitude', fontsize=12)
-ax2.tick_params(axis='both', labelsize=12)
+# ax2.tick_params(axis='both', labelsize=12)
 # ax0.set_title('(a) Basins', loc='left', fontsize=14, fontweight='bold')
 pfun.dar(ax2)
 ax2.text(-122.15,47.0, f'{int(ocn_load):,d}' + r' kg d$^{-1}$',
          fontsize=12, fontweight='bold', ha='right')
-ax1.set_title('(c) Exchange Flow',loc='left',fontsize=14,fontweight='bold')
+ax2.set_title('(c) Exchange Flow',loc='left',fontsize=14,fontweight='bold')
 
 plt.tight_layout()
 plt.show()
