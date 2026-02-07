@@ -85,7 +85,7 @@ while dt <= dt1:
     ds_bry['dye_time'].attrs = ds_bry['temp_time'].attrs.copy()
 
     # Ocean climatology
-    dye_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dye_time'})
+    dye_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dye_01_time'})
     ds_clm['dye_01'] = dye_time
     ds_clm['dye_01'].attrs['long_name'] = 'Passive tracer dye concentration'
     ds_clm['dye_01'].attrs['units'] = 'kg m-3' 
