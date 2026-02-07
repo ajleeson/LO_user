@@ -65,8 +65,8 @@ dt0 = datetime.strptime(ds0, Lfun.ds_fmt)
 date = 'f' + dt0.strftime(Lfun.ds_fmt)
 
 # set output location
-out_dir = ('../../../LO_roms/' + gtagex_new + '/' + date)
-Lfun.make_dir(out_dir)
+out_dir = ('../../../LO_output/forcing/cas7/' + date + 'ocnG00d')
+# Lfun.make_dir(out_dir)
 
 # get original history file
 roms_out_dir = Ldir['roms_out'] / Ldir['gtagex'] / date
@@ -179,9 +179,9 @@ for x in ds_new['xi_rho'].values: #[test_x]: # loop through lon
 # print('\nVertical integral of dye (kg/m2)')
 # print(np.nansum(ds_new['dye_01'][:,:,test_y,test_x].values*dzr[:,test_y,test_x]))
 
-# # apply land mask
-# print('Applying land mask...')
-# ds_new['dye_01'] = ds_new['dye_01'].where(ds_new['mask_rho'])
+# apply land mask
+print('Applying land mask...')
+ds_new['dye_01'] = ds_new['dye_01'].where(ds_new['mask_rho'])
 
 # print(ds_new['dye_01'][:,:,test_y,test_x].values)
 
@@ -195,9 +195,6 @@ for x in ds_new['xi_rho'].values: #[test_x]: # loop through lon
 # cbar = plt.colorbar(cs,ax=ax, location='bottom')
 # plt.show()
 
-# apply land mask
-print('Replacing all NaNs with zero...')
-# TODO
 
 # check output
 # get dz
@@ -216,6 +213,6 @@ print('    Max vertical integral: {} kg/m2'.format(np.nanmax(dye_vert_int)))
 ################################################################
 # Save .nc files
 print('Saving {}'.format(date))
-ds_new.to_netcdf(str(out_dir) + '/ocean_his_0002.nc')
+ds_new.to_netcdf(str(out_dir) + '/ocean_ini.nc')
 
 print('Done')
