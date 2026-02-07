@@ -24,18 +24,17 @@ Ldir = Lfun.Lstart()
 plt.close('all')
 
 ###############################################################
-# open history file
+# open ini file
 
-fn = Ldir['roms_out'] / 'cas7_t1d_x11ad' / 'f2020.01.01' / 'ocean_his_0002.nc'
+fn = Ldir['LOo'] / 'forcing' / 'cas7' / 'f2020.01.02' / 'ocnG00d' / 'ocean_ini.nc'
 ds = xr.open_dataset(fn)
-
 
 ###############################################################
 # calculate vertical integral of dye
 # we are aiming for 5 kg/m2 at every grid cell
 
 # get dz
-G, S, T = zrfun.get_basic_info(fn)
+G, S, T = zrfun.get_basic_info(Ldir['roms_out'] / 'cas7_t1d_x11ad' / 'f2020.01.01' / 'ocean_his_0002.nc')
 zr, zw = zrfun.get_z(G['h'],ds.zeta[0,:,:].to_numpy(),S)
 dz = np.diff(zw, axis=0) # [m]
 
