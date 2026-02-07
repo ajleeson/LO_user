@@ -47,8 +47,6 @@ plt.close('all')
 # Show WWTP locations?
 WWTP_loc = True
 
-remove_straits = False
-
 vn = 'oxygen'
 
 year = '2017'
@@ -194,15 +192,11 @@ if WWTP_loc == True:
 # open dataset for every year, and add to dictionary, with year as key
 
 # open datasets
-if remove_straits:
-    straits = 'noStraits'
-else:
-    straits = 'withStraits'
 # initialize empty dictionary
 ds_dict = {}
 for gtagex in gtagexes:
     # add ds to dictionary
-    ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_DO_info_' + straits + '.nc'))
+    ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_DO_info.nc'))
     ds_dict[gtagex] = ds
 
 ##############################################################
