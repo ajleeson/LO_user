@@ -91,7 +91,7 @@ while dt <= dt1:
     ds_clm['dye_01'].attrs['units'] = 'kg m-3' 
 
     # Add dye_time coordinate
-    ds_clm['dye_time'].attrs = ds_clm['temp_time'].attrs.copy()
+    ds_clm['dye_01_time'].attrs = ds_clm['temp_time'].attrs.copy()
 
 
     ################################################################
