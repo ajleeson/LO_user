@@ -33,8 +33,6 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-remove_straits = True
-
 regions = ['pugetsoundDO']
 
 years = ['2014','2015','2016','2017','2018','2019','2020']
@@ -143,21 +141,6 @@ for gtagex in gtagexes:
             # to convert to new units ------------------------
                 # divide by 1000 (mmol to mol)
                 # multiple by water column thickness (/m3 to /m2)
-
-            # set values in strait of juan de fuca and strait of georgia to nan 
-            # (so they don't interfere with analysis)
-            # only need to do this over the whole Puget Sound region
-            if region == 'pugetsoundDO':
-                if remove_straits:
-                    print('    Removing Straits...')
-                    lat_threshold = 48.14
-                    lon_threshold = -122.76
-                    # Create a mask for latitudes and longitudes in the Straits
-                    mask = (ds_raw['lat_rho'] > lat_threshold) & (ds_raw['lon_rho'] < lon_threshold)
-                    # Expand mask dimensions to match 'oxygen' dimensions
-                    expanded_mask = mask.expand_dims(ocean_time=len(ds_raw['ocean_time']), s_rho=len(ds_raw['s_rho']))
-                    # Apply the mask to the 'oxygen' variable
-                    ds_raw['oxygen'] = xr.where(expanded_mask, np.nan, ds_raw['oxygen'])
 
             # initialize dataset
             ds = start_ds(ds_raw['ocean_time'],

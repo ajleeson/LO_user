@@ -477,7 +477,7 @@ pfun.dar(ax0)
 # add load
 ax0.text(-122.15,47.0, f'{int(total_wwtp_DIN_load):,d}' + r' kg d$^{-1}$',
          fontsize=12, fontweight='bold', ha='right')
-ax0.text(-122.15,48.42,'(a)',ha='right',fontsize=14,fontweight='bold')
+ax1.set_title('(a) WWTPs',loc='left',fontsize=14,fontweight='bold')
 
 
 # add river locations
@@ -503,7 +503,7 @@ ax1.tick_params(axis='both', labelsize=12)
 pfun.dar(ax1)
 ax1.text(-122.15,47.0, f'{int(total_river_DIN_load):,d}' + r' kg d$^{-1}$',
          fontsize=12, fontweight='bold', ha='right')
-ax1.text(-122.15,48.42,'(b)',ha='right',fontsize=14,fontweight='bold')
+ax1.set_title('(b) Rivers',loc='left',fontsize=14,fontweight='bold')
 
 
 # add exchange flow at admiralty inlet
@@ -526,13 +526,13 @@ ax2.scatter(ocn_lon,ocn_lat,color=facecolor, edgecolors=edgecolor, alpha=alpha,
 # format figure
 ax2.set_xlim([xmin,xmax])
 ax2.set_ylim([ymin,ymax])
-ax2.set_xlabel('Longitude', fontsize=12)
+# ax2.set_xlabel('Longitude', fontsize=12)
 ax2.tick_params(axis='both', labelsize=12)
 # ax0.set_title('(a) Basins', loc='left', fontsize=14, fontweight='bold')
 pfun.dar(ax2)
 ax2.text(-122.15,47.0, f'{int(ocn_load):,d}' + r' kg d$^{-1}$',
          fontsize=12, fontweight='bold', ha='right')
-ax2.text(-122.15,48.42,'(c)',ha='right',fontsize=14,fontweight='bold')
+ax1.set_title('(c) Exchange Flow',loc='left',fontsize=14,fontweight='bold')
 
 plt.tight_layout()
 plt.show()
