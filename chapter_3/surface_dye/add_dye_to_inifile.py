@@ -5,7 +5,7 @@ Modify ocean history file to add
 Based on Parker's driver_roms00oae script
 and my modify_ocn_forcing script
 
-run add_dye_to_hisfile -gtx cas7_t1_x11ab -0 2020.01.01 -ro 0
+run add_dye_to_inifile -gtx cas7_t1_x11ab -0 2020.01.01 -ro 0
 
 Note that this script can only be run for one day at a time
 
@@ -61,19 +61,25 @@ elif Ldir['roms_out_num'] > 0:
 ds0 = args.ds0
 dt0 = datetime.strptime(ds0, Lfun.ds_fmt)
 
+dt_previous_day = dt0 - timedelta(days=1)
 
 date = 'f' + dt0.strftime(Lfun.ds_fmt)
+previous_date = 'f' + dt_previous_day.strftime(Lfun.ds_fmt)
 
 # set output location
 out_dir = ('../../../LO_output/forcing/cas7/' + date + '/ocnG00d')
 # Lfun.make_dir(out_dir)
 
-# get original history file
-roms_out_dir = Ldir['roms_out'] / Ldir['gtagex'] / date
-ds_og = xr.open_dataset(roms_out_dir / 'ocean_his_0002.nc')
+# get original history file (use the prior day's history file)
+
+roms_out_dir = Ldir['roms_out'] / Ldir['gtagex'] / previous_date
+ds_og_his = xr.open_dataset(roms_out_dir / 'ocean_his_0002.nc')
+
+# get an ini file to base everything off of
+ds_og_ini = xr.open_dataset(Ldir['LOo'] / 'forcing/cas7/f2012.10.07/ocnG00/ocean_ini.nc')
 
 # make a copy of the original dataset to modify
-ds_new = ds_og.copy()
+ds_new = ds_og_ini.copy()
 
 # remove biology variables
 bio_vars = ['NO3', 'NH4', 'chlorophyll',
@@ -83,6 +89,10 @@ bio_vars = ['NO3', 'NH4', 'chlorophyll',
             'TIC', 'alkalinity', 'oxygen']
 for bio_var in bio_vars:
     ds_new = ds_new.drop_vars([bio_var])
+
+# replace values in ini file with values from his file
+for vn in list(ds_new.keys()):
+    ds_new[vn].loc[dict(ocean_time=ds_new.ocean_time[0])] = ds_og_his[vn].isel(ocean_time=0)
 
 # add dye variable to dataset, using a copy of temp as a reference
 # and set all values to be zero
@@ -105,7 +115,7 @@ for row in reader:
     S_dict[row['ITEMS']] = row['VALUES']
 S = zrfun.get_S(S_dict)
 # get cell thickness
-h = ds_new['h'].values # height of water column
+h = ds_og_his['h'].values # height of water column
 z_rho, z_w = zrfun.get_z(h, ds_new.zeta[0,:,:].to_numpy(), S) # depth of rho and w points. zero is the surface
 # get vertical thickness of all cells [m] 
 dzr = np.diff(z_w, axis=0) # [z,y,x]
@@ -181,7 +191,7 @@ for x in ds_new['xi_rho'].values: #[test_x]: # loop through lon
 
 # apply land mask
 print('Applying land mask...')
-ds_new['dye_01'] = ds_new['dye_01'].where(ds_new['mask_rho'])
+ds_new['dye_01'] = ds_new['dye_01'].where(ds_og_his['mask_rho'])
 
 # print(ds_new['dye_01'][:,:,test_y,test_x].values)
 
