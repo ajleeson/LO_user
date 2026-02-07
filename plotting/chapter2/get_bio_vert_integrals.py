@@ -37,7 +37,7 @@ remove_straits = True
 
 regions = ['pugetsoundDO']
 
-years = ['2019','2020']
+years = ['2014','2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
 # gtagex = 'cas7_t1noDIN_x11ab' # 
@@ -178,55 +178,67 @@ for gtagex in gtagexes:
             S = zrfun.get_S(S_dict)
             # get cell thickness
             h = ds_raw['h'].values # height of water column
-            z_rho, z_w = zrfun.get_z(h, 0*h, S) 
-            dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
+            # z_rho, z_w = zrfun.get_z(h, 0*h, S) 
+            # dzr = np.diff(z_w, axis=0) # vertical thickness of all cells [m]  
+
+             # loop over time to get z_rho and z_w:
+            zeta = ds_raw['zeta'].values
+            Nt = zeta.shape[0]
+            Nz = S['N']
+            dzr_all = np.empty((Nt, Nz, *h.shape))
+            z_w_all = np.empty((Nt, Nz + 1, *h.shape))
+            for t in range(Nt):
+                # make sure to use zeta as an input to account for SSH variability!!!
+                z_rho, z_w = zrfun.get_z(h, zeta[t, :, :], S)
+                dzr_all[t, :, :, :] = np.diff(z_w, axis=0) # sigma layer thickness at one time
+                z_w_all[t, :, :, :] = z_w # sigma layer boundaries at one time
 
             print('    Calculating DO vertical integral')
             # Now get oxygen values at every grid cell and convert to mol/m3,
             # and multipy by cell height array
-            DO_mol_m2 = dzr * ds_raw['oxygen'].values / 1000
+            DO_mol_m2 = dzr_all * ds_raw['oxygen'].values / 1000
             # Sum along z to get thickness of hypoxic layer
             DO_vert_int = np.nansum(DO_mol_m2,axis=1)
 
             print('    Calculating phyto vertical integral')
             # Now get oxygen values at every grid cell and convert to mol/m3,
             # and multipy by cell height array
-            phyto_mol_m2 = dzr * ds_raw['phytoplankton'].values / 1000
+            phyto_mol_m2 = dzr_all * ds_raw['phytoplankton'].values / 1000
             # Sum along z to get thickness of hypoxic layer
             phyto_vert_int = np.nansum(phyto_mol_m2,axis=1)
 
             print('    Calculating zoop vertical integral')
             # Now get oxygen values at every grid cell and convert to mol/m3,
             # and multipy by cell height array
-            zoop_mol_m2 = dzr * ds_raw['zooplankton'].values / 1000
+            zoop_mol_m2 = dzr_all * ds_raw['zooplankton'].values / 1000
             # Sum along z to get thickness of hypoxic layer
             zoop_vert_int = np.nansum(zoop_mol_m2,axis=1)
 
             print('    Calculating NO3 vertical integral')
             # Now get oxygen values at every grid cell and convert to mol/m3,
             # and multipy by cell height array
-            NO3_mol_m2 = dzr * ds_raw['NO3'].values / 1000
+            NO3_mol_m2 = dzr_all * ds_raw['NO3'].values / 1000
             # Sum along z to get thickness of hypoxic layer
             NO3_vert_int = np.nansum(NO3_mol_m2,axis=1)
 
             print('    Calculating NH4 vertical integral')
             # Now get oxygen values at every grid cell and convert to mol/m3,
             # and multipy by cell height array
-            NH4_mol_m2 = dzr * ds_raw['NH4'].values / 1000
+            NH4_mol_m2 = dzr_all * ds_raw['NH4'].values / 1000
             # Sum along z to get thickness of hypoxic layer
             NH4_vert_int = np.nansum(NH4_mol_m2,axis=1)
 
             print('    Calculating small detritus vertical integral')
             # Now get oxygen values at every grid cell and convert to mol/m3,
             # and multipy by cell height array
-            Sdet_mol_m2 = dzr * ds_raw['SdetritusN'].values / 1000
+            Sdet_mol_m2 = dzr_all * ds_raw['SdetritusN'].values / 1000
             # Sum along z to get thickness of hypoxic layer
             SdetritusN_vert_int = np.nansum(Sdet_mol_m2,axis=1)
 
             print('    Calculating large detritus vertical integral')
             # Now get oxygen values at every grid cell and convert to mol/m3,
             # and multipy by cell height array
-            Ldet_mol_m2 = dzr * ds_raw['LdetritusN'].values / 1000
+            Ldet_mol_m2 = dzr_all * ds_raw['LdetritusN'].values / 1000
             # Sum along z to get thickness of hypoxic layer
             LdetritusN_vert_int = np.nansum(Ldet_mol_m2,axis=1)
 
@@ -280,13 +292,13 @@ for gtagex in gtagexes:
 
             print('    Saving dataset')
             # save dataset
-            if region == 'pugetsoundDO':
-                if remove_straits:
-                    straits = 'noStraits'
-                else:
-                    straits = 'withStraits'
-                ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
-            else:
-                ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints.nc'))
+            # if region == 'pugetsoundDO':
+            #     if remove_straits:
+            #         straits = 'noStraits'
+            #     else:
+            #         straits = 'withStraits'
+            #     ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
+            # else:
+            ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_NPZD_vert_ints.nc'))
 
 print('Done')

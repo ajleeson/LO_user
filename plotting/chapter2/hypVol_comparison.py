@@ -42,8 +42,6 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-remove_straits = True
-
 vn = 'oxygen'
 
 years =  ['2014','2015','2016','2017','2018','2019','2020']
@@ -62,18 +60,14 @@ plt.close('all')
 ##                      PROCESS DATA                        ##
 ##############################################################
 
-# open datasets
-if remove_straits:
-    straits = 'noStraits'
-else:
-    straits = 'withStraits'
-
 regions = ['pugetsoundDO']
 # regions = ['pugetsoundDO','HC_up','HC_low','SS_and_HC_low']
 
 # initialize empty dictionaries
 DO_bot_dict = {} # dictionary with DO_bot values
 hyp_thick_dict = {}
+one_mgL_thick_dict = {}
+three_mgL_thick_dict = {}
 
 for year in years:
     for region in regions:
@@ -81,7 +75,7 @@ for year in years:
             # add ds to dictionary
             if region == 'pugetsoundDO':
                 # only include strait infor when looking at the whole of puget sound
-                ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info_' + straits + '.nc'))
+                ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
             else:
                 if gtagex == 'cas7_t0_x4b':
                     # don't compare old version of LiveOcean in the sub-basins
@@ -90,12 +84,16 @@ for year in years:
                     ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
             DO_bot = ds['DO_bot'].values
             hyp_thick = ds['hyp_thick'].values
+            one_mgL_thick = ds['one_mgL_thick'].values
+            three_mgL_thick = ds['three_mgL_thick'].values
             # # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
             # if np.mod(int(year),4) != 0: 
             #     DO_bot = np.insert(DO_bot,59,'nan',axis=0)
             #     hyp_thick = np.insert(hyp_thick,59,'nan',axis=0)
             DO_bot_dict[gtagex+region+year] = DO_bot
             hyp_thick_dict[gtagex+region+year] = hyp_thick
+            one_mgL_thick_dict[gtagex+region+year] = one_mgL_thick
+            three_mgL_thick_dict[gtagex+region+year] = three_mgL_thick
 
 # initialize empty dictionary to get grid cell areas
 DA = {}
@@ -108,8 +106,15 @@ for region in regions:
     DY = (box_ds.pn.values)**-1
     DA[region] = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
 
+# read in masks
+basin_mask_ds = grid_ds = xr.open_dataset('../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
+mask_rho = basin_mask_ds.mask_rho.values
+mask_ps = basin_mask_ds.mask_pugetsound.values
+
 # initialize dictionary for hypoxic volume [km3]
 hyp_vol = {}
+onemgL_vol = {}
+threemgL_vol = {}
 for year in years:
     for region in regions:
         for gtagex in gtagexes:
@@ -119,25 +124,37 @@ for year in years:
             else:
                 # get hypoxic thickness
                 hyp_thick = hyp_thick_dict[gtagex+region+year]/1000 # [km]
-                # subtract the bottom row of grid cells for the HC_up region
-                # (so we don't double count cells when we add them to HC_low)
-                if region == 'HC_up':
-                    hyp_thick[:, 0, :] = 0 # dimensions of (t,y,x), so y=0 is the lowest latitude of HC_up
+                one_mgL_thick = one_mgL_thick_dict[gtagex+region+year]/1000 # [km]
+                three_mgL_thick = three_mgL_thick_dict[gtagex+region+year]/1000 # [km]
+                # apply Puget Sound mask
+                hyp_thick = hyp_thick * mask_ps
                 hyp_vol_timeseries = np.sum(hyp_thick * DA[region], axis=(1, 2)) # km^3
                 hyp_vol[gtagex+region+year] = hyp_vol_timeseries
 
-# get grid data
-grid_ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
-z = -grid_ds.h.values
-mask_rho = np.transpose(grid_ds.mask_rho.values)
-lon = grid_ds.lon_rho.values
-lat = grid_ds.lat_rho.values
+                one_mgL_thick = one_mgL_thick * mask_ps
+                onemgL_vol_timeseries = np.sum(one_mgL_thick * DA[region], axis=(1, 2)) # km^3
+                onemgL_vol[gtagex+region+year] = onemgL_vol_timeseries
+
+                three_mgL_thick = three_mgL_thick * mask_ps
+                threemgL_vol_timeseries = np.sum(three_mgL_thick * DA[region], axis=(1, 2)) # km^3
+                threemgL_vol[gtagex+region+year] = threemgL_vol_timeseries
+
+# # get grid data
+# grid_ds = xr.open_dataset('../../../LO_data/grids/cas7/grid.nc')
+# z = -grid_ds.h.values
+# mask_rho = np.transpose(grid_ds.mask_rho.values)
+# lon = grid_ds.lon_rho.values
+# lat = grid_ds.lat_rho.values
+# plon, plat = pfun.get_plon_plat(lon,lat)
+# # make a version of z with nans where masked
+# # this gives us a binary map of land and water cells
+# zm = z.copy()
+# zm[np.transpose(mask_rho) == 0] = np.nan
+# zm[np.transpose(mask_rho) != 0] = -1
+
+lon = basin_mask_ds.lon_rho.values
+lat = basin_mask_ds.lat_rho.values
 plon, plat = pfun.get_plon_plat(lon,lat)
-# make a version of z with nans where masked
-# this gives us a binary map of land and water cells
-zm = z.copy()
-zm[np.transpose(mask_rho) == 0] = np.nan
-zm[np.transpose(mask_rho) != 0] = -1
 
 ##############################################################
 ##   Puget Sound hypoxic volume & comparison to old model   ##
@@ -147,10 +164,11 @@ zm[np.transpose(mask_rho) != 0] = -1
 xmin = -123.29
 xmax = -122.1
 ymin = 46.95
-ymax = 48.93
+ymax = 48.6#48.93
 
 # initialize figure
-fig, (ax0, ax1) = plt.subplots(1,2,figsize = (12,5.5),gridspec_kw={'width_ratios': [1, 2]})
+# fig, (ax0, ax1) = plt.subplots(1,2,figsize = (12.5,5),gridspec_kw={'width_ratios': [1, 3.5]})
+fig, (ax0, ax1) = plt.subplots(1,2,figsize = (8,3),gridspec_kw={'width_ratios': [1, 2.8]})
 
 # format figure
 ax0.set_xlim([xmin,xmax])
@@ -158,39 +176,23 @@ ax0.set_ylim([ymin,ymax])
 ax0.set_ylabel('Latitude', fontsize=12)
 ax0.set_xlabel('Longitude', fontsize=12)
 ax0.tick_params(axis='both', labelsize=12)
-ax0.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+print(mask_ps)
+ax0.pcolormesh(plon, plat, np.where(mask_rho == 0, np.nan, mask_rho),
+                vmin=0, vmax=10, cmap='Blues')
+ax0.pcolormesh(plon, plat, np.where(mask_ps == 0, np.nan, mask_ps),
+                vmin=0, vmax=2, cmap='Blues')
 pfun.dar(ax0)
-# Create a Rectangle patch to omit Straits
-# get lat and lon
-# fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
-# PSbox_ds = xr.open_dataset(fp)
 lons = PSbox_ds.coords['lon_rho'].values
 lats = PSbox_ds.coords['lat_rho'].values
 lon = lons[0,:]
 lat = lats[:,0]
-# Straits
-lonmax = -122.76
-lonmin = xmin
-latmax = ymax
-latmin = 48.14
-# convert lat/lon to eta/xi
-diff = np.absolute(lon-lonmin)
-ximin = diff.argmin()
-diff = np.absolute(lon-lonmax)
-ximax = diff.argmin()
-diff = np.absolute(lat-latmin)
-etamin = diff.argmin()
-diff = np.absolute(lat-latmax)
-etamax = diff.argmin()
-rect = patches.Rectangle((lon[ximin], lat[etamin]), lon[ximax]-lon[ximin], lat[etamax]-lat[etamin],
-                        edgecolor='none', facecolor='white', alpha=0.9)
-# Add the patch to the Axes
-ax0.add_patch(rect)
-ax0.text(-123.2,48.25,'Straits\nomitted', rotation=90, fontsize=12)
 ax0.set_title('(a)', fontsize = 14, loc='left', fontweight='bold')
 
-# Puget Sound volume with straits omitted
-PS_vol = 195.2716230839466 # [km^3]
+# Puget Sound volume
+PS_vol = np.nansum(basin_mask_ds['h'].values/1000 * DA[region] * mask_ps) # [km^3]
+print('Puget Sound volume: {} km3'.format(round(PS_vol,1)))
+
+ax0.text(-123.2, 48.4, 'Puget Sound vol\n' + str(round(PS_vol,1)) + r' km$^3$', fontsize = 10)
 
 # # create time vector
 # startdate = year+'.01.01'
@@ -198,11 +200,11 @@ PS_vol = 195.2716230839466 # [km^3]
 # dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 # dates_local = [pfun.get_dt_local(x) for x in dates]
 
-colors = ['gray','deeppink','black']
-linewidths = [4,3,2]
-alphas = [0.5,0.5,1]
-linestyles = ['-','-','--']
-labels=gtagexes
+colors = ['cornflowerblue','black']
+linewidths = [3,2]
+alphas = [0.8,0.8]
+linestyles = ['-','-']
+labels=['Loading','No-Loading']
 
 # plot timeseries
 for year in years:
@@ -215,12 +217,19 @@ for year in years:
     for i,gtagex in enumerate(gtagexes):
         # plot hypoxic area timeseries
         if year == '2014':
+            # ax1.fill_between(dates_local, onemgL_vol[gtagex+'pugetsoundDO'+year], threemgL_vol[gtagex+'pugetsoundDO'+year],
+            #                  color=colors[i], alpha=0.2)
             ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
                 linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
         else:
             # only add label for 2014
+            # # 1 mg/L and 3 mg/L shading
+            # ax1.fill_between(dates_local, onemgL_vol[gtagex+'pugetsoundDO'+year], threemgL_vol[gtagex+'pugetsoundDO'+year],
+            #                  color=colors[i], alpha=0.2)
+            # hypoxic volume line
             ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
                 linewidth=linewidths[i],alpha=alphas[i])
+
 
 # format figure
 ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
@@ -236,7 +245,7 @@ enddate = years[-1]+'.12.31'
 dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 dates_local = [pfun.get_dt_local(x) for x in dates]
 ax1.set_xlim([dates_local[0],dates_local[-1]])
-ax1.set_ylim([0,14])
+ax1.set_ylim([0,6])
 
  # convert hypoxic volume to percent hypoxic volume
 percent = lambda hyp_vol: hyp_vol/PS_vol*100
@@ -245,11 +254,13 @@ ymin, ymax = ax1.get_ylim()
 # match ticks
 ax2 = ax1.twinx()
 ax2.set_ylim((percent(ymin),percent(ymax)))
+ax2.tick_params(axis='both', labelsize=12)
 ax2.plot([],[])
 for border in ['top','right','bottom','left']:
     ax2.spines[border].set_visible(False)
-ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=14)
+ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=12)
 
+plt.tight_layout()
 plt.show()
 
 # ##############################################################
