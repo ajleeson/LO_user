@@ -173,6 +173,7 @@ mask_hc = basin_mask_ds.mask_hoodcanal.values
 mask_ss = basin_mask_ds.mask_southsound.values
 mask_wb = basin_mask_ds.mask_whidbeybasin.values
 mask_mb = basin_mask_ds.mask_mainbasin.values
+mask_ps = basin_mask_ds.mask_pugetsound.values
 lon = basin_mask_ds['lon_rho'].values
 lat = basin_mask_ds['lat_rho'].values
 h = basin_mask_ds['h'].values
@@ -180,12 +181,6 @@ plon, plat = pfun.get_plon_plat(lon,lat)
 
 ##############################################################
 # get average concentration per basin
-
-# open datasets
-if remove_straits:
-    straits = 'noStraits'
-else:
-    straits = 'withStraits'
 
 # initialize empty dictionaries and fill with vertical integrals
 NO3_vert_dict = {}
@@ -198,7 +193,7 @@ DO_vert_dict = {}
 
 for year in years:
     for gtagex in gtagexes:
-        ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_NPZD_vert_ints_' + straits + '.nc'))
+        ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_NPZD_vert_ints.nc'))
         NO3_vert_int = ds['NO3_vert_int'].values
         phyto_vert_int = ds['phyto_vert_int'].values
         zoop_vert_int = ds['zoop_vert_int'].values
@@ -245,7 +240,7 @@ for year in years:
         elif region == 'Main Basin':
             mask = mask_mb
         elif region == 'All Puget Sound':
-            mask = mask_hc + mask_ss + mask_wb + mask_mb
+            mask = mask_ps
 
         # basin volume
         h_masked = h * mask
