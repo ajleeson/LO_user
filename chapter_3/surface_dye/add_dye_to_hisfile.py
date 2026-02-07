@@ -179,9 +179,9 @@ for x in ds_new['xi_rho'].values: #[test_x]: # loop through lon
 # print('\nVertical integral of dye (kg/m2)')
 # print(np.nansum(ds_new['dye_01'][:,:,test_y,test_x].values*dzr[:,test_y,test_x]))
 
-# apply land mask
-print('Applying land mask...')
-ds_new['dye_01'] = ds_new['dye_01'].where(ds_new['mask_rho'])
+# # apply land mask
+# print('Applying land mask...')
+# ds_new['dye_01'] = ds_new['dye_01'].where(ds_new['mask_rho'])
 
 # print(ds_new['dye_01'][:,:,test_y,test_x].values)
 
@@ -194,6 +194,10 @@ ds_new['dye_01'] = ds_new['dye_01'].where(ds_new['mask_rho'])
 # # add colorbar
 # cbar = plt.colorbar(cs,ax=ax, location='bottom')
 # plt.show()
+
+# apply land mask
+print('Replacing all NaNs with zero...')
+# TODO
 
 # check output
 # get dz
