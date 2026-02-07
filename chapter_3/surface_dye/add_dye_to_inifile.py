@@ -65,7 +65,7 @@ dt0 = datetime.strptime(ds0, Lfun.ds_fmt)
 date = 'f' + dt0.strftime(Lfun.ds_fmt)
 
 # set output location
-out_dir = ('../../../LO_output/forcing/cas7/' + date + 'ocnG00d')
+out_dir = ('../../../LO_output/forcing/cas7/' + date + '/ocnG00d')
 # Lfun.make_dir(out_dir)
 
 # get original history file
