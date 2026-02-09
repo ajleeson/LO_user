@@ -249,7 +249,6 @@ in_dict['testing'] = Ldir['testing']
 # get list of history files to plot
 fn_list = get_fn_list_local(Ldir['list_type'], Ldir,
     Ldir['ds0'], Ldir['ds1'], his_num=Ldir['his_num'])
-print(fn_list)
     
 if (Ldir['list_type'] == 'allhours') and Ldir['testing']:
     fn_list = fn_list[:4]
