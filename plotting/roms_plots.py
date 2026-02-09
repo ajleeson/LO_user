@@ -5279,7 +5279,7 @@ def P_surf10m_dye(in_dict):
 
     # calculate the vertical integral of the surface 10 m:
     # get dz
-    G, S, T = zrfun.get_basic_info(Ldir['roms_out'] / 'cas7_t1d_x11ad' / 'f2020.01.01' / 'ocean_his_0002.nc')
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
     zr, zw = zrfun.get_z(G['h'],ds.zeta[0,:,:].to_numpy(),S)
     dz = np.diff(zw, axis=0) # [m]
     # only look at top 10 m
