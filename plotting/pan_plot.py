@@ -36,7 +36,7 @@ reload(roms_plots)
 # format used for naming day folders
 ds_fmt = '%Y.%m.%d'
 
-def get_fn_list(list_type, Ldir, ds0, ds1, his_num=2):
+def get_fn_list_local(list_type, Ldir, ds0, ds1, his_num=2):
     """
     INPUT:
     A function for getting lists of history files.
@@ -71,7 +71,7 @@ def get_fn_list(list_type, Ldir, ds0, ds1, his_num=2):
         date_list = date_list_utility(dt0, dt1)
         for dl in date_list:
             f_string = 'f' + dl
-            fn = dir0 / f_string / 'ocean_his_0021.nc'
+            fn = dir0 / f_string / 'ocean_his_0001.nc'
             fn_list.append(fn)
     elif list_type == 'lowpass':
         # list of lowpassed files (Noon PST) over a date range
@@ -247,7 +247,7 @@ in_dict['auto_vlims'] = Ldir['auto_vlims']
 in_dict['testing'] = Ldir['testing']
 
 # get list of history files to plot
-fn_list = get_fn_list(Ldir['list_type'], Ldir,
+fn_list = get_fn_list_local(Ldir['list_type'], Ldir,
     Ldir['ds0'], Ldir['ds1'], his_num=Ldir['his_num'])
 print(fn_list)
     
