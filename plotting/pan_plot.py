@@ -247,7 +247,7 @@ in_dict['auto_vlims'] = Ldir['auto_vlims']
 in_dict['testing'] = Ldir['testing']
 
 # get list of history files to plot
-fn_list = Lfun.get_fn_list(Ldir['list_type'], Ldir,
+fn_list = get_fn_list(Ldir['list_type'], Ldir,
     Ldir['ds0'], Ldir['ds1'], his_num=Ldir['his_num'])
     
 if (Ldir['list_type'] == 'allhours') and Ldir['testing']:
