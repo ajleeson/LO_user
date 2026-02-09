@@ -5306,7 +5306,7 @@ def P_surf10m_dye(in_dict):
         px, py = pfun.get_plon_plat(lons,lats)
         cmap = plt.colormaps.get_cmap('RdPu').copy()
         cmap.set_bad('silver') 
-        cs = ax.pcolormesh(px,py,var,vmin=0, vmax=6, cmap=cmap)
+        cs = ax.pcolormesh(px,py,var,vmin=0, vmax=5, cmap=cmap)
         fig.colorbar(cs)
         plt.locator_params(axis='x', nbins=3)
         pfun.dar(ax)
