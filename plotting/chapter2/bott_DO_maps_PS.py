@@ -52,9 +52,9 @@ years = ['2014','2015','2016','2017','2018','2019','2020']
 # which  model run to look at?
 gtagexes = ['cas7_t1noDIN_x11ab','cas7_t1_x11ab']
 
-# where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
-Lfun.make_dir(out_dir)
+# # where to put output figures
+# out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
+# Lfun.make_dir(out_dir)
 
 region = 'Puget Sound'
 
@@ -296,8 +296,22 @@ cbar = fig.colorbar(cs, location='right',pad=cbar_pad)
 cbar.ax.tick_params(labelsize=14)#,length=10, width=2)
 cbar.outline.set_visible(False)
 
-# calculate mean difference in Puget Sound
-mean_ps_diff = np.nanmean(diff * np.where(mask_ps == 0, np.nan, mask_ps))
+# calculate mean difference in Puget Sound (weighted by area)
+# calculate area of each grid cell (and apply Puget Sound mask)
+# get horizontal area
+fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / 'pugetsoundDO_2014.01.01_2014.12.31.nc'
+box_ds = xr.open_dataset(fp)
+DX = (box_ds.pm.values)**-1
+DY = (box_ds.pn.values)**-1
+DA = DX*DY * np.where(mask_ps == 0, np.nan, mask_ps) # get area in m2 (within Puget Sound mask)
+# multiply area by difference, and sum
+sum_diff_x_area = np.nansum(diff * DA)
+# calculate total area of Puget Sound
+total_area = np.nansum(DA)
+# get area-weighted difference
+mean_ps_diff = sum_diff_x_area/total_area
+# mean_ps_diff = np.nanmean(diff * np.where(mask_ps == 0, np.nan, mask_ps))
+
 print('\n=========================\n'+
       'Average difference across Puget Sound of\n'+
       'mean climatological bottom DO concentration\n'+
