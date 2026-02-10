@@ -5328,3 +5328,64 @@ def P_surf10m_dye(in_dict):
         plt.close()
     else:
         plt.show()
+
+def P_vertint_dye(in_dict):
+    # START
+    ds = xr.open_dataset(in_dict['fn'])
+    date_str = in_dict['fn'].parent.name.lstrip('f')
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    pfun.start_plot(fs=fs, figsize=(8,8))
+    fig = plt.figure()
+
+    # calculate the vertical integral of the surface 10 m:
+    # get dz
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    zr, zw = zrfun.get_z(G['h'],ds.zeta[0,:,:].to_numpy(),S)
+    dz = np.diff(zw, axis=0) # [m]
+    # get dye concentrations
+    dye_conc = ds['dye_01'][0,:,:,:].to_numpy() # [kg/m3]
+    # vertical integrals
+    dye_vert_int = (dye_conc * dz).sum(axis=0) # [kg/m2]
+    new_dye_vert_int_data = xr.DataArray(dye_vert_int, dims=('eta_rho', 'xi_rho'))
+    ds['dye_01_vertint'] = new_dye_vert_int_data
+
+    # PLOT CODE
+    vn_list = ['dye_01_vertint']
+    ii = 1
+    for vn in vn_list:
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        var = ds[vn]
+        lons = ds.coords['lon_rho'].values
+        lats = ds.coords['lat_rho'].values
+        px, py = pfun.get_plon_plat(lons,lats)
+        cmap = plt.colormaps.get_cmap('RdPu').copy()
+        cmap.set_bad('silver') 
+        cs = ax.pcolormesh(px,py,var,vmin=0, vmax=5, cmap=cmap)
+        fig.colorbar(cs)
+        plt.locator_params(axis='x', nbins=3)
+        pfun.dar(ax)
+        ax.set_title('Total vertically integrated\ndye_01 [kg/m2]', fontsize=14)
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+        elif ii == 2:
+            ax.set_yticklabels([])
+            pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+        ax.text(0.64,0.92,date_str,transform=ax.transAxes,fontsize=12)
+        ii += 1
+    #fig.tight_layout()
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
