@@ -45,7 +45,7 @@ plt.close('all')
 ##############################################################
 
 # Show WWTP locations?
-WWTP_loc = False
+WWTP_loc = True
 
 years = ['2014','2015','2016','2017','2018','2019','2020']
 
@@ -328,19 +328,19 @@ for axis in ax:
     axis.axes.xaxis.set_visible(False)
     axis.axes.yaxis.set_visible(False)
 
-# # add wwtp locations
-# if WWTP_loc == True:
-#     ax[1].scatter(moh20_lon_wwtps,moh20_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=moh20_sizes_wwtps, label='WWTPs')
-#     ax[1].scatter(was24_lon_wwtps,was24_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=was24_sizes_wwtps)
-#     leg_szs = [100, 1000, 10000]
-#     szs = [0.05*(leg_sz) for leg_sz in leg_szs]
-#     l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=1)
-#     l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=1)
-#     l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=1)
-#     labels = ['< 100', '1,000', '10,000']
-#     legend = ax[1].legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
-#         title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
-#     plt.setp(legend.get_title(),fontsize=9)
+# add wwtp locations
+if WWTP_loc == True:
+    ax[1].scatter(moh20_lon_wwtps,moh20_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=moh20_sizes_wwtps, label='WWTPs')
+    ax[1].scatter(was24_lon_wwtps,was24_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=was24_sizes_wwtps)
+    leg_szs = [100, 1000, 10000]
+    szs = [0.05*(leg_sz) for leg_sz in leg_szs]
+    l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=1)
+    l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=1)
+    l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=1)
+    labels = ['< 100', '1,000', '10,000']
+    legend = ax[1].legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
+        title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
+    plt.setp(legend.get_title(),fontsize=9)
 
 # # add 10 km bar
 # lat0 = 46.94 + 0.1
