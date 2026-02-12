@@ -162,25 +162,25 @@ dec_noloading_deep = deepDO_clim_noloading[dec::]
 ########################
 
 
-# winter_loading_shallow = shallowDO_clim_loading[jan:apr]
-# winter_noloading_shallow = shallowDO_clim_noloading[jan:apr]
-# winter_loading_deep = deepDO_clim_loading[jan:apr]
-# winter_noloading_deep = deepDO_clim_noloading[jan:apr]
+winter_loading_shallow = shallowDO_clim_loading[jan:apr]
+winter_noloading_shallow = shallowDO_clim_noloading[jan:apr]
+winter_loading_deep = deepDO_clim_loading[jan:apr]
+winter_noloading_deep = deepDO_clim_noloading[jan:apr]
 
-# spring_loading_shallow = shallowDO_clim_loading[apr:jul]
-# spring_noloading_shallow = shallowDO_clim_noloading[apr:jul]
-# spring_loading_deep = deepDO_clim_loading[apr:jul]
-# spring_noloading_deep = deepDO_clim_noloading[apr:jul]
+spring_loading_shallow = shallowDO_clim_loading[apr:jul]
+spring_noloading_shallow = shallowDO_clim_noloading[apr:jul]
+spring_loading_deep = deepDO_clim_loading[apr:jul]
+spring_noloading_deep = deepDO_clim_noloading[apr:jul]
 
-# summer_loading_shallow = shallowDO_clim_loading[jul:oct]
-# summer_noloading_shallow = shallowDO_clim_noloading[jul:oct]
-# summer_loading_deep = deepDO_clim_loading[jul:oct]
-# summer_noloading_deep = deepDO_clim_noloading[jul:oct]
+summer_loading_shallow = shallowDO_clim_loading[jul:oct]
+summer_noloading_shallow = shallowDO_clim_noloading[jul:oct]
+summer_loading_deep = deepDO_clim_loading[jul:oct]
+summer_noloading_deep = deepDO_clim_noloading[jul:oct]
 
-# fall_loading_shallow = shallowDO_clim_loading[oct::]
-# fall_noloading_shallow = shallowDO_clim_noloading[oct::]
-# fall_loading_deep = deepDO_clim_loading[oct::]
-# fall_noloading_deep = deepDO_clim_noloading[oct::]
+fall_loading_shallow = shallowDO_clim_loading[oct::]
+fall_noloading_shallow = shallowDO_clim_noloading[oct::]
+fall_loading_deep = deepDO_clim_loading[oct::]
+fall_noloading_deep = deepDO_clim_noloading[oct::]
 
 
 ##############################################################
@@ -190,85 +190,120 @@ dec_noloading_deep = deepDO_clim_noloading[dec::]
 # Initialize figure
 # fs = 10
 # pfun.start_plot(fs=fs, figsize=(10,8))
-fig,axes = plt.subplots(2, 1, figsize=(10,8), sharex=True)
+fig,axes = plt.subplots(1,2, figsize=(8,2.4), sharey=True)
 ax = axes.ravel()
 
-# plot shallow layer (depth <= 10 m)
-violinplot([jan_noloading_shallow,
-            feb_noloading_shallow,
-            mar_noloading_shallow,
-            apr_noloading_shallow,
-            may_noloading_shallow,
-            jun_noloading_shallow,
-            jul_noloading_shallow,
-            aug_noloading_shallow,
-            sep_noloading_shallow,
-            oct_noloading_shallow,
-            nov_noloading_shallow,
-            dec_noloading_shallow,
-            ],
-            positions=[1,2,3,4,5,6,7,8,9,10,11,12], show_boxplot=False,
-            side='left', ax=ax[0], plot_opts={'violin_fc':'black'},)
-violinplot([jan_noloading_deep,
-            feb_noloading_deep,
-            mar_noloading_deep,
-            apr_noloading_deep,
-            may_noloading_deep,
-            jun_noloading_deep,
-            jul_noloading_deep,
-            aug_noloading_deep,
-            sep_noloading_deep,
-            oct_noloading_deep,
-            nov_noloading_deep,
-            dec_noloading_deep,
-            ],
-            positions=[1,2,3,4,5,6,7,8,9,10,11,12], show_boxplot=False,
-            side='left', ax=ax[1], plot_opts={'violin_fc':'black'})
-
-# plot deep layer (depth <= 10 m)
-violinplot([jan_loading_shallow,
-            feb_loading_shallow,
-            mar_loading_shallow,
-            apr_loading_shallow,
-            may_loading_shallow,
-            jun_loading_shallow,
-            jul_loading_shallow,
-            aug_loading_shallow,
-            sep_loading_shallow,
-            oct_loading_shallow,
-            nov_loading_shallow,
-            dec_loading_shallow,
-            ],
-            positions=[1,2,3,4,5,6,7,8,9,10,11,12], show_boxplot=False,
-            side='right', ax=ax[0], plot_opts={'violin_fc':'cornflowerblue'})
-violinplot([jan_loading_deep,
-            feb_loading_deep,
-            mar_loading_deep,
-            apr_loading_deep,
-            may_loading_deep,
-            jun_loading_deep,
-            jul_loading_deep,
-            aug_loading_deep,
-            sep_loading_deep,
-            oct_loading_deep,
-            nov_loading_deep,
-            dec_loading_deep,
-            ],
-            positions=[1,2,3,4,5,6,7,8,9,10,11,12], show_boxplot=False,
-            side='right', ax=ax[1], plot_opts={'violin_fc':'cornflowerblue'})
-
 # # plot shallow layer (depth <= 10 m)
-# violinplot([winter_noloading_shallow,spring_noloading_shallow,summer_noloading_shallow,fall_noloading_shallow],
-#             positions=[0,1,2,3], show_boxplot=False,
+# violinplot([jan_noloading_shallow,
+#             feb_noloading_shallow,
+#             mar_noloading_shallow,
+#             apr_noloading_shallow,
+#             may_noloading_shallow,
+#             jun_noloading_shallow,
+#             jul_noloading_shallow,
+#             aug_noloading_shallow,
+#             sep_noloading_shallow,
+#             oct_noloading_shallow,
+#             nov_noloading_shallow,
+#             dec_noloading_shallow,
+#             ],
+#             positions=[1,2,3,4,5,6,7,8,9,10,11,12], show_boxplot=False,
 #             side='left', ax=ax[0], plot_opts={'violin_fc':'black'})
-# violinplot([winter_loading_shallow,spring_loading_shallow,summer_loading_shallow,fall_loading_shallow],
-#             positions=[0,1,2,3], show_boxplot=False,
-#             side='right', ax=ax[0], plot_opts={'violin_fc':'cornflowerblue'})
+# violinplot([jan_noloading_deep,
+#             feb_noloading_deep,
+#             mar_noloading_deep,
+#             apr_noloading_deep,
+#             may_noloading_deep,
+#             jun_noloading_deep,
+#             jul_noloading_deep,
+#             aug_noloading_deep,
+#             sep_noloading_deep,
+#             oct_noloading_deep,
+#             nov_noloading_deep,
+#             dec_noloading_deep,
+#             ],
+#             positions=[1,2,3,4,5,6,7,8,9,10,11,12], show_boxplot=False,
+#             side='left', ax=ax[1], plot_opts={'violin_fc':'black'})
 
 # # plot deep layer (depth <= 10 m)
-# violinplot([winter_noloading_deep,spring_noloading_deep,summer_noloading_deep,fall_noloading_deep],
-#             positions=[0,1,2,3], show_boxplot=False,
-#             side='left', ax=ax[1], plot_opts={'violin_fc':'black'})
-# violinplot([winter_loading_deep,spring_loading_deep,summer_loading_deep,fall_loading_deep],
-#             positions=[0,1,2,3], show_boxplot=False,
+# violinplot([jan_loading_shallow,
+#             feb_loading_shallow,
+#             mar_loading_shallow,
+#             apr_loading_shallow,
+#             may_loading_shallow,
+#             jun_loading_shallow,
+#             jul_loading_shallow,
+#             aug_loading_shallow,
+#             sep_loading_shallow,
+#             oct_loading_shallow,
+#             nov_loading_shallow,
+#             dec_loading_shallow,
+#             ],
+#             positions=[1,2,3,4,5,6,7,8,9,10,11,12], show_boxplot=False,
+#             side='right', ax=ax[0], plot_opts={'violin_fc':'cornflowerblue'})
+# violinplot([jan_loading_deep,
+#             feb_loading_deep,
+#             mar_loading_deep,
+#             apr_loading_deep,
+#             may_loading_deep,
+#             jun_loading_deep,
+#             jul_loading_deep,
+#             aug_loading_deep,
+#             sep_loading_deep,
+#             oct_loading_deep,
+#             nov_loading_deep,
+#             dec_loading_deep,
+#             ],
+#             positions=[1,2,3,4,5,6,7,8,9,10,11,12], show_boxplot=False,
 #             side='right', ax=ax[1], plot_opts={'violin_fc':'cornflowerblue'})
+
+# # # format figure
+# ax[0].set_ylabel('DO concentration [mg/L]\n(Surface 10 m)', fontsize=12)
+# ax[1].set_ylabel('DO concentration [mg/L]\n(Deeper than 10 m)', fontsize=12)
+# for axis in ax:
+#     axis.grid(visible=True, axis='both', color='silver', linestyle='--')
+#     axis.tick_params(axis='both', labelsize=12)
+#     axis.tick_params(axis='x',rotation=30)
+#     # axis.set_ylim([0,11])
+#     xticks = np.arange(1, 13, 1)
+#     axis.set_xticks(xticks, labels=['Jan','Feb','Mar','Apr','May','Jun',
+#                                      'Jul','Aug','Sep','Oct','Nov','Dec'])
+# ax[0].text(9.5,10,'No-Loading',fontweight='bold',color='black',alpha=0.6,fontsize=14)
+# ax[0].text(9.5,9.3,'Loading',fontweight='bold',color='cornflowerblue',alpha=0.6,fontsize=14)
+
+# plt.tight_layout()
+
+
+# plot shallow layer (depth <= 10 m)
+violinplot([winter_noloading_shallow,spring_noloading_shallow,summer_noloading_shallow,fall_noloading_shallow],
+            positions=[1,2,3,4], show_boxplot=False,
+            side='left', ax=ax[0], plot_opts={'violin_fc':'black'})
+violinplot([winter_loading_shallow,spring_loading_shallow,summer_loading_shallow,fall_loading_shallow],
+            positions=[1,2,3,4], show_boxplot=False,
+            side='right', ax=ax[0], plot_opts={'violin_fc':'cornflowerblue'})
+
+# plot deep layer (depth <= 10 m)
+violinplot([winter_noloading_deep,spring_noloading_deep,summer_noloading_deep,fall_noloading_deep],
+            positions=[1,2,3,4], show_boxplot=False,
+            side='left', ax=ax[1], plot_opts={'violin_fc':'black'})
+violinplot([winter_loading_deep,spring_loading_deep,summer_loading_deep,fall_loading_deep],
+            positions=[1,2,3,4], show_boxplot=False,
+            side='right', ax=ax[1], plot_opts={'violin_fc':'cornflowerblue'})
+
+# format figure
+ax[0].set_ylabel('DO [mg/L]', fontsize=12)
+# ax[1].set_ylabel('DO [mg/L]', fontsize=12)
+for axis in ax:
+    axis.grid(visible=True, axis='both', color='silver', linestyle='--')
+    axis.tick_params(axis='both', labelsize=12)
+    # axis.tick_params(axis='x',rotation=30)
+    # axis.set_ylim([0,11])
+    xticks = np.arange(1, 5, 1)
+    axis.set_xticks(xticks, labels=['Winter','Spring','Summer','Fall'])
+ax[0].text(0.6,5.1,'No-Loading',fontweight='bold',color='black',alpha=0.6,fontsize=11)
+ax[0].text(0.6,4.5,'Loading',fontweight='bold',color='cornflowerblue',alpha=0.6,fontsize=11)
+
+ax[0].text(0.6,10.5,'(a) Surface 10 m',fontweight='bold',fontsize=12)
+ax[1].text(0.6,10.5,'(b) Deep',fontweight='bold',fontsize=12)
+
+plt.tight_layout()
