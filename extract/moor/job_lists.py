@@ -268,6 +268,12 @@ def get_sta_dict(job_name):
         'columbia_mouth': (-124.08447696,46.24604386),
         'columbia_plume': (-124.56,46.15),
         }
+
+    # Columbia River mouth (location of massive alkalinity dump)
+    elif job_name == 'offshore':
+        sta_dict = {
+        'columbia_mouth': (-127.5,46),
+        }
             
             
     else:

@@ -162,7 +162,7 @@ else:
 
 vn_list = 'h,zeta'
 if Ldir['get_tsa']:
-    vn_list += ',salt,temp,AKs,AKv'
+    vn_list += ',salt,temp,AKs,AKv,dye_01'
 if Ldir['get_vel']:
     vn_list += ',ubar,vbar'
 if Ldir['get_bio']:

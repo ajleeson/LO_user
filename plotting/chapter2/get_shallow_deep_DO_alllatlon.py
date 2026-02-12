@@ -90,7 +90,6 @@ print('Processing started...\n')
 basin_mask_ds = grid_ds = xr.open_dataset('../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
 mask_rho = basin_mask_ds.mask_rho.values
 mask_ps = basin_mask_ds.mask_pugetsound.values
-mask_wb = basin_mask_ds.mask_whidbeybasin.values
 
 # get horizontal area
 fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / 'pugetsoundDO_2014.01.01_2014.12.31.nc'
@@ -150,8 +149,8 @@ for gtagex in gtagexes:
             water_depth_deeper  = np.nansum(dzr_deeper, axis=1) # [m], with shape t,y,x
             # apply Puget Sound mask
             # PS_water_depth = water_depth * mask_ps # [m], with shape t,y,x
-            PS_water_depth_shallow = water_depth_shallow * mask_wb # [m], with shape t,y,x
-            PS_water_depth_deeper  = water_depth_deeper * mask_wb # [m], with shape t,y,x
+            PS_water_depth_shallow = water_depth_shallow * mask_ps # [m], with shape t,y,x
+            PS_water_depth_deeper  = water_depth_deeper * mask_ps # [m], with shape t,y,x
             # multiply by area to get volume of each water column
             # PS_volume_per_column = PS_water_depth * DA # [m3], with shape t,y,x
             PS_volume_per_column_shallow = PS_water_depth_shallow * DA # [m3], with shape t,y,x
@@ -179,8 +178,8 @@ for gtagex in gtagexes:
             eta_rho = ds_raw['eta_rho']
             xi_rho = ds_raw['xi_rho']
             # PS_DO_m_mgL = DO_vert_int * mask_ps # [m * mg/L], with shape t,y,x
-            PS_DO_m_mgL_shallow = DO_vert_int_shallow * mask_wb # [m * mg/L], with shape t,y,x
-            PS_DO_m_mgL_deeper  = DO_vert_int_deeper * mask_wb # [m * mg/L], with shape t,y,x
+            PS_DO_m_mgL_shallow = DO_vert_int_shallow * mask_ps # [m * mg/L], with shape t,y,x
+            PS_DO_m_mgL_deeper  = DO_vert_int_deeper * mask_ps # [m * mg/L], with shape t,y,x
 
             # multiply by area to get volume integral
             # PS_DO_vol_int = PS_DO_m_mgL * DA # [m3 * mg/L], with shape t,y,x
