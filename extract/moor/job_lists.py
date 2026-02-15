@@ -274,6 +274,13 @@ def get_sta_dict(job_name):
         sta_dict = {
         'offshore': (-127.5,46),
         }
+
+    # Penn Cove and Hood Canal
+    elif job_name == 'penn_hoodcanal':
+        sta_dict = {
+        'penncove': (-122.708138,48.227876),
+        'hoodcanal': (-123.055724,47.489200),
+        }
             
             
     else:
