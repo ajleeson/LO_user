@@ -244,7 +244,7 @@ ax1.tick_params(axis='y',labelsize=12, colors=colors[0])
 # ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
 ax1.set_ylabel('Percent of Puget Sound volume [%]', fontsize=12, color=colors[0])
 # plt.legend(loc='upper left', fontsize=12)
-plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
+# plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
 # create time vector
 startdate = years[0]+'.01.01'
 enddate = years[-1]+'.12.31'
