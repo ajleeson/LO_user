@@ -39,7 +39,7 @@ Ldir = Lfun.Lstart()
 # region = 'HC_up'
 regions = ['pugetsoundDO']
 
-years = ['2014','2015','2016','2017','2018','2019','2020']
+years = ['2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
 # gtagex = 'cas7_t1_x11ab'  
@@ -234,7 +234,7 @@ for gtagex in gtagexes:
             #                                     'xi_rho': ds_raw['xi_rho'].values},
             #                             dims=['ocean_time','eta_rho', 'xi_rho'])
             # depth of water column
-            ds['depth_bot'] = xr.DataArray(z_w_all[:,0,:,:], # get bottom most value, which varies with time due to SSH
+            ds['depth_bot'] = xr.DataArray(z_w_all[:,0,:,:]-z_w_all[:,-1,:,:], # get bottom most value, and subtract SSH (-depth -SSH = watercolumn depth)
                                         coords={'ocean_time': ds_raw['ocean_time'].values,
                                                 'eta_rho': ds_raw['eta_rho'].values,
                                                 'xi_rho': ds_raw['xi_rho'].values},
