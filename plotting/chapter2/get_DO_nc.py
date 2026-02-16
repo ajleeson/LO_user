@@ -77,7 +77,7 @@ def start_ds(ocean_time,eta_rho,xi_rho):
         # DO concentration at bottom
         DO_bot      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # thickness of hypoxic layer
-        hyp_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        hyp_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
         # # thickness of 1mg/L layer
         # one_mgL_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # # thickness of 3mg/L layer
