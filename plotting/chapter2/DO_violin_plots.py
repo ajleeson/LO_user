@@ -33,7 +33,7 @@ plt.close('all')
 ##                       USER INPUTS                        ##
 ##############################################################
 
-years = ['2014','2015','2016','2017','2018','2019','2020']
+years = ['2017']#['2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
 gtagexes = ['cas7_t1noDIN_x11ab','cas7_t1_x11ab']
@@ -98,6 +98,49 @@ sep = 243
 oct = 273
 nov = 304
 dec = 334
+
+# print('January')
+# print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[jan:feb])*1000/32,2)))
+# print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[jan:feb])*1000/32,2)))
+# print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[jan:feb])*1000/32,2)))
+# print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[jan:feb])*1000/32,2)))
+
+# print('February')
+# print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[feb:mar])*1000/32,2)))
+# print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[feb:mar])*1000/32,2)))
+# print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[feb:mar])*1000/32,2)))
+# print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[feb:mar])*1000/32,2)))
+
+# print('March')
+# print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[mar:apr])*1000/32,2)))
+# print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[mar:apr])*1000/32,2)))
+# print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[mar:apr])*1000/32,2)))
+# print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[mar:apr])*1000/32,2)))
+
+# print('April')
+# print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[apr:may])*1000/32,2)))
+# print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[apr:may])*1000/32,2)))
+# print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[apr:may])*1000/32,2)))
+# print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[apr:may])*1000/32,2)))
+
+# print('May')
+# print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[may:jun])*1000/32,2)))
+# print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[may:jun])*1000/32,2)))
+# print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[may:jun])*1000/32,2)))
+# print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[may:jun])*1000/32,2)))
+
+# print('June')
+# print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[jun:jul])*1000/32,2)))
+# print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[jun:jul])*1000/32,2)))
+# print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[jun:jul])*1000/32,2)))
+# print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[jun:jul])*1000/32,2)))
+
+# print('July')
+# print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[jul:aug])*1000/32,2)))
+# print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[jul:aug])*1000/32,2)))
+# print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[jul:aug])*1000/32,2)))
+# print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[jul:aug])*1000/32,2)))
+
 
 jan_loading_shallow = shallowDO_clim_loading[jan:feb]
 jan_noloading_shallow = shallowDO_clim_noloading[jan:feb]
@@ -181,6 +224,38 @@ fall_loading_shallow = shallowDO_clim_loading[oct::]
 fall_noloading_shallow = shallowDO_clim_noloading[oct::]
 fall_loading_deep = deepDO_clim_loading[oct::]
 fall_noloading_deep = deepDO_clim_noloading[oct::]
+
+print('Winter')
+print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[jan:apr]),3)))
+print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[jan:apr]),3)))
+print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[jan:apr]),3)))
+print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[jan:apr]),3)))
+
+print('Spring')
+print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[apr:jul]),3)))
+print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[apr:jul]),3)))
+print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[apr:jul]),3)))
+print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[apr:jul]),3)))
+
+print('Summer')
+print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[jul:oct]),3)))
+print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[jul:oct]),3)))
+print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[jul:oct]),3)))
+print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[jul:oct]),3)))
+
+print('Fall')
+print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[oct::]),3)))
+print('   surf (no-loading): {}'.format(round(np.nanmean(shallowDO_clim_noloading[oct::]),3)))
+print('   deep (loading): {}'.format(round(np.nanmean(deepDO_clim_loading[oct::]),3)))
+print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[oct::]),3)))
+
+
+fig,ax = plt.subplots(1,1, figsize=(9,4), sharey=True)
+ax.plot(shallowDO_clim_loading)
+ax.plot(shallowDO_clim_noloading)
+ax.plot(deepDO_clim_loading)
+ax.plot(deepDO_clim_noloading)
+
 
 
 ##############################################################

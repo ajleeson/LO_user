@@ -51,7 +51,7 @@ WWTP_loc = True
 nwin = 20
 
 # years =  ['2014','2015']
-years =  ['2014','2015','2016','2017','2018','2019','2020']
+years =  ['2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
 gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
@@ -518,8 +518,8 @@ facecolor = 'cornflowerblue'
 alpha = 0.5
 ocn_lon = -122.725
 ocn_lat = 48.165
-# Data from Mackas & Harrison (1997) through Strait of Juan de Fuca
-ocn_load = 2600 * 1000 # (tonnes per day * 1000 kg/ton)
+# Data from TEF at admiralty inlet from cas7_t1_x11b 2017
+ocn_load = 1256265.3415210778
 ocn_size = 0.05*ocn_load
 ax2.scatter(ocn_lon,ocn_lat,color=facecolor, edgecolors=edgecolor, alpha=alpha,
                 linewidth=1, s=ocn_size)
@@ -536,3 +536,24 @@ ax2.set_title('(c) Exchange Flow',loc='left',fontsize=14,fontweight='bold')
 
 plt.tight_layout()
 plt.show()
+
+
+# Pie chart
+ocn_perc = round(ocn_load / (ocn_load+total_wwtp_DIN_load+total_river_DIN_load) * 100,2)
+wwtp_perc = round(total_wwtp_DIN_load / (ocn_load+total_wwtp_DIN_load+total_river_DIN_load) * 100,2)
+riv_perc = round(total_river_DIN_load / (ocn_load+total_wwtp_DIN_load+total_river_DIN_load) * 100,2)
+
+fig, ax = plt.subplots()
+labels = ['Exchange Flow\nwith Ocean\n({}%)'.format(ocn_perc),
+          '\nWWTPs ({}%)'.format(wwtp_perc),
+          'Rivers ({}%)'.format(riv_perc)]
+sizes = [ocn_load, total_wwtp_DIN_load, total_river_DIN_load]
+# plot pie chart
+_,pie_texts = ax.pie(sizes, labels=labels, startangle=10,
+       colors=['navy', 'lightcoral', 'deepskyblue'],
+       textprops={'size': 'larger'},radius=0.7)
+# format
+plt.setp(pie_texts, **{'weight':'bold', 'fontsize':12.5})
+
+plt.show()
+plt.savefig('transparent_loading_piechart.png', transparent=True, dpi=300)

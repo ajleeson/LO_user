@@ -67,6 +67,7 @@ regions = ['pugetsoundDO']
 # initialize empty dictionaries
 DO_bot_dict = {} # dictionary with DO_bot values
 hyp_thick_dict = {}
+water_depth_dict = {}
 one_mgL_thick_dict = {}
 three_mgL_thick_dict = {}
 
@@ -85,6 +86,7 @@ for year in years:
                     ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
             DO_bot = ds['DO_bot'].values
             hyp_thick = ds['hyp_thick'].values
+            water_depth_m = ds['depth_bot'].values * -1
             one_mgL_thick = ds['one_mgL_thick'].values
             three_mgL_thick = ds['three_mgL_thick'].values
             # # if not a leap year, add a nan on feb 29 (julian day 60 - 1 because indexing from 0)
@@ -93,10 +95,11 @@ for year in years:
             #     hyp_thick = np.insert(hyp_thick,59,'nan',axis=0)
             DO_bot_dict[gtagex+region+year] = DO_bot
             hyp_thick_dict[gtagex+region+year] = hyp_thick
+            water_depth_dict[gtagex+region+year] = water_depth_m
             one_mgL_thick_dict[gtagex+region+year] = one_mgL_thick
             three_mgL_thick_dict[gtagex+region+year] = three_mgL_thick
 
-print(ds)
+# print(ds)
 
 # initialize empty dictionary to get grid cell areas
 DA = {}
@@ -116,6 +119,7 @@ mask_ps = basin_mask_ds.mask_pugetsound.values
 
 # initialize dictionary for hypoxic volume [km3]
 hyp_vol = {}
+water_volume = {}
 onemgL_vol = {}
 threemgL_vol = {}
 for year in years:
@@ -125,14 +129,19 @@ for year in years:
             if gtagex == 'cas7_t0_x4b' and region != 'pugetsoundDO':
                 continue
             else:
-                # get hypoxic thickness
+                # get thickness
                 hyp_thick = hyp_thick_dict[gtagex+region+year]/1000 # [km]
+                water_depth_km = water_depth_dict[gtagex+region+year]/1000 # [km]
                 one_mgL_thick = one_mgL_thick_dict[gtagex+region+year]/1000 # [km]
                 three_mgL_thick = three_mgL_thick_dict[gtagex+region+year]/1000 # [km]
                 # apply Puget Sound mask
                 hyp_thick = hyp_thick * mask_ps
-                hyp_vol_timeseries = np.sum(hyp_thick * DA[region], axis=(1, 2)) # km^3
+                hyp_vol_timeseries = np.nansum(hyp_thick * DA[region], axis=(1, 2)) # km^3
                 hyp_vol[gtagex+region+year] = hyp_vol_timeseries
+
+                water_depth_km = water_depth_km * mask_ps
+                water_vol_timeseries = np.nansum(water_depth_km * DA[region], axis=(1, 2)) # km^3
+                water_volume[gtagex+region+year] = water_vol_timeseries
 
                 one_mgL_thick = one_mgL_thick * mask_ps
                 onemgL_vol_timeseries = np.sum(one_mgL_thick * DA[region], axis=(1, 2)) # km^3
@@ -179,7 +188,7 @@ ax0.set_ylim([ymin,ymax])
 ax0.set_ylabel('Latitude', fontsize=12)
 ax0.set_xlabel('Longitude', fontsize=12)
 ax0.tick_params(axis='both', labelsize=12)
-print(mask_ps)
+# print(mask_ps)
 ax0.pcolormesh(plon, plat, np.where(mask_rho == 0, np.nan, mask_rho),
                 vmin=0, vmax=10, cmap='Blues')
 ax0.pcolormesh(plon, plat, np.where(mask_ps == 0, np.nan, mask_ps),
@@ -194,8 +203,9 @@ ax0.set_title('(a)', fontsize = 14, loc='left', fontweight='bold')
 # Puget Sound volume
 PS_vol = np.nansum(basin_mask_ds['h'].values/1000 * DA[region] * mask_ps) # [km^3]
 print('Puget Sound volume: {} km3'.format(round(PS_vol,1)))
+# print('Puget Sound volume: {} km3'.format(round(PS_vol,1)))
 
-ax0.text(-123.2, 48.4, 'Puget Sound vol\n' + str(round(PS_vol,1)) + r' km$^3$', fontsize = 10)
+# ax0.text(-123.2, 48.4, 'Puget Sound vol\n' + str(round(PS_vol,1)) + r' km$^3$', fontsize = 10)
 
 # # create time vector
 # startdate = year+'.01.01'
@@ -222,14 +232,15 @@ for year in years:
         if year == '2015':
             # no-loading run is shaded percent volume
             if gtagex == 'cas7_t1noDIN_x11ab':
-                percent_hyp_vol = hyp_vol[gtagex+'pugetsoundDO'+year]/PS_vol*100
+                percent_hyp_vol = hyp_vol[gtagex+'pugetsoundDO'+year]/water_volume[gtagex+'pugetsoundDO'+year]*100
                 ax1.fill_between(dates_local, percent_hyp_vol,color=colors[i],alpha=alphas[i],label=labels[i])
                 # ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
                 # linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
+            print(water_volume[gtagex+'pugetsoundDO'+year])
         else:
             # only add label for 2014
             if gtagex == 'cas7_t1noDIN_x11ab':
-                percent_hyp_vol = hyp_vol[gtagex+'pugetsoundDO'+year]/PS_vol*100
+                percent_hyp_vol = hyp_vol[gtagex+'pugetsoundDO'+year]/water_volume[gtagex+'pugetsoundDO'+year]*100
                 ax1.fill_between(dates_local, percent_hyp_vol,color=colors[i],alpha=alphas[i])
             # # hypoxic volume line
             # ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
