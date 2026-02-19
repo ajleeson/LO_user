@@ -79,7 +79,7 @@ if stations == 'all':
     del sta_dict['budd']
     del sta_dict['eld']
     del sta_dict['killsut']
-    del sta_dict['dabob']
+    # del sta_dict['dabob']
 else:
     sta_dict = stations
 
@@ -1384,8 +1384,8 @@ if budget_barchart == True:
                 linewidth=2,label='Consumption')
     ax[0].legend(loc='lower right',ncol=6, fontsize=9, handletextpad=0.15)
     # add drawdown period
-    # mid Jul - mid Aug
-    minday = 194
+    # mid Jun - mid Aug
+    minday = 164
     maxday = 225
     ax[0].axvline(dates_local_daily[minday],0,12,color='grey')#,linestyle=':')
     ax[0].axvline(dates_local_daily[maxday],0,12,color='grey')#,linestyle=':')
@@ -1479,7 +1479,7 @@ if budget_barchart == True:
 
 
     # mid July to mid August
-    minday = 194
+    minday = 164
     maxday = 225
 
 
@@ -1817,7 +1817,7 @@ if budget_barchart == True:
 #########################################################
 
 # mid July to mid August
-minday = 194
+minday = 164
 maxday = 225
 
 # initialize figure
