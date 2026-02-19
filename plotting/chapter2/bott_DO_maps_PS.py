@@ -9,6 +9,7 @@ from subprocess import Popen as Po
 from subprocess import PIPE as Pi
 from matplotlib.markers import MarkerStyle
 import matplotlib.dates as mdates
+import matplotlib.patches as mpatches
 import numpy as np
 import xarray as xr
 from datetime import datetime, timedelta
@@ -221,6 +222,14 @@ bottDO_clim_noloading = botDO_noloading_stacked.mean(axis=0)  # [365, y, x]
 basin_mask_ds = grid_ds = xr.open_dataset('../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
 mask_rho = basin_mask_ds.mask_rho.values
 mask_ps = basin_mask_ds.mask_pugetsound.values
+mask_hc = basin_mask_ds.mask_hoodcanal.values
+mask_ss = basin_mask_ds.mask_southsound.values
+mask_wb = basin_mask_ds.mask_whidbeybasin.values
+mask_mb = basin_mask_ds.mask_mainbasin.values
+mask_ps = basin_mask_ds.mask_pugetsound.values
+lon_basins = basin_mask_ds['lon_rho'].values
+lat_basins = basin_mask_ds['lat_rho'].values
+plon_basins, plat_basins = pfun.get_plon_plat(lon_basins,lat_basins)
 
 
 ##############################################################
@@ -368,3 +377,77 @@ plt.suptitle('Sep-Oct average bottom DO [mg/L]',
 # Generate plot
 plt.tight_layout
 plt.subplots_adjust(left=0.05, right=0.92, top=0.85, wspace=0.1)
+
+
+##############################################################
+##                BOTTOM DO VS. CHANGE IN DO               ##
+##############################################################
+
+# initialize figure
+fig, (ax0, ax1) = plt.subplots(1,2,figsize = (6,4),gridspec_kw={'width_ratios': [1, 2]})
+
+# Hood Canal
+ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_hc == 0, np.nan, mask_hc),
+            vmin=0, vmax=2.5, cmap='RdPu' )
+# South Sound
+ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_ss == 0, np.nan, mask_ss),
+            vmin=0, vmax=2, cmap='Purples' )
+# Whidbey Basin
+ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_wb == 0, np.nan, mask_wb),
+            vmin=0, vmax=3, cmap='cool' )
+# Main Basin
+ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_mb == 0, np.nan, mask_mb),
+            vmin=0, vmax=1.5, cmap='summer' )
+# format figure
+ax0.set_xlim([xmin,xmax])
+ax0.set_ylim([ymin,ymax])
+ax0.set_ylabel('Latitude', fontsize=12)
+ax0.set_xlabel('Longitude', fontsize=12)
+ax0.tick_params(axis='both', labelsize=12, rotation=30)
+ax0.set_title('(a)', loc='left', fontsize=14, fontweight='bold')
+pfun.dar(ax0)
+
+# get mean bottom DO in all basins
+mean_botDO_noloading_hc = np.where(mask_hc == 0, np.nan, mean_botDO_noloading)
+mean_botDO_noloading_wb = np.where(mask_wb == 0, np.nan, mean_botDO_noloading)
+mean_botDO_noloading_mb = np.where(mask_mb == 0, np.nan, mean_botDO_noloading)
+mean_botDO_noloading_ss = np.where(mask_ss == 0, np.nan, mean_botDO_noloading)
+
+diff_hc = np.where(mask_hc == 0, np.nan, diff)
+diff_wb = np.where(mask_wb == 0, np.nan, diff)
+diff_mb = np.where(mask_mb == 0, np.nan, diff)
+diff_ss = np.where(mask_ss == 0, np.nan, diff)
+
+
+hc_color = '#f582a0'
+wb_color = '#5bacfc'
+ss_color = '#9893c9'
+mb_color = '#addb69'
+size=6
+
+ax1.scatter(mean_botDO_noloading_wb.flatten(),diff_wb.flatten(),
+            alpha=0.6,edgecolor='none',facecolor=wb_color, s=size)
+ax1.scatter(mean_botDO_noloading_mb.flatten(),diff_mb.flatten(),
+            alpha=0.6,edgecolor='none',facecolor=mb_color, s=size)
+ax1.scatter(mean_botDO_noloading_ss.flatten(),diff_ss.flatten(),
+            alpha=0.6,edgecolor='none',facecolor=ss_color, s=size)
+ax1.scatter(mean_botDO_noloading_hc.flatten(),diff_hc.flatten(),
+            alpha=0.6,edgecolor='none',facecolor=hc_color, s=size)
+
+# make legend
+hc_patch = mpatches.Patch(color=hc_color, label='Hood Canal', alpha=1.0)
+wb_patch = mpatches.Patch(color=wb_color, label='Whidbey Basin', alpha=1.0)
+ss_patch = mpatches.Patch(color=ss_color, label='South Sound', alpha=1.0)
+mb_patch = mpatches.Patch(color=mb_color, label='Main Basin', alpha=1.0)
+ax1.legend(loc='lower right', fontsize=10, ncol=2,
+           handles=[hc_patch,wb_patch,ss_patch,mb_patch])
+
+# format figure
+ax1.axhline(0,linestyle=':',color='silver')
+ax1.set_title('(b)', loc='left', fontsize=14, fontweight='bold')
+ax1.set_xlim([0,11])
+ax1.set_ylim([-0.30,0.05])
+ax1.tick_params(axis='both', labelsize=12, rotation=3)
+ax1.set_xlabel('No-loading bottom DO [mg/L]',fontsize=12)
+ax1.set_ylabel(r'Loading $-$ No-loading [mg/L]',fontsize=12)
+plt.tight_layout()

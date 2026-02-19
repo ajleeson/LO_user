@@ -133,8 +133,8 @@ for year in years:
         zrho_hc_loading = np.nanmean(ds_hc_loading['z_rho'],axis=0)
 
         # plot noloading
-        ax[0].plot(do_pc_noloading,zrho_pc_noloading,color=colors[i],linewidth=3,alpha=0.4, label=month)
-        ax[2].plot(do_hc_noloading,zrho_hc_noloading,color=colors[i],linewidth=3,alpha=0.4)
+        ax[0].plot(do_pc_noloading,zrho_pc_noloading,color=colors[i],linewidth=3,alpha=0.8, label=month)
+        ax[2].plot(do_hc_noloading,zrho_hc_noloading,color=colors[i],linewidth=3,alpha=0.8)
         # plot loading
         if i == 3:
             ax[0].plot(do_pc_loading,zrho_pc_loading,color='black',linewidth=1, label='Loading')
@@ -142,8 +142,8 @@ for year in years:
             ax[0].plot(do_pc_loading,zrho_pc_loading,color='black',linewidth=1)
         ax[2].plot(do_hc_loading,zrho_hc_loading,color='black',linewidth=1)
         # plot difference
-        ax[1].plot(do_pc_loading-do_pc_noloading,zrho_pc_loading,color=colors[i],linewidth=3,alpha=0.5)
-        ax[3].plot(do_hc_loading-do_hc_noloading,zrho_hc_loading,color=colors[i],linewidth=3,alpha=0.5)
+        ax[1].plot(do_pc_loading-do_pc_noloading,zrho_pc_loading,color=colors[i],linewidth=3,alpha=0.8)
+        ax[3].plot(do_hc_loading-do_hc_noloading,zrho_hc_loading,color=colors[i],linewidth=3,alpha=0.8)
 
 # format difference panels
 # ax[2].set_xlim([0,14])

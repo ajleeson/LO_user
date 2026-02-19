@@ -78,10 +78,10 @@ def start_ds(ocean_time,eta_rho,xi_rho):
         DO_bot      = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
         # thickness of hypoxic layer
         hyp_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
-        # # thickness of 1mg/L layer
-        # one_mgL_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
-        # # thickness of 3mg/L layer
-        # three_mgL_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
+        # thickness of 1mg/L layer
+        one_mgL_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),
+        # thickness of 3mg/L layer
+        three_mgL_thick   = (['ocean_time','eta_rho','xi_rho'], np.zeros((Ndays,Neta,Nxi))),),
     coords=dict(ocean_time=ocean_time, eta_rho=eta_rho, xi_rho=xi_rho,),)
     
     return ds
@@ -109,11 +109,11 @@ def add_metadata(ds):
     ds['hyp_thick'].attrs['long_name'] = 'thickness of hypoxic layer'
     ds['hyp_thick'].attrs['units'] = 'm'
 
-    # ds['one_mgL_thick'].attrs['long_name'] = 'thickness of 1 mg/L layer (or lower concentration)'
-    # ds['one_mgL_thick'].attrs['units'] = 'm'
+    ds['one_mgL_thick'].attrs['long_name'] = 'thickness of 1 mg/L layer (or lower concentration)'
+    ds['one_mgL_thick'].attrs['units'] = 'm'
 
-    # ds['three_mgL_thick'].attrs['long_name'] = 'thickness of 3 mg/L layer (or lower concentration)'
-    # ds['three_mgL_thick'].attrs['units'] = 'm'
+    ds['three_mgL_thick'].attrs['long_name'] = 'thickness of 3 mg/L layer (or lower concentration)'
+    ds['three_mgL_thick'].attrs['units'] = 'm'
 
     return ds
 
@@ -175,12 +175,12 @@ for gtagex in gtagexes:
             three_mgL = np.where(oxy_mgL <= 3, 1, np.nan) # array of nans and ones. one means hypoxic, nan means nonhypoxic
             # Multiple cell height array by hypoxic array boolean array
             hyp_cell_thick = dzr_all * hypoxic
-            # one_mgL_cell_thick = dzr_all * one_mgL
-            # three_mgL_cell_thick = dzr_all * three_mgL
+            one_mgL_cell_thick = dzr_all * one_mgL
+            three_mgL_cell_thick = dzr_all * three_mgL
             # Sum along z to get thickness of hypoxic layer
             hyp_thick = np.nansum(hyp_cell_thick,axis=1)
-            # one_mgL_thick = np.nansum(one_mgL_cell_thick,axis=1)
-            # three_mgL_thick = np.nansum(three_mgL_cell_thick,axis=1)
+            one_mgL_thick = np.nansum(one_mgL_cell_thick,axis=1)
+            three_mgL_thick = np.nansum(three_mgL_cell_thick,axis=1)
 
             # print('    Calculating depth of DO minima')
             # # get s-rho of the lowest DO (array with dimensions of (ocean_time: 365, eta_rho: eta_size, xi_rho: xi_size))
@@ -252,19 +252,19 @@ for gtagex in gtagexes:
                                                 'xi_rho': ds_raw['xi_rho'].values},
                                         dims=['ocean_time','eta_rho', 'xi_rho'])
             
-            # # < 1 mg/L layer thickness
-            # ds['one_mgL_thick'] = xr.DataArray(one_mgL_thick,
-            #                             coords={'ocean_time': ds_raw['ocean_time'].values,
-            #                                     'eta_rho': ds_raw['eta_rho'].values,
-            #                                     'xi_rho': ds_raw['xi_rho'].values},
-            #                             dims=['ocean_time','eta_rho', 'xi_rho'])
+            # < 1 mg/L layer thickness
+            ds['one_mgL_thick'] = xr.DataArray(one_mgL_thick,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
             
-            # # < 1 mg/L layer thickness
-            # ds['three_mgL_thick'] = xr.DataArray(three_mgL_thick,
-            #                             coords={'ocean_time': ds_raw['ocean_time'].values,
-            #                                     'eta_rho': ds_raw['eta_rho'].values,
-            #                                     'xi_rho': ds_raw['xi_rho'].values},
-            #                             dims=['ocean_time','eta_rho', 'xi_rho'])
+            # < 1 mg/L layer thickness
+            ds['three_mgL_thick'] = xr.DataArray(three_mgL_thick,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values,
+                                                'eta_rho': ds_raw['eta_rho'].values,
+                                                'xi_rho': ds_raw['xi_rho'].values},
+                                        dims=['ocean_time','eta_rho', 'xi_rho'])
 
             print('    Saving dataset')
             # save dataset
