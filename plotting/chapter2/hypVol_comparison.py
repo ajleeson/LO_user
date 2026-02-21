@@ -45,10 +45,10 @@ Ldir = Lfun.Lstart()
 vn = 'oxygen'
 
 # years =  ['2014','2015','2016','2017','2018','2019','2020']
-years =  ['2015']#,'2016','2017','2018','2019','2020']
+years =  ['2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
-gtagexes = ['cas7_t1noDIN_x11ab','cas7_t1_x11ab',]
+gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab']
 # gtagexes = ['cas7_t0_x4b','cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
 
 # where to put output figures
@@ -213,11 +213,11 @@ print('Puget Sound volume: {} km3'.format(round(PS_vol,1)))
 # dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 # dates_local = [pfun.get_dt_local(x) for x in dates]
 
-colors = ['hotpink','navy']
+colors = ['mediumvioletred','royalblue']#['darkturquoise','orange']
 linewidths = [2,2]
-alphas = [0.8,0.8]
+alphas = [1,1]
 linestyles = ['-','-']
-labels=['No-Loading hypoxic volume','Volume Difference']
+labels=['Loading','No-loading']
 
 # plot timeseries
 for year in years:
@@ -228,32 +228,40 @@ for year in years:
     dates_local = [pfun.get_dt_local(x) for x in dates]
     # plot the loading and no-loading runs
     for i,gtagex in enumerate(gtagexes):
-        # plot hypoxic area timeseries
+        # plot hypoxic volume timeseries
         if year == '2015':
-            # no-loading run is shaded percent volume
-            if gtagex == 'cas7_t1noDIN_x11ab':
-                percent_hyp_vol = hyp_vol[gtagex+'pugetsoundDO'+year]/water_volume[gtagex+'pugetsoundDO'+year]*100
-                ax1.fill_between(dates_local, percent_hyp_vol,color=colors[i],alpha=alphas[i],label=labels[i])
-                # ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
-                # linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
-            print(water_volume[gtagex+'pugetsoundDO'+year])
+            ax1.plot(dates_local, hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],alpha=alphas[i],
+                     label=labels[i], linewidth=linewidths[i])
+            ax1.fill_between(dates_local, onemgL_vol[gtagex+'pugetsoundDO'+year],
+                             threemgL_vol[gtagex+'pugetsoundDO'+year],color=colors[i],alpha=0.2,linewidth=1)
+            # # no-loading run is shaded percent volume
+            # if gtagex == 'cas7_t1noDIN_x11ab':
+            #     percent_hyp_vol = hyp_vol[gtagex+'pugetsoundDO'+year]/water_volume[gtagex+'pugetsoundDO'+year]*100
+            #     ax1.fill_between(dates_local, percent_hyp_vol,color=colors[i],alpha=alphas[i],label=labels[i])
+            #     # ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
+            #     # linewidth=linewidths[i],alpha=alphas[i],label=labels[i])
+            # # print(water_volume[gtagex+'pugetsoundDO'+year])
         else:
-            # only add label for 2014
-            if gtagex == 'cas7_t1noDIN_x11ab':
-                percent_hyp_vol = hyp_vol[gtagex+'pugetsoundDO'+year]/water_volume[gtagex+'pugetsoundDO'+year]*100
-                ax1.fill_between(dates_local, percent_hyp_vol,color=colors[i],alpha=alphas[i])
-            # # hypoxic volume line
-            # ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
-            #     linewidth=linewidths[i],alpha=alphas[i])
+            ax1.plot(dates_local, hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],alpha=alphas[i],
+                     linewidth=linewidths[i])
+            ax1.fill_between(dates_local, onemgL_vol[gtagex+'pugetsoundDO'+year],
+                             threemgL_vol[gtagex+'pugetsoundDO'+year],color=colors[i],alpha=0.2,linewidth=1)
+            # # only add label for 2014
+            # if gtagex == 'cas7_t1noDIN_x11ab':
+            #     percent_hyp_vol = hyp_vol[gtagex+'pugetsoundDO'+year]/water_volume[gtagex+'pugetsoundDO'+year]*100
+            #     ax1.fill_between(dates_local, percent_hyp_vol,color=colors[i],alpha=alphas[i])
+            # # # hypoxic volume line
+            # # ax1.plot(dates_local,hyp_vol[gtagex+'pugetsoundDO'+year],color=colors[i],linestyle=linestyles[i],
+            # #     linewidth=linewidths[i],alpha=alphas[i])
 
 
 # format figure
 ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
 ax1.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 ax1.tick_params(axis='x',rotation=30, labelsize=12)
-ax1.tick_params(axis='y',labelsize=12, colors=colors[0])
+ax1.tick_params(axis='y',labelsize=12)
 # ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
-ax1.set_ylabel('Percent of Puget Sound volume [%]', fontsize=12, color=colors[0])
+ax1.set_ylabel(r'Hypoxic volume [km$^3$]', fontsize=12)
 # plt.legend(loc='upper left', fontsize=12)
 # plt.title('(b)', fontsize = 14, loc='left', fontweight='bold')
 # create time vector
@@ -262,21 +270,21 @@ enddate = years[-1]+'.12.31'
 dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
 dates_local = [pfun.get_dt_local(x) for x in dates]
 ax1.set_xlim([dates_local[0],dates_local[-1]])
-ax1.set_ylim([0,3])
+ax1.set_ylim([0,14])
 
 difference_all_years = []
 
-# get difference in hypoxic volume
-# get left axis limits
-ymin, ymax = ax1.get_ylim()
-# match ticks
-ax2 = ax1.twinx()
-ax2.tick_params(axis='both', labelsize=12, colors=colors[1])
-ax2.plot([],[])
-for border in ['top','right','bottom','left']:
-    ax2.spines[border].set_visible(False)
-ax2.set_ylabel(r'Loading $-$ No-loading [km$^3$]', fontsize=12, color=colors[1])
-# plot timeseries
+# # get difference in hypoxic volume
+# # get left axis limits
+# ymin, ymax = ax1.get_ylim()
+# # match ticks
+# ax2 = ax1.twinx()
+# ax2.tick_params(axis='both', labelsize=12, colors=colors[1])
+# ax2.plot([],[])
+# for border in ['top','right','bottom','left']:
+#     ax2.spines[border].set_visible(False)
+# ax2.set_ylabel(r'Loading $-$ No-loading [km$^3$]', fontsize=12, color=colors[1])
+# # plot timeseries
 for year in years:
     # create time vector
     startdate = year+'.01.01'
@@ -287,35 +295,35 @@ for year in years:
     loading = hyp_vol['cas7_t1_x11ab'+'pugetsoundDO'+year]
     noloading = hyp_vol['cas7_t1noDIN_x11ab'+'pugetsoundDO'+year]
     difference_all_years = difference_all_years + (loading-noloading).tolist()
-    # plot hypoxic area timeseries
-    if year == '2015':
-        ax2.plot(dates_local,loading-noloading,color=colors[1],linestyle=linestyles[1],
-        linewidth=linewidths[1],alpha=alphas[1],label=labels[1])
-    else:
-        # only add label for 2015
-        ax2.plot(dates_local,loading-noloading,color=colors[1],linestyle=linestyles[1],
-        linewidth=linewidths[1],alpha=alphas[1])
-# ax2.plot([],[])
-ax2.set_ylim(0,0.9)
-ax2.yaxis.set_ticks(np.arange(0, 1, 0.3))
+#     # plot hypoxic area timeseries
+#     if year == '2015':
+#         ax2.plot(dates_local,loading-noloading,color=colors[1],linestyle=linestyles[1],
+#         linewidth=linewidths[1],alpha=alphas[1],label=labels[1])
+#     else:
+#         # only add label for 2015
+#         ax2.plot(dates_local,loading-noloading,color=colors[1],linestyle=linestyles[1],
+#         linewidth=linewidths[1],alpha=alphas[1])
+# # ax2.plot([],[])
+# ax2.set_ylim(0,0.9)
+# ax2.yaxis.set_ticks(np.arange(0, 1, 0.3))
 
 # mean hypoxic volume difference
 difference_all_years_nozeros = [np.nan if diff == 0 else diff for diff in difference_all_years]
 mean_diff = np.nanmean(difference_all_years_nozeros)
 print('Mean difference in hypoxic volume = {} km3'.format(mean_diff))
 
-#  # convert hypoxic volume to percent hypoxic volume
-# percent = lambda hyp_vol: hyp_vol/PS_vol*100
-# # get left axis limits
-# ymin, ymax = ax1.get_ylim()
-# # match ticks
-# ax2 = ax1.twinx()
-# ax2.set_ylim((percent(ymin),percent(ymax)))
-# ax2.tick_params(axis='both', labelsize=12)
-# ax2.plot([],[])
-# for border in ['top','right','bottom','left']:
-#     ax2.spines[border].set_visible(False)
-# ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=12)
+ # convert hypoxic volume to percent hypoxic volume
+percent = lambda hyp_vol: hyp_vol/PS_vol*100
+# get left axis limits
+ymin, ymax = ax1.get_ylim()
+# match ticks
+ax2 = ax1.twinx()
+ax2.set_ylim((percent(ymin),percent(ymax)))
+ax2.tick_params(axis='both', labelsize=12)
+ax2.plot([],[])
+for border in ['top','right','bottom','left']:
+    ax2.spines[border].set_visible(False)
+ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=12)
 
 # add legend
 fills, labels1 = ax1.get_legend_handles_labels()

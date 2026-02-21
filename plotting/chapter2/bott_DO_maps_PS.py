@@ -384,7 +384,7 @@ plt.subplots_adjust(left=0.05, right=0.92, top=0.85, wspace=0.1)
 ##############################################################
 
 # initialize figure
-fig, (ax0, ax1) = plt.subplots(1,2,figsize = (6,4),gridspec_kw={'width_ratios': [1, 2]})
+fig, (ax0, ax1) = plt.subplots(1,2,figsize = (6.9,4.5),gridspec_kw={'width_ratios': [1, 2]})
 
 # Hood Canal
 ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_hc == 0, np.nan, mask_hc),
@@ -401,11 +401,18 @@ ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_mb == 0, np.nan, mask_mb)
 # format figure
 ax0.set_xlim([xmin,xmax])
 ax0.set_ylim([ymin,ymax])
-ax0.set_ylabel('Latitude', fontsize=12)
-ax0.set_xlabel('Longitude', fontsize=12)
-ax0.tick_params(axis='both', labelsize=12, rotation=30)
+# ax0.set_ylabel('Latitude', fontsize=12)
+# ax0.set_xlabel('Longitude', fontsize=12)
+# ax0.tick_params(axis='both', labelsize=12, rotation=30)
+ax0.set_xticks([])
+ax0.set_yticks([])
 ax0.set_title('(a)', loc='left', fontsize=14, fontweight='bold')
 pfun.dar(ax0)
+
+# # pick some case-study locations
+# testi = 130
+# testj = 200
+# ax0.scatter(lon_basins[0,testi],lat_basins[testj,0],s=20,color='black')
 
 # get mean bottom DO in all basins
 mean_botDO_noloading_hc = np.where(mask_hc == 0, np.nan, mean_botDO_noloading)
@@ -423,16 +430,69 @@ hc_color = '#f582a0'
 wb_color = '#5bacfc'
 ss_color = '#9893c9'
 mb_color = '#addb69'
-size=6
+# size=6
+size=300
+alpha=0.8
 
-ax1.scatter(mean_botDO_noloading_wb.flatten(),diff_wb.flatten(),
-            alpha=0.6,edgecolor='none',facecolor=wb_color, s=size)
-ax1.scatter(mean_botDO_noloading_mb.flatten(),diff_mb.flatten(),
-            alpha=0.6,edgecolor='none',facecolor=mb_color, s=size)
-ax1.scatter(mean_botDO_noloading_ss.flatten(),diff_ss.flatten(),
-            alpha=0.6,edgecolor='none',facecolor=ss_color, s=size)
-ax1.scatter(mean_botDO_noloading_hc.flatten(),diff_hc.flatten(),
-            alpha=0.6,edgecolor='none',facecolor=hc_color, s=size)
+# ax1.scatter(mean_botDO_noloading_wb.flatten(),diff_wb.flatten(),
+#             alpha=0.6,edgecolor='none',facecolor=wb_color, s=size)
+# ax1.scatter(mean_botDO_noloading_mb.flatten(),diff_mb.flatten(),
+#             alpha=0.6,edgecolor='none',facecolor=mb_color, s=size)
+# ax1.scatter(mean_botDO_noloading_ss.flatten(),diff_ss.flatten(),
+#             alpha=0.6,edgecolor='none',facecolor=ss_color, s=size)
+# ax1.scatter(mean_botDO_noloading_hc.flatten(),diff_hc.flatten(),
+#             alpha=0.6,edgecolor='none',facecolor=hc_color, s=size)
+
+# # make legend
+# hc_patch = mpatches.Patch(color=hc_color, label='Hood Canal', alpha=1.0)
+# wb_patch = mpatches.Patch(color=wb_color, label='Whidbey Basin', alpha=1.0)
+# ss_patch = mpatches.Patch(color=ss_color, label='South Sound', alpha=1.0)
+# mb_patch = mpatches.Patch(color=mb_color, label='Main Basin', alpha=1.0)
+# ax1.legend(loc='lower right', fontsize=10, ncol=2,
+#            handles=[hc_patch,wb_patch,ss_patch,mb_patch])
+
+
+# plot mean of each basin
+ax1.scatter(np.nanmean(mean_botDO_noloading_wb),np.nanmean(diff_wb),
+            alpha=alpha,edgecolor='none',facecolor=wb_color, s=size)
+ax1.scatter(np.nanmean(mean_botDO_noloading_mb),np.nanmean(diff_mb),
+            alpha=alpha,edgecolor='none',facecolor=mb_color, s=size)
+ax1.scatter(np.nanmean(mean_botDO_noloading_ss),np.nanmean(diff_ss),
+            alpha=alpha,edgecolor='none',facecolor=ss_color, s=size)
+ax1.scatter(np.nanmean(mean_botDO_noloading_hc),np.nanmean(diff_hc),
+            alpha=alpha,edgecolor='none',facecolor=hc_color, s=size)
+
+# plot case studies
+# lynch cove
+i = 53
+j = 100
+ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,edgecolor='darkred',facecolor='none')
+ax1.scatter(mean_botDO_noloading_hc[j,i],diff_hc[j,i],
+            alpha=1,edgecolor='darkred',facecolor='none', s=size/9)
+# Hood Canal elbow
+i = 23
+j = 93
+ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='darkred')
+ax1.scatter(mean_botDO_noloading_hc[j,i],diff_hc[j,i],
+            alpha=1,edgecolor='none',facecolor='darkred', s=size/9)
+# Elliott Bay
+i = 132
+j = 146
+ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='darkgreen', marker='^')
+ax1.scatter(mean_botDO_noloading_mb[j,i],diff_mb[j,i],
+            alpha=1,edgecolor='none',facecolor='darkgreen', s=size/9, marker='^')
+# Port Susan
+i = 130
+j = 270
+ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='mediumblue',marker='x')
+ax1.scatter(mean_botDO_noloading_wb[j,i],diff_wb[j,i],
+            alpha=1,facecolor='mediumblue', s=size/9, marker='x')
+# # Budd Inlet
+# i = 56
+# j = 34
+# ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='black')
+# ax1.scatter(mean_botDO_noloading_ss[j,i],diff_ss[j,i],
+#             alpha=1,edgecolor='none',facecolor='black', s=size/15)
 
 # make legend
 hc_patch = mpatches.Patch(color=hc_color, label='Hood Canal', alpha=1.0)
@@ -445,9 +505,10 @@ ax1.legend(loc='lower right', fontsize=10, ncol=2,
 # format figure
 ax1.axhline(0,linestyle=':',color='silver')
 ax1.set_title('(b)', loc='left', fontsize=14, fontweight='bold')
-ax1.set_xlim([0,11])
-ax1.set_ylim([-0.30,0.05])
+ax1.set_xlim([0,8])
+# ax1.set_ylim([-0.30,0.05])
+ax1.set_ylim([-0.22,0.02])
 ax1.tick_params(axis='both', labelsize=12, rotation=3)
-ax1.set_xlabel('No-loading bottom DO [mg/L]',fontsize=12)
+ax1.set_xlabel('No-loading Sep-Oct bottom DO [mg/L]',fontsize=12)
 ax1.set_ylabel(r'Loading $-$ No-loading [mg/L]',fontsize=12)
 plt.tight_layout()
