@@ -5411,7 +5411,7 @@ def P_sect_dye01(in_dict):
         lon = G['lon_rho'][0,:]
         lat = G['lat_rho'][:,0]
 
-        zdeep = -100
+        zdeep = -150 #-3000
         x_ps = -125.3
         y_ps = 46.5
 
@@ -5541,7 +5541,7 @@ def P_sect_salt(in_dict):
         lon = G['lon_rho'][0,:]
         lat = G['lat_rho'][:,0]
 
-        zdeep = -3000 # -100
+        zdeep = -150# -3000
         x_ps = -125.3
         y_ps = 46.5
 
