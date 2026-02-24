@@ -120,8 +120,8 @@ ymax = 48.45
 # get model output
 # fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_his_0025.nc'
 # fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0025.nc'
-fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date+'_192cores') / 'ocean_his_0001.nc'
-fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0001.nc'
+fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date+'_192cores') / 'ocean_his_0002.nc'
+fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0002.nc'
 ds_hindcast = xr.open_dataset(fp_hindcast)
 ds_noN = xr.open_dataset(fp_noN)
 
