@@ -61,10 +61,7 @@ elif Ldir['roms_out_num'] > 0:
 ds0 = args.ds0
 dt0 = datetime.strptime(ds0, Lfun.ds_fmt)
 
-dt_previous_day = dt0 - timedelta(days=1)
-
 date = 'f' + dt0.strftime(Lfun.ds_fmt)
-previous_date = 'f' + dt_previous_day.strftime(Lfun.ds_fmt)
 
 # set output location
 out_dir = ('../../../LO_roms/' + gtagex_new + '/' + date)
@@ -72,7 +69,7 @@ Lfun.make_dir(out_dir)
 
 # get original history file (use the prior day's history file)
 
-roms_out_dir = Ldir['roms_out'] / Ldir['gtagex'] / previous_date
+roms_out_dir = Ldir['roms_out'] / Ldir['gtagex'] / date
 ds_og_his = xr.open_dataset(roms_out_dir / 'ocean_his_0002.nc')
 
 # make a copy of the original dataset to modify
