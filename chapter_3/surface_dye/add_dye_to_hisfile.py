@@ -5,7 +5,7 @@ Modify ocean history file to add
 Based on Parker's driver_roms00oae script
 and my modify_ocn_forcing script
 
-run add_dye_to_inifile -gtx cas7_t1_x11ab -0 2020.01.02 -ro 0
+run add_dye_to_hisfile -gtx cas7_t1_x11ab -0 2020.05.30 -ro 5
 
 Note that this script can only be run for one day at a time
 
@@ -67,8 +67,8 @@ date = 'f' + dt0.strftime(Lfun.ds_fmt)
 previous_date = 'f' + dt_previous_day.strftime(Lfun.ds_fmt)
 
 # set output location
-out_dir = ('../../../LO_output/forcing/cas7/' + date + '/ocnG00d')
-# Lfun.make_dir(out_dir)
+out_dir = ('../../../LO_roms/' + gtagex_new + '/' + date)
+Lfun.make_dir(out_dir)
 
 # get original history file (use the prior day's history file)
 
@@ -220,6 +220,6 @@ print(ds_new.ocean_time)
 ################################################################
 # Save .nc files
 print('Saving {}'.format(date))
-ds_new.to_netcdf(str(out_dir) + '/ocean_ini.nc')
+ds_new.to_netcdf(str(out_dir) + '/ocean_his_0002.nc')
 
 print('Done')
