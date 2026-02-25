@@ -28,7 +28,7 @@ vlims_dict = {'salt': (25, 35),# (14, 35),
         'u': (-0.5,0.5),
         'v': (-0.3,0.3),
         'w': (-0.005,0.005),
-        'dye_01': (0,0.2)}
+        'dye_01': (0,2)}#0.2)}
 
 # Colormaps (use _r for reverse)
 cmap_dict = {'salt': cm.haline,#'Spectral_r',
