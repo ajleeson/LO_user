@@ -5696,8 +5696,10 @@ def P_sect_dye01(in_dict):
     ax.set_ylim(zdeep, 5)
     # plot section
     svlims = pinfo.vlims_dict[vn]
+    # cs = ax.pcolormesh(dist_se, zw_se, sf,
+    #                    vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
     cs = ax.pcolormesh(dist_se, zw_se, sf,
-                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+                       vmin=0, vmax=np.nanmax(sf), cmap=pinfo.cmap_dict[vn])
     fig.colorbar(cs, ax=ax, location='top',fraction=0.05, aspect=60, pad=0.1)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
