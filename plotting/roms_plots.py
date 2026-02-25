@@ -5453,6 +5453,58 @@ def P_surf10m_dye_minusavg(in_dict):
     else:
         plt.show()
 
+def P_surf_surf10m_comparison(in_dict):
+    # START
+    ds = xr.open_dataset(in_dict['fn'])
+    date_str = in_dict['fn'].parent.name.lstrip('f')
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    pfun.start_plot(fs=fs, figsize=(5,5))
+    fig = plt.figure()
+
+    # calculate the vertical integral of the surface 10 m:
+    # get dz
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    zr, zw = zrfun.get_z(G['h'],ds.zeta[0,:,:].to_numpy(),S)
+    dz = np.diff(zw, axis=0) # [m]
+    # only look at top 10 m
+    ix_upper10 = zr>=-10
+    dz_masked = dz * ix_upper10
+    dz = np.diff(zw, axis=0) # [m]
+    # get dye concentrations
+    dye_conc = ds['dye_01'][0,:,:,:].to_numpy() # [kg/m3]
+    # vertical integrals
+    dye_vert_int = (dye_conc * dz_masked).sum(axis=0) # [kg/m2]
+    new_dye_vert_int_data = xr.DataArray(dye_vert_int, dims=('eta_rho', 'xi_rho'))
+    ds['dye_01_surf10m'] = new_dye_vert_int_data
+
+    # PLOT CODE
+    ax = fig.add_subplot(1, 1,1)
+    surf_conc = ds['dye_01'].values[0,-1,:,:].flatten()
+    surf_10m = ds['dye_01_surf10m'].values.flatten()
+    ax.scatter(surf_conc,surf_10m,
+               alpha=0.02,color='navy',edgecolor='none',s=5)
+    ax.set_title(date_str, fontsize=14)
+    ax.set_xlabel(r'Surface dye concentration [kg/m$^3$]')
+    ax.set_ylabel(r'Surface 10 m vertical integral [kg/m$^2$]')
+    ax.set_ylim([0,10])
+    ax.set_xlim([0,1])
+    ax.grid('True')
+    
+    fig.tight_layout()
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
 def P_vertint_dye(in_dict):
     # START
     ds = xr.open_dataset(in_dict['fn'])
@@ -5520,8 +5572,8 @@ def P_sect_dye01(in_dict):
     """
 
     # START
-    fs = 14
-    pfun.start_plot(fs=fs, figsize=(12,8))
+    fs = 12
+    pfun.start_plot(fs=fs, figsize=(13.5,6))
     fig = plt.figure()
     ds = xr.open_dataset(in_dict['fn'])
     # PLOT CODE
@@ -5535,9 +5587,13 @@ def P_sect_dye01(in_dict):
         lon = G['lon_rho'][0,:]
         lat = G['lat_rho'][:,0]
 
+        # zdeep = -150 #-3000
+        # x_ps = -125.3
+        # y_ps = 46.5
+
         zdeep = -150 #-3000
-        x_ps = -125.3
-        y_ps = 46.5
+        x_ps = -126.3
+        y_ps = 47.5
 
         offset = 1
 
@@ -5552,6 +5608,21 @@ def P_sect_dye01(in_dict):
     x, y, dist, dist_e, zbot, ztop, dist_se, zw_se, fld_s, lon, lat = pfun.get_sect(in_dict['fn'], vn, x, y)
     
 
+    # calculate the vertical integral of the surface 10 m:
+    # get dz
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    zr, zw = zrfun.get_z(G['h'],ds.zeta[0,:,:].to_numpy(),S)
+    dz = np.diff(zw, axis=0) # [m]
+    # only look at top 10 m
+    ix_upper10 = zr>=-10
+    dz_masked = dz * ix_upper10
+    dz = np.diff(zw, axis=0) # [m]
+    # get dye concentrations
+    dye_conc = ds['dye_01'][0,:,:,:].to_numpy() # [kg/m3]
+    # vertical integrals
+    dye_vert_int = (dye_conc * dz_masked).sum(axis=0) # [kg/m2]
+    new_dye_vert_int_data = xr.DataArray(dye_vert_int, dims=('eta_rho', 'xi_rho'))
+    ds['dye_01_surf10m'] = new_dye_vert_int_data
     
     # COLOR
     # scaled section data
@@ -5565,8 +5636,16 @@ def P_sect_dye01(in_dict):
 
     # map with section line
     ax = fig.add_subplot(1, 3, 1)
-    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+    # vn_surfdye = 'dye_01_surf10m'
+    lons = ds.coords['lon_rho'].values
+    lats = ds.coords['lat_rho'].values
+    px, py = pfun.get_plon_plat(lons,lats)
+    cmap = plt.colormaps.get_cmap('RdPu').copy()
+    cmap.set_bad('silver') 
+    cs = ax.pcolormesh(px,py,ds['dye_01_surf10m'],vmin=0, vmax=5, cmap=cmap)
+    fig.colorbar(cs,location='left')
+    # cs = pfun.add_map_field(ax, ds, vn_surfdye, pinfo.vlims_dict,
+    #         cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
 
     # -----------------------------------------------------------
     # find aspect ratio of the map
@@ -5588,14 +5667,16 @@ def P_sect_dye01(in_dict):
 
     #ax.axis(pfun.get_aa(ds))
 
+    section_color = 'blue'
+
     pfun.add_info(ax, in_dict['fn'], loc='upper_right')
-    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_title('Surface 10 m vert int (kg/m2)')
     # ax.set_xlabel('Longitude')
     # ax.set_ylabel('Latitude')
     # add section track
     print('xlims: {},{}'.format(x.min(),x.max()))
     print('ylims: {},{}'.format(y.min(),y.max()))
-    ax.plot(x, y, '-', color='deeppink', linewidth=2)
+    ax.plot(x, y, '-', color=section_color, linewidth=1)
     # ax.plot(x, y, 'or', markersize=5, markerfacecolor='w',
     #     markeredgecolor='deeppink', markeredgewidth=2)
     pfun.add_coast(ax)
@@ -5607,7 +5688,7 @@ def P_sect_dye01(in_dict):
 
 
     # section
-    ax = fig.add_subplot(1, 3, (2, 3))
+    ax = fig.add_subplot(1, 3, (2,3))
     ax.plot(dist, zbot, '-k', linewidth=2)
     ax.plot(dist, ztop, '-b', linewidth=0.5)
     # ax.scatter(np.mean(dist),v2['zeta'][int((len(dist) - 1)/2)]+1,marker='v',s=80,color='k')
@@ -5617,11 +5698,20 @@ def P_sect_dye01(in_dict):
     svlims = pinfo.vlims_dict[vn]
     cs = ax.pcolormesh(dist_se, zw_se, sf,
                        vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
-    fig.colorbar(cs, ax=ax)
+    fig.colorbar(cs, ax=ax, location='top',fraction=0.05, aspect=60, pad=0.1)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
     ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
-    fig.tight_layout()
+    
+    # draw bathymetry overlaid
+    # match ticks
+    ax2 = ax.twinx()
+    ax2.set_ylim([-3000,10])
+    ax2.tick_params(axis='both', labelsize=12, labelcolor=section_color)
+    ax2.plot(dist, zbot, linestyle='-',color=section_color, linewidth=2)
+    # for border in ['top','right','bottom','left']:
+    #     ax2.spines[border].set_visible(False)
+    ax2.set_ylabel(r'z [m]', fontsize=12, color=section_color)
 
     #get x and y limits
     x_left, x_right = ax.get_xlim()
@@ -5629,6 +5719,8 @@ def P_sect_dye01(in_dict):
 
     #set aspect ratio
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*0.5)
+
+    plt.tight_layout()
 
     # FINISH
     ds.close()
