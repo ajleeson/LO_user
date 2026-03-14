@@ -5240,7 +5240,8 @@ def P_surfdye(in_dict):
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
-        cmap = plt.colormaps.get_cmap('RdPu').copy()
+        # cmap = plt.colormaps.get_cmap('RdPu').copy()
+        cmap = plt.get_cmap('RdYlGn').copy()
         cmap.set_bad('silver') 
         cs = pfun.add_map_field(ax, ds, vn, {'dye_01':(0,0.5)},#pinfo.vlims_dict,
                 cmap=cmap)
@@ -5286,7 +5287,8 @@ def P_surfdye_minusavg(in_dict):
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
         # cmap = plt.colormaps.get_cmap('RdPu').copy()
-        cmap = plt.colormaps.get_cmap('RdYlGn').copy()
+        cmap = plt.get_cmap('RdYlGn').copy()
+        # cmap = plt.get_cmap('RdYlGn',9).copy()
         cmap.set_bad('silver') 
         # cs = pfun.add_map_field(ax, ds, vn, {'dye_01':(0,0.5)},#pinfo.vlims_dict,
         #         cmap=cmap)
@@ -5486,13 +5488,69 @@ def P_surf_surf10m_comparison(in_dict):
     ax = fig.add_subplot(1, 1,1)
     surf_conc = ds['dye_01'].values[0,-1,:,:].flatten()
     surf_10m = ds['dye_01_surf10m'].values.flatten()
+    # remove nans
+    surf_conc_nonan = surf_conc[~np.isnan(surf_conc)]
+    surf_10m_nonan = surf_10m[~np.isnan(surf_10m)]
+    from scipy.stats import linregress
+    slope, intercept, r, p, se = linregress(surf_conc_nonan, surf_10m_nonan)
+    x= np.linspace(0,1,2)
+    y = x*slope + intercept
     ax.scatter(surf_conc,surf_10m,
-               alpha=0.02,color='navy',edgecolor='none',s=5)
+               alpha=0.2,color='navy',edgecolor='none',s=2)
+    ax.plot(x,y,color='hotpink',linewidth=1)
     ax.set_title(date_str, fontsize=14)
     ax.set_xlabel(r'Surface dye concentration [kg/m$^3$]')
     ax.set_ylabel(r'Surface 10 m vertical integral [kg/m$^2$]')
     ax.set_ylim([0,10])
     ax.set_xlim([0,1])
+    ax.text(0.64,0.82,r'R$^2$ = '+str(round(r**2,2)),transform=ax.transAxes,
+            fontsize=14,fontweight='bold')
+    ax.grid('True')
+    
+    fig.tight_layout()
+    # FINISH
+    ds.close()
+    pfun.end_plot()
+    if len(str(in_dict['fn_out'])) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+def P_dye_salt_comparison(in_dict):
+    # START
+    ds = xr.open_dataset(in_dict['fn'])
+    date_str = in_dict['fn'].parent.name.lstrip('f')
+    # find aspect ratio of the map
+    aa = pfun.get_aa(ds)
+    # AR is the aspect ratio of the map: Vertical/Horizontal
+    AR = (aa[3] - aa[2]) / (np.sin(np.pi*aa[2]/180)*(aa[1] - aa[0]))
+    fs = 14
+    hgt = 10
+    pfun.start_plot(fs=fs, figsize=(5,5))
+    fig = plt.figure()
+
+    # PLOT CODE
+    ax = fig.add_subplot(1, 1,1)
+    surf_salt = ds['salt'].values[0,-1,:,:].flatten()
+    surf_dye = ds['dye_01'].values[0,-1,:,:].flatten()
+    # remove nans
+    surf_salt_nonan = surf_salt[~np.isnan(surf_salt)]
+    surf_dye_nonan = surf_dye[~np.isnan(surf_dye)]
+    from scipy.stats import linregress
+    slope, intercept, r, p, se = linregress(surf_salt_nonan, surf_dye_nonan)
+    x= np.linspace(0,35,2)
+    y = x*slope + intercept
+    ax.scatter(surf_salt_nonan,surf_dye_nonan,
+               alpha=0.2,color='navy',edgecolor='none',s=2)
+    ax.plot(x,y,color='hotpink',linewidth=1)
+    ax.set_title(date_str, fontsize=14)
+    ax.set_xlabel(r'Surface salinity [g/kg]')
+    ax.set_ylabel(r'Surface dye concentration [kg/m$^3$]')
+    ax.set_ylim([0,1])
+    ax.set_xlim([0,35])
+    ax.text(0.64,0.82,r'R$^2$ = '+str(round(r**2,2)),transform=ax.transAxes,
+            fontsize=14,fontweight='bold')
     ax.grid('True')
     
     fig.tight_layout()
@@ -5591,7 +5649,7 @@ def P_sect_dye01(in_dict):
         # x_ps = -125.3
         # y_ps = 46.5
 
-        zdeep = -150 #-3000
+        zdeep = -300 #-3000
         x_ps = -126.3
         y_ps = 47.5
 
@@ -5689,6 +5747,10 @@ def P_sect_dye01(in_dict):
 
     # section
     ax = fig.add_subplot(1, 3, (2,3))
+    # plot sigma layers
+    for i in range(31):
+       ax.plot(dist_se[i,:], zw_se[i,:], color='deepskyblue', linewidth=0.5) 
+
     ax.plot(dist, zbot, '-k', linewidth=2)
     ax.plot(dist, ztop, '-b', linewidth=0.5)
     # ax.scatter(np.mean(dist),v2['zeta'][int((len(dist) - 1)/2)]+1,marker='v',s=80,color='k')
@@ -5745,7 +5807,7 @@ def P_sect_salt(in_dict):
 
     # START
     fs = 14
-    pfun.start_plot(fs=fs, figsize=(12,8))
+    pfun.start_plot(fs=fs, figsize=(13.5,6))
     fig = plt.figure()
     ds = xr.open_dataset(in_dict['fn'])
     # PLOT CODE
@@ -5759,7 +5821,7 @@ def P_sect_salt(in_dict):
         lon = G['lon_rho'][0,:]
         lat = G['lat_rho'][:,0]
 
-        zdeep = -150# -3000
+        zdeep = -300# -3000
         x_ps = -125.3
         y_ps = 46.5
 
@@ -5791,6 +5853,7 @@ def P_sect_salt(in_dict):
     ax = fig.add_subplot(1, 3, 1)
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
             cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=pinfo.range_dict[vn])
+    fig.colorbar(cs,location='left')
 
     # -----------------------------------------------------------
     # find aspect ratio of the map
@@ -5838,13 +5901,23 @@ def P_sect_salt(in_dict):
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 5)
     # plot section
-    svlims = pinfo.vlims_dict[vn]
-    cs = ax.pcolormesh(dist_se, zw_se, sf,
-                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
-    fig.colorbar(cs, ax=ax)
+    # calculate potential density
+    import seawater as sw
+    x_new, y_new, dist, dist_e, zbot, ztop, dist_se, zw_se, fld_s_temp, lon, lat = pfun.get_sect(in_dict['fn'], 'temp', x, y)
+    x_new, y_new, dist, dist_e, zbot, ztop, dist_se, zw_se, fld_s_salt, lon, lat = pfun.get_sect(in_dict['fn'], 'salt', x, y)
+    print('-----------------------')
+    print(fld_s_salt.shape)
+    print(fld_s_temp.shape)
+    print('-----------------------')
+    rho = sw.dens0(fld_s_salt.squeeze(), fld_s_temp.squeeze())
+    cs = ax.pcolormesh(dist_se, zw_se,rho, vmin=1022, vmax=1028, cmap='inferno_r')
+    # svlims = pinfo.vlims_dict[vn]
+    # cs = ax.pcolormesh(dist_se, zw_se, sf,
+    #                    vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+    fig.colorbar(cs, ax=ax, location='top',fraction=0.05, aspect=60, pad=0.1)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
-    ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_title('Section potential density [kg/m3]')
     fig.tight_layout()
 
     #get x and y limits

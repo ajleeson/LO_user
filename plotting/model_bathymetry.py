@@ -164,14 +164,14 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 # Get mooring stations:
 sta_dict = job_lists.get_sta_dict('penn_hoodcanal')
 
-x_pc = sta_dict['penncove'][0]
-y_pc = sta_dict['penncove'][1]
-x_hc = sta_dict['hoodcanal'][0]
-y_hc = sta_dict['hoodcanal'][1]
-ax1.scatter(x_pc,y_pc,color='white',s=10)
-ax1.scatter(x_hc,y_hc,color='white',s=10)
-ax1.scatter(x_pc,y_pc,color='crimson',marker='+')
-ax1.scatter(x_hc,y_hc,color='crimson',marker='+')
+# x_pc = sta_dict['penncove'][0]
+# y_pc = sta_dict['penncove'][1]
+# x_hc = sta_dict['hoodcanal'][0]
+# y_hc = sta_dict['hoodcanal'][1]
+# ax1.scatter(x_pc,y_pc,color='white',s=10)
+# ax1.scatter(x_hc,y_hc,color='white',s=10)
+# ax1.scatter(x_pc,y_pc,color='crimson',marker='+')
+# ax1.scatter(x_hc,y_hc,color='crimson',marker='+')
 
 ax1.text(-123.2, 48.3, 'Estuary volume\n' + r'168.3 km$^3$', fontsize = 12)
 
