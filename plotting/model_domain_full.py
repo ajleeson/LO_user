@@ -86,10 +86,10 @@ print('Lat={},{}'.format(Y[j1],Y[j2]))
 plt.xticks(rotation=30)#, color='#EEEEEE')
 # plt.yticks(color='#EEEEEE')
 
-# draw box around Puget Sound
-bordercolor = 'violet'
-ax0.add_patch(Rectangle((-123.2, 46.93), 1.1, 1.52,
-             edgecolor = bordercolor, facecolor='none', lw=1.5))
+# # draw box around Puget Sound
+# bordercolor = 'violet'
+# ax0.add_patch(Rectangle((-123.2, 46.93), 1.1, 1.52,
+#              edgecolor = bordercolor, facecolor='none', lw=1.5))
 
 
 plt.savefig(out_dir / ('model_domain_full.png'),transparent='True')
