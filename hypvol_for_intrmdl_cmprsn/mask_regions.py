@@ -6,7 +6,7 @@ based on a box extraction
 """
 
 # imports
-from lo_tools import Lfun, zfun
+from lo_tools import Lfun
 from lo_tools import plotting_functions as pfun
 
 import sys 
@@ -31,7 +31,7 @@ Ldir = Lfun.Lstart()
 #########################################
 
 # load box extraction of Puget Sound
-fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / 'pugetsoundDO_2014.01.01_2014.12.31.nc'
+fp = Ldir['LOo'] / 'hypvol_for_intrmdl_cmprsn' / 'pugetsoundDO_2014.01.01_2014.12.31.nc'
 box_ds = xr.open_dataset(fp)
 mask_rho = box_ds.mask_rho.values              # 0 = land 1 = water
 xrho = box_ds.coords['lon_rho'].values
@@ -221,5 +221,5 @@ new_ds['mask_pugetsound'].attrs['flag_values'] = np.array([0.,1.])
 new_ds['mask_pugetsound'].attrs['flag_meanings'] = 'notbasin basin'
 new_ds['mask_pugetsound'].attrs['grid'] =  'cas7'
 
-fn_f = Ldir['LOo'] / 'chapter_2' / 'data' / 'basin_masks_from_pugetsoundDObox.nc'
+fn_f = Ldir['LOo'] / 'hypvol_for_intrmdl_cmprsn' / 'basin_masks_from_pugetsoundDObox.nc'
 new_ds.to_netcdf(fn_f)

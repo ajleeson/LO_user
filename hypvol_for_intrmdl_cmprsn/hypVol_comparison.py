@@ -16,7 +16,7 @@ from lo_tools import plotting_functions as pfun
 
 import sys
 from pathlib import Path
-pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
+pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'pgrid'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
 import gfun
@@ -61,7 +61,7 @@ three_mgL_thick_dict = {} # thickness of water column that is <= 3 mg/L DO [m]
 for year in years:
     for gtagex in gtagexes:
         # open dataset
-        ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
+        ds = xr.open_dataset(Ldir['LOo'] / 'hypvol_for_intrmdl_cmprsn' / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
         # get data from dataset
         DO_bot = ds['DO_bot'].values
         hyp_thick = ds['hyp_thick'].values
@@ -76,15 +76,14 @@ for year in years:
         three_mgL_thick_dict[gtagex+region+year] = three_mgL_thick
 
 # get grid cell area
-fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / (region + '_2014.01.01_2014.12.31.nc')
+fp = Ldir['LOo'] / 'hypvol_for_intrmdl_cmprsn' / (region + '_2014.01.01_2014.12.31.nc')
 box_ds = xr.open_dataset(fp)
 DX = (box_ds.pm.values)**-1
 DY = (box_ds.pn.values)**-1
 DA = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
 
 # read in masks
-# xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_' + region + '_' + year + '_DO_info.nc'))
-basin_mask_ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / 'basin_masks_from_pugetsoundDObox.nc')
+basin_mask_ds = xr.open_dataset(Ldir['LOo'] / 'hypvol_for_intrmdl_cmprsn' / 'basin_masks_from_pugetsoundDObox.nc')
 mask_rho = basin_mask_ds.mask_rho.values
 mask_ps = basin_mask_ds.mask_pugetsound.values
 
