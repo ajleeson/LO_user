@@ -23,13 +23,15 @@ interface_dict = dict()
 
 jobname = 'twentyoneinlets'
 
+burial=50 # 50% burial of sinking detritus in the Salish Sea
+
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
 # Ldir['roms_out'] = Ldir['roms_out2']
 # Ldir['roms_out'] = Ldir['roms_out1']
-Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
-# Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc
-Ldir['gtagex'] = 'cas7_t0_x4b'
+# Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
+Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc
+Ldir['gtagex'] = 'cas7_t1_x11b'
 
 # ds0 = '2017.01.01'
 # ds1 = '2017.01.02'
@@ -51,8 +53,8 @@ year = '2017'
 # ds0 = '2017.05.01'
 # ds1 = '2017.05.31'
 # jun
-# ds0 = '2017.06.01'
-# ds1 = '2017.06.30'
+ds0 = '2017.06.01'
+ds1 = '2017.06.30'
 
 # jul
 # ds0 = '2017.07.01'
@@ -70,8 +72,8 @@ year = '2017'
 # ds0 = '2017.11.01'
 # ds1 = '2017.11.30'
 # dec
-ds0 = '2017.12.01'
-ds1 = '2017.12.31'
+# ds0 = '2017.12.01'
+# ds1 = '2017.12.31'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+year+'.01.01_'+year+'.12.31') / '2layer_bgc'
@@ -142,18 +144,6 @@ df_dict = {'lynchcove': pd.DataFrame(),
            'similk': pd.DataFrame(),
            'sinclair': pd.DataFrame(),
            'totten': pd.DataFrame()}
-
-# ret_sod = []
-# ret_photo_surf = []
-# ret_photo_deep = []
-# ret_nitri_surf = []
-# ret_nitri_deep = []
-# ret_respi_surf = []
-# ret_respi_deep = []
-# ret_DOvol_surf = []
-# ret_DOvol_deep = []
-# ret_airsea = []
-# t = []
 
 cnt = 0
 #%%
@@ -240,22 +230,11 @@ while dt00 <= dt1:  # loop each day and every history file
         # mmol O2/m3/hr to mmol O2/hr
         Oxy_pro = Oxy_pro * vol 
         Oxy_nitri = Oxy_nitri * vol # 
-        Oxy_remi = Oxy_remi * vol #
-        
-        
-        # #---------- sediment SOD ----------
-        # # refer to Parker's code https://github.com/parkermac/LPM/blob/main/extract/moor/benthic_flux.py
-        # F_Det = LDeN[0,:,:] * 80 + SDeN[0,:,:] * 8 # mmol N/m2/d
-        # F_NO3 = F_Det.copy()
-        # F_NO3[F_Det > 1.2] = 1.2 # 1.2 mmol N/m2/d
-        # F_NH4 = F_Det - F_NO3
-        # F_NH4[F_NH4<0] = 0
-        
-        # Oxy_sed_sum.append(np.nansum(F_NH4[jj,ii] * 106/16 * area[jj,ii]))       
+        Oxy_remi = Oxy_remi * vol #   
 
         #---------- sediment SOD: a more strict way ----------
         # LdetritusN decomposition in sediment
-        cff1_L = (LDeN[0,:,:] * 80)/24 / dz[0,:,:] * 1  # mmol/m2/hr --> mmol/m3     
+        cff1_L = (LDeN[0,:,:] *(1-burial/100) * 80)/24 / dz[0,:,:] * 1  # mmol/m2/hr --> mmol/m3     
         NH4_gain_L = np.zeros([NX,NY])        
         for i in range(NX): # loop the whole domain
             for j in range(NY):
@@ -263,7 +242,7 @@ while dt00 <= dt1:  # loop each day and every history file
                     NH4_gain_L[i,j] = cff1_L[i,j] #mmol/m3, NH4 gain from decomposing LdetN                                                                             
         NH4_gain_flux_L = NH4_gain_L * area * dz[0,:,:] # mmol but the actual unit is mmol/hr
         # SdetritusN decomposition in sediment
-        cff1_S = (SDeN[0,:,:] * 8)/24 / dz[0,:,:] * 1  # mmol/m2/hr --> mmol/m3     
+        cff1_S = (SDeN[0,:,:] *(1-burial/100) * 8)/24 / dz[0,:,:] * 1  # mmol/m2/hr --> mmol/m3     
         NH4_gain_S = np.zeros([NX,NY])        
         for i in range(NX): # loop the whole domain
             for j in range(NY):
@@ -315,18 +294,10 @@ while dt00 <= dt1:  # loop each day and every history file
             ix_shallow = tmp_zrho>=z_interface # shallower than interface
             ix_deep = tmp_zrho<z_interface  # deeper than interface
             tmp_DOV = Oxy[:,jj,ii] * vol[:,jj,ii]
-            # ret_DOvol_surf.append(np.nansum(tmp_DOV[ix_shallow]))
-            # ret_DOvol_deep.append(   np.nansum(tmp_DOV[ix_deep]))
             ret_DOvol_surf = np.nansum(tmp_DOV[ix_shallow])
             ret_DOvol_deep = np.nansum(tmp_DOV[ix_deep])
 
             # get photosynthesis, nitrification, and respiration terms
-            # ret_photo_surf.append(np.nansum(Oxy_pro[:,jj,ii][ix_shallow]))
-            # ret_photo_deep.append(np.nansum(Oxy_pro[:,jj,ii][ix_deep]))
-            # ret_nitri_surf.append(np.nansum(Oxy_nitri[:,jj,ii][ix_shallow]))
-            # ret_nitri_deep.append(np.nansum(Oxy_nitri[:,jj,ii][ix_deep]))
-            # ret_respi_surf.append(np.nansum(Oxy_remi[:,jj,ii][ix_shallow]))
-            # ret_respi_deep.append(np.nansum(Oxy_remi[:,jj,ii][ix_deep]))
             ret_photo_surf = np.nansum(Oxy_pro[:,jj,ii][ix_shallow])
             ret_photo_deep = np.nansum(Oxy_pro[:,jj,ii][ix_deep])
             ret_nitri_surf = np.nansum(Oxy_nitri[:,jj,ii][ix_shallow])
@@ -334,12 +305,10 @@ while dt00 <= dt1:  # loop each day and every history file
             ret_respi_surf = np.nansum(Oxy_remi[:,jj,ii][ix_shallow])
             ret_respi_deep = np.nansum(Oxy_remi[:,jj,ii][ix_deep])
 
-            # get sediment oxygen demand
-            # ret_sod.append(np.nansum(NH4_gain_flux[jj,ii] * 106/16))    # mmol O2/hr  
+            # get sediment oxygen demand 
             ret_sod = np.nansum(NH4_gain_flux[jj,ii] * 106/16)    # mmol O2/hr  
 
             # get O2 gas exchange
-            # ret_airsea.append(np.nansum(cff3[jj,ii] * (O2satu[jj,ii]-Oxy_surf[jj,ii]) * area[jj,ii]))
             ret_airsea = np.nansum(cff3[jj,ii] * (O2satu[jj,ii]-Oxy_surf[jj,ii]) * area[jj,ii])
 
             # get dataframe for saving
@@ -373,12 +342,7 @@ while dt00 <= dt1:  # loop each day and every history file
                 # reset index
                 df_dict[station].reset_index(drop=True, inplace=True)
 
-            # if station == 'budd':
-            #     print(df_dict[station])
-            #     print('\n')
-
         cnt += 1
-        # t.append(ds.ocean_time.values)
         ds.close()       
     dt00 = dt00 + timedelta(days=1)
 
