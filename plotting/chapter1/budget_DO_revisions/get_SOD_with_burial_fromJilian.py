@@ -132,6 +132,18 @@ while dt00 <= dt1:  # loop each day and every history file
         LDeN = ds.LdetritusN.values.squeeze()
         Oxy = ds.oxygen.values.squeeze()
    
+
+
+
+
+
+
+
+
+
+
+
+   
         #---------- sediment SOD: a more strict way ----------
         # LdetritusN decomposition in sediment
         # FC_L = (LdetN_bot * Ws_L)/24 # mmol/m2/hr
