@@ -7,7 +7,7 @@ from matplotlib.markers import MarkerStyle
 import matplotlib.dates as mdates
 import numpy as np
 import xarray as xr
-from scipy.stats import pearsonr
+from scipy.stats import linregress
 from datetime import datetime, timedelta
 import pandas as pd
 import cmocean
@@ -173,7 +173,7 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
         salt = ds['salt'][day,:]
         temp = ds['temp'][day,:]
         rho = sw.dens0(salt, temp) # potential density
-        ax[i].plot(salt,depth,alpha=0.1,color='silver')
+        ax[i].plot(rho,depth,alpha=0.1,color='silver')
 
     # # calculate average depth profile and standard deviation
     # avg_depth = np.nanmean(ds['z_rho'],axis=0)
@@ -201,29 +201,29 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
         if season == 'JAS':
             alpha=1
             linewidth=3
-            # # calculate and plot interface location (inflection point)
-            # # determine drho/dz
-            # drho_dz = np.diff(avg_rho)/np.diff(avg_depth)
-            # minindx = drho_dz.tolist().index(min(drho_dz.tolist()))
-            # interface_depth = np.nanmean(avg_depth[minindx:minindx+2])
-
             # calculate and plot interface location (inflection point)
-            # determine dsalt/dz
-            dsalt_dz = np.diff(avg_salt)/np.diff(avg_depth)
-            minindx = dsalt_dz.tolist().index(min(dsalt_dz.tolist()))
+            # determine drho/dz
+            drho_dz = np.diff(avg_rho)/np.diff(avg_depth)
+            minindx = drho_dz.tolist().index(min(drho_dz.tolist()))
             interface_depth = np.nanmean(avg_depth[minindx:minindx+2])
+
+            # # calculate and plot interface location (inflection point)
+            # # determine dsalt/dz
+            # dsalt_dz = np.diff(avg_salt)/np.diff(avg_depth)
+            # minindx = dsalt_dz.tolist().index(min(dsalt_dz.tolist()))
+            # interface_depth = np.nanmean(avg_depth[minindx:minindx+2])
 
             # Add DO
             ax2 = ax[i].twiny()
             avg_DO = np.nanmean(ds_season['oxygen'],axis=0)* 32/1000 # [mg/L]
-            ax2.plot(avg_DO,avg_depth,linewidth=1,color='mediumturquoise',alpha=alpha)
-            ax2.tick_params(axis='x', colors='mediumturquoise')
+            ax2.plot(avg_DO,avg_depth,linewidth=1,color='teal',alpha=alpha)
+            ax2.tick_params(axis='x', colors='teal')
 
         else:
             alpha=0.5
             linewidth=2
-        ax[i].plot(avg_salt,avg_depth,linewidth=linewidth,color=colors[s],alpha=alpha)
-        ax[i].axhline(interface_depth,0,40,color='crimson',linewidth=1)
+        ax[i].plot(avg_rho,avg_depth,linewidth=linewidth,color=colors[s],alpha=alpha)
+        ax[i].axhline(interface_depth,0,1030,color='crimson',linewidth=1)
         # label calculated interface depths
         ax[i].text(0.3,0.2,r'max d$\rho$/dz = '+ str(round(interface_depth,1)) + ' m',
                    color='crimson',ha='left',transform=ax[i].transAxes, fontweight='bold')
@@ -231,26 +231,26 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
         # get 1/3 depth
         # create dictionaries with interface depths
         interface_dict = dict()
-        with open('interface_depths.csv', 'r') as f:
+        with open('interface_depths_og.csv', 'r') as f:
             for line in f:
                 inlet, interface_depth = line.strip().split(',')
                 interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
         z_interface = float(interface_dict[station])
         ax[i].text(0.25,0.1,r'1/3 depth = '+ str(z_interface) + ' m', fontweight='bold',
                    color='royalblue',ha='left',transform=ax[i].transAxes)
-        ax[i].axhline(z_interface,0,40,color='royalblue',linewidth=1,linestyle='--')
+        ax[i].axhline(z_interface,0,1030,color='royalblue',linewidth=1,linestyle='--')
 
     ax[i].set_title(station,fontweight='bold')
     # ax[i].axhline(-5,0,1030,color='crimson',linewidth=1)
 
-    ax[0].text(24,-2,'Daily averages',color='grey',ha='left',va='top')
-    ax[0].text(24,-3.1,'Jul-Sep average',color='black',fontweight='bold',ha='left',va='top')
-    ax[0].text(24,-4.2,'Jul-Sep avg DO [mg/L]',color='teal',fontweight='bold',ha='left',va='top')
+    ax[0].text(1018,-2,'Daily averages',color='grey',ha='left',va='top')
+    ax[0].text(1018,-3.1,'Jul-Sep average',color='black',fontweight='bold',ha='left',va='top')
+    ax[0].text(1018,-4.2,'Jul-Sep avg DO [mg/L]',color='teal',fontweight='bold',ha='left',va='top')
 
     if i in [0,5,10]:
         ax[i].set_ylabel('z (m)')
     if i >= 10:
-        ax[i].set_xlabel('Salinity [g/kg]')
+        ax[i].set_xlabel('potential density [kg/m3]')
 
     
 
@@ -291,7 +291,7 @@ for station in inlets:
 
 
 ##########################################################
-##             Plot density & DO profiles               ##
+##                   TEF interfaces                     ##
 ##########################################################
 
 # fig,axes = plt.subplots(3,7, figsize=(15,8.5), sharex=True)
@@ -357,6 +357,105 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
     ax[0].text(23.2,-9,'Daily averages',color='grey',ha='left',va='top')
     ax[0].text(23.2,-10.1,'Jul-Sep average',color='black',fontweight='bold',ha='left',va='top')
     ax[0].text(23.2,-11.2,'Jul-Sep avg DO [mg/L]',color='teal',fontweight='bold',ha='left',va='top')
+
+    if i in [0,5,10]:
+        ax[i].set_ylabel('z (m)')
+    if i >= 10:
+        ax[i].set_xlabel('Salinity [g/kg]')
+
+    
+
+
+plt.tight_layout()
+plt.show()
+
+
+##########################################################
+##                All interface depths                  ##
+##########################################################
+
+# fig,axes = plt.subplots(3,7, figsize=(15,8.5), sharex=True)
+fig,axes = plt.subplots(3,5, figsize=(15,8.5))
+ax = axes.ravel()
+    
+# plot density profiles
+for i,station in enumerate(inlets): #enumerate(['elliot']):
+    # download .nc files
+    fn = '../../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+    ds = xr.open_dataset(fn)
+
+    # loop through and plot each day of the year
+    for day in range(len(ds.ocean_time)):
+        depth = ds['z_rho'][day,:]
+        salt = ds['salt'][day,:]
+        temp = ds['temp'][day,:]
+        rho = sw.dens0(salt, temp) # potential density
+        ax[i].plot(salt,depth,alpha=0.1,color='silver')
+
+    # crop to season
+    seasons = {'JFM':['01-01','03-30'],
+               'AMJ':['04-01','06-30'],
+               'JAS':['07-01','09-30'],
+               'OND':['10-01','12-31']}
+    seasons = {'JAS':['07-01','09-30']}
+    colors = ['black']#['royalblue','hotpink','black','darkorange']
+    for s,season in enumerate(seasons):
+        ds_season = ds.sel(ocean_time=slice(np.datetime64(year+'-'+seasons[season][0]),
+                                     np.datetime64(year+'-'+seasons[season][1])))
+        # calculate average depth profile and standard deviation
+        avg_depth = np.nanmean(ds_season['z_rho'],axis=0)
+        avg_salt = np.nanmean(ds_season['salt'],axis=0)
+        if season == 'JAS':
+            alpha=1
+            linewidth=3
+
+        # Add DO
+        ax2 = ax[i].twiny()
+        avg_DO = np.nanmean(ds_season['oxygen'],axis=0)* 32/1000 # [mg/L]
+        ax2.plot(avg_DO,avg_depth,linewidth=1,color='teal',alpha=alpha)
+        ax2.tick_params(axis='x', colors='teal')
+
+        # else:
+        #     alpha=0.5
+        #     linewidth=2
+        ax[i].plot(avg_salt,avg_depth,linewidth=linewidth,color=colors[s],alpha=alpha)
+
+        # # fit linear regression to salinty and DO profile in bottom ten layers
+        # salt_slope, salt_intercept, _,_,_ = linregress(avg_depth[0:10], avg_salt[0:10])
+        # DO_slope, DO_intercept, _,_,_ = linregress(avg_depth[0:10], avg_DO[0:10])
+        # # plot salt linear regression
+        # test_depths = [np.nanmin(avg_depth),np.nanmax(avg_depth)]
+        # test_salt = [salt_slope * depth + salt_intercept for depth in test_depths]
+        # test_DO = [DO_slope * depth + DO_intercept for depth in test_depths]
+        # ax[i].plot(test_salt,test_depths, color='deeppink')
+        # ax2.plot(test_DO,test_depths, color='darkorange')
+
+
+        # ax[i].axhline(interface_depth,0,40,color='crimson',linewidth=1)
+        # # label calculated interface depths
+        # ax[i].text(0.3,0.2,r'max d$\rho$/dz = '+ str(round(interface_depth,1)) + ' m',
+        #            color='crimson',ha='left',transform=ax[i].transAxes, fontweight='bold')
+        
+
+    ax[i].set_title(station,fontweight='bold')
+    # ax[i].axhline(-5,0,1030,color='crimson',linewidth=1)
+
+    # label lines
+    ax[0].text(23.2,-9,'Daily averages',color='grey',ha='left',va='top')
+    ax[0].text(23.2,-10.1,'Jul-Sep average',color='black',fontweight='bold',ha='left',va='top')
+    ax[0].text(23.2,-11.2,'Jul-Sep avg DO [mg/L]',color='teal',fontweight='bold',ha='left',va='top')
+
+    # plot all different interface depths
+    interface_types = ['og','drdz','tef','halocline','oxycline']
+    colors = ['crimson','darkorange','limegreen','royalblue','purple']
+    for t,type in enumerate(interface_types):
+        interface_dict = dict()
+        with open('interface_depths_' + type + '.csv', 'r') as f:
+            for line in f:
+                inlet, interface_depth = line.strip().split(',')
+                interface_dict[inlet] = interface_depth # in meters
+        z_interface = float(interface_dict[station])
+        ax[i].axhline(z_interface,0,1030,linewidth=1, color=colors[t])
 
     if i in [0,5,10]:
         ax[i].set_ylabel('z (m)')

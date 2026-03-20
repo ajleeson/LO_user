@@ -76,7 +76,7 @@ ds1 = '2017.06.30'
 # ds1 = '2017.12.31'
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+year+'.01.01_'+year+'.12.31') / '2layer_bgc'
+out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_'+year+'.01.01_'+year+'.12.31') / '2layer_bgc'
 Lfun.make_dir(out_dir)
 
 
@@ -125,25 +125,25 @@ sta_dict = job_lists.get_sta_dict(jobname)
 # create dictionary of empty dataframes
 df_dict = {'lynchcove': pd.DataFrame(),
            'penn': pd.DataFrame(),
-           'budd': pd.DataFrame(),
+        #    'budd': pd.DataFrame(),
            'carr': pd.DataFrame(),
            'case': pd.DataFrame(),
            'commencement': pd.DataFrame(),
            'crescent': pd.DataFrame(),
            'dabob': pd.DataFrame(),
            'dyes': pd.DataFrame(),
-           'eld': pd.DataFrame(),
+        #    'eld': pd.DataFrame(),
            'elliot': pd.DataFrame(),
-           'hammersley': pd.DataFrame(),
-           'henderson': pd.DataFrame(),
+        #    'hammersley': pd.DataFrame(),
+        #    'henderson': pd.DataFrame(),
            'holmes': pd.DataFrame(),
-           'killsut': pd.DataFrame(),
-           'oak': pd.DataFrame(),
+        #    'killsut': pd.DataFrame(),
+        #    'oak': pd.DataFrame(),
            'portsusan': pd.DataFrame(),
            'quartermaster': pd.DataFrame(),
-           'similk': pd.DataFrame(),
-           'sinclair': pd.DataFrame(),
-           'totten': pd.DataFrame()}
+        #    'similk': pd.DataFrame(),
+           'sinclair': pd.DataFrame()}
+        #    'totten': pd.DataFrame()}
 
 cnt = 0
 #%%
