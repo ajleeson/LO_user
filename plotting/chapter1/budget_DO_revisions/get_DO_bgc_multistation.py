@@ -25,6 +25,8 @@ jobname = 'twentyoneinlets'
 
 burial=50 # 50% burial of sinking detritus in the Salish Sea
 
+interface_types = ['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
+
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
 # Ldir['roms_out'] = Ldir['roms_out2']
@@ -33,9 +35,11 @@ Ldir = Lfun.Lstart()
 Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc
 Ldir['gtagex'] = 'cas7_t1_x11b'
 
-# ds0 = '2017.01.01'
-# ds1 = '2017.01.02'
 year = '2017'
+
+# testing
+ds0 = '2017.01.01'
+ds1 = '2017.01.02'
 
 # jan
 # ds0 = '2017.01.01'
@@ -53,12 +57,12 @@ year = '2017'
 # ds0 = '2017.05.01'
 # ds1 = '2017.05.31'
 # jun
-ds0 = '2017.06.01'
-ds1 = '2017.06.30'
+# ds0 = '2017.06.01'
+# ds1 = '2017.06.30'
 
 # jul
-# ds0 = '2017.07.01'
-# ds1 = '2017.07.31'
+ds0 = '2017.07.01'
+ds1 = '2017.07.31'
 # aug
 # ds0 = '2017.08.01'
 # ds1 = '2017.08.31'
@@ -121,29 +125,118 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 
 # Get mooring stations:
 sta_dict = job_lists.get_sta_dict(jobname)
+# remove lynchcove2
+del sta_dict['lynchcove2']
+# remove shallow inlets (< 10 m deep)
+del sta_dict['hammersley']
+del sta_dict['henderson']
+del sta_dict['oak']
+del sta_dict['totten']
+del sta_dict['similk']
+del sta_dict['budd']
+del sta_dict['eld']
+del sta_dict['killsut']
 
 # create dictionary of empty dataframes
-df_dict = {'lynchcove': pd.DataFrame(),
-           'penn': pd.DataFrame(),
-        #    'budd': pd.DataFrame(),
-           'carr': pd.DataFrame(),
-           'case': pd.DataFrame(),
-           'commencement': pd.DataFrame(),
-           'crescent': pd.DataFrame(),
-           'dabob': pd.DataFrame(),
-           'dyes': pd.DataFrame(),
-        #    'eld': pd.DataFrame(),
-           'elliot': pd.DataFrame(),
-        #    'hammersley': pd.DataFrame(),
-        #    'henderson': pd.DataFrame(),
-           'holmes': pd.DataFrame(),
-        #    'killsut': pd.DataFrame(),
-        #    'oak': pd.DataFrame(),
-           'portsusan': pd.DataFrame(),
-           'quartermaster': pd.DataFrame(),
-        #    'similk': pd.DataFrame(),
-           'sinclair': pd.DataFrame()}
-        #    'totten': pd.DataFrame()}
+# df_dict = {'lynchcove': pd.DataFrame(),
+#            'penn': pd.DataFrame(),
+#         #    'budd': pd.DataFrame(),
+#            'carr': pd.DataFrame(),
+#            'case': pd.DataFrame(),
+#            'commencement': pd.DataFrame(),
+#            'crescent': pd.DataFrame(),
+#            'dabob': pd.DataFrame(),
+#            'dyes': pd.DataFrame(),
+#         #    'eld': pd.DataFrame(),
+#            'elliot': pd.DataFrame(),
+#         #    'hammersley': pd.DataFrame(),
+#         #    'henderson': pd.DataFrame(),
+#            'holmes': pd.DataFrame(),
+#         #    'killsut': pd.DataFrame(),
+#         #    'oak': pd.DataFrame(),
+#            'portsusan': pd.DataFrame(),
+#            'quartermaster': pd.DataFrame(),
+#         #    'similk': pd.DataFrame(),
+#            'sinclair': pd.DataFrame()}
+#         #    'totten': pd.DataFrame()}
+
+df_dict = {'lynchcove_og': pd.DataFrame(),
+           'lynchcove_drdz': pd.DataFrame(),
+           'lynchcove_tef': pd.DataFrame(),
+           'lynchcove_halocline': pd.DataFrame(),
+           'lynchcove_oxycline': pd.DataFrame(),
+
+           'penn_og': pd.DataFrame(),
+           'penn_drdz': pd.DataFrame(),
+           'penn_tef': pd.DataFrame(),
+           'penn_halocline': pd.DataFrame(),
+           'penn_oxycline': pd.DataFrame(),
+
+           'carr_og': pd.DataFrame(),
+           'carr_drdz': pd.DataFrame(),
+           'carr_tef': pd.DataFrame(),
+           'carr_halocline': pd.DataFrame(),
+           'carr_oxycline': pd.DataFrame(),
+
+           'case_og': pd.DataFrame(),
+           'case_drdz': pd.DataFrame(),
+           'case_tef': pd.DataFrame(),
+           'case_halocline': pd.DataFrame(),
+           'case_oxycline': pd.DataFrame(),
+
+           'commencement_og': pd.DataFrame(),
+           'commencement_drdz': pd.DataFrame(),
+           'commencement_tef': pd.DataFrame(),
+           'commencement_halocline': pd.DataFrame(),
+           'commencement_oxycline': pd.DataFrame(),
+
+           'crescent_og': pd.DataFrame(),
+           'crescent_drdz': pd.DataFrame(),
+           'crescent_tef': pd.DataFrame(),
+           'crescent_halocline': pd.DataFrame(),
+           'crescent_oxycline': pd.DataFrame(),
+
+           'dabob_og': pd.DataFrame(),
+           'dabob_drdz': pd.DataFrame(),
+           'dabob_tef': pd.DataFrame(),
+           'dabob_halocline': pd.DataFrame(),
+           'dabob_oxycline': pd.DataFrame(),
+
+           'dyes_og': pd.DataFrame(),
+           'dyes_drdz': pd.DataFrame(),
+           'dyes_tef': pd.DataFrame(),
+           'dyes_halocline': pd.DataFrame(),
+           'dyes_oxycline': pd.DataFrame(),
+
+           'elliot_og': pd.DataFrame(),
+           'elliot_drdz': pd.DataFrame(),
+           'elliot_tef': pd.DataFrame(),
+           'elliot_halocline': pd.DataFrame(),
+           'elliot_oxycline': pd.DataFrame(),
+
+           'holmes_og': pd.DataFrame(),
+           'holmes_drdz': pd.DataFrame(),
+           'holmes_tef': pd.DataFrame(),
+           'holmes_halocline': pd.DataFrame(),
+           'holmes_oxycline': pd.DataFrame(),
+
+           'portsusan_og': pd.DataFrame(),
+           'portsusan_drdz': pd.DataFrame(),
+           'portsusan_tef': pd.DataFrame(),
+           'portsusan_halocline': pd.DataFrame(),
+           'portsusan_oxycline': pd.DataFrame(),
+
+           'quartermaster_og': pd.DataFrame(),
+           'quartermaster_drdz': pd.DataFrame(),
+           'quartermaster_tef': pd.DataFrame(),
+           'quartermaster_halocline': pd.DataFrame(),
+           'quartermaster_oxycline': pd.DataFrame(),
+
+           'sinclair_og': pd.DataFrame(),
+           'sinclair_drdz': pd.DataFrame(),
+           'sinclair_tef': pd.DataFrame(),
+           'sinclair_halocline': pd.DataFrame(),
+           'sinclair_oxycline': pd.DataFrame()}
 
 cnt = 0
 #%%
@@ -153,7 +246,8 @@ while dt00 <= dt1:  # loop each day and every history file
     ds00 = dt00.strftime(Lfun.ds_fmt)
     fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
     #%%
-    for fn in fn_list[0:-1]: 
+    for hr,fn in enumerate(fn_list[0:-1]): 
+        print('    hour {}'.format(hr+1))
         # print(fn)
 
         ds = xr.open_dataset(fn)
@@ -273,82 +367,85 @@ while dt00 <= dt1:  # loop each day and every history file
         ## GET VALUES IN EACH TERMINAL INLET AND SAVE IN INDIVIDUAL FILE ##
         ###################################################################
 
-        for station in sta_dict: # stations: 
+        for type in interface_types:
+            for station in sta_dict: # stations: 
 
-            # get interface depth from csv file
-            with open('interface_depths.csv', 'r') as f:
-                for line in f:
-                    inlet, interface_depth = line.strip().split(',')
-                    interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
-            z_interface = float(interface_dict[station])
+                # get interface depth from csv file
+                with open('interface_depths_' + type + '.csv', 'r') as f:
+                    for line in f:
+                        inlet, interface_depth = line.strip().split(',')
+                        interface_dict[inlet] = interface_depth # in meters. NaN means that it is one-layer
+                z_interface = float(interface_dict[station])
 
-            # get segment information
-            seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
-            seg_df = pd.read_pickle(seg_name)
-            ji_list = seg_df[station+'_p']['ji_list']
-            jj = [x[0] for x in ji_list]
-            ii = [x[1] for x in ji_list]
+                # get segment information
+                seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
+                seg_df = pd.read_pickle(seg_name)
+                ji_list = seg_df[station+'_p']['ji_list']
+                jj = [x[0] for x in ji_list]
+                ii = [x[1] for x in ji_list]
 
-            # get storage term
-            tmp_zrho = zrho[:,jj,ii] # in domain
-            ix_shallow = tmp_zrho>=z_interface # shallower than interface
-            ix_deep = tmp_zrho<z_interface  # deeper than interface
-            tmp_DOV = Oxy[:,jj,ii] * vol[:,jj,ii]
-            ret_DOvol_surf = np.nansum(tmp_DOV[ix_shallow])
-            ret_DOvol_deep = np.nansum(tmp_DOV[ix_deep])
+                # get storage term
+                tmp_zrho = zrho[:,jj,ii] # in domain
+                ix_shallow = tmp_zrho>=z_interface # shallower than interface
+                ix_deep = tmp_zrho<z_interface  # deeper than interface
+                tmp_DOV = Oxy[:,jj,ii] * vol[:,jj,ii]
+                ret_DOvol_surf = np.nansum(tmp_DOV[ix_shallow])
+                ret_DOvol_deep = np.nansum(tmp_DOV[ix_deep])
 
-            # get photosynthesis, nitrification, and respiration terms
-            ret_photo_surf = np.nansum(Oxy_pro[:,jj,ii][ix_shallow])
-            ret_photo_deep = np.nansum(Oxy_pro[:,jj,ii][ix_deep])
-            ret_nitri_surf = np.nansum(Oxy_nitri[:,jj,ii][ix_shallow])
-            ret_nitri_deep = np.nansum(Oxy_nitri[:,jj,ii][ix_deep])
-            ret_respi_surf = np.nansum(Oxy_remi[:,jj,ii][ix_shallow])
-            ret_respi_deep = np.nansum(Oxy_remi[:,jj,ii][ix_deep])
+                # get photosynthesis, nitrification, and respiration terms
+                ret_photo_surf = np.nansum(Oxy_pro[:,jj,ii][ix_shallow])
+                ret_photo_deep = np.nansum(Oxy_pro[:,jj,ii][ix_deep])
+                ret_nitri_surf = np.nansum(Oxy_nitri[:,jj,ii][ix_shallow])
+                ret_nitri_deep = np.nansum(Oxy_nitri[:,jj,ii][ix_deep])
+                ret_respi_surf = np.nansum(Oxy_remi[:,jj,ii][ix_shallow])
+                ret_respi_deep = np.nansum(Oxy_remi[:,jj,ii][ix_deep])
 
-            # get sediment oxygen demand 
-            ret_sod = np.nansum(NH4_gain_flux[jj,ii] * 106/16)    # mmol O2/hr  
+                # get sediment oxygen demand 
+                ret_sod = np.nansum(NH4_gain_flux[jj,ii] * 106/16)    # mmol O2/hr  
 
-            # get O2 gas exchange
-            ret_airsea = np.nansum(cff3[jj,ii] * (O2satu[jj,ii]-Oxy_surf[jj,ii]) * area[jj,ii])
+                # get O2 gas exchange
+                ret_airsea = np.nansum(cff3[jj,ii] * (O2satu[jj,ii]-Oxy_surf[jj,ii]) * area[jj,ii])
 
-            # get dataframe for saving
-            if cnt == 0:
-                # start data
-                df_dict[station]['surf DO*V [mmol]'] = [ret_DOvol_surf]
-                df_dict[station]['deep DO*V [mmol]'] = [ret_DOvol_deep]
-                df_dict[station]['surf photo [mmol/hr]'] = [ret_photo_surf]
-                df_dict[station]['deep photo [mmol/hr]'] = [ret_photo_deep]
-                df_dict[station]['surf nitri [mmol/hr]'] = [ret_nitri_surf]
-                df_dict[station]['deep nitri [mmol/hr]'] = [ret_nitri_deep]
-                df_dict[station]['surf respi [mmol/hr]'] = [ret_respi_surf]
-                df_dict[station]['deep respi [mmol/hr]'] = [ret_respi_deep]
-                df_dict[station]['SOD [mmol/hr]'] = [ret_sod]
-                df_dict[station]['airsea [mmol/hr]'] = [ret_airsea]
-            else:
-                # get temp dataframe
-                df_tmp = pd.DataFrame()
-                df_tmp['surf DO*V [mmol]'] = [ret_DOvol_surf]
-                df_tmp['deep DO*V [mmol]'] = [ret_DOvol_deep]
-                df_tmp['surf photo [mmol/hr]'] = [ret_photo_surf]
-                df_tmp['deep photo [mmol/hr]'] = [ret_photo_deep]
-                df_tmp['surf nitri [mmol/hr]'] = [ret_nitri_surf]
-                df_tmp['deep nitri [mmol/hr]'] = [ret_nitri_deep]
-                df_tmp['surf respi [mmol/hr]'] = [ret_respi_surf]
-                df_tmp['deep respi [mmol/hr]'] = [ret_respi_deep]
-                df_tmp['SOD [mmol/hr]'] = [ret_sod]
-                df_tmp['airsea [mmol/hr]'] = [ret_airsea]
-                # append data
-                df_dict[station] = pd.concat([df_dict[station],df_tmp])
-                # reset index
-                df_dict[station].reset_index(drop=True, inplace=True)
+                # get dataframe for saving
+                if cnt == 0:
+                    # start data
+                    df_dict[station+'_'+type]['surf DO*V [mmol]'] = [ret_DOvol_surf]
+                    df_dict[station+'_'+type]['deep DO*V [mmol]'] = [ret_DOvol_deep]
+                    df_dict[station+'_'+type]['surf photo [mmol/hr]'] = [ret_photo_surf]
+                    df_dict[station+'_'+type]['deep photo [mmol/hr]'] = [ret_photo_deep]
+                    df_dict[station+'_'+type]['surf nitri [mmol/hr]'] = [ret_nitri_surf]
+                    df_dict[station+'_'+type]['deep nitri [mmol/hr]'] = [ret_nitri_deep]
+                    df_dict[station+'_'+type]['surf respi [mmol/hr]'] = [ret_respi_surf]
+                    df_dict[station+'_'+type]['deep respi [mmol/hr]'] = [ret_respi_deep]
+                    df_dict[station+'_'+type]['SOD [mmol/hr]'] = [ret_sod]
+                    df_dict[station+'_'+type]['airsea [mmol/hr]'] = [ret_airsea]
+                else:
+                    # get temp dataframe
+                    df_tmp = pd.DataFrame()
+                    df_tmp['surf DO*V [mmol]'] = [ret_DOvol_surf]
+                    df_tmp['deep DO*V [mmol]'] = [ret_DOvol_deep]
+                    df_tmp['surf photo [mmol/hr]'] = [ret_photo_surf]
+                    df_tmp['deep photo [mmol/hr]'] = [ret_photo_deep]
+                    df_tmp['surf nitri [mmol/hr]'] = [ret_nitri_surf]
+                    df_tmp['deep nitri [mmol/hr]'] = [ret_nitri_deep]
+                    df_tmp['surf respi [mmol/hr]'] = [ret_respi_surf]
+                    df_tmp['deep respi [mmol/hr]'] = [ret_respi_deep]
+                    df_tmp['SOD [mmol/hr]'] = [ret_sod]
+                    df_tmp['airsea [mmol/hr]'] = [ret_airsea]
+                    # append data
+                    df_dict[station+'_'+type] = pd.concat([df_dict[station+'_'+type],df_tmp])
+                    # reset index
+                    df_dict[station+'_'+type].reset_index(drop=True, inplace=True)
 
         cnt += 1
         ds.close()       
     dt00 = dt00 + timedelta(days=1)
 
-for station in sta_dict: #for station in stations:
-    # get dataframe for saving
-    df = df_dict[station]
-    # save to pickle file
-    Lfun.make_dir(out_dir/station)
-    df.to_pickle(out_dir / station / (station + '_' + ds0 + '_' + ds1 + '.p'))
+for type in interface_types:
+    for station in sta_dict: #for station in stations:
+        # get dataframe for saving
+        df = df_dict[station+'_'+type]
+        # save to pickle file
+        Lfun.make_dir(out_dir/station)
+        df.to_pickle(out_dir / station / (type + '_' + station + '_' + ds0 + '_' + ds1 + '.p'))
+print('Done')

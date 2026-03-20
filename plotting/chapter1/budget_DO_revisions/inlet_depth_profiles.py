@@ -447,7 +447,7 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
 
     # plot all different interface depths
     interface_types = ['og','drdz','tef','halocline','oxycline']
-    colors = ['crimson','darkorange','limegreen','royalblue','purple']
+    colors = ['crimson','chocolate','yellowgreen','royalblue','purple']
     for t,type in enumerate(interface_types):
         interface_dict = dict()
         with open('interface_depths_' + type + '.csv', 'r') as f:
@@ -455,7 +455,9 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
                 inlet, interface_depth = line.strip().split(',')
                 interface_dict[inlet] = interface_depth # in meters
         z_interface = float(interface_dict[station])
-        ax[i].axhline(z_interface,0,1030,linewidth=1, color=colors[t])
+        ax[i].axhline(z_interface,0,1030,linewidth=1.5, color=colors[t])
+        ax[5].text(26.6,-12-2.2*t,type,color=colors[t],
+                   fontweight='bold',ha='left',va='top')
 
     if i in [0,5,10]:
         ax[i].set_ylabel('z (m)')
