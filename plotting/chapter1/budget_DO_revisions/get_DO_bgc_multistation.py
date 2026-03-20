@@ -60,12 +60,12 @@ ds1 = '2017.01.02'
 # ds0 = '2017.06.01'
 # ds1 = '2017.06.30'
 
-# jul
-ds0 = '2017.07.01'
-ds1 = '2017.07.31'
+# jul (done)
+# ds0 = '2017.07.01'
+# ds1 = '2017.07.31'
 # aug
-# ds0 = '2017.08.01'
-# ds1 = '2017.08.31'
+ds0 = '2017.08.01'
+ds1 = '2017.08.31'
 # sep
 # ds0 = '2017.09.01'
 # ds1 = '2017.09.30'
@@ -248,6 +248,7 @@ while dt00 <= dt1:  # loop each day and every history file
     #%%
     for hr,fn in enumerate(fn_list[0:-1]): 
         print('    hour {}'.format(hr+1))
+        sys.stdout.flush()
         # print(fn)
 
         ds = xr.open_dataset(fn)
