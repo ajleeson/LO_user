@@ -60,12 +60,12 @@ ds1 = '2017.01.02'
 # ds0 = '2017.06.01'
 # ds1 = '2017.06.30'
 
-# jul (done)
-# ds0 = '2017.07.01'
-# ds1 = '2017.07.31'
+# jul
+ds0 = '2017.07.01'
+ds1 = '2017.07.31'
 # aug
-ds0 = '2017.08.01'
-ds1 = '2017.08.31'
+# ds0 = '2017.08.01'
+# ds1 = '2017.08.31'
 # sep
 # ds0 = '2017.09.01'
 # ds1 = '2017.09.30'
@@ -393,6 +393,11 @@ while dt00 <= dt1:  # loop each day and every history file
                 ret_DOvol_surf = np.nansum(tmp_DOV[ix_shallow])
                 ret_DOvol_deep = np.nansum(tmp_DOV[ix_deep])
 
+                # get volume term
+                tmp_V = vol[:,jj,ii]
+                ret_vol_surf = np.nansum(tmp_V[ix_shallow])
+                ret_vol_deep = np.nansum(tmp_V[ix_deep])
+
                 # get photosynthesis, nitrification, and respiration terms
                 ret_photo_surf = np.nansum(Oxy_pro[:,jj,ii][ix_shallow])
                 ret_photo_deep = np.nansum(Oxy_pro[:,jj,ii][ix_deep])
@@ -412,6 +417,8 @@ while dt00 <= dt1:  # loop each day and every history file
                     # start data
                     df_dict[station+'_'+type]['surf DO*V [mmol]'] = [ret_DOvol_surf]
                     df_dict[station+'_'+type]['deep DO*V [mmol]'] = [ret_DOvol_deep]
+                    df_dict[station+'_'+type]['surf vol [m3]'] = [ret_vol_surf]
+                    df_dict[station+'_'+type]['deep vol [m3]'] = [ret_vol_deep]
                     df_dict[station+'_'+type]['surf photo [mmol/hr]'] = [ret_photo_surf]
                     df_dict[station+'_'+type]['deep photo [mmol/hr]'] = [ret_photo_deep]
                     df_dict[station+'_'+type]['surf nitri [mmol/hr]'] = [ret_nitri_surf]
@@ -425,6 +432,8 @@ while dt00 <= dt1:  # loop each day and every history file
                     df_tmp = pd.DataFrame()
                     df_tmp['surf DO*V [mmol]'] = [ret_DOvol_surf]
                     df_tmp['deep DO*V [mmol]'] = [ret_DOvol_deep]
+                    df_tmp['surf vol [m3]'] = [ret_vol_surf]
+                    df_tmp['deep vol [m3]'] = [ret_vol_deep]
                     df_tmp['surf photo [mmol/hr]'] = [ret_photo_surf]
                     df_tmp['deep photo [mmol/hr]'] = [ret_photo_deep]
                     df_tmp['surf nitri [mmol/hr]'] = [ret_nitri_surf]
