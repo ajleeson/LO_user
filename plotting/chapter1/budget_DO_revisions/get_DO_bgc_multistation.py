@@ -38,12 +38,12 @@ Ldir['gtagex'] = 'cas7_t1_x11b'
 year = '2017'
 
 # testing
-ds0 = '2017.01.01'
-ds1 = '2017.01.02'
+# ds0 = '2017.01.01'
+# ds1 = '2017.01.02'
 
 # jan
-# ds0 = '2017.01.01'
-# ds1 = '2017.01.31'
+ds0 = '2017.01.01'
+ds1 = '2017.01.31'
 # feb
 # ds0 = '2017.02.01'
 # ds1 = '2017.02.28'
@@ -75,9 +75,9 @@ ds1 = '2017.01.02'
 # nov (running)
 # ds0 = '2017.11.01'
 # ds1 = '2017.11.30'
-# dec
-ds0 = '2017.12.01'
-ds1 = '2017.12.31'
+# dec (running)
+# ds0 = '2017.12.01'
+# ds1 = '2017.12.31'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_'+year+'.01.01_'+year+'.12.31') / '2layer_bgc'
