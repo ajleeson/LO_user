@@ -110,7 +110,7 @@ DY = (ds_box.pn.values)**-1
 DA = DX*DY # get area of each grid cell in m^2
 
 # COLLAPSE
-for i,station in enumerate(['commencement']):#enumerate(sta_dict):
+for i,station in enumerate(['dabob']):#enumerate(sta_dict):
         
         # initialize figure
         fig,axes = plt.subplots(5,1, figsize=(8,8))
@@ -170,7 +170,11 @@ for i,station in enumerate(['commencement']):#enumerate(sta_dict):
         #             year+'.11.01_'+year+'.11.30',
         #             year+'.12.01_'+year+'.12.31',]
         months = [year+'.07.01_'+year+'.07.31',
-                  year+'.08.01_'+year+'.08.31']
+                  year+'.08.01_'+year+'.08.31',
+                  year+'.09.01_'+year+'.09.30',
+                  year+'.10.01_'+year+'.10.31',
+                  year+'.11.01_'+year+'.11.30',
+                  year+'.12.01_'+year+'.12.31',]
         
 
         interface_types = ['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
@@ -220,7 +224,7 @@ for i,station in enumerate(['commencement']):#enumerate(sta_dict):
             ddtDOV_deep = zfun.lowpass(ddtDOV_deep_unfiltered, f='godin')[36:-34:24]
 
             # date range
-            summer_daily = pd.date_range(start= '2017.07.01', end='2017.08.31', freq= 'd')[2::]
+            summer_daily = pd.date_range(start= '2017.07.01', end='2017.12.31', freq= 'd')[2::]
             summer_local_daily = [pfun.get_dt_local(x) for x in summer_daily]
 
             # plot budget time series
