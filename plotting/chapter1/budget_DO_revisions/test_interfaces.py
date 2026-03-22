@@ -114,24 +114,24 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
 # ---------------------------------- get BGC terms --------------------------------------------
         bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
         # get months
-        # months = [year+'.01.01_'+year+'.01.31',
-        #             year+'.02.01_'+year+'.02.28',
-        #             year+'.03.01_'+year+'.03.31',
-        #             year+'.04.01_'+year+'.04.30',
-        #             year+'.05.01_'+year+'.05.31',
-        #             year+'.06.01_'+year+'.06.30',
-        #             year+'.07.01_'+year+'.07.31',
-        #             year+'.08.01_'+year+'.08.31',
-        #             year+'.09.01_'+year+'.09.30',
-        #             year+'.10.01_'+year+'.10.31',
-        #             year+'.11.01_'+year+'.11.30',
-        #             year+'.12.01_'+year+'.12.31',]
-        months = [year+'.07.01_'+year+'.07.31',
-                  year+'.08.01_'+year+'.08.31',]
-                #   year+'.09.01_'+year+'.09.30',
-                #   year+'.10.01_'+year+'.10.31',
-                #   year+'.11.01_'+year+'.11.30',
-                #   year+'.12.01_'+year+'.12.31',]
+        months = [year+'.01.01_'+year+'.01.31',
+                    year+'.02.01_'+year+'.02.28',
+                    year+'.03.01_'+year+'.03.31',
+                    year+'.04.01_'+year+'.04.30',
+                    year+'.05.01_'+year+'.05.31',
+                    year+'.06.01_'+year+'.06.30',
+                    year+'.07.01_'+year+'.07.31',
+                    year+'.08.01_'+year+'.08.31',
+                    year+'.09.01_'+year+'.09.30',
+                    year+'.10.01_'+year+'.10.31',
+                    year+'.11.01_'+year+'.11.30',
+                    year+'.12.01_'+year+'.12.31',]
+        # months = [year+'.07.01_'+year+'.07.31',
+        #           year+'.08.01_'+year+'.08.31',]
+        #         #   year+'.09.01_'+year+'.09.30',
+        #         #   year+'.10.01_'+year+'.10.31',
+        #         #   year+'.11.01_'+year+'.11.30',
+        #         #   year+'.12.01_'+year+'.12.31',]
         
 
         interface_types = ['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
@@ -199,12 +199,14 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
             ddtDOV_deep_mgL_day = ddtDOV_deep/vol_deep * 1000 * 32 * 60 * 60 * 24
 
             # plot
+            minday = 194
+            maxday = 256
             # get colormaps
             cmap_temp = colormaps['rainbow_r'].resampled(256)
             cmap_oxy = ListedColormap(cmap_temp(np.linspace(0, 1, 256)))# get range of colormap
             # get mean and standard deviation
-            mean_ddt_DO = np.nanmean(ddtDOV_deep_mgL_day)
-            std_ddt_DO = np.nanstd(ddtDOV_deep_mgL_day)
+            mean_ddt_DO = np.nanmean(ddtDOV_deep_mgL_day[minday:maxday])
+            std_ddt_DO = np.nanstd(ddtDOV_deep_mgL_day[minday:maxday])
             # plot standard deviation
             ax[t].errorbar(i,mean_ddt_DO, yerr=std_ddt_DO, fmt="o", color='black')
             # plot mean, colored by DO
@@ -229,7 +231,7 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
                  ax[t].tick_params(axis='y', labelsize=12)
                  ax[t].axhline(0,-1,15,linestyle=':', color='silver')
 
-        plt.suptitle(r'Mean Jul-Aug d/dt(DO$_{deep}$)',fontsize=14,fontweight='bold')
+        plt.suptitle(r'Mean mid-Jul to mid-Aug d/dt(DO$_{deep}$)',fontsize=14,fontweight='bold')
         plt.subplots_adjust(right=0.9,hspace=0,bottom=0.15)
         plt.show()
 
@@ -376,5 +378,108 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
                 cbar.outline.set_visible(False)
 
         plt.subplots_adjust(hspace=0.1,wspace=0.1)
+        plt.show()
+
+####################################################################################
+#               COMPARE INTERFACE DEPTH METHODS (DOdeep time series)              ##
+####################################################################################
+
+# initialize figure
+fig,axes = plt.subplots(3,2, figsize=(10,8.5), sharex=True, sharey=True)
+ax = axes.ravel()
+
+# inlets roughly sorted by DOdeep
+inlets = ['dyes','sinclair','quartermaster','case','crescent','carr',
+          'elliot','commencement','penn','portsusan','holmes','dabob','lynchcove']
+
+for i,station in enumerate(inlets):#enumerate(sta_dict):
+
+# ---------------------------------- get BGC terms --------------------------------------------
+        bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
+        # get months
+        months = [year+'.01.01_'+year+'.01.31',
+                    year+'.02.01_'+year+'.02.28',
+                    year+'.03.01_'+year+'.03.31',
+                    year+'.04.01_'+year+'.04.30',
+                    year+'.05.01_'+year+'.05.31',
+                    year+'.06.01_'+year+'.06.30',
+                    year+'.07.01_'+year+'.07.31',
+                    year+'.08.01_'+year+'.08.31',
+                    year+'.09.01_'+year+'.09.30',
+                    year+'.10.01_'+year+'.10.31',
+                    year+'.11.01_'+year+'.11.30',
+                    year+'.12.01_'+year+'.12.31',]
+        
+
+        interface_types = ['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
+        # loop through different interface types
+        for t,type in enumerate(interface_types):
+             
+            # initialize arrays to save values
+            o2vol_surf_unfiltered = []
+            o2vol_deep_unfiltered = []
+            vol_surf_unfiltered = []
+            vol_deep_unfiltered = []
+            DO_surf_unfiltered = []
+            DO_deep_unfiltered = []
+
+            # combine all months
+            for month in months:
+                fn = type + '_' + station + '_' + month + '.p'
+                df_bgc = pd.read_pickle(bgc_dir/fn)
+                # conversion factor to go from mmol O2/hr to kmol O2/s
+                conv = (1/1000) * (1/1000) * (1/60) * (1/60) # 1 mol/1000 mmol and 1 kmol/1000 mol and 1 hr/3600 sec
+                # get (DO*V)
+                o2vol_surf_unfiltered = np.concatenate((o2vol_surf_unfiltered, df_bgc['surf DO*V [mmol]'].values)) # mmol
+                o2vol_deep_unfiltered = np.concatenate((o2vol_deep_unfiltered, df_bgc['deep DO*V [mmol]'].values)) # mmol
+                # get volume
+                vol_surf_unfiltered = np.concatenate((vol_surf_unfiltered, df_bgc['surf vol [m3]'].replace(0, np.nan).values)) # m3, and replace zeros with nan
+                vol_deep_unfiltered = np.concatenate((vol_deep_unfiltered, df_bgc['deep vol [m3]'].values)) # m3
+            # get DO concentration [mg/L]
+            DO_surf_unfiltered = o2vol_surf_unfiltered/vol_surf_unfiltered * 32/1000 # mg/L
+            DO_deep_unfiltered = o2vol_deep_unfiltered/vol_deep_unfiltered * 32/1000 # mg/L
+
+            # apply Godin filter
+            DO_surf = zfun.lowpass(DO_surf_unfiltered, f='godin')[36:-34:24]
+            DO_deep = zfun.lowpass(DO_deep_unfiltered, f='godin')[36:-34:24]
+            # apply hanning window
+            DO_deep_hanning = zfun.lowpass(DO_deep,n=30)
+
+            # plot
+            if station == 'lynchcove':
+                # lynchcove is a different color
+                ax[t].plot(dates_local_daily,DO_deep_hanning,linewidth=3,color='white',alpha=0.5)
+                ax[t].plot(dates_local_daily,DO_deep_hanning,linewidth=2,color='crimson')
+                ax[t].text(0.78,0.08,'Lynch Cove',transform=ax[t].transAxes, rotation=25,
+                        color='crimson', fontsize=10, fontweight='bold')
+            else:
+                ax[t].plot(dates_local_daily,DO_deep_hanning,linewidth=3,color='white',alpha=0.5)
+                ax[t].plot(dates_local_daily,DO_deep_hanning,linewidth=2,color='black',alpha=0.5)
+
+            # format figure
+            if i == 0:
+                ax[t].text(dates_local_daily[10],10,type, size=14, ha='left', fontweight='bold')
+                ax[t].set_xlim(dates_hrly[0],dates_hrly[-25])
+                ax[t].tick_params(axis='x', labelrotation=30)
+                loc = mdates.MonthLocator(interval=1)
+                ax[t].xaxis.set_major_locator(loc)
+                ax[t].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+                ax[t].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+                ax[t].tick_params(axis='both', labelsize=12)
+                if t in [0,2,4]:
+                    ax[t].set_ylabel(r'DO$_{deep}$ [mg/L]', fontsize=12)
+                # add decline period
+                ax[t].axvline(dates_local_daily[194],0,12,color='teal',alpha=0.5)
+                ax[t].axvline(dates_local_daily[256],0,12,color='teal',alpha=0.5)
+                ax[t].axvspan(dates_local_daily[194],dates_local_daily[256],
+                        alpha=0.3, color='paleturquoise')
+                # add hypoxic period (Sep 1 - Oct31)
+                ax[t].axvline(dates_local_daily[242],0,12,color='hotpink',alpha=0.5)
+                ax[t].axvline(dates_local_daily[302],0,12,color='hotpink',alpha=0.5)
+                ax[t].axvspan(dates_local_daily[242],dates_local_daily[302],
+                        alpha=0.3, color='pink')
+
+        plt.subplots_adjust(hspace=0.02,wspace=0.02)
+        plt.tight_layout()
         plt.show()
 
