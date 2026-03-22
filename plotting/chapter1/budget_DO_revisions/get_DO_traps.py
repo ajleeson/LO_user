@@ -32,8 +32,10 @@ gtagex = 'cas7_t1_x11b'
 jobname = 'twentyoneinlets'
 startdate = '2017.01.01'
 # enddate = '2014.01.02'
-enddate = '2017.12.31'
-enddate_hrly = '2018.01.01 00:00:00'
+# enddate = '2017.12.31'
+# enddate_hrly = '2018.01.01 00:00:00'
+enddate = '2017.01.02'
+enddate_hrly = '2017.01.03 00:00:00'
 year = '2017' # for making a date label
 
 dsf = Ldir['ds_fmt']
@@ -104,6 +106,7 @@ with open(river_info, 'r') as f:
 
 frc = 'trapsN00'
 frc_fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc'
+# frc_fn = '../../../../LO_output/forcing/' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc'
 
 # list of variables to extract
 vn_list = ['transport', 'Oxyg']
@@ -124,8 +127,8 @@ while mdt <= dt1:
 # to be arrays of characters)
 mds = mds_list[0]
 # fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
-fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + mds + '/' +  frc + '/rivers.nc'
-ds = xr.open_dataset(fn)
+# fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + mds + '/' +  frc + '/rivers.nc'
+ds = xr.open_dataset(frc_fn)
 rn = ds['river_name'].values
 NR = rn.shape[0]
 riv_name_list = list(rn)
@@ -179,8 +182,10 @@ for vn in vn_list:
 
 # stations = ['lynchcove','penn','budd','case','carr']
 
-traps_surf = []
-traps_deep = []
+traps_DO_surf = []
+traps_DO_deep = []
+traps_flow_surf = []
+traps_flow_deep = []
 
 for i,station in enumerate(sta_dict): #enumerate(stations): 
     # print status
@@ -211,10 +216,12 @@ for i,station in enumerate(sta_dict): #enumerate(stations):
         DOload_rivs_kmols = flow_m3s * DO_mmolm3 * (1/1000) * (1/1000) # m3/s * mmol/m3 * (1/1000) * (1/1000) = kmol/s
         # start list of daily river load
         if i == 0:
-            traps_surf = DOload_rivs_kmols
+            traps_DO_surf = DOload_rivs_kmols
+            traps_flow_surf = flow_m3s
         # add all rivers to the loading list
         else:
-            traps_surf = traps_surf + DOload_rivs_kmols
+            traps_DO_surf = traps_DO_surf + DOload_rivs_kmols
+            traps_flow_surf = traps_flow_surf + flow_m3s
 
     # add wwtps to bottom layer
     for i,wwtp in enumerate(wwtp_list):
@@ -227,22 +234,30 @@ for i,station in enumerate(sta_dict): #enumerate(stations):
         DOload_wwtps_kmols = flow_m3s * DO_mmolm3 * (1/1000) * (1/1000) # m3/s * mmol/m3 * (1/1000) * (1/1000) = kmol/s
         # start list of daily river load
         if i == 0:
-            traps_deep = DOload_wwtps_kmols
+            traps_DO_deep = DOload_wwtps_kmols
+            traps_flow_deep = flow_m3s
         # add all rivers to the loading list
         else:
-            traps_deep = traps_deep + DOload_wwtps_kmols
+            traps_DO_deep = traps_DO_deep + DOload_wwtps_kmols
+            traps_flow_deep = traps_flow_deep + flow_m3s
 
     # convert from daily values to hourly
-    traps_surf_hrly = np.repeat(traps_surf, 24)
-    traps_deep_hrly = np.repeat(traps_deep, 24)
+    traps_DO_surf_hrly = np.repeat(traps_DO_surf, 24)
+    traps_DO_deep_hrly = np.repeat(traps_DO_deep, 24)
+    traps_flow_surf_hrly = np.repeat(traps_flow_surf, 24)
+    traps_flow_deep_hrly = np.repeat(traps_flow_deep, 24)
 
-    # clear traps_surf and traps_deep for next iteration
-    traps_surf = traps_surf * 0
-    traps_deep = traps_deep * 0
+    # clear traps_DO_surf and traps_DO_deep for next iteration
+    traps_DO_surf = traps_DO_surf * 0
+    traps_DO_deep = traps_DO_deep * 0
+    traps_flow_surf = traps_flow_surf * 0
+    traps_flow_deep = traps_flow_deep * 0
 
     # create dataframe of values
-    df['surface [kmol/s]'] = traps_surf_hrly
-    df['deep [kmol/s]'] = traps_deep_hrly
+    df['surface trapsDO [kmol/s]'] = traps_DO_surf_hrly
+    df['deep trapsDO [kmol/s]'] = traps_DO_deep_hrly
+    df['surface flowtraps [m3/s]'] = traps_flow_surf_hrly
+    df['deep flowtraps [m3/s]'] = traps_flow_deep_hrly
 
     # save to pickle file
     df.to_pickle(out_dir / (station + '.p'))
