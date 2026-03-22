@@ -32,10 +32,10 @@ gtagex = 'cas7_t1_x11b'
 jobname = 'twentyoneinlets'
 startdate = '2017.01.01'
 # enddate = '2014.01.02'
-# enddate = '2017.12.31'
-# enddate_hrly = '2018.01.01 00:00:00'
-enddate = '2017.01.02'
-enddate_hrly = '2017.01.03 00:00:00'
+enddate = '2017.12.31'
+enddate_hrly = '2018.01.01 00:00:00' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# enddate = '2017.01.02'
+# enddate_hrly = '2017.01.03 00:00:00'
 year = '2017' # for making a date label
 
 dsf = Ldir['ds_fmt']
@@ -53,6 +53,17 @@ job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' 
 
 # Get mooring stations:
 sta_dict = job_lists.get_sta_dict(jobname)
+# remove lynchcove2
+del sta_dict['lynchcove2']
+# remove shallow inlets (< 10 m deep)
+del sta_dict['hammersley']
+del sta_dict['henderson']
+del sta_dict['oak']
+del sta_dict['totten']
+del sta_dict['similk']
+del sta_dict['budd']
+del sta_dict['eld']
+del sta_dict['killsut']
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_'+startdate+'_'+enddate) / '2layer_traps'
@@ -105,7 +116,7 @@ with open(river_info, 'r') as f:
 # ##########################################################
 
 frc = 'trapsN00'
-frc_fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc'
+frc_fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # frc_fn = '../../../../LO_output/forcing/' + gridname + '/f' + startdate + '/' +  frc + '/rivers.nc'
 
 # list of variables to extract
@@ -145,7 +156,7 @@ for tt,mds in enumerate(mds_list):
     if this_dt.day == 1 and this_dt.month == 1:
         print(' Year = %d' % (this_dt.year))
     # fn = Ldir['LOo'] / 'forcing' / gridname / ('f' + mds) / frc / 'rivers.nc'
-    fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + mds + '/' +  frc + '/rivers.nc'
+    fn = '/dat1/parker/LO_output/forcing/' + gridname + '/f' + mds + '/' +  frc + '/rivers.nc' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ds = xr.open_dataset(fn)
     # The river transport is given at noon of a number of days surrounding the forcing date.
     # Here we find the index of the time for the day "mds".
@@ -182,10 +193,10 @@ for vn in vn_list:
 
 # stations = ['lynchcove','penn','budd','case','carr']
 
-traps_DO_surf = []
-traps_DO_deep = []
-traps_flow_surf = []
-traps_flow_deep = []
+traps_DO_surf = np.zeros(len(pd.date_range(start= startdate, end=enddate, freq= 'd')))
+traps_DO_deep = np.zeros(len(pd.date_range(start= startdate, end=enddate, freq= 'd')))
+traps_flow_surf = np.zeros(len(pd.date_range(start= startdate, end=enddate, freq= 'd')))
+traps_flow_deep = np.zeros(len(pd.date_range(start= startdate, end=enddate, freq= 'd')))
 
 for i,station in enumerate(sta_dict): #enumerate(stations): 
     # print status
@@ -206,8 +217,8 @@ for i,station in enumerate(sta_dict): #enumerate(stations):
             wwtp_list = np.concatenate((wwtp_list,[traps]))
 
     # add rivers to surface layer
-    for i,river in enumerate(riv_list):
-        if i == 0:
+    for r,river in enumerate(riv_list):
+        if r == 0:
             print('    Rivers')
         print('        '+river)
         # calculate river load
@@ -215,7 +226,7 @@ for i,station in enumerate(sta_dict): #enumerate(stations):
         DO_mmolm3 = x.loc[dict(riv=river)]['Oxyg'].values
         DOload_rivs_kmols = flow_m3s * DO_mmolm3 * (1/1000) * (1/1000) # m3/s * mmol/m3 * (1/1000) * (1/1000) = kmol/s
         # start list of daily river load
-        if i == 0:
+        if r == 0:
             traps_DO_surf = DOload_rivs_kmols
             traps_flow_surf = flow_m3s
         # add all rivers to the loading list
@@ -224,16 +235,16 @@ for i,station in enumerate(sta_dict): #enumerate(stations):
             traps_flow_surf = traps_flow_surf + flow_m3s
 
     # add wwtps to bottom layer
-    for i,wwtp in enumerate(wwtp_list):
-        if i == 0:
+    for w,wwtp in enumerate(wwtp_list):
+        if w == 0:
             print('    WWTPs')
         print('        '+wwtp)
         # calculate wwtp load
         flow_m3s = x.loc[dict(riv=wwtp)]['transport'].values
         DO_mmolm3 = x.loc[dict(riv=wwtp)]['Oxyg'].values
         DOload_wwtps_kmols = flow_m3s * DO_mmolm3 * (1/1000) * (1/1000) # m3/s * mmol/m3 * (1/1000) * (1/1000) = kmol/s
-        # start list of daily river load
-        if i == 0:
+        # start list of daily wwtp load
+        if w == 0:
             traps_DO_deep = DOload_wwtps_kmols
             traps_flow_deep = flow_m3s
         # add all rivers to the loading list
