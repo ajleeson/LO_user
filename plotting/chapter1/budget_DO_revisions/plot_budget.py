@@ -110,23 +110,13 @@ DY = (ds_box.pn.values)**-1
 DA = DX*DY # get area of each grid cell in m^2
 
 # COLLAPSE
-for i,station in enumerate(['dabob']):#enumerate(sta_dict):
+for i,station in enumerate(sta_dict):
         
         # initialize figure
-        fig,axes = plt.subplots(5,1, figsize=(8,8))
+        fig,axes = plt.subplots(2,1, figsize=(10,7), sharex=True)
         ax = axes.ravel()
 
-        # sharex
-        ax[1].sharex(ax[0])
-        ax[3].sharex(ax[2])
-        ax[4].sharex(ax[2])
-        # Top group
-        ax[0].tick_params(labelbottom=False)
-        ax[2].tick_params(labelbottom=False)
-        ax[3].tick_params(labelbottom=False)
-        # adjust white space
-
-        plt.suptitle(station,fontsize=14)
+        plt.suptitle(station + '(10-day Hanning Window)',fontsize=14)
 
 # --------------------------- get TEF exchange flow terms ----------------------------------------
         in_dir = Ldir['LOo'] / 'extract' / 'cas7_t1_x11b' / 'tef2' / 'c21' / ('bulk_'+year+'.01.01_'+year+'.12.31') / (station + '.nc')
@@ -141,40 +131,34 @@ for i,station in enumerate(['dabob']):#enumerate(sta_dict):
         TEF_deep = (Q_p.values * DO_p.values) * (1/1000) * (1/1000) # Qout * DOout
 
         # plot budget time series
-        ax[0].plot(dates_local_daily,TEF_surf,color='#0D4B91',label='TEF')
-        ax[1].plot(dates_local_daily,TEF_deep,color='#0D4B91',label='TEF')
+        ax[0].plot(dates_local_daily,zfun.lowpass(TEF_surf,n=10),color='#0D4B91',label='TEF')
+        ax[1].plot(dates_local_daily,zfun.lowpass(TEF_deep,n=10),color='#0D4B91',label='TEF')
         # format budget time series figures
         for axnum in [ax[0],ax[1]]:
-            axnum.set_xlim([dates_hrly[0],dates_hrly[-1]])
+            axnum.set_xlim([dates_hrly[0],dates_hrly[-2]])
             axnum.grid(True,color='gainsboro',linewidth=1,linestyle='--',axis='both')
-            axnum.tick_params(axis='x', labelrotation=30, labelsize=10)
-            axnum.tick_params(axis='y', labelsize=10)
+            axnum.tick_params(axis='x', labelrotation=30, labelsize=12)
+            axnum.tick_params(axis='y', labelsize=12)
+            axnum.set_ylabel(r'DO transport [kmol O$_2$ s$^{-1}$]', fontsize=12)
             loc = mdates.MonthLocator(interval=1)
             axnum.xaxis.set_major_locator(loc)
-        ax[0].set_xticklabels([])
         ax[1].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
 
 # ---------------------------------- get BGC terms --------------------------------------------
         bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
         # get months
-        # months = [year+'.01.01_'+year+'.01.31',
-        #             year+'.02.01_'+year+'.02.28',
-        #             year+'.03.01_'+year+'.03.31',
-        #             year+'.04.01_'+year+'.04.30',
-        #             year+'.05.01_'+year+'.05.31',
-        #             year+'.06.01_'+year+'.06.30',
-        #             year+'.07.01_'+year+'.07.31',
-        #             year+'.08.01_'+year+'.08.31',
-        #             year+'.09.01_'+year+'.09.30',
-        #             year+'.10.01_'+year+'.10.31',
-        #             year+'.11.01_'+year+'.11.30',
-        #             year+'.12.01_'+year+'.12.31',]
-        months = [year+'.07.01_'+year+'.07.31',
-                  year+'.08.01_'+year+'.08.31',
-                  year+'.09.01_'+year+'.09.30',
-                  year+'.10.01_'+year+'.10.31',
-                  year+'.11.01_'+year+'.11.30',
-                  year+'.12.01_'+year+'.12.31',]
+        months = [year+'.01.01_'+year+'.01.31',
+                    year+'.02.01_'+year+'.02.28',
+                    year+'.03.01_'+year+'.03.31',
+                    year+'.04.01_'+year+'.04.30',
+                    year+'.05.01_'+year+'.05.31',
+                    year+'.06.01_'+year+'.06.30',
+                    year+'.07.01_'+year+'.07.31',
+                    year+'.08.01_'+year+'.08.31',
+                    year+'.09.01_'+year+'.09.30',
+                    year+'.10.01_'+year+'.10.31',
+                    year+'.11.01_'+year+'.11.30',
+                    year+'.12.01_'+year+'.12.31',]
         
 
         interface_types = ['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
@@ -215,50 +199,61 @@ for i,station in enumerate(['dabob']):#enumerate(sta_dict):
             ddtDOV_deep_unfiltered = np.diff(o2vol_deep_unfiltered) * conv # diff gets us d(DO*V) dt, where t=1 hr (mmol/hr). Then * conv to get kmol/s
 
             # apply Godin filter
-            photo_surf = zfun.lowpass(photo_surf_unfiltered, f='godin')[36:-34:24]
-            photo_deep = zfun.lowpass(photo_deep_unfiltered, f='godin')[36:-34:24]
+            photo_surf  = zfun.lowpass(photo_surf_unfiltered, f='godin')[36:-34:24]
+            photo_deep  = zfun.lowpass(photo_deep_unfiltered, f='godin')[36:-34:24]
             cons_surf   = zfun.lowpass(cons_surf_unfiltered, f='godin')[36:-34:24]
             cons_deep   = zfun.lowpass(cons_deep_unfiltered, f='godin')[36:-34:24]
             airsea_surf = zfun.lowpass(airsea_surf_unfiltered, f='godin')[36:-34:24]
             ddtDOV_surf = zfun.lowpass(ddtDOV_surf_unfiltered, f='godin')[36:-34:24]
             ddtDOV_deep = zfun.lowpass(ddtDOV_deep_unfiltered, f='godin')[36:-34:24]
 
-            # date range
-            summer_daily = pd.date_range(start= '2017.07.01', end='2017.12.31', freq= 'd')[2::]
-            summer_local_daily = [pfun.get_dt_local(x) for x in summer_daily]
-
             # plot budget time series
-            ax[0].plot(summer_local_daily,photo_surf,color='#8F0445',alpha=0.5,label='Photosynthesis')
-            ax[1].plot(summer_local_daily,photo_deep,color='#8F0445',alpha=0.5,label='Photosynthesis')
+            if t == 0:
+                ax[0].plot(dates_local_daily,zfun.lowpass(photo_surf,n=10),color='#8F0445',alpha=0.7,label='Photosynthesis')
+                ax[1].plot(dates_local_daily,zfun.lowpass(photo_deep,n=10),color='#8F0445',alpha=0.7,label='Photosynthesis')
 
-            ax[0].plot(summer_local_daily,cons_surf,color='#FCC2DD',alpha=0.5,label='Consumption')
-            ax[1].plot(summer_local_daily,cons_deep,color='#FCC2DD',alpha=0.5,label='Consumption')
+                ax[0].plot(dates_local_daily,zfun.lowpass(cons_surf,n=10),color='#FCC2DD',alpha=0.7,label='Consumption')
+                ax[1].plot(dates_local_daily,zfun.lowpass(cons_deep,n=10),color='#FCC2DD',alpha=0.7,label='Consumption')
 
-            ax[0].plot(summer_local_daily,ddtDOV_surf,color='black',alpha=0.5,label='d/dt(DO)')
-            ax[1].plot(summer_local_daily,ddtDOV_deep,color='black',alpha=0.5,label='d/dt(DO)')
+                ax[0].plot(dates_local_daily,zfun.lowpass(ddtDOV_surf,n=10),color='black',alpha=0.7,label='d/dt(DO)')
+                ax[1].plot(dates_local_daily,zfun.lowpass(ddtDOV_deep,n=10),color='black',alpha=0.7,label='d/dt(DO)')
 
-            # plot box plots
-            boxprops = dict(facecolor='black', alpha=0.5)
-            medianprops = dict(color='silver', linewidth=1)
-            ddt_bplot = ax[2].boxplot(ddtDOV_deep[~np.isnan(ddtDOV_deep)], patch_artist=True, widths=0.5,
-                                      positions=[t], boxprops=boxprops, medianprops=medianprops)
-            ax[2].text(t,np.nanmax(ddtDOV_deep),str(round(np.nanmean(ddtDOV_deep),3)),ha='center',va='bottom',
-                       fontweight='bold')
+                ax[0].plot(dates_local_daily,zfun.lowpass(airsea_surf,n=10),color='yellowgreen',label='Air-Sea')
+            else:
+                ax[0].plot(dates_local_daily,zfun.lowpass(photo_surf,n=10),color='#8F0445',alpha=0.7)
+                ax[1].plot(dates_local_daily,zfun.lowpass(photo_deep,n=10),color='#8F0445',alpha=0.7)
 
-            boxprops = dict(facecolor='#FCC2DD', alpha=0.5)
-            medianprops = dict(color='hotpink', linewidth=1)
-            ddt_bplot = ax[3].boxplot(cons_deep[~np.isnan(cons_deep)], patch_artist=True, widths=0.5,
-                                      positions=[t], boxprops=boxprops, medianprops=medianprops)
-            ax[3].text(t,np.nanmax(cons_deep),str(round(np.nanmean(cons_deep),3)),ha='center',va='bottom',
-                       fontweight='bold')
+                ax[0].plot(dates_local_daily,zfun.lowpass(cons_surf,n=10),color='#FCC2DD',alpha=0.7)
+                ax[1].plot(dates_local_daily,zfun.lowpass(cons_deep,n=10),color='#FCC2DD',alpha=0.7)
 
-            boxprops = dict(facecolor='#8F0445', alpha=0.5)
-            medianprops = dict(color='pink', linewidth=1)
-            ddt_bplot = ax[4].boxplot(photo_deep[~np.isnan(photo_deep)], patch_artist=True, widths=0.5,
-                                      positions=[t], boxprops=boxprops, medianprops=medianprops)
-            ax[4].text(t,np.nanmax(photo_deep),str(round(np.nanmean(photo_deep),3)),ha='center',va='bottom',
-                       fontweight='bold')
-            ax[4].set_xticks([0,1,2,3,4], interface_types, rotation=45, fontsize=12)
+                ax[0].plot(dates_local_daily,zfun.lowpass(ddtDOV_surf,n=10),color='black',alpha=0.7)
+                ax[1].plot(dates_local_daily,zfun.lowpass(ddtDOV_deep,n=10),color='black',alpha=0.7)
+
+                ax[0].plot(dates_local_daily,zfun.lowpass(airsea_surf,n=10),color='yellowgreen') 
+            ax[0].legend(loc='lower right',ncol=6, fontsize=12, handletextpad=0.15)
+
+            # # plot box plots
+            # boxprops = dict(facecolor='black', alpha=0.5)
+            # medianprops = dict(color='silver', linewidth=1)
+            # ddt_bplot = ax[2].boxplot(ddtDOV_deep[~np.isnan(ddtDOV_deep)], patch_artist=True, widths=0.5,
+            #                           positions=[t], boxprops=boxprops, medianprops=medianprops)
+            # ax[2].text(t,np.nanmax(ddtDOV_deep),str(round(np.nanmean(ddtDOV_deep),3)),ha='center',va='bottom',
+            #            fontweight='bold')
+
+            # boxprops = dict(facecolor='#FCC2DD', alpha=0.5)
+            # medianprops = dict(color='hotpink', linewidth=1)
+            # ddt_bplot = ax[3].boxplot(cons_deep[~np.isnan(cons_deep)], patch_artist=True, widths=0.5,
+            #                           positions=[t], boxprops=boxprops, medianprops=medianprops)
+            # ax[3].text(t,np.nanmax(cons_deep),str(round(np.nanmean(cons_deep),3)),ha='center',va='bottom',
+            #            fontweight='bold')
+
+            # boxprops = dict(facecolor='#8F0445', alpha=0.5)
+            # medianprops = dict(color='pink', linewidth=1)
+            # ddt_bplot = ax[4].boxplot(photo_deep[~np.isnan(photo_deep)], patch_artist=True, widths=0.5,
+            #                           positions=[t], boxprops=boxprops, medianprops=medianprops)
+            # ax[4].text(t,np.nanmax(photo_deep),str(round(np.nanmean(photo_deep),3)),ha='center',va='bottom',
+            #            fontweight='bold')
+            # ax[4].set_xticks([0,1,2,3,4], interface_types, rotation=45, fontsize=12)
 
 # # ------------------------------- get rivers and WWTPs ----------------------------------------
 #         fn = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_traps' / (station + '.p')
@@ -424,3 +419,4 @@ for i,station in enumerate(['dabob']):#enumerate(sta_dict):
 
         plt.tight_layout()
         plt.show()
+
