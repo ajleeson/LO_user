@@ -447,7 +447,7 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
 
     # plot all different interface depths
     interface_types = ['og','drdz','tef','halocline','oxycline']
-    colors = ['crimson','chocolate','yellowgreen','royalblue','purple']
+    colors = ['crimson','chocolate','green','royalblue','purple']
     for t,type in enumerate(interface_types):
         interface_dict = dict()
         with open('interface_depths_' + type + '.csv', 'r') as f:
