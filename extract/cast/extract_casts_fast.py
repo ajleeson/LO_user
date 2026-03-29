@@ -14,6 +14,7 @@ import sys
 import pandas as pd
 import xarray as xr
 import numpy as np
+import numpy
 from datetime import datetime
 from pathlib import Path
 
@@ -41,6 +42,9 @@ info_fn = obs_dir / Ldir['source'] / Ldir['otype'] / ('info_' + year_str + '.p')
 # # path to Dakota's observational data on apogee
 # obs_dir = Path('/dat1/dakotamm/LO_output/obs')
 # info_fn = obs_dir / Ldir['source'] / Ldir['otype'] / ('info_' + year_str + '.p')
+
+# be compatible with pickle files
+sys.modules['numpy._core'] = numpy.core
 
 if info_fn.is_file():
     ii = 0
