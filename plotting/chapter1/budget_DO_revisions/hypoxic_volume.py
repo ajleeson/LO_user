@@ -210,10 +210,8 @@ for year in ['avg'] + years:
     DO_days[year] = DO_days_threshold
 
 # get grid cell area
-fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / 'pugetsoundDO_2014.01.01_2014.12.31.nc'
-ds_2014 = xr.open_dataset(fp)
-DX = (ds_2014.pm.values)**-1
-DY = (ds_2014.pn.values)**-1
+DX = (basin_mask_ds.pm.values)**-1
+DY = (basin_mask_ds.pn.values)**-1
 DA = DX*DY*(1/1000)*(1/1000) # get area, but convert from m^2 to km^2
 
 # initialize dictionary for hypoxic volume [km3]
@@ -322,3 +320,9 @@ ax2.plot([],[])
 for border in ['top','right','bottom','left']:
     ax2.spines[border].set_visible(False)
 ax2.set_ylabel(r'Percent of regional volume [%]', fontsize=12)
+
+# save to csv file
+hyp_vol_df = pd.DataFrame.from_dict(hyp_vol)
+hyp_vol_df.insert(0, 'yearday', list(range(1,367)))
+hyp_vol_df.to_csv('../../../../terminal_inlet_DO_rev2/daily_hypoxic_volume_km3.csv', index=False)
+print(hyp_vol_df)

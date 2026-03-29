@@ -37,6 +37,8 @@ mask_rho = box_ds.mask_rho.values              # 0 = land 1 = water
 xrho = box_ds.coords['lon_rho'].values
 yrho = box_ds.coords['lat_rho'].values
 h = box_ds['h'].values
+pm = box_ds['pm'].values
+pn = box_ds['pn'].values
 
 lon = xrho
 lat = yrho
@@ -178,6 +180,18 @@ new_ds['h'].attrs['standard_name'] = 'sea_floor_depth'
 new_ds['h'].attrs['long_name'] = 'time_independent bathymetry'
 new_ds['h'].attrs['field'] = 'bathymetry'
 new_ds['h'].attrs['grid'] =  'cas7'
+
+new_ds['pm'] = (('eta_rho', 'xi_rho'),pm,{'units': 'm-1'})
+new_ds['pm'].attrs['standard_name'] = 'inverse_grid_x_spacing'
+new_ds['pm'].attrs['long_name'] = 'curvilinear coordinate metric in XI'
+new_ds['pm'].attrs['field'] = 'pm'
+new_ds['pm'].attrs['grid'] =  'cas7'
+
+new_ds['pn'] = (('eta_rho', 'xi_rho'),pn,{'units': 'm-1'})
+new_ds['pn'].attrs['standard_name'] = 'inverse_grid_y_spacing'
+new_ds['pn'].attrs['long_name'] = 'curvilinear coordinate metric in ETA'
+new_ds['pn'].attrs['field'] = 'pn'
+new_ds['pn'].attrs['grid'] =  'cas7'
 
 new_ds['mask_rho'] = (('eta_rho', 'xi_rho'),mask_rho,{'units': 'm'})
 new_ds['mask_rho'].attrs['standard_name'] = 'land_sea_mask_at_cell_center'
