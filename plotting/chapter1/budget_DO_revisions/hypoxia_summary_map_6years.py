@@ -29,7 +29,7 @@ from lo_tools import plotting_functions as pfun
 
 import sys
 from pathlib import Path
-pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
+pth = Path(__file__).absolute().parent.parent.parent.parent.parent / 'LO' / 'pgrid'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
 import gfun
@@ -180,10 +180,10 @@ plt.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.5, vmax=0, cmap=plt.get_cm
 # plot hypoxic days
 
 # get lat and lon
-fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
-ds = xr.open_dataset(fp)
-lons = ds.coords['lon_rho'].values
-lats = ds.coords['lat_rho'].values
+fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
+ds_box = xr.open_dataset(fp)
+lons = ds_box.coords['lon_rho'].values
+lats = ds_box.coords['lat_rho'].values
 px, py = pfun.get_plon_plat(lons,lats)
 
 # get days
@@ -311,3 +311,25 @@ plt.tight_layout
 # plt.subplots_adjust(wspace=0.02)
 # plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05, wspace=0.02)
 plt.show()
+
+# Save output as nc file
+ds_new = ds.copy()
+# remove unnecessary info
+ds_new = ds_new.drop_vars(['depth_bot','DO_bot','hyp_thick','one_mgL_thick','three_mgL_thick'])
+ds_new = ds_new.drop_dims('ocean_time')
+# add lat_rho and lon_rho
+ds_new = ds_new.assign_coords({'lat_rho':ds_box['lat_rho'], 'lon_rho':ds_box['lon_rho']})
+# add data
+ds_new['Sep_Oct_bottom_DO'] = xr.DataArray(data = v_avg, dims = ('eta_rho', 'xi_rho'))
+ds_new['Sep_Oct_bottom_DO'].attrs['long_name'] = 'Climatological mean September and October bottom dissolved oxygen concentration (2015-2020)'
+ds_new['Sep_Oct_bottom_DO'].attrs['units'] = 'mg L-1'
+
+ds_new['hypoxic_days_per_year'] = xr.DataArray(data = DO_days, dims = ('eta_rho', 'xi_rho'))
+ds_new['hypoxic_days_per_year'].attrs['long_name'] = '2015 - 2020 climatological mean number of days per year that the bottom layer experienced hypoxia (DO < 2mg/L)'
+ds_new['hypoxic_days_per_year'].attrs['units'] = 'days per year'
+
+# save
+ds_new.to_netcdf('../../../../terminal_inlet_DO_rev2/PS_box_hypoxia_climatology.nc')
+print(ds_new)
+
+    

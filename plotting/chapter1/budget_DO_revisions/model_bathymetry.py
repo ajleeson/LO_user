@@ -28,7 +28,7 @@ background = 'white'#'whitesmoke' #'dimgray'
 # Get LiveOcean grid info --------------------------------------------------
 
 # get the grid data
-ds = xr.open_dataset('../../LO_data/grids/cas7/grid.nc')
+ds = xr.open_dataset('../../../../LO_data/grids/cas7/grid.nc')
 z = -ds.h.values
 mask_rho = np.transpose(ds.mask_rho.values)
 lon = ds.lon_rho.values
@@ -136,7 +136,7 @@ ax1 = fig.add_subplot(1,3,2)
 # cs = ax1.pcolormesh(plon, plat, zm, vmin=-5, vmax=0, cmap=newcmap)
 
 # read in masks
-basin_mask_ds = xr.open_dataset('../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
+basin_mask_ds = xr.open_dataset('../../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
 mask_rho = basin_mask_ds.mask_rho.values
 mask_ps = basin_mask_ds.mask_pugetsound.values
 z = -basin_mask_ds.h.values
@@ -210,7 +210,7 @@ ax1.text((lon0+lon1)/2,lat0+0.015,'{} km'.format(x_dist_km),color='k',fontsize=1
 ax2 = fig.add_subplot(1,3,3)
 
 # get the grid data
-ds = xr.open_dataset('../../LO_data/grids/cas7/grid.nc')
+ds = xr.open_dataset('../../../../LO_data/grids/cas7/grid.nc')
 z = -ds.h.values
 mask_rho = np.transpose(ds.mask_rho.values)
 lon = ds.lon_rho.values
@@ -227,6 +227,7 @@ zm[np.transpose(mask_rho) != 0] = -1
 ax2.tick_params(axis='both', labelsize=12)
 # plt.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.2, vmax=0, cmap=plt.get_cmap('Greys'))
 ax2.pcolormesh(plon, plat, zm, vmin=-15, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
+# ax2.pcolormesh(plon, plat, zm, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 
 # format figure
 pfun.dar(ax2)
@@ -274,6 +275,10 @@ for stn,station in enumerate(sta_dict): # stations:
     # add inlet locations
     # plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=65, cmap=plt.get_cmap('coolwarm'))
     plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=100, cmap=plt.get_cmap(cmocean.cm.ice))
+    # plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=60, cmap='Greys')
+
+    # if station == 'lynchcove':
+    #     plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=200, cmap='spring')
 
 # Add inlet labels
 for sta in sta_dict:
@@ -343,4 +348,4 @@ for sta in sta_dict:
 
 # plt.tight_layout()
 plt.subplots_adjust(wspace = 0, bottom=0.18)
-plt.savefig(out_dir / ('model_bathy.png'))#,transparent='True')
+# plt.savefig(out_dir / ('model_bathy.png'))#,transparent='True')

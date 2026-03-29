@@ -513,11 +513,13 @@ for i,vn in enumerate(vns):
 
 
             # plot model output
-            axis.plot(dates_local, surf_mod_avg, color='lightseagreen', linewidth=2.5, alpha=0.3, zorder=5)
-            axis.plot(dates_local, bott_mod_avg, color='navy', linewidth=2.5, alpha=0.5, zorder=3,label='cas7_t0_x4b')
+            # axis.plot(dates_local, surf_mod_avg, color='lightseagreen', linewidth=2.5, alpha=0.3, zorder=5)
+            # axis.plot(dates_local, bott_mod_avg, color='navy', linewidth=2.5, alpha=0.5, zorder=3,label='cas7_t0_x4b')
 
-            axis.plot(dates_local, surf_mod_avg2, color='lightseagreen', linewidth=1.5, alpha=1, zorder=5, linestyle=':')
-            axis.plot(dates_local, bott_mod_avg2, color='navy', linewidth=1.5, alpha=1, zorder=5,label='cas7_t1_x11ab', linestyle=':')
+            # axis.plot(dates_local, surf_mod_avg2, color='lightseagreen', linewidth=1.5, alpha=1, zorder=5, linestyle=':')
+            # axis.plot(dates_local, bott_mod_avg2, color='navy', linewidth=1.5, alpha=1, zorder=5,label='cas7_t1_x11ab', linestyle=':')
+            axis.plot(dates_local, surf_mod_avg2, color='lightseagreen', linewidth=2.5, alpha=0.3, zorder=5)
+            axis.plot(dates_local, bott_mod_avg2, color='navy', linewidth=2.5, alpha=0.3, zorder=3,label='model')
 
             if stn == 0:
                 print(dates_local)

@@ -231,7 +231,7 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
                  ax[t].tick_params(axis='y', labelsize=12)
                  ax[t].axhline(0,-1,15,linestyle=':', color='silver')
 
-        plt.suptitle(r'Mean mid-Jul to mid-Aug d/dt(DO$_{deep}$)',fontsize=14,fontweight='bold')
+        plt.suptitle(r'Mean mid-Jul to mid-Sep d/dt(DO$_{deep}$)',fontsize=14,fontweight='bold')
         plt.subplots_adjust(right=0.9,hspace=0,bottom=0.15)
         plt.show()
 
@@ -483,3 +483,256 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
         plt.tight_layout()
         plt.show()
 
+
+####################################################################################
+#                      SAVE DO_deep TIME SERIES FOR MANUSCRIPT                    ##
+####################################################################################
+
+# inlets roughly sorted by DOdeep
+inlets = ['dyes','sinclair','quartermaster','case','crescent','carr',
+          'elliot','commencement','penn','portsusan','holmes','dabob','lynchcove']
+
+# initialize dictionary for results
+DOdeep_timeseries = {}
+
+for i,station in enumerate(inlets):#enumerate(sta_dict):
+
+# ---------------------------------- get BGC terms --------------------------------------------
+        bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
+        # get months
+        months = [year+'.01.01_'+year+'.01.31',
+                    year+'.02.01_'+year+'.02.28',
+                    year+'.03.01_'+year+'.03.31',
+                    year+'.04.01_'+year+'.04.30',
+                    year+'.05.01_'+year+'.05.31',
+                    year+'.06.01_'+year+'.06.30',
+                    year+'.07.01_'+year+'.07.31',
+                    year+'.08.01_'+year+'.08.31',
+                    year+'.09.01_'+year+'.09.30',
+                    year+'.10.01_'+year+'.10.31',
+                    year+'.11.01_'+year+'.11.30',
+                    year+'.12.01_'+year+'.12.31',]
+        
+
+        interface_types = ['tef'] # how to define dividing depth
+        # loop through different interface types
+        for t,type in enumerate(interface_types):
+             
+            # initialize arrays to save values
+            o2vol_surf_unfiltered = []
+            o2vol_deep_unfiltered = []
+            vol_surf_unfiltered = []
+            vol_deep_unfiltered = []
+            DO_surf_unfiltered = []
+            DO_deep_unfiltered = []
+
+            # combine all months
+            for month in months:
+                fn = type + '_' + station + '_' + month + '.p'
+                df_bgc = pd.read_pickle(bgc_dir/fn)
+                # get (DO*V)
+                o2vol_deep_unfiltered = np.concatenate((o2vol_deep_unfiltered, df_bgc['deep DO*V [mmol]'].values)) # mmol
+                # get volume
+                vol_deep_unfiltered = np.concatenate((vol_deep_unfiltered, df_bgc['deep vol [m3]'].values)) # m3
+            # get DO concentration [mg/L]
+            DO_deep_unfiltered = o2vol_deep_unfiltered/vol_deep_unfiltered * 32/1000 # mg/L
+
+            # apply Godin filter
+            DO_deep = zfun.lowpass(DO_deep_unfiltered, f='godin')[36:-34:24]
+            # apply hanning window
+            DO_deep_hanning = zfun.lowpass(DO_deep,n=30)
+
+            # save to dictionary
+            if station == 'elliot':
+                station = 'elliott' # correct typo
+            DOdeep_timeseries[station] = DO_deep_hanning
+
+# save to csv file
+hyp_vol_df = pd.DataFrame.from_dict(DOdeep_timeseries)
+dates = pd.date_range(start='2017-01-02', end='2017-12-30', freq='D')
+date_list = dates.strftime('%Y-%m-%d').tolist()
+hyp_vol_df.insert(0, 'date', date_list)
+hyp_vol_df.to_csv('../../../../terminal_inlet_DO_rev2/deeplayerDO_mgL_30dayHanning.csv', index=False)
+
+####################################################################################
+#                          SAVE MONTHLY MEANS FOR MANUSCRIPT                      ##
+####################################################################################
+
+# initialize dataframe to save values
+monthly_mean_df = pd.DataFrame(columns=['month','inlet','DOdeep(mg/L)','DOin(mg/L)','Tflush(days)','Perc_hypoxic_volume(%)'])
+
+# inlets roughly sorted by DOdeep
+inlets = ['dyes','sinclair','quartermaster','case','crescent','carr',
+          'elliot','commencement','penn','portsusan','holmes','dabob','lynchcove']
+
+months = [year+'.01.01_'+year+'.01.31',
+            year+'.02.01_'+year+'.02.28',
+            year+'.03.01_'+year+'.03.31',
+            year+'.04.01_'+year+'.04.30',
+            year+'.05.01_'+year+'.05.31',
+            year+'.06.01_'+year+'.06.30',
+            year+'.07.01_'+year+'.07.31',
+            year+'.08.01_'+year+'.08.31',
+            year+'.09.01_'+year+'.09.30',
+            year+'.10.01_'+year+'.10.31',
+            year+'.11.01_'+year+'.11.30',
+            year+'.12.01_'+year+'.12.31',]
+
+month_name = ['Jan','Feb','Mar','Apr','May','Jun',
+              'Jul','Aug','Sep','Oct','Nov','Dec']
+
+# open files
+box_fn = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
+ds_box = xr.open_dataset(box_fn)
+DX = (ds_box.pm.values)**-1
+DY = (ds_box.pn.values)**-1
+DA = DX*DY # get area of each grid cell in m^2
+fn0 = xr.open_dataset(Ldir['roms_out'] / 'cas7_t1_x11b' / 'f2017.01.01' / 'ocean_his_0002.nc')
+lonr = fn0.lon_rho.values
+latr = fn0.lat_rho.values
+seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
+seg_df = pd.read_pickle(seg_name)
+ds_oxy = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / ('cas7_t1_x11ab' + '_pugetsoundDO_' + year + '_DO_info.nc'))
+
+for i,station in enumerate(inlets):#enumerate(sta_dict):
+
+# --------------------------- get percent hypoxic volume ----------------------------------------
+
+    ji_list = seg_df[station+'_p']['ji_list']
+    jj_LO = [x[0] for x in ji_list] # y; lat; jj
+    ii_LO = [x[1] for x in ji_list] # x; lon; ii
+    # get lat and lon corresponding to ii and jj indices
+    lat_LO = latr[jj_LO,0]
+    lon_LO = lonr[0,ii_LO]
+    # get corresponding ii and jj indices in box extraction
+    lat_box_all = ds_box['lat_rho'].values[:,0]
+    lon_box_all = ds_box['lon_rho'].values[0,:]
+    jj = np.zeros(len(jj_LO))
+    ii = np.zeros(len(ii_LO))
+    for j_ind,lat in enumerate(lat_LO):
+        jj[j_ind] = np.where(lat_box_all==lat)[0][0]
+    for i_ind,lon in enumerate(lon_LO):
+        ii[i_ind] = np.where(lon_box_all==lon)[0][0]
+    # convert to array of ints
+    jj = jj.astype(int)
+    ii = ii.astype(int)
+
+    # calculate percent hypoxic volume
+    hyp_thick = ds_oxy['hyp_thick'].values # m
+
+    # get hypoxic thickness and cell area corresponding to the inlet
+    hyp_thick = hyp_thick[:,jj,ii] # m
+    DA_inlet = DA[jj,ii]
+    # calculate hypoxic volume
+    hyp_vol = np.sum(hyp_thick * DA_inlet, axis=(1)) # m^3
+    # crop to 363 days
+    hyp_vol = hyp_vol[1:-1]
+        
+# --------------------------- get TEF exchange flow terms ----------------------------------------
+    in_dir = Ldir['LOo'] / 'extract' / 'cas7_t1_x11b' / 'tef2' / 'c21' / ('bulk_'+year+'.01.01_'+year+'.12.31') / (station + '.nc')
+    bulk = xr.open_dataset(in_dir)
+    tef_df, vn_list, vec_list = get_two_layer.get_two_layer(bulk)
+    Qin = tef_df['q_p'] # Qin [m3/s]
+    DOin = tef_df['oxygen_p'] # DOin [mmol/m3]
+
+    for m,month in enumerate(months):
+
+        if m == 0:
+            minday = 0 #1
+            maxday = 30 #32
+        elif m == 1:
+            minday = 30# 32
+            maxday = 58# 60
+        elif m == 2:
+            minday = 58# 60
+            maxday = 89# 91
+        elif m == 3:
+            minday = 89# 91
+            maxday = 119# 121
+        elif m == 4:
+            minday = 119# 121
+            maxday = 150# 152
+        elif m == 5:
+            minday = 150# 152
+            maxday = 180# 182
+        elif m == 6:
+            minday = 180# 182
+            maxday = 211# 213
+        elif m == 7:
+            minday = 211# 213
+            maxday = 242# 244
+        elif m == 8:
+            minday = 242# 244
+            maxday = 272# 274
+        elif m == 9:
+            minday = 272# 274
+            maxday = 303# 305
+        elif m == 10:
+            minday = 303# 305
+            maxday = 333# 335
+        elif m == 11:
+            minday = 333# 335
+            maxday = 363
+
+        DOin_monthlymean = np.nanmean(DOin[minday:maxday]) * 32/1000 # [mg/L]
+        Qin_daily = Qin[minday:maxday] # [m3/s]
+
+        hyp_vol_daily = hyp_vol[minday:maxday]
+
+# ---------------------------------- get BGC terms --------------------------------------------
+        bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
+
+        interface_types = ['tef'] # how to define dividing depth
+        # loop through different interface types
+        for t,type in enumerate(interface_types):
+
+            fn = type + '_' + station + '_' + month + '.p'
+            df_bgc = pd.read_pickle(bgc_dir/fn)
+            # conversion factor to go from mmol O2/hr to kmol O2/s
+            conv = (1/1000) * (1/1000) * (1/60) * (1/60) # 1 mol/1000 mmol and 1 kmol/1000 mol and 1 hr/3600 sec
+            # get (DO*V)
+            o2vol_deep_unfiltered = df_bgc['deep DO*V [mmol]'].values # mmol
+            # get volume
+            vol_deep_unfiltered = df_bgc['deep vol [m3]'].values # m3
+            vol_inlet_unfiltered = df_bgc['surf vol [m3]'].values + df_bgc['deep vol [m3]'].values
+            # get DO concentration [mg/L]
+            DO_deep_unfiltered = o2vol_deep_unfiltered/vol_deep_unfiltered * 32/1000 # mg/L
+            # apply Godin filter
+            DO_deep = zfun.lowpass(DO_deep_unfiltered, f='godin')[36:-34:24]
+            vol_inlet = zfun.lowpass(vol_inlet_unfiltered, f='godin')[36:-34:24]
+
+            # get monthly mean
+            DOdeep_monthlymean = np.nanmean(DO_deep)
+            # subsample Qin because we applied godin filter to the month of vol
+            if m == 0:
+                Qin_daily_resized = Qin_daily[:-1]
+                hyp_vol_daily_resized = hyp_vol_daily[:-1]
+            elif m == 11:
+                Qin_daily_resized = Qin_daily[1:]
+                hyp_vol_daily_resized = hyp_vol_daily[1:]
+            else:
+                Qin_daily_resized = Qin_daily[1:-1]
+                hyp_vol_daily_resized = hyp_vol_daily[1:-1]
+            Tflush_monthlymean = np.nanmean(vol_inlet/Qin_daily_resized) / (60*60*24) # [days]
+
+            perc_hyp_vol_monthlymean = np.nanmean(hyp_vol_daily_resized/vol_inlet) * 100
+
+            # add data to dataframe
+            # save to dictionary
+            if station == 'elliot':
+                station_name = 'elliott' # correct typo
+            else:
+                station_name = station
+            new_data = {'month': [month_name[m]], 
+                        'inlet':   [station_name], 
+                        'DOdeep(mg/L)':  [DOdeep_monthlymean],
+                        'DOin(mg/L)': [DOin_monthlymean],
+                        'Tflush(days)': [Tflush_monthlymean],
+                        'Perc_hypoxic_volume(%)': [perc_hyp_vol_monthlymean]}
+            df_new_rows = pd.DataFrame(new_data)
+            monthly_mean_df = pd.concat([monthly_mean_df, df_new_rows],ignore_index=True)
+
+
+# save to csv file
+print(monthly_mean_df)
+monthly_mean_df.to_csv('../../../../terminal_inlet_DO_rev2/inlet_monthly_means.csv', index=False)
