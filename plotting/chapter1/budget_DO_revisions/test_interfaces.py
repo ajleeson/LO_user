@@ -134,7 +134,7 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
         #         #   year+'.12.01_'+year+'.12.31',]
         
 
-        interface_types = ['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
+        interface_types = ['drdz','tef','og','halocline','oxycline'] # how to define dividing depth
         # loop through different interface types
         for t,type in enumerate(interface_types):
              
@@ -210,14 +210,15 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
             # plot standard deviation
             ax[t].errorbar(i,mean_ddt_DO, yerr=std_ddt_DO, fmt="o", color='black')
             # plot mean, colored by DO
-            cs = ax[t].scatter(i,mean_ddt_DO,s=100, zorder=5, c=np.nanmean(DO_deep), cmap=cmap_oxy,
-                               vmin=2,vmax=10)
+            DO_deep_hypoxic_season = np.nanmean(DO_deep[242:302])
+            cs = ax[t].scatter(i,mean_ddt_DO,s=100, zorder=5, c=DO_deep_hypoxic_season, cmap=cmap_oxy,
+                               vmin=0,vmax=8)
             # create colorbarlegend
             if i == 0 and t == 0:
                 cbar_ax = fig.add_axes([0.92, 0.1, 0.02, 0.8])
                 cbar = fig.colorbar(cs, cax=cbar_ax)
                 cbar.ax.tick_params(labelsize=12)
-                cbar.set_label(r'Mean DO$_{deep}$ [mg/L]', fontsize=12)
+                cbar.set_label(r'Sep-Oct mean DO$_{deep}$ [mg/L]', fontsize=12)
                 cbar.outline.set_visible(False)
             # # label mean
             ax[t].text(i-0.3,mean_ddt_DO, str(round(mean_ddt_DO,3)),
@@ -227,9 +228,20 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
 
             # label y-axis
             if i == 0:
-                 ax[t].set_ylabel(type + '\ninterface', fontsize=12)
-                 ax[t].tick_params(axis='y', labelsize=12)
-                 ax[t].axhline(0,-1,15,linestyle=':', color='silver')
+                criteria = ''
+                if type == 'og':
+                    criteria = 'Uniform 1/3'
+                elif type == 'tef':
+                    criteria = 'TEF'
+                elif type == 'drdz':
+                    criteria = r'd$\rho$/dz'
+                elif type == 'halocline':
+                    criteria = 'Halocline'
+                elif type == 'oxycline':
+                    criteria = 'Oxycline'
+                ax[t].set_ylabel(criteria + '\ninterface', fontsize=12)
+                ax[t].tick_params(axis='y', labelsize=12)
+                ax[t].axhline(0,-1,15,linestyle=':', color='silver')
 
         plt.suptitle(r'Mean mid-Jul to mid-Sep d/dt(DO$_{deep}$)',fontsize=14,fontweight='bold')
         plt.subplots_adjust(right=0.9,hspace=0,bottom=0.15)
@@ -315,7 +327,7 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
 # ---------------------------------- get BGC terms --------------------------------------------
         bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
 
-        interface_types = ['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
+        interface_types = ['drdz','tef','og','halocline','oxycline'] # how to define dividing depth
         # loop through different interface types
         for t,type in enumerate(interface_types):
 
@@ -354,7 +366,18 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
 
             # format figure
             if i == 0 and m == 0:
-                ax[t].text(0.3,11,type, size=14, ha='left', fontweight='bold')
+                criteria = ''
+                if type == 'og':
+                    criteria = 'Uniform 1/3'
+                elif type == 'tef':
+                    criteria = 'TEF'
+                elif type == 'drdz':
+                    criteria = r'd$\rho$/dz'
+                elif type == 'halocline':
+                    criteria = 'Halocline'
+                elif type == 'oxycline':
+                    criteria = 'Oxycline'
+                ax[t].text(0.3,11,criteria, size=14, ha='left', fontweight='bold')
                 ax[t].tick_params(axis='x', labelrotation=30)
                 ax[t].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
                 ax[t].tick_params(axis='both', labelsize=12)
@@ -370,7 +393,7 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
                 ax[t].xaxis.set_ticks(np.arange(0, 13, 2))
                 ax[t].yaxis.set_ticks(np.arange(0, 13, 2))
             # create colorbarlegend
-            if i == 0 and t == 0:
+            if i == 0 and t == 0 and m == 0:
                 cbar_ax = fig.add_axes([0.92, 0.1, 0.02, 0.8])
                 cbar = fig.colorbar(cs, cax=cbar_ax)
                 cbar.ax.tick_params(labelsize=12)
@@ -411,7 +434,7 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
                     year+'.12.01_'+year+'.12.31',]
         
 
-        interface_types = ['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
+        interface_types = ['drdz','tef','og','halocline','oxycline'] # how to define dividing depth
         # loop through different interface types
         for t,type in enumerate(interface_types):
              
@@ -458,7 +481,18 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
 
             # format figure
             if i == 0:
-                ax[t].text(dates_local_daily[10],10,type, size=14, ha='left', fontweight='bold')
+                criteria = ''
+                if type == 'og':
+                    criteria = 'Uniform 1/3'
+                elif type == 'tef':
+                    criteria = 'TEF'
+                elif type == 'drdz':
+                    criteria = r'd$\rho$/dz'
+                elif type == 'halocline':
+                    criteria = 'Halocline'
+                elif type == 'oxycline':
+                    criteria = 'Oxycline'
+                ax[t].text(dates_local_daily[10],10,criteria, size=14, ha='left', fontweight='bold')
                 ax[t].set_xlim(dates_hrly[0],dates_hrly[-25])
                 ax[t].tick_params(axis='x', labelrotation=30)
                 loc = mdates.MonthLocator(interval=1)
@@ -552,7 +586,7 @@ hyp_vol_df = pd.DataFrame.from_dict(DOdeep_timeseries)
 dates = pd.date_range(start='2017-01-02', end='2017-12-30', freq='D')
 date_list = dates.strftime('%Y-%m-%d').tolist()
 hyp_vol_df.insert(0, 'date', date_list)
-hyp_vol_df.to_csv('../../../../terminal_inlet_DO_rev2/deeplayerDO_mgL_30dayHanning.csv', index=False)
+# hyp_vol_df.to_csv('../../../../terminal_inlet_DO_rev2/deeplayerDO_mgL_30dayHanning.csv', index=False)
 
 ####################################################################################
 #                          SAVE MONTHLY MEANS FOR MANUSCRIPT                      ##
@@ -735,4 +769,4 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
 
 # save to csv file
 print(monthly_mean_df)
-monthly_mean_df.to_csv('../../../../terminal_inlet_DO_rev2/inlet_monthly_means.csv', index=False)
+# monthly_mean_df.to_csv('../../../../terminal_inlet_DO_rev2/inlet_monthly_means.csv', index=False)

@@ -342,8 +342,11 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
             linewidth=2
         ax[i].plot(avg_salt,avg_depth,linewidth=linewidth,color=colors[s],alpha=alpha)
 
-
-    ax[i].set_title(station,fontweight='bold')
+    if station == 'elliot':
+        name = 'elliott'
+    else:
+        name = station
+    ax[i].set_title(name,fontweight='bold')
 
     # add dividing salinity based on TEF
     interface_salt = TEF_salt_dict[station]
@@ -375,7 +378,7 @@ plt.show()
 ##########################################################
 
 # fig,axes = plt.subplots(3,7, figsize=(15,8.5), sharex=True)
-fig,axes = plt.subplots(3,5, figsize=(15,8.5))
+fig,axes = plt.subplots(3,5, figsize=(12,9.1))
 ax = axes.ravel()
     
 # plot density profiles
@@ -412,8 +415,8 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
         # Add DO
         ax2 = ax[i].twiny()
         avg_DO = np.nanmean(ds_season['oxygen'],axis=0)* 32/1000 # [mg/L]
-        ax2.plot(avg_DO,avg_depth,linewidth=1,color='teal',alpha=alpha)
-        ax2.tick_params(axis='x', colors='teal')
+        ax2.plot(avg_DO,avg_depth,linewidth=2,color='saddlebrown',alpha=alpha)
+        ax2.tick_params(axis='x', colors='saddlebrown')
 
         # else:
         #     alpha=0.5
@@ -441,13 +444,17 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
     # ax[i].axhline(-5,0,1030,color='crimson',linewidth=1)
 
     # label lines
-    ax[0].text(23.2,-9,'Daily averages',color='grey',ha='left',va='top')
-    ax[0].text(23.2,-10.1,'Jul-Sep average',color='black',fontweight='bold',ha='left',va='top')
-    ax[0].text(23.2,-11.2,'Jul-Sep avg DO [mg/L]',color='teal',fontweight='bold',ha='left',va='top')
+    if i == 0 and s == 0:
+        t1 = ax[0].text(23.2,-9,'Daily average salt',color='grey',ha='left',va='top', fontsize=11)
+        t2 = ax[0].text(23.2,-10.1,'Jul-Sep salt',color='black',fontweight='bold',ha='left',va='top', fontsize=11)
+        t3 = ax[0].text(23.2,-11.2,'Jul-Sep DO [mg/L]',color='saddlebrown',fontweight='bold',ha='left',va='top', fontsize=11)
+        t1.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
+        t2.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
+        t3.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
 
     # plot all different interface depths
-    interface_types = ['og','drdz','tef','halocline','oxycline']
-    colors = ['crimson','chocolate','green','royalblue','purple']
+    interface_types = ['drdz','tef','og','halocline','oxycline']
+    colors = ['deeppink','darkorange','limegreen','deepskyblue','purple']
     for t,type in enumerate(interface_types):
         interface_dict = dict()
         with open('interface_depths_' + type + '.csv', 'r') as f:
@@ -456,8 +463,25 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
                 interface_dict[inlet] = interface_depth # in meters
         z_interface = float(interface_dict[station])
         ax[i].axhline(z_interface,0,1030,linewidth=1.5, color=colors[t])
-        ax[5].text(26.6,-12-2.2*t,type,color=colors[t],
-                   fontweight='bold',ha='left',va='top')
+
+        # print('{},{}: {}/{}m'.format(station,type,z_interface,round(np.nanmax(avg_depth)-np.nanmin(avg_depth),1)))
+
+        criteria = ''
+        if type == 'og':
+            criteria = 'Uniform 1/3'
+        elif type == 'tef':
+            criteria = 'TEF'
+        elif type == 'drdz':
+            criteria = r'd$\rho$/dz'
+        elif type == 'halocline':
+            criteria = 'Halocline'
+        elif type == 'oxycline':
+            criteria = 'Oxycline'
+
+        if i == 5:
+            tbox = ax[5].text(26.6,-12-2.2*t,criteria,color=colors[t],
+                    fontweight='bold',ha='left',va='top', fontsize=11)
+            tbox.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
 
     if i in [0,5,10]:
         ax[i].set_ylabel('z (m)')

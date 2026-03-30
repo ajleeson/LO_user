@@ -281,6 +281,13 @@ def get_sta_dict(job_name):
         'penncove': (-122.708138,48.227876),
         'hoodcanal': (-123.055724,47.489200),
         }
+
+    # Model eval dfo comparison
+    elif job_name == 'dfo_comparison':
+        sta_dict = {
+        'sog': (-123.55, 49.1635),
+        'coast': (-125.58, 48.367),
+        }
             
             
     else:

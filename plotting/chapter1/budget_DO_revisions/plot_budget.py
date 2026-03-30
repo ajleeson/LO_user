@@ -27,7 +27,7 @@ year = '2017'
 
 stations = 'all'
 
-interface_types = ['tef']#['og','drdz','tef','halocline','oxycline'] # how to define dividing depth
+interface_types = ['tef']#,'og','drdz','tef','halocline','oxycline'] # how to define dividing depth
 
 ##########################################################
 ##              Get stations and gtagexes               ##
@@ -403,11 +403,11 @@ for i,station in enumerate(sta_dict):
     deep_ddtDO_avg = np.nanmean(deep_ddtDO_all) * conversion
     deep_ddtDO_err = np.nanstd(deep_ddtDO_all) * conversion
 
-    deep_physresup_avg = deep_exchange_avg + deep_vert_transport_avg # Physical resupply = Exchange flow + Vertical transport
-    deep_physresup_err = np.sqrt(np.sum(np.square([deep_exchange_err,deep_vert_transport_err]))) # add error in quadrature
+    deep_physresup_avg = np.nanmean(deep_exchange_all+deep_vert_transport_all) * conversion # Physical resupply = Exchange flow + Vertical transport
+    deep_physresup_err = np.nanstd(deep_exchange_all+deep_vert_transport_all) * conversion
 
-    deep_NEM_avg = deep_photosynthesis_avg + deep_consumption_avg # NEM = Photosynthesis + Consumption
-    deep_NEM_err = np.sqrt(np.sum(np.square([deep_photosynthesis_err,deep_consumption_err]))) # add error in quadrature
+    deep_NEM_avg = np.nanmean(deep_photosynthesis_all+deep_consumption_all) * conversion # NEM = Photosynthesis + Consumption
+    deep_NEM_err = np.nanstd(deep_photosynthesis_all+deep_consumption_all) * conversion
 
     # hypoxic season deep DO
     hypminday = 242
@@ -440,21 +440,21 @@ for i,station in enumerate(sta_dict):
 # error of averages is error of all values added in quadrature, divided by number of items
 new_data = {'Inlet': ['All inlets'],
             'ExchangeFlow': [np.nanmean(inlet_budget_df['ExchangeFlow'])],
-            'ExchangeFlow_err': [np.sqrt(np.sum(np.square(inlet_budget_df['ExchangeFlow_err']))) * 1/len(inlet_budget_df['ExchangeFlow_err'])],
+            'ExchangeFlow_err': [np.nanstd(inlet_budget_df['ExchangeFlow'])],
             'VerticalTransport': [np.nanmean(inlet_budget_df['VerticalTransport'])],
-            'VerticalTransport_err': [np.sqrt(np.sum(np.square(inlet_budget_df['VerticalTransport_err']))) * 1/len(inlet_budget_df['VerticalTransport_err'])],
+            'VerticalTransport_err': [np.nanstd(inlet_budget_df['VerticalTransport'])],
             'Photosynthesis': [np.nanmean(inlet_budget_df['Photosynthesis'])],
-            'Photosynthesis_err': [np.sqrt(np.sum(np.square(inlet_budget_df['Photosynthesis_err']))) * 1/len(inlet_budget_df['Photosynthesis_err'])],
+            'Photosynthesis_err': [np.nanstd(inlet_budget_df['Photosynthesis'])],
             'Consumption': [np.nanmean(inlet_budget_df['Consumption'])],
-            'Consumption_err': [np.sqrt(np.sum(np.square(inlet_budget_df['Consumption_err']))) * 1/len(inlet_budget_df['Consumption_err'])],
+            'Consumption_err': [np.nanstd(inlet_budget_df['Consumption'])],
             'd/dt(DO)': [np.nanmean(inlet_budget_df['d/dt(DO)'])],
-            'd/dt(DO)_err': [np.sqrt(np.sum(np.square(inlet_budget_df['d/dt(DO)_err']))) * 1/len(inlet_budget_df['d/dt(DO)_err'])],
+            'd/dt(DO)_err': [np.nanstd(inlet_budget_df['d/dt(DO)'])],
             'PhysicalResupply': [np.nanmean(inlet_budget_df['PhysicalResupply'])],
-            'PhysicalResupply_err': [np.sqrt(np.sum(np.square(inlet_budget_df['PhysicalResupply_err']))) * 1/len(inlet_budget_df['PhysicalResupply_err'])],
+            'PhysicalResupply_err': [np.nanstd(inlet_budget_df['PhysicalResupply'])],
             'NetEcosystemMetabolism': [np.nanmean(inlet_budget_df['NetEcosystemMetabolism'])],
-            'NetEcosystemMetabolism_err': [np.sqrt(np.sum(np.square(inlet_budget_df['NetEcosystemMetabolism_err']))) * 1/len(inlet_budget_df['NetEcosystemMetabolism_err'])],
+            'NetEcosystemMetabolism_err': [np.nanstd(inlet_budget_df['NetEcosystemMetabolism'])],
             'SepOctDeepDO[mg/L]': [np.nanmean(inlet_budget_df['SepOctDeepDO[mg/L]'])],
-            'SepOctDeepDO_err[mg/L]': [np.sqrt(np.sum(np.square(inlet_budget_df['SepOctDeepDO_err[mg/L]']))) * 1/len(inlet_budget_df['SepOctDeepDO_err[mg/L]'])]}
+            'SepOctDeepDO_err[mg/L]': [np.nanstd(inlet_budget_df['SepOctDeepDO[mg/L]'])]}
 df_new_rows = pd.DataFrame(new_data)
 inlet_budget_df = pd.concat([inlet_budget_df, df_new_rows],ignore_index=True)
 
@@ -504,8 +504,8 @@ vars = ['ExchangeFlow','VerticalTransport',
 colors = ['#0D4B91','#99C5F7','#8F0445','#FCC2DD','black','#488DDB','#F069A8']
 letters = ['(a) Exchange Flow','(b) Vertical','(c) Photosynthesis','(d) Consumption',
            '(e) d/dt(DO)','(f) Physical Resupply', '(g) Net Ecosystem\nMetabolism']
-ylims = [ [-0.5,4], [-4.5,1], [-0.05,0.4], [-0.2,0.1],
-         [-0.2,0.1], [-2,1.5], [-0.06,0.3] ]
+ylims = [ [-0.5,4], [-4.5,1], [-0.05,0.4], [-0.15,0.05],
+         [-0.2,0.1], [-0.5,0.2], [-0.06,0.25] ]
 
 for i,var in enumerate(vars):
     # add error bars
