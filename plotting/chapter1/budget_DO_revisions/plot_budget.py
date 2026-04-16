@@ -9,6 +9,11 @@ import matplotlib.pylab as plt
 import get_two_layer
 import matplotlib.dates as mdates
 from matplotlib.gridspec import GridSpec
+from matplotlib import colormaps
+from matplotlib.colors import ListedColormap
+from scipy.stats import pearsonr
+from scipy.linalg import lstsq
+from matplotlib.ticker import AutoMinorLocator
 
 from lo_tools import Lfun, zfun
 from lo_tools import plotting_functions as pfun
@@ -78,6 +83,36 @@ dates_local_daily = dates_local_daily
 
 print('\n')
 
+
+######################
+# wind data
+
+# Add daily average wind speed
+col_names = [ "YY","MM","DD","hh","mm",
+    "WDIR","WSPD","GST","WVHT","DPD","APD","MWD",
+    "PRES","ATMP","WTMP","DEWP","VIS","TIDE"]
+df = pd.read_csv("46121h2017.txt",
+    sep=r"\s+",
+    comment="#",
+    names=col_names,
+    na_values=[99, 99.0, 999, 999.0, 9999, 9999.0])
+# rename for datetime parsing
+df = df.rename(columns={"YY": "year",
+    "MM": "month",
+    "DD": "day",
+    "hh": "hour",
+    "mm": "minute"})
+# create datetime index
+df["datetime"] = pd.to_datetime(df[["year","month","day","hour","minute"]])
+df = df.set_index("datetime").drop(columns=["year","month","day","hour","minute"])
+df_daily = df.resample("D").mean()
+full_index = pd.date_range(
+start="2017-01-02",
+end="2017-12-30",
+freq="D")
+df_daily_aligned = df_daily.reindex(full_index)
+df_daily_aligned.index.name = "date"
+
 ##########################################################
 ##            Get all variables for analysis            ##
 ##########################################################
@@ -103,9 +138,16 @@ inlet_budget_df = pd.DataFrame(columns=['Inlet', 'ExchangeFlow', 'ExchangeFlow_e
        'VerticalTransport_err', 'Photosynthesis', 'Photosynthesis_err',
        'Consumption', 'Consumption_err', 'd/dt(DO)', 'd/dt(DO)_err',
        'PhysicalResupply', 'PhysicalResupply_err', 'NetEcosystemMetabolism',
-       'NetEcosystemMetabolism_err', 'SepOctDeepDO[mg/L]', 'SepOctDeepDO_err[mg/L]'])
+       'NetEcosystemMetabolism_err', 'SepOctDeepDO[mg/L]', 'SepOctDeepDO_err[mg/L]',
+       'MeanDepth[m]'])
 # initialize lynchcove budget dict
 lynchcove_dict_10dayhanning = {}
+
+# initialize error statistics
+error_QinDOin_ann_avg = []
+error_consumption_ann_avg = []
+error_ddtDO_ann_avg = []
+error_ddtDO_onelayer_ann_avg = []
 
 # COLLAPSE
 for i,station in enumerate(sta_dict):
@@ -132,7 +174,8 @@ for i,station in enumerate(sta_dict):
     ax[0].plot(dates_local_daily,zfun.lowpass(Q_m.values,n=10),color='#0D4B91',label='TEF')
     ax[2].plot(dates_local_daily,zfun.lowpass(Q_p.values,n=10),color='#0D4B91',label='TEF')
     ax[1].plot(dates_local_daily,zfun.lowpass(TEF_surf,n=10),color='#0D4B91',label='TEF')
-    ax[3].plot(dates_local_daily,zfun.lowpass(TEF_deep,n=10),color='#0D4B91',label='TEF')
+    # ax[3].plot(dates_local_daily,zfun.lowpass(TEF_deep,n=10),color='#0D4B91',label='TEF')
+    ax[3].plot(dates_local_daily,TEF_deep,color='#0D4B91',label='TEF')
 
     # format budget time series figures
     for axnum in [ax[0],ax[1],ax[2],ax[3]]:
@@ -177,6 +220,7 @@ for i,station in enumerate(sta_dict):
         o2vol_deep_unfiltered = []
         vol_surf_unfiltered = []
         vol_deep_unfiltered = []
+        vol_total_unfiltered = []
 
         # combine all months
         for month in months:
@@ -200,10 +244,12 @@ for i,station in enumerate(sta_dict):
             # get volume
             vol_surf_unfiltered = np.concatenate((vol_surf_unfiltered, df_bgc['surf vol [m3]'].values)) # m3, and replace zeros with nan
             vol_deep_unfiltered = np.concatenate((vol_deep_unfiltered, df_bgc['deep vol [m3]'].values)) # m3
+            vol_total_unfiltered = np.concatenate((vol_total_unfiltered, df_bgc['deep vol [m3]'].values + df_bgc['surf vol [m3]'].values)) # m3
 
         # take time derivative of (DO*V) to get d/dt (DO*V)
         ddtDOV_surf_unfiltered = np.diff(o2vol_surf_unfiltered) * conv # diff gets us d(DO*V) dt, where t=1 hr (mmol/hr). Then * conv to get kmol/s
         ddtDOV_deep_unfiltered = np.diff(o2vol_deep_unfiltered) * conv # diff gets us d(DO*V) dt, where t=1 hr (mmol/hr). Then * conv to get kmol/s
+        ddtDOV_total_unfiltered = np.diff((o2vol_deep_unfiltered+o2vol_surf_unfiltered)) * conv
         # take time derivative of V to get d/dt (V)
         ddtV_surf_unfiltered = np.diff(vol_surf_unfiltered) /60 /60 # diff gets us d(V) dt, where t=1 hr (m3/hr). Then /3600 to get m3/s
         ddtV_deep_unfiltered = np.diff(vol_deep_unfiltered) /60 /60 # diff gets us d(V) dt, where t=1 hr (m3/hr). Then /3600 to get m3/s
@@ -218,9 +264,11 @@ for i,station in enumerate(sta_dict):
         airsea_surf = zfun.lowpass(airsea_surf_unfiltered, f='godin')[36:-34:24]
         ddtDOV_surf = zfun.lowpass(ddtDOV_surf_unfiltered, f='godin')[36:-34:24]
         ddtDOV_deep = zfun.lowpass(ddtDOV_deep_unfiltered, f='godin')[36:-34:24]
+        ddtDOV_onelayer = zfun.lowpass(ddtDOV_total_unfiltered, f='godin')[36:-34:24]
         ddtvol_surf = zfun.lowpass(ddtV_surf_unfiltered, f='godin')[36:-34:24]
         ddtvol_deep = zfun.lowpass(ddtV_deep_unfiltered, f='godin')[36:-34:24]
         vol_deep = zfun.lowpass(vol_deep_unfiltered, f='godin')[36:-34:24]
+        vol_total = zfun.lowpass(vol_total_unfiltered, f='godin')[36:-34:24]
         DO_deep = zfun.lowpass(DO_deep_unfiltered, f='godin')[36:-34:24]
 
         # plot budget time series
@@ -229,13 +277,16 @@ for i,station in enumerate(sta_dict):
             ax[2].plot(dates_local_daily,zfun.lowpass(ddtvol_deep,n=10),color='black',label='d/dt(Volume)')
 
             ax[1].plot(dates_local_daily,zfun.lowpass(photo_surf,n=10),color='#8F0445',label='Photosynthesis')
-            ax[3].plot(dates_local_daily,zfun.lowpass(photo_deep,n=10),color='#8F0445',label='Photosynthesis')
+            # ax[3].plot(dates_local_daily,zfun.lowpass(photo_deep,n=10),color='#8F0445',label='Photosynthesis')
+            ax[3].plot(dates_local_daily,photo_deep,color='#8F0445',label='Photosynthesis')
 
             ax[1].plot(dates_local_daily,zfun.lowpass(cons_surf,n=10),color='#FCC2DD',label='Consumption')
-            ax[3].plot(dates_local_daily,zfun.lowpass(cons_deep,n=10),color='#FCC2DD',label='Consumption')
+            # ax[3].plot(dates_local_daily,zfun.lowpass(cons_deep,n=10),color='#FCC2DD',label='Consumption')
+            ax[3].plot(dates_local_daily,cons_deep,color='#FCC2DD',label='Consumption')
 
             ax[1].plot(dates_local_daily,zfun.lowpass(ddtDOV_surf,n=10),color='black',label='d/dt(DO)')
-            ax[3].plot(dates_local_daily,zfun.lowpass(ddtDOV_deep,n=10),color='black',label='d/dt(DO)')
+            # ax[3].plot(dates_local_daily,zfun.lowpass(ddtDOV_deep,n=10),color='black',label='d/dt(DO)')
+            ax[3].plot(dates_local_daily,ddtDOV_deep,color='black',label='d/dt(DO)')
 
             ax[1].plot(dates_local_daily,zfun.lowpass(airsea_surf,n=10),color='yellowgreen',label='Air-Sea')
         else:
@@ -281,7 +332,8 @@ for i,station in enumerate(sta_dict):
     ax[0].plot(dates_local_daily,zfun.lowpass(traps_surf_flow,n=10),color=traps_color,label='TRAPS')
     ax[2].plot(dates_local_daily,zfun.lowpass(traps_deep_flow,n=10),color=traps_color,label='TRAPS')
     ax[1].plot(dates_local_daily,zfun.lowpass(traps_surf_DO,n=10),color=traps_color,label='TRAPS')
-    ax[3].plot(dates_local_daily,zfun.lowpass(traps_deep_DO,n=10),color=traps_color,label='TRAPS')
+    # ax[3].plot(dates_local_daily,zfun.lowpass(traps_deep_DO,n=10),color=traps_color,label='TRAPS')
+    ax[3].plot(dates_local_daily,traps_deep_DO,color=traps_color,label='TRAPS')
 
 # ------------------------------- get vertical exchange ----------------------------------------
 
@@ -309,7 +361,8 @@ for i,station in enumerate(sta_dict):
     ax[0].plot(dates_local_daily,zfun.lowpass(vertX_surf_flow_TEF,n=10),color=vertX_color,label='Vertical')
     ax[2].plot(dates_local_daily,zfun.lowpass(vertX_deep_flow_TEF,n=10),color=vertX_color,label='Vertical')
     ax[1].plot(dates_local_daily,zfun.lowpass(vertX_surf_DO_TEF,n=10),color=vertX_color,label='Vertical')
-    ax[3].plot(dates_local_daily,zfun.lowpass(vertX_deep_DO_TEF,n=10),color=vertX_color,label='Vertical')
+    # ax[3].plot(dates_local_daily,zfun.lowpass(vertX_deep_DO_TEF,n=10),color=vertX_color,label='Vertical')
+    ax[3].plot(dates_local_daily,vertX_deep_DO_TEF,color=vertX_color,label='Vertical')
 
 # ------------------------------- get budget error ----------------------------------------
 
@@ -328,6 +381,12 @@ for i,station in enumerate(sta_dict):
     
     ax[0].legend(loc='lower right',ncol=5, fontsize=10, handletextpad=0.15)
     ax[1].legend(loc='lower right',ncol=4, fontsize=10, handletextpad=0.15)
+
+    # # add wind
+    # ax2 = ax[3].twinx()
+    # ax2.plot(dates_local_daily,df_daily_aligned['WSPD'],color='violet',
+    #         linewidth=2,label='Daily average wind')
+    # ax2.set_ylim([0,10])
 
 
     # format figure
@@ -383,6 +442,9 @@ for i,station in enumerate(sta_dict):
     minday = 194
     maxday = 256
 
+    deep_exchange_nonnormalized = np.nanmean(TEF_deep[minday:maxday])
+    total_vol = np.nanmean(vol_total[minday:maxday])
+
     deep_exchange_all = TEF_deep[minday:maxday]/vol_deep[minday:maxday]
     deep_exchange_avg = np.nanmean(deep_exchange_all) * conversion
     deep_exchange_err = np.nanstd(deep_exchange_all) * conversion
@@ -415,6 +477,18 @@ for i,station in enumerate(sta_dict):
     deep_DO_avg = np.nanmean(DO_deep[hypminday:hypmaxday])
     deep_DO_err = np.nanstd(DO_deep[hypminday:hypmaxday])
 
+    # decline period DO concentrations
+    DO_in = DO_p * 32/1000
+    DOin_DOdeep = np.nanmean(DO_in[minday:maxday] - DO_deep[minday:maxday])
+    DOin_DOdeep_err = np.nanstd(DO_in[minday:maxday] - DO_deep[minday:maxday])
+
+    # calculate mean depth
+    fn =  Ldir['LOo'] / 'extract' / 'tef2' / 'vol_df_cas7_c21.p'
+    vol_df = pd.read_pickle(fn)
+    inlet_vol = vol_df['volume m3'].loc[station+'_p']
+    inlet_area = vol_df['area m2'].loc[station+'_p']
+    mean_depth = inlet_vol / inlet_area
+
     # add data to df
     new_data = {'Inlet': [inlet_name],
                 'ExchangeFlow': [deep_exchange_avg],
@@ -432,9 +506,96 @@ for i,station in enumerate(sta_dict):
                 'NetEcosystemMetabolism': [deep_NEM_avg],
                 'NetEcosystemMetabolism_err': [deep_NEM_err],
                 'SepOctDeepDO[mg/L]': [deep_DO_avg],
-                'SepOctDeepDO_err[mg/L]': [deep_DO_err]}
+                'SepOctDeepDO_err[mg/L]': [deep_DO_err],
+                'MeanDepth[m]': [mean_depth],
+                'DOin-DOdeep[mg/L]': [DOin_DOdeep],
+                'DOin-DOdeep_err[mg/L]': [DOin_DOdeep_err],
+                'Inflow no normalization [kmol/s]': [deep_exchange_nonnormalized],
+                'Inlet volume [m3]': [total_vol]}
     df_new_rows = pd.DataFrame(new_data)
     inlet_budget_df = pd.concat([inlet_budget_df, df_new_rows],ignore_index=True)
+
+
+    # # Error analysis
+    # print('===========================\n'+station)
+    # QinDOin = (TEF_deep/inlet_vol) * (1000 * 32 * 60 * 60 * 24)
+    # error = (error_DO/inlet_vol) * (1000 * 32 * 60 * 60 * 24)
+    # print('     Error (ann avg.) = ' + str(round(np.nanmean(np.abs(error)),3)))
+    # print('     QinDOin (ann avg.) = ' + str(round(np.nanmean(np.abs(QinDOin)),3)))
+    # print('     perc of QinDOin (ann avg.) = ' + str(round((np.nanmean(np.abs(error))/np.nanmean(np.abs(QinDOin)))*100,2)) + '%')
+    # initialize lists
+
+    # calculate budget error (mg/L per day) ------------------------------
+    conversion = (1000 * 32 * 60 * 60 * 24)
+    error_TEF = (error_DO/inlet_vol) * conversion # [mg/L/day]
+    inlet_error_ann_avg = np.nanmean(np.abs(error_TEF))
+    # calculate QinDOin (mg/L per day) 
+    QinDOin = (TEF_deep/inlet_vol) * conversion # [mg/L/day]
+    inlet_QinDOin_ann_avg = np.nanmean(np.abs(QinDOin))
+    # calculate biological consumption in deep layer (mg/L per day)
+    consumption = (cons_deep/inlet_vol) * conversion # [mg/L/day]
+    inlet_consumption_ann_avg = np.nanmean(np.abs(consumption))
+    # calculate d/dt(DO) (mg/L per day)
+    ddtDO = (ddtDOV_deep/inlet_vol) * conversion # [mg/L/day]
+    inlet_ddtDO_ann_avg = np.nanmean(ddtDO)
+    # print(inlet_ddtDO_ann_avg)
+    ddtDO_onelayer = (ddtDOV_onelayer/inlet_vol) * conversion # [mg/L/day]
+    inlet_ddtDO_onelayer_ann_avg = np.nanmean(np.abs(ddtDO_onelayer))
+
+    # print(inlet_ddtDO_onelayer_ann_avg)
+    # print('------------')
+    # add values to list
+    error_QinDOin_ann_avg.append(inlet_error_ann_avg/inlet_QinDOin_ann_avg)
+    error_consumption_ann_avg.append(inlet_error_ann_avg/inlet_consumption_ann_avg)
+    error_ddtDO_ann_avg.append(inlet_error_ann_avg/inlet_ddtDO_ann_avg)
+    error_ddtDO_onelayer_ann_avg.append(inlet_error_ann_avg/inlet_ddtDO_onelayer_ann_avg)
+
+    print('----------------')
+    print(station)
+    print(round(np.nanmean(np.abs(error_TEF/consumption))*100,1))
+    print(round((inlet_error_ann_avg/inlet_consumption_ann_avg)*100,1))
+
+# calculate bulk statistics
+error_QinDOin = np.abs(np.nanmean(error_QinDOin_ann_avg)) * 100
+error_consumption = np.abs(np.nanmean(error_consumption_ann_avg)) * 100
+error_ddtDO = np.abs(np.nanmean(error_ddtDO_ann_avg)) * 100
+error_ddtDO_onelayer = np.abs(np.nanmean(error_ddtDO_onelayer_ann_avg)) * 100
+#     # add values to list
+#     error_QinDOin_ann_avg.append(np.nanmean(np.abs(error_TEF)/np.abs(QinDOin)))
+#     error_consumption_ann_avg.append(np.nanmean(error_TEF/consumption))
+#     error_ddtDO_ann_avg.append(np.nanmean(error_TEF/ddtDO))
+#     error_ddtDO_onelayer_ann_avg.append(np.nanmean(np.abs(error_TEF)/np.abs(ddtDO_onelayer)))
+#     print(ddtDO_onelayer[100:105])
+#     print(np.abs(ddtDO_onelayer)[100:105])
+# # calculate bulk statistics
+# error_QinDOin = np.abs(np.nanmean(error_QinDOin_ann_avg)) * 100
+# error_consumption = np.abs(np.nanmean(error_consumption_ann_avg)) * 100
+# error_ddtDO = np.abs(np.nanmean(error_ddtDO_ann_avg)) * 100
+# error_ddtDO_onelayer = np.abs(np.nanmean(error_ddtDO_onelayer_ann_avg)) * 100
+# print bulk statistics
+print('(annual mean error)/(annual mean QinDOin) [expressed as percentage]')
+print('    {}%'.format(round(error_QinDOin,2)))
+print('\n')
+print('(annual mean error)/(annual mean deep consumption) [expressed as percentage]')
+print('    {}%'.format(round(error_consumption,2)))
+# print('\n')
+# print('(annual mean error)/(annual mean deep d/dt DO) [expressed as percentage]')
+# print('    {}%'.format(round(error_ddtDO,2)))
+print('\n')
+print('(annual mean error)/(annual mean one-layer d/dt DO) [expressed as percentage]')
+print('    {}%'.format(round(error_ddtDO_onelayer,2)))
+
+
+
+# # exchange flow vs. inlet volume
+# fig, ax = plt.subplots(1,1,figsize=(6,6))
+# ax.scatter(inlet_budget_df['MeanDepth[m]'],inlet_budget_df['Inflow no normalization [kmol/s]'],
+#                     s=50, edgecolor='white',linewidth=0.5,zorder=5)
+# for inlet in inlet_budget_df['Inlet']:
+#       ax.text(inlet_budget_df.loc[inlet_budget_df['Inlet'] == inlet, 'MeanDepth[m]'],
+#               inlet_budget_df.loc[inlet_budget_df['Inlet'] == inlet, 'Inflow no normalization [kmol/s]']+0.005,
+#                 inlet)
+# plt.show()
 
 # get average of all inlets and add data to df
 # error of averages is error of all values added in quadrature, divided by number of items
@@ -454,13 +615,17 @@ new_data = {'Inlet': ['All inlets'],
             'NetEcosystemMetabolism': [np.nanmean(inlet_budget_df['NetEcosystemMetabolism'])],
             'NetEcosystemMetabolism_err': [np.nanstd(inlet_budget_df['NetEcosystemMetabolism'])],
             'SepOctDeepDO[mg/L]': [np.nanmean(inlet_budget_df['SepOctDeepDO[mg/L]'])],
-            'SepOctDeepDO_err[mg/L]': [np.nanstd(inlet_budget_df['SepOctDeepDO[mg/L]'])]}
+            'SepOctDeepDO_err[mg/L]': [np.nanstd(inlet_budget_df['SepOctDeepDO[mg/L]'])],
+            'MeanDepth[m]': [np.nanmean(inlet_budget_df['MeanDepth[m]'])],
+            'DOin-DOdeep[mg/L]': [np.nanmean(inlet_budget_df['DOin-DOdeep[mg/L]'])],
+            'DOin-DOdeep_err[mg/L]': [np.nanstd(inlet_budget_df['DOin-DOdeep[mg/L]'])],}
 df_new_rows = pd.DataFrame(new_data)
 inlet_budget_df = pd.concat([inlet_budget_df, df_new_rows],ignore_index=True)
 
-# save to csv file
-print(inlet_budget_df)
-inlet_budget_df.to_csv('../../../../terminal_inlet_DO_rev2/inlet_budgets_decline_period_mgL_day_' + interface_types[0] + '.csv', index=False)
+# # save to csv file
+# print(inlet_budget_df)
+# inlet_budget_df.to_csv('../../../../terminal_inlet_DO_rev2/inlet_budgets_decline_period_mgL_day_' + interface_types[0] + '.csv', index=False)
+# inlet_budget_df.to_csv('inlet_budgets_decline_period_mgL_day_' + interface_types[0] + '.csv', index=False)
 
 # print(inlet_budget_df[['Inlet', 'ExchangeFlow', 'ExchangeFlow_err']])
 # print(inlet_budget_df[['Inlet', 'VerticalTransport', 'VerticalTransport_err']])
@@ -470,6 +635,8 @@ inlet_budget_df.to_csv('../../../../terminal_inlet_DO_rev2/inlet_budgets_decline
 # print(inlet_budget_df[['Inlet', 'PhysicalResupply', 'PhysicalResupply_err']])
 # print(inlet_budget_df[['Inlet', 'NetEcosystemMetabolism', 'NetEcosystemMetabolism_err']])
 # print(inlet_budget_df[['Inlet', 'SepOctDeepDO[mg/L]', 'SepOctDeepDO_err[mg/L]']])
+# print(inlet_budget_df[['Inlet', 'MeanDepth[m]']])
+# print(inlet_budget_df[['Inlet', 'DOin-DOdeep[mg/L]', 'DOin-DOdeep_err[mg/L]']])
 
 
 # # save lynch cove budget to csv file
@@ -480,96 +647,391 @@ inlet_budget_df.to_csv('../../../../terminal_inlet_DO_rev2/inlet_budgets_decline
 # lynchcove_budget_df.to_csv('../../../../terminal_inlet_DO_rev2/lynchcove_2017_budget_kmolO2_s_10dayHanning.csv', index=False)
 # print(lynchcove_budget_df)
 
-# ----------------------- test new scatter plot -------------------------------
+# # ----------------------- test new scatter plot (budget terms vs DOdeep) -------------------------------
+
+# # initialize figure
+# fig = plt.figure(figsize=(9.5, 7))
+# gs = GridSpec(2, 12, figure=fig, height_ratios=[3, 4], wspace=2.8)
+# fig.subplots_adjust(top=0.80, right=0.99, left=0.12)  # leave room for colorbar
+# axes = []
+# for i in range(4):
+#     if i == 0:
+#         ax = fig.add_subplot(gs[0, i*3:(i+1)*3])
+#     else:
+#         ax = fig.add_subplot(gs[0, i*3:(i+1)*3], sharex=axes[0])
+#     axes.append(ax)
+# for i in range(3):
+#     ax = fig.add_subplot(gs[1, i*4:(i+1)*4], sharex=axes[0])
+#     axes.append(ax)
+    
+# # plot scatter points
+# vars = ['ExchangeFlow','VerticalTransport',
+#        'Photosynthesis','Consumption', 'd/dt(DO)',
+#        'PhysicalResupply', 'NetEcosystemMetabolism']
+# colors = ['#0D4B91','#99C5F7','#8F0445','#FCC2DD','black','#488DDB','#F069A8']
+# letters = ['(a) Exchange Flow','(b) Vertical','(c) Photosynthesis','(d) Consumption',
+#            '(e) d/dt(DO)','(f) Physical Resupply', '(g) Net Ecosystem\nMetabolism']
+# ylims = [ [-1,4], [-4.5,1], [-0.1,0.4], [-0.15,0.05],
+#          [-0.25,0.15], [-0.4,0.1], [-0.06,0.25] ]
+
+# for i,var in enumerate(vars):
+#     # add error bars
+#     axes[i].errorbar(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1],
+#                     xerr=inlet_budget_df['SepOctDeepDO_err[mg/L]'][:-1],
+#                     yerr=inlet_budget_df[var+'_err'][:-1],
+#                     fmt='o',color='black')
+#     # plot points
+#     inlet_crosssection_df = pd.read_csv('inlet_crosssections.csv')
+#     cmap_temp = colormaps['gnuplot2_r'].resampled(256)
+#     cmap_depth = ListedColormap(cmap_temp(np.linspace(0.1, 0.8, 256)))# get range of colormap
+#     cs = axes[i].scatter(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1],
+#                     s=50, zorder=5,c=inlet_budget_df['MeanDepth[m]'][:-1], cmap=cmap_depth, vmin=0, vmax=110)
+    
+#     # create colorbarlegend
+#     if i == 0 and t == 0:
+#         cbar_ax = fig.add_axes([0.1, 0.92, 0.8, 0.03])
+#         cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
+#         cbar.ax.tick_params(labelsize=12)
+#         cbar.set_label(r'Mean depth [m]', fontsize=12)
+#         cbar.outline.set_visible(False)
+
+#     # add zero line
+#     axes[i].axhline(0,0,8, color='gray',linestyle=':')
+#     # format panel
+#     axes[i].text(0.03,0.96,letters[i],fontsize=11,fontweight='bold',
+#                  transform=axes[i].transAxes, zorder=6, va='top')
+#     axes[i].set_xlim([0,8])
+#     axes[i].set_ylim(ylims[i])
+
+#     # # add linear fit
+#     # input_array = np.array([inlet_budget_df['SepOctDeepDO[mg/L]'][:-1], [1]*len(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1])]).T
+#     # B,a,b,c = lstsq(input_array,inlet_budget_df[var][:-1])
+#     # slope = B[0]
+#     # intercept = B[1]
+#     # x=[0,8]
+#     # y=[intercept+slope*xval for xval in x]
+#     # axes[i].plot(x,y,color='grey')
+#     # calculate r^2 and p value
+#     r,p = pearsonr(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1])
+#     axes[i].text(0.03,0.16,'R = {}\np = {}'.format(round(r,2),round(p,2)),
+#                  transform=axes[i].transAxes, zorder=6, va='top')
+#     # print('\n===============================================')
+#     # print('{}: d/dt(DO) dependence on DO_deep'.format(type))
+#     # print('   r = {}'.format(r))
+#     # print('   R^2 = {}'.format(r**2))
+#     # print('   p = {}'.format(p))
+#     # print('===============================================\n')
+
+#     axes[i].tick_params(axis='both', labelsize=12)
+
+#     if i in [0,4]:
+#           axes[i].set_ylabel('Decline period rates\n' + r'[mg L$^{-1}$ d$^{-1}$]',fontsize=12)
+#     if i >=4 :
+#           axes[i].set_xlabel(r'Sep-Oct DO$_{deep}$ [mg L$^{-1}$]',fontsize=12)
+
+# # plt.subplots_adjust(top=0.88)
+# # plt.tight_layout()
+# plt.show()
+
+
+# ----------------------- test new scatter plot (budget terms vs DOdeep with inlet labels) -------------------------------
 
 # initialize figure
-fig = plt.figure(figsize=(10, 5.5))
-gs = GridSpec(2, 12, figure=fig, height_ratios=[3, 4])#, wspace=2.4)
-axes = []  # list to store axes
-for i in range(4):
-    if i == 0:
-        ax = fig.add_subplot(gs[0, i*3:(i+1)*3])
-    else:
-        ax = fig.add_subplot(gs[0, i*3:(i+1)*3], sharex=axes[0])
-    axes.append(ax)
-for i in range(3):
-    ax = fig.add_subplot(gs[1, i*4:(i+1)*4], sharex=axes[0])
-    axes.append(ax)
-axes = [ax for ax in axes]
-
+fig, axes = plt.subplots(2,4,figsize=(11, 7), sharex=True)
+fig.subplots_adjust(top=0.80, right=0.99, left=0.08, wspace=0.3)  # leave room for colorbar
+axes = axes.ravel()
+    
 # plot scatter points
 vars = ['ExchangeFlow','VerticalTransport',
-       'Photosynthesis','Consumption', 'd/dt(DO)',
-       'PhysicalResupply', 'NetEcosystemMetabolism']
-colors = ['#0D4B91','#99C5F7','#8F0445','#FCC2DD','black','#488DDB','#F069A8']
+       'Photosynthesis','Consumption',
+        'd/dt(DO)','PhysicalResupply', 'NetEcosystemMetabolism', 'Inlet']
+# colors = ['#0D4B91','#99C5F7','#8F0445','#FCC2DD','black','#488DDB','#F069A8']
 letters = ['(a) Exchange Flow','(b) Vertical','(c) Photosynthesis','(d) Consumption',
-           '(e) d/dt(DO)','(f) Physical Resupply', '(g) Net Ecosystem\nMetabolism']
-ylims = [ [-0.5,4], [-4.5,1], [-0.05,0.4], [-0.15,0.05],
-         [-0.2,0.1], [-0.5,0.2], [-0.06,0.25] ]
+           '(e) d/dt(DO)','(f) Physical Resupply', '(g) Net Ecosystem\nMetabolism','(h)']
+ylims = [[-1,4], [-4.5,1], [-0.1,0.4], [-0.15,0.05],
+         [-0.25,0.15], [-0.4,0.12], [-0.06,0.25],  [-0.5,12.5]]
 
 for i,var in enumerate(vars):
-    # add error bars
-    axes[i].errorbar(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1],
-                    xerr=inlet_budget_df['SepOctDeepDO_err[mg/L]'][:-1],
-                    yerr=inlet_budget_df[var+'_err'][:-1],
+
+    # define colormap based on inlet mean depth
+    cmap_temp = colormaps['gnuplot2_r'].resampled(256)
+    cmap_depth = ListedColormap(cmap_temp(np.linspace(0.1, 0.8, 256)))# get range of colormap
+
+    # first panel lists inlets from lowest to highest DO
+    if i == 7:
+        inlets_only_df = inlet_budget_df.iloc[:-1]
+        df_sorted = inlets_only_df.sort_values(by=['SepOctDeepDO[mg/L]'])
+        axes[i].errorbar(df_sorted['SepOctDeepDO[mg/L]'],df_sorted['Inlet'],
+                    xerr=df_sorted['SepOctDeepDO_err[mg/L]'],
                     fmt='o',color='black')
-    # plot points
-    axes[i].scatter(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1], color=colors[i],
-                    s=50, edgecolor='white',linewidth=0.5,zorder=5)
-    # add mean line
-    axes[i].axhline(inlet_budget_df[var].values[-1],0,8, color=colors[i])
-    minval = inlet_budget_df[var].values[-1] - inlet_budget_df[var+'_err'].values[-1]
-    maxval = inlet_budget_df[var].values[-1] + inlet_budget_df[var+'_err'].values[-1]
-    axes[i].fill_between([0,9], [minval,minval], [maxval,maxval],
-                         color=colors[i],alpha=0.3)
-    # add zero line
-    axes[i].axhline(0,0,8, color='gray',linestyle=':')
+        axes[i].scatter(df_sorted['SepOctDeepDO[mg/L]'], df_sorted['Inlet'],
+                        s=50, zorder=5,c=df_sorted['MeanDepth[m]'], cmap=cmap_depth, vmin=0, vmax=110) 
+        # add inlet labels
+        inlets = ['Lynch Cove','Dabob','Holmes','Port Susan',
+                  'Commencement','Elliott Bay', 'Carr Inlet',
+                  'Penn Cove','Crescent','Case Inlet',
+                  'Quartermster','Sinclair','Dyes Inlet']
+        for idx in range(13):
+            inlet = inlets[idx] #df_sorted['Inlet'].values[idx]
+            DOdeep = df_sorted['SepOctDeepDO[mg/L]'].values[idx]
+            if idx < 4:
+                axes[i].text(DOdeep+0.4, idx, inlet, fontsize=10, va='center', ha = 'left', color='gray') 
+            else:
+                axes[i].text(DOdeep-0.4, idx, inlet, fontsize=10, va='center', ha = 'right', color='gray') 
+        minor_locator = AutoMinorLocator(2)
+        axes[i].yaxis.set_minor_locator(minor_locator)
+        axes[i].grid(which='minor', color='gray', linestyle=':')
+        axes[i].set_yticklabels([])
+        # continue
+    else:
+        # add error bars
+        axes[i].errorbar(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1],
+                        xerr=inlet_budget_df['SepOctDeepDO_err[mg/L]'][:-1],
+                        yerr=inlet_budget_df[var+'_err'][:-1],
+                        fmt='o',color='black')
+        # plot points
+        cs = axes[i].scatter(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1],
+                        s=50, zorder=5,c=inlet_budget_df['MeanDepth[m]'][:-1], cmap=cmap_depth, vmin=0, vmax=110)
+        
+        # calculate r^2 and p value
+        r,p = pearsonr(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1])
+        axes[i].text(0.03,0.16,'R = {}\np = {}'.format(round(r,2),round(p,2)),
+                    transform=axes[i].transAxes, zorder=6, va='top', fontsize=11, color='gray')
+        
+        # add zero line
+        axes[i].axhline(0,0,8, color='gray',linestyle=':')
+    
+    # create colorbarlegend
+    if i == 0:
+        cbar_ax = fig.add_axes([0.1, 0.92, 0.87, 0.03])
+        cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
+        cbar.ax.tick_params(labelsize=12)
+        cbar.set_label(r'Mean depth [m]', fontsize=12)
+        cbar.outline.set_visible(False)
+
+    
     # format panel
     axes[i].text(0.03,0.96,letters[i],fontsize=11,fontweight='bold',
                  transform=axes[i].transAxes, zorder=6, va='top')
     axes[i].set_xlim([0,8])
     axes[i].set_ylim(ylims[i])
 
+
     axes[i].tick_params(axis='both', labelsize=12)
+    axes[i].tick_params(axis='y', labelsize=12, rotation=45)
 
     if i in [0,4]:
-          axes[i].set_ylabel('Decline period rates\n' + r'[mg L$^{-1}$ d$^{-1}$]',fontsize=12)
+          axes[i].set_ylabel('Rates ' + r'[mg L$^{-1}$ d$^{-1}$]',fontsize=12)
     if i >=4 :
-          axes[i].set_xlabel(r'Sep-Oct DO$_{deep}$ [mg L$^{-1}$]',fontsize=12)
+          axes[i].set_xlabel(r'DO$_{deep}$ [mg L$^{-1}$]',fontsize=12)
 
-plt.tight_layout()
+# plt.subplots_adjust(top=0.88)
+# plt.tight_layout()
 plt.show()
 
-# ----------------------- just d/dt(DO) -------------------------------
 
-# initialize figure
-fig, ax = plt.subplots(1,1,figsize=(5,4))
 
-# plot scatter points
-var =  'd/dt(DO)'
 
-# add error bars
-ax.errorbar(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1],
-                xerr=inlet_budget_df['SepOctDeepDO_err[mg/L]'][:-1],
-                yerr=inlet_budget_df[var+'_err'][:-1],
-                fmt='o',color='black',elinewidth=0.5)
-# plot points
-ax.scatter(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1], color='black',
-                s=50, edgecolor='black',linewidth=0.5,zorder=5)
-# add mean line
-ax.axhline(inlet_budget_df[var].values[-1],0,8, color='teal')
-minval = inlet_budget_df[var].values[-1] - inlet_budget_df[var+'_err'].values[-1]
-maxval = inlet_budget_df[var].values[-1] + inlet_budget_df[var+'_err'].values[-1]
-ax.fill_between([0,9], [minval,minval], [maxval,maxval],
-                        color='lightseagreen',alpha=0.3)
-# add zero line
-ax.axhline(0,0,8, color='gray',linestyle=':')
 
-ax.set_xlim([0,8])
 
-ax.tick_params(axis='both', labelsize=12)
-ax.set_ylabel(r'Decline period d/dt(DO) [mg L$^{-1}$ d$^{-1}$]',fontsize=12)
-ax.set_xlabel(r'Hypoxic season DO$_{deep}$ [mg L$^{-1}$]',fontsize=12)
 
-plt.tight_layout()
-plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # ----------------------- test new scatter plot (budget terms vs mean depth) -------------------------------
+
+# # initialize figure
+# fig = plt.figure(figsize=(10, 5.5))
+# gs = GridSpec(2, 12, figure=fig, height_ratios=[3, 4])#, wspace=2.4)
+# axes = []  # list to store axes
+# for i in range(4):
+#     if i == 0:
+#         ax = fig.add_subplot(gs[0, i*3:(i+1)*3])
+#     else:
+#         ax = fig.add_subplot(gs[0, i*3:(i+1)*3], sharex=axes[0])
+#     axes.append(ax)
+# for i in range(3):
+#     ax = fig.add_subplot(gs[1, i*4:(i+1)*4], sharex=axes[0])
+#     axes.append(ax)
+# axes = [ax for ax in axes]
+
+# # plot scatter points
+# vars = ['ExchangeFlow','VerticalTransport',
+#        'Photosynthesis','Consumption', 'd/dt(DO)',
+#        'PhysicalResupply', 'NetEcosystemMetabolism']
+# colors = ['#0D4B91','#99C5F7','#8F0445','#FCC2DD','black','#488DDB','#F069A8']
+# letters = ['(a) Exchange Flow','(b) Vertical','(c) Photosynthesis','(d) Consumption',
+#            '(e) d/dt(DO)','(f) Physical Resupply', '(g) Net Ecosystem\nMetabolism']
+# ylims = [ [-0.5,4], [-4.5,1], [-0.05,0.4], [-0.15,0.05],
+#          [-0.2,0.1], [-0.5,0.2], [-0.06,0.25] ]
+
+# for i,var in enumerate(vars):
+#     # add error bars
+#     axes[i].errorbar(inlet_budget_df['MeanDepth[m]'][:-1],inlet_budget_df[var][:-1],
+#                     yerr=inlet_budget_df[var+'_err'][:-1],
+#                     fmt='o',color='black')
+#     # plot points
+#     axes[i].scatter(inlet_budget_df['MeanDepth[m]'][:-1],inlet_budget_df[var][:-1], color=colors[i],
+#                     s=50, edgecolor='white',linewidth=0.5,zorder=5)
+#     # add mean line
+#     axes[i].axhline(inlet_budget_df[var].values[-1],0,110, color=colors[i])
+#     minval = inlet_budget_df[var].values[-1] - inlet_budget_df[var+'_err'].values[-1]
+#     maxval = inlet_budget_df[var].values[-1] + inlet_budget_df[var+'_err'].values[-1]
+#     axes[i].fill_between([0,110], [minval,minval], [maxval,maxval],
+#                          color=colors[i],alpha=0.3)
+#     # add zero line
+#     axes[i].axhline(0,0,110, color='gray',linestyle=':')
+#     # format panel
+#     axes[i].text(0.03,0.96,letters[i],fontsize=11,fontweight='bold',
+#                  transform=axes[i].transAxes, zorder=6, va='top')
+#     axes[i].set_xlim([0,110])
+#     axes[i].set_ylim(ylims[i])
+
+#     axes[i].tick_params(axis='both', labelsize=12)
+
+#     if i in [0,4]:
+#           axes[i].set_ylabel('Decline period rates\n' + r'[mg L$^{-1}$ d$^{-1}$]',fontsize=12)
+#     if i >=4 :
+#           axes[i].set_xlabel('Inlet mean depth [m]',fontsize=12)
+
+# plt.tight_layout()
+# plt.show()
+
+# # ----------------------- just d/dt(DO) -------------------------------
+
+# # initialize figure
+# fig, ax = plt.subplots(1,1,figsize=(5,4))
+
+# # plot scatter points
+# var =  'd/dt(DO)'
+
+# # add error bars
+# ax.errorbar(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1],
+#                 xerr=inlet_budget_df['SepOctDeepDO_err[mg/L]'][:-1],
+#                 yerr=inlet_budget_df[var+'_err'][:-1],
+#                 fmt='o',color='black',elinewidth=0.5)
+# # plot points
+# ax.scatter(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1], color='black',
+#                 s=50, edgecolor='black',linewidth=0.5,zorder=5)
+# # add mean line
+# ax.axhline(inlet_budget_df[var].values[-1],0,8, color='teal')
+# minval = inlet_budget_df[var].values[-1] - inlet_budget_df[var+'_err'].values[-1]
+# maxval = inlet_budget_df[var].values[-1] + inlet_budget_df[var+'_err'].values[-1]
+# ax.fill_between([0,9], [minval,minval], [maxval,maxval],
+#                         color='lightseagreen',alpha=0.3)
+# # add zero line
+# ax.axhline(0,0,8, color='gray',linestyle=':')
+
+# ax.set_xlim([0,8])
+
+# ax.tick_params(axis='both', labelsize=12)
+# ax.set_ylabel(r'Decline period d/dt(DO) [mg L$^{-1}$ d$^{-1}$]',fontsize=12)
+# ax.set_xlabel(r'Hypoxic season DO$_{deep}$ [mg L$^{-1}$]',fontsize=12)
+
+# plt.tight_layout()
+# plt.show()
+
+# # ----------------------- test new scatter plot (budget terms vs DOin-DOdeep) -------------------------------
+
+# # initialize figure
+# fig = plt.figure(figsize=(10, 5.5))
+# gs = GridSpec(2, 12, figure=fig, height_ratios=[3, 4])#, wspace=2.4)
+# axes = []  # list to store axes
+# for i in range(4):
+#     if i == 0:
+#         ax = fig.add_subplot(gs[0, i*3:(i+1)*3])
+#     else:
+#         ax = fig.add_subplot(gs[0, i*3:(i+1)*3], sharex=axes[0])
+#     axes.append(ax)
+# for i in range(3):
+#     ax = fig.add_subplot(gs[1, i*4:(i+1)*4], sharex=axes[0])
+#     axes.append(ax)
+# axes = [ax for ax in axes]
+
+# # plot scatter points
+# vars = ['ExchangeFlow','VerticalTransport',
+#        'Photosynthesis','Consumption', 'd/dt(DO)',
+#        'PhysicalResupply', 'NetEcosystemMetabolism']
+# colors = ['#0D4B91','#99C5F7','#8F0445','#FCC2DD','black','#488DDB','#F069A8']
+# letters = ['(a) Exchange Flow','(b) Vertical','(c) Photosynthesis','(d) Consumption',
+#            '(e) d/dt(DO)','(f) Physical Resupply', '(g) Net Ecosystem\nMetabolism']
+# ylims = [ [-0.5,4], [-4.5,1], [-0.05,0.4], [-0.15,0.05],
+#          [-0.2,0.1], [-0.5,0.2], [-0.06,0.25] ]
+
+# for i,var in enumerate(vars):
+#     # add error bars
+#     axes[i].errorbar(inlet_budget_df['DOin-DOdeep[mg/L]'][:-1],inlet_budget_df[var][:-1],
+#                     xerr=inlet_budget_df['DOin-DOdeep_err[mg/L]'][:-1],
+#                     yerr=inlet_budget_df[var+'_err'][:-1],
+#                     fmt='o',color='black')
+#     # plot points
+#     axes[i].scatter(inlet_budget_df['DOin-DOdeep[mg/L]'][:-1],inlet_budget_df[var][:-1], color=colors[i],
+#                     s=50, edgecolor='white',linewidth=0.5,zorder=5)
+#     # add mean line
+#     axes[i].axhline(inlet_budget_df[var].values[-1],-1,3, color=colors[i])
+#     minval = inlet_budget_df[var].values[-1] - inlet_budget_df[var+'_err'].values[-1]
+#     maxval = inlet_budget_df[var].values[-1] + inlet_budget_df[var+'_err'].values[-1]
+#     axes[i].fill_between([-1,3], [minval,minval], [maxval,maxval],
+#                          color=colors[i],alpha=0.3)
+#     # add zero line
+#     axes[i].axhline(0,0,8, color='gray',linestyle=':')
+#     axes[i].axvline(0,0,8, color='gray',linestyle=':')
+#     # format panel
+#     axes[i].text(0.03,0.96,letters[i],fontsize=11,fontweight='bold',
+#                  transform=axes[i].transAxes, zorder=6, va='top')
+#     axes[i].set_xlim([-1,3])
+#     axes[i].set_ylim(ylims[i])
+
+#     axes[i].tick_params(axis='both', labelsize=12)
+
+#     if i in [0,4]:
+#           axes[i].set_ylabel('Decline period rates\n' + r'[mg L$^{-1}$ d$^{-1}$]',fontsize=12)
+#     if i >=4 :
+#           axes[i].set_xlabel(r'Decline period DO$_{in}$ - DO$_{deep}$ [mg L$^{-1}$]',fontsize=12)
+
+# plt.tight_layout()
+# plt.show()

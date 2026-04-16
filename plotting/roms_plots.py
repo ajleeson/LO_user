@@ -5241,7 +5241,7 @@ def P_surfdye(in_dict):
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
         # cmap = plt.colormaps.get_cmap('RdPu').copy()
-        cmap = plt.get_cmap('RdYlGn').copy()
+        cmap = plt.get_cmap('plasma',4).copy()
         cmap.set_bad('silver') 
         cs = pfun.add_map_field(ax, ds, vn, {'dye_01':(0,0.5)},#pinfo.vlims_dict,
                 cmap=cmap)

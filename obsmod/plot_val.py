@@ -127,6 +127,7 @@ if fil_dict['coast']:
         mask2 = (a.lat>=49) & (a.lat<51) & (a.lon>-125)
         a = a.loc[(~mask1) & (~mask2),:]
         df0_dict[gtxo] = a
+        print(list(df0_dict['obs']['source'].unique()))
         
 # only plot Salish Sea stations
 if fil_dict['salish']:
@@ -137,6 +138,7 @@ if fil_dict['salish']:
         mask = (~mask1) & (~mask2)
         a = a.loc[~mask,:]
         df0_dict[gtxo] = a
+        print(list(df0_dict['obs']['source'].unique()))
 
 # start assembling some text for the plot that will include info about the filters
 f_str = otype + ' ' + year + '\n' + gtx + '\n' # a string to put for info on the map

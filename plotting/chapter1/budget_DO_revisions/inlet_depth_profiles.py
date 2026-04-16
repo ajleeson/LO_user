@@ -493,3 +493,87 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
 
 plt.tight_layout()
 plt.show()
+
+
+##########################################################
+## Testing sigma layer (because I averaged incorrectly) ##
+##########################################################
+
+# fig,axes = plt.subplots(3,7, figsize=(15,8.5), sharex=True)
+fig,axes = plt.subplots(1,13, figsize=(15.5,8.5))
+ax = axes.ravel()
+    
+# plot density profiles
+for i,station in enumerate(inlets): #enumerate(['elliot']):
+    # download .nc files
+    fn = '../../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+    ds = xr.open_dataset(fn)
+
+    # # loop through and plot each day of the year
+    # for day in range(len(ds.ocean_time)):
+    #     depth = ds['z_rho'][day,:]
+    #     salt = ds['salt'][day,:]
+    #     temp = ds['temp'][day,:]
+    #     rho = sw.dens0(salt, temp) # potential density
+    #     ax[i].plot(salt,depth,alpha=0.1,color='silver')
+
+    # crop to season
+    seasons = {'JFM':['01-01','03-30'],
+               'AMJ':['04-01','06-30'],
+               'JAS':['07-01','09-30'],
+               'OND':['10-01','12-31']}
+    seasons = {'JAS':['07-01','09-30']}
+    colors = ['black']#['royalblue','hotpink','black','darkorange']
+    for s,season in enumerate(seasons):
+        ds_season = ds.sel(ocean_time=slice(np.datetime64(year+'-'+seasons[season][0]),
+                                     np.datetime64(year+'-'+seasons[season][1])))
+        for day in range(len(ds_season.ocean_time)):
+            depth = ds['z_rho'][day,:]
+            salt = ds['salt'][day,:]
+            temp = ds['temp'][day,:]
+            rho = sw.dens0(salt, temp) # potential density
+            ax[i].scatter(salt,depth,alpha=0.5,color='silver',s=10,edgecolor='None')
+        # # calculate average depth profile and standard deviation
+        # avg_depth = np.nanmean(ds_season['z_rho'],axis=0)
+        # avg_salt = np.nanmean(ds_season['salt'],axis=0)
+        # avg_temp = np.nanmean(ds_season['temp'],axis=0)
+        # avg_rho = sw.dens0(avg_salt, avg_temp)
+        # if season == 'JAS':
+        #     alpha=1
+        #     linewidth=3
+
+        # else:
+        #     alpha=0.5
+        #     linewidth=2
+        # ax[i].plot(avg_salt,avg_depth,linewidth=linewidth,color=colors[s],alpha=alpha)
+
+    if station == 'elliot':
+        name = 'elliott'
+    else:
+        name = station
+    ax[i].set_title(name,fontweight='bold')
+
+    # plot all different interface depths
+    interface_types = ['tef']
+    colors = ['crimson']
+    for t,type in enumerate(interface_types):
+        interface_dict = dict()
+        with open('interface_depths_' + type + '.csv', 'r') as f:
+            for line in f:
+                inlet, interface_depth = line.strip().split(',')
+                interface_dict[inlet] = interface_depth # in meters
+        z_interface = float(interface_dict[station])
+        ax[i].axhline(z_interface,0,1030,linewidth=1.5, color=colors[t])
+
+    # # label lines
+    # ax[0].text(23.2,-9,'Daily averages',color='grey',ha='left',va='top')
+    # ax[0].text(23.2,-10.1,'Jul-Sep average',color='black',fontweight='bold',ha='left',va='top')
+
+    if i in [0]:#,5,10]:
+        ax[i].set_ylabel('z (m)')
+    # if i >= 10:
+    ax[i].set_xlabel('Salinity [g/kg]')
+
+plt.subplots_adjust(wspace=0.02,left=0.04,right=0.99)
+# plt.tight_layout()
+plt.show()

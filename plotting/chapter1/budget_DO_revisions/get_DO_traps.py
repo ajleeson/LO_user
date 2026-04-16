@@ -31,7 +31,7 @@ Ldir = Lfun.Lstart()
 gtagex = 'cas7_t1_x11b'
 jobname = 'twentyoneinlets'
 startdate = '2017.01.01'
-# enddate = '2014.01.02'
+enddate = '2014.01.02'
 enddate = '2017.12.31'
 enddate_hrly = '2018.01.01 00:00:00' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # enddate = '2017.01.02'
@@ -82,8 +82,9 @@ print('\n')
 ##########################################################
 
 # prep info for rivers
-seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
+seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_trapsN00.p'
 seg_dict = pd.read_pickle(seg_name)
+print(seg_dict)
 # get list of all rivers and all wwtps in LiveOcean
 LOrivs = []
 LOwwtps = []
@@ -200,6 +201,7 @@ traps_flow_deep = np.zeros(len(pd.date_range(start= startdate, end=enddate, freq
 
 for i,station in enumerate(sta_dict): #enumerate(stations): 
     # print status
+    print('-----------------------')
     print('({}/{}) Working on {}...'.format(i+1,len(sta_dict),station))
 
     # initialize empty dataframe for saving
@@ -207,6 +209,7 @@ for i,station in enumerate(sta_dict): #enumerate(stations):
 
     # get list of traps in this segment
     traps_list = seg_dict[station+'_p']['riv_list']
+    # print(traps_list)
     # identify whether river or WWTP
     riv_list = []
     wwtp_list = []

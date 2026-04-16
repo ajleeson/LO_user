@@ -24,6 +24,7 @@ import cmocean
 from lo_tools import Lfun, zfun, zrfun
 import obsmod_functions as omfun
 import xarray as xr
+import gsw
 
 # command line arguments
 import argparse
@@ -84,12 +85,11 @@ for og in ['obs',gtx]:
 
 plt.close('all')
       
-fig = plt.figure()
 df_dict = df0_dict.copy()
         
 # station map
 # initialize figure
-fig = plt.figure(figsize=(9.5, 6))
+fig = plt.figure(figsize=(9.5, 7))
 gs = fig.add_gridspec(nrows=4, ncols=4)
 ax_map = fig.add_subplot(gs[:, 0])
 ax_SA = fig.add_subplot(gs[0, 1:4])
@@ -105,7 +105,7 @@ mask = ((obs_df['source'] == 'dfo1') &
         obs_df['lat'].between(lat_min, lat_max) &
         obs_df['lon'].between(lon_min, lon_max))
 station_df = obs_df.loc[mask]
-print(station_df)
+# print(station_df)
 ax_map.scatter(station_df['lon'], station_df['lat'], s=10, color='black', zorder=5)
 
 # ax_map.scatter(-123.55, 49.1635, s=10, color='deeppink', zorder=5)
@@ -124,7 +124,7 @@ plon, plat = pfun.get_plon_plat(lon,lat)
 zm = z.copy()
 zm[np.transpose(mask_rho) == 0] = np.nan
 zm[np.transpose(mask_rho) != 0] = -1
-ax_map.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.5, vmax=0, cmap='Greys')
+ax_map.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 # pfun.add_coast(ax)
 ax_map.axis([-125,-122,45,52])
 pfun.dar(ax_map)
@@ -134,7 +134,7 @@ ax_map.set_ylabel('')
 ############################
 # plot timeseries
 
-print(list(station_df.keys()))
+# print(list(station_df.keys()))
 
 # ax_time.scatter(station_df['time'],station_df['z'])
 
@@ -151,24 +151,75 @@ shal_df = station_df.loc[shal_mask]
 
 axes = [ax_SA,ax_CT,ax_DO,ax_NO3]
 vns = ['SA','CT','DO (mg L-1)','NO3 (uM)']
-deep_color = 'navy'
-midd_color = 'lightseagreen'
-shal_color = 'yellowgreen'
+labels = [r'SA (g kg$^{-1}$)',r'CT ($\degree$C)',r'DO (mg L$^{-1}$)',r'NO3 ($\mu$M)']
+deep_color = '#1E88E5'
+midd_color = '#D81B60'
+shal_color = '#FFC107'
 
 for a,axis in enumerate(axes):
-    axis.text(0.02,0.8,vns[a],transform=axis.transAxes,fontweight='bold',fontsize=12)
-    axis.scatter(deep_df['time'],deep_df[vns[a]],color=deep_color,marker='o',s=15)
-    axis.scatter(midd_df['time'],midd_df[vns[a]],color=midd_color,marker='D',s=15)
-    axis.scatter(shal_df['time'],shal_df[vns[a]],color=shal_color,marker='*',s=18)
+    text = axis.text(0.02,0.8,labels[a],transform=axis.transAxes,fontweight='bold',
+                     fontsize=12,zorder=6)
+    text.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    axis.scatter(deep_df['time'],deep_df[vns[a]],color=deep_color,marker='s',s=20,zorder=5,
+    edgecolor='black')
+    axis.scatter(midd_df['time'],midd_df[vns[a]],color=midd_color,marker='D',s=20,zorder=5,
+    edgecolor='black')
+    axis.scatter(shal_df['time'],shal_df[vns[a]],color=shal_color,marker='o',s=20,zorder=5,
+    edgecolor='black')
     if a < 3:
         axis.set_xticks([])
     axis.tick_params(axis='both',labelsize=12)
 
+# add depth labels
+ax_SA.text(0.02,0.3,'5 m',transform=ax_SA.transAxes,fontweight='bold',
+            color=shal_color,fontsize=12,zorder=6, ha='left')
+ax_SA.text(0.02,0.2,'20 m',transform=ax_SA.transAxes,fontweight='bold',
+            color=midd_color,fontsize=12,zorder=6, ha='left')
+ax_SA.text(0.02,0.1,'250 m',transform=ax_SA.transAxes,fontweight='bold',
+            color=deep_color,fontsize=12,zorder=6, ha='left')
+
+
+# add model
+model_fn = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'moor' / 'dfo_comparison' / 'sog_2015.01.01_2020.12.31.nc'
+mod_ds = xr.open_dataset(model_fn)
+
+target_depths = [-250,-20,-5]
+colors = [deep_color,midd_color,shal_color]
+
+vars = ['salt','temp','oxygen','NO3']
+
+for t,target in enumerate(target_depths):
+    # get z_rho closest to target
+    idx = np.abs(mod_ds['z_rho'] - target).argmin(dim='s_rho')
+    # crop dataset
+    mod_ds_sel = mod_ds.isel(s_rho=idx)
+    # plot
+    for a,axis in enumerate(axes):
+        time = mod_ds_sel['ocean_time'].values
+        var = mod_ds_sel[vars[a]].values
+        # convert var to corrrect units
+        if vars[a] == 'salt':
+            # absolute salinity
+            lon = mod_ds_sel['lon_rho'].values
+            lat = mod_ds_sel['lat_rho'].values
+            z = mod_ds_sel['z_rho'].values
+            p = gsw.p_from_z(z, lat)
+            var = gsw.SA_from_SP(var, p, lon, lat)
+        elif vars[a] == 'temp':
+            # conservative temperature
+            lon = mod_ds_sel['lon_rho'].values
+            lat = mod_ds_sel['lat_rho'].values
+            z = mod_ds_sel['z_rho'].values
+            p = gsw.p_from_z(z, lat)
+            SA = gsw.SA_from_SP(var, p, lon, lat)
+            var = gsw.CT_from_pt(SA, var)
+        elif vars[a] == 'oxygen':
+            var = var * (32 / 1000)
+        axis.plot(time,var,color=colors[t],linewidth=0.8,alpha=0.7)
 
 
 
-
-plt.subplots_adjust(hspace=0.01)
+plt.subplots_adjust(hspace=0)
 plt.tight_layout()
 plt.show()
 
@@ -176,12 +227,11 @@ plt.show()
 ###########################################################################
 # PLOTTING - COAST
       
-fig = plt.figure()
 df_dict = df0_dict.copy()
         
 # station map
 # initialize figure
-fig = plt.figure(figsize=(9.5, 6))
+fig = plt.figure(figsize=(9.5, 7))
 gs = fig.add_gridspec(nrows=4, ncols=4)
 ax_map = fig.add_subplot(gs[:, 0])
 ax_SA = fig.add_subplot(gs[0, 1:4])
@@ -197,7 +247,7 @@ mask = ((obs_df['source'] == 'dfo1') &
         obs_df['lat'].between(lat_min, lat_max) &
         obs_df['lon'].between(lon_min, lon_max))
 station_df = obs_df.loc[mask]
-print(station_df)
+# print(station_df)
 ax_map.scatter(station_df['lon'], station_df['lat'], s=10, color='black', zorder=5)
 
 # ax_map.scatter(-125.58, 48.367, s=10, color='deeppink', zorder=5)
@@ -216,7 +266,7 @@ plon, plat = pfun.get_plon_plat(lon,lat)
 zm = z.copy()
 zm[np.transpose(mask_rho) == 0] = np.nan
 zm[np.transpose(mask_rho) != 0] = -1
-ax_map.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-1.5, vmax=0, cmap='Greys')
+ax_map.pcolormesh(plon, plat, zm, linewidth=0.5, vmin=-8, vmax=0, cmap=plt.get_cmap(cmocean.cm.ice))
 # pfun.add_coast(ax)
 ax_map.axis([-126.5,-123.5,45,52])
 pfun.dar(ax_map)
@@ -226,7 +276,7 @@ ax_map.set_ylabel('')
 ############################
 # plot timeseries
 
-print(list(station_df.keys()))
+# print(list(station_df.keys()))
 
 # ax_time.scatter(station_df['time'],station_df['z'])
 
@@ -245,18 +295,70 @@ shal_df = station_df.loc[shal_mask]
 
 axes = [ax_SA,ax_CT,ax_DO,ax_NO3]
 vns = ['SA','CT','DO (mg L-1)','NO3 (uM)']
-deep_color = 'navy'
-midd_color = 'lightseagreen'
-shal_color = 'yellowgreen'
+# deep_color = 'navy'
+# midd_color = 'lightseagreen'
+# shal_color = 'yellowgreen'
 
 for a,axis in enumerate(axes):
-    axis.text(0.02,0.8,vns[a],transform=axis.transAxes,fontweight='bold',fontsize=12)
-    axis.scatter(deep_df['time'],deep_df[vns[a]],color=deep_color,marker='o',s=15)
-    axis.scatter(midd_df['time'],midd_df[vns[a]],color=midd_color,marker='D',s=15)
-    axis.scatter(shal_df['time'],shal_df[vns[a]],color=shal_color,marker='*',s=18)
+    text = axis.text(0.02,0.8,labels[a],transform=axis.transAxes,fontweight='bold',
+            fontsize=12,zorder=6)
+    text.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    axis.scatter(deep_df['time'],deep_df[vns[a]],color=deep_color,marker='s',s=20,zorder=5,
+    edgecolor='black')
+    axis.scatter(midd_df['time'],midd_df[vns[a]],color=midd_color,marker='D',s=20,zorder=5,
+    edgecolor='black')
+    axis.scatter(shal_df['time'],shal_df[vns[a]],color=shal_color,marker='o',s=20,zorder=5,
+    edgecolor='black')
     if a < 3:
         axis.set_xticks([])
     axis.tick_params(axis='both',labelsize=12)
+
+# add depth labels
+ax_SA.text(0.02,0.3,'5 m',transform=ax_SA.transAxes,fontweight='bold',
+            color=shal_color,fontsize=12,zorder=6, ha='left')
+ax_SA.text(0.02,0.2,'20 m',transform=ax_SA.transAxes,fontweight='bold',
+            color=midd_color,fontsize=12,zorder=6, ha='left')
+ax_SA.text(0.02,0.1,'140 m',transform=ax_SA.transAxes,fontweight='bold',
+            color=deep_color,fontsize=12,zorder=6, ha='left')
+
+
+# add model
+model_fn = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'moor' / 'dfo_comparison' / 'coast_2015.01.01_2020.12.31.nc'
+mod_ds = xr.open_dataset(model_fn)
+
+target_depths = [-140,-20,-5]
+colors = [deep_color,midd_color,shal_color]
+
+vars = ['salt','temp','oxygen','NO3']
+
+for t,target in enumerate(target_depths):
+    # get z_rho closest to target
+    idx = np.abs(mod_ds['z_rho'] - target).argmin(dim='s_rho')
+    # crop dataset
+    mod_ds_sel = mod_ds.isel(s_rho=idx)
+    # plot
+    for a,axis in enumerate(axes):
+        time = mod_ds_sel['ocean_time'].values
+        var = mod_ds_sel[vars[a]].values
+        # convert var to corrrect units
+        if vars[a] == 'salt':
+            # absolute salinity
+            lon = mod_ds_sel['lon_rho'].values
+            lat = mod_ds_sel['lat_rho'].values
+            z = mod_ds_sel['z_rho'].values
+            p = gsw.p_from_z(z, lat)
+            var = gsw.SA_from_SP(var, p, lon, lat)
+        elif vars[a] == 'temp':
+            # conservative temperature
+            lon = mod_ds_sel['lon_rho'].values
+            lat = mod_ds_sel['lat_rho'].values
+            z = mod_ds_sel['z_rho'].values
+            p = gsw.p_from_z(z, lat)
+            SA = gsw.SA_from_SP(var, p, lon, lat)
+            var = gsw.CT_from_pt(SA, var)
+        elif vars[a] == 'oxygen':
+            var = var * (32 / 1000)
+        axis.plot(time,var,color=colors[t],linewidth=0.8,alpha=0.7)
 
 
 plt.subplots_adjust(hspace=0.01)

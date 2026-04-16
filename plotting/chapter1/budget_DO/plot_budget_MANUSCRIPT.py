@@ -388,6 +388,8 @@ for i,station in enumerate(sta_dict):
         inlet_vol = vol_df['volume m3'].loc[station+'_p']
         inlet_area = vol_df['area m2'].loc[station+'_p']
         mean_depth = inlet_vol / inlet_area
+
+        print('{}: {}m'.format(station,mean_depth))
         # estimate aspect ratio from inlet area and width at mouth
         # aspect ratio = length/width (so longer inlet has larger ratio)
         # thus, aspect ratio = area / width^2
