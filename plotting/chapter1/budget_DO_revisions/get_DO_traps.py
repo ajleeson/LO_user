@@ -31,7 +31,6 @@ Ldir = Lfun.Lstart()
 gtagex = 'cas7_t1_x11b'
 jobname = 'twentyoneinlets'
 startdate = '2017.01.01'
-enddate = '2014.01.02'
 enddate = '2017.12.31'
 enddate_hrly = '2018.01.01 00:00:00' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # enddate = '2017.01.02'
