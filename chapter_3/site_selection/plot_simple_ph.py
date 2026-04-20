@@ -44,6 +44,7 @@ from dateutil import parser
 import gsw
 import sys
 import PyCO2SYS as pyco2
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 #import matplotlib.cm as cm
@@ -96,7 +97,7 @@ else:
 
 # set your paths and open the dataset  
 fin = Ldir['LOo'] / 'extract' / args.gtagex / 'sml_plus' / folder_in 
-fin = 'dat1' / 'kmhewett' / 'extract' / args.gtagex / 'sml_plus' / folder_in 
+fin = Path('/dat1') / 'kmhewett' / 'extract' / args.gtagex / 'sml_plus' / folder_in 
 fout = Ldir['parent'] / 'crest26_output' / 'sml_evaluation' / args.gtagex / args.jobname / 'dye_test_dates' / 'pH' 
 Lfun.make_dir(fout, clean=False)
 
