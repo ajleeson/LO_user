@@ -182,9 +182,12 @@ print('Time to calculate PH for all slices = %0.2f sec' % (time()-tt0))
 sys.stdout.flush()
 
 # Save pH to a new netCDF file
+# where to put output figures
+out_dir = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'sml_plus' / 'LO_domain_2020.01.01_2020.12.31' / 'pH'
+Lfun.make_dir(out_dir)
 ds_ph = xr.DataArray(PH, dims=('time','y','x'), name='pH')
 # Save to .nc file
-ds_ph.to_netcdf('pH_2020_sml_p125.nc')
+ds_ph.to_netcdf(out_dir / 'pH_2020_sml_p125.nc')
 
 ##############################################################
 # STEP 2. plot pH 
