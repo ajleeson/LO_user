@@ -96,6 +96,7 @@ else:
 
 # set your paths and open the dataset  
 fin = Ldir['LOo'] / 'extract' / args.gtagex / 'sml_plus' / folder_in 
+fin = 'dat1' / 'kmhewett' / 'extract' / args.gtagex / 'sml_plus' / folder_in 
 fout = Ldir['parent'] / 'crest26_output' / 'sml_evaluation' / args.gtagex / args.jobname / 'dye_test_dates' / 'pH' 
 Lfun.make_dir(fout, clean=False)
 
