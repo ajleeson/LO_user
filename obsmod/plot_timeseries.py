@@ -1,18 +1,9 @@
 """
-This focuses on property-property plots and obs-mod plots.
+Select time series comparison at three depths at two locations:
+one station in the Strait of Georgia and one station on the coast.
 
-It is focused on a single run and year.
-
-In the "SET CHOICES" we pull in optional command line arguments that
-allow more specific plotting choices, such as using a single obs source,
-or only plotting Salish Sea stations. These are best used with
--test True when plotting by hand, as opposed to using the one_step_bottle_val_plot.py
-driver.
-
-For -test True it shows the plot on the screen instead of saving to a file.
-
-Testing on mac:
-run plot_val -gtx cas7_t1_x11ab -test True
+Run:
+run plot_timeseries -gtx cas7_t1_x11ab -test True
 
 """
 import sys

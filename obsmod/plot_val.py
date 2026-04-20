@@ -12,7 +12,8 @@ driver.
 For -test True it shows the plot on the screen instead of saving to a file.
 
 Testing on mac:
-run plot_val -gtx cas7_t1_x11ab -year 2017 -test True
+run plot_val -gtx cas7_t1_x11ab -test True -do_arag False -salish True
+run plot_val -gtx cas7_t1_x11ab -test True -do_arag False -coast True
 
 """
 import sys
@@ -169,6 +170,9 @@ plt.close('all')
 if not do_arag:
     vn_list = ['SA','CT','DO (mg L-1)','NO3 (uM)','NH4 (uM)','DIN (uM)',
         'DIC (uM)', 'TA (uM)', 'Chl (mg m-3)']
+    name_list = [r'SA (g kg$^{-1}$)',r'CT ($\degree$C)',r'DO (mg L$^{-1}$)','NO3 (uM)','NH4 (uM)','DIN (uM)',
+        'DIC (uM)', 'TA (uM)', r'Chl (mg m$^{-3}$)']
+
 else:
     vn_list = ['SA','CT','DO (mg L-1)','NO3 (uM)','NH4 (uM)','pCO2 (uatm)',
         'DIC (uM)', 'TA (uM)', 'Omega']
@@ -226,7 +230,7 @@ else:
 depth_list = ['deep', 'shallow']
 # c_dict = dict(zip(depth_list,['b','r']))
 c_dict = dict(zip(depth_list,['navy','lightseagreen']))
-t_dict = dict(zip(depth_list,[.05,.15])) # vertical position of stats text
+t_dict = dict(zip(depth_list,[.05,.25])) # vertical position of stats text
 
 alpha = 0.3
 fig = plt.figure()
@@ -265,9 +269,9 @@ for depth_range in depth_list:
         if (not np.isnan(x).all()) and (not np.isnan(y).all()) and (len(x) > 0) and (len(y) > 0):
             bias = np.nanmean(y-x)
             rmse = np.sqrt(np.nanmean((y-x)**2))
-            ax.text(.95,t_dict[depth_range],'bias=%0.1f, rmse=%0.1f' % (bias,rmse),
+            ax.text(.95,t_dict[depth_range],'bias=%0.1f\nrmse=%0.1f' % (bias,rmse),
                 c=c_dict[depth_range],transform=ax.transAxes, ha='right', fontweight='bold',
-                bbox=dict(facecolor='w', edgecolor='None',alpha=.8),
+                bbox=dict(facecolor='w', edgecolor='None',alpha=.4),
                 fontsize=fs*.8,style='italic')
                             
 
@@ -287,7 +291,7 @@ for depth_range in depth_list:
                     fontweight='bold', ha='left')
                 yy += 1
 
-        ax.text(.05,.9,vn,transform=ax.transAxes, fontweight='bold')
+        ax.text(.05,.9,name_list[ii],transform=ax.transAxes, fontweight='bold')
             
         ax.axis([lim_dict[vn][0], lim_dict[vn][1], lim_dict[vn][0], lim_dict[vn][1]])
         ax.plot([lim_dict[vn][0], lim_dict[vn][1]], [lim_dict[vn][0], lim_dict[vn][1]],'-k')

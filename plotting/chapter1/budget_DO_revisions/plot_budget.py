@@ -148,6 +148,9 @@ error_QinDOin_ann_avg = []
 error_consumption_ann_avg = []
 error_ddtDO_ann_avg = []
 error_ddtDO_onelayer_ann_avg = []
+error_over_ddtDO = []
+error_kmolO2s_ann_avg = []
+error_Qinvol_ann_avg = []
 
 # COLLAPSE
 for i,station in enumerate(sta_dict):
@@ -174,8 +177,8 @@ for i,station in enumerate(sta_dict):
     ax[0].plot(dates_local_daily,zfun.lowpass(Q_m.values,n=10),color='#0D4B91',label='TEF')
     ax[2].plot(dates_local_daily,zfun.lowpass(Q_p.values,n=10),color='#0D4B91',label='TEF')
     ax[1].plot(dates_local_daily,zfun.lowpass(TEF_surf,n=10),color='#0D4B91',label='TEF')
-    # ax[3].plot(dates_local_daily,zfun.lowpass(TEF_deep,n=10),color='#0D4B91',label='TEF')
-    ax[3].plot(dates_local_daily,TEF_deep,color='#0D4B91',label='TEF')
+    ax[3].plot(dates_local_daily,zfun.lowpass(TEF_deep,n=10),color='#0D4B91',label='TEF')
+    # ax[3].plot(dates_local_daily,TEF_deep,color='#0D4B91',label='TEF')
 
     # format budget time series figures
     for axnum in [ax[0],ax[1],ax[2],ax[3]]:
@@ -277,16 +280,16 @@ for i,station in enumerate(sta_dict):
             ax[2].plot(dates_local_daily,zfun.lowpass(ddtvol_deep,n=10),color='black',label='d/dt(Volume)')
 
             ax[1].plot(dates_local_daily,zfun.lowpass(photo_surf,n=10),color='#8F0445',label='Photosynthesis')
-            # ax[3].plot(dates_local_daily,zfun.lowpass(photo_deep,n=10),color='#8F0445',label='Photosynthesis')
-            ax[3].plot(dates_local_daily,photo_deep,color='#8F0445',label='Photosynthesis')
+            ax[3].plot(dates_local_daily,zfun.lowpass(photo_deep,n=10),color='#8F0445',label='Photosynthesis')
+            # ax[3].plot(dates_local_daily,photo_deep,color='#8F0445',label='Photosynthesis')
 
             ax[1].plot(dates_local_daily,zfun.lowpass(cons_surf,n=10),color='#FCC2DD',label='Consumption')
-            # ax[3].plot(dates_local_daily,zfun.lowpass(cons_deep,n=10),color='#FCC2DD',label='Consumption')
-            ax[3].plot(dates_local_daily,cons_deep,color='#FCC2DD',label='Consumption')
+            ax[3].plot(dates_local_daily,zfun.lowpass(cons_deep,n=10),color='#FCC2DD',label='Consumption')
+            # ax[3].plot(dates_local_daily,cons_deep,color='#FCC2DD',label='Consumption')
 
             ax[1].plot(dates_local_daily,zfun.lowpass(ddtDOV_surf,n=10),color='black',label='d/dt(DO)')
-            # ax[3].plot(dates_local_daily,zfun.lowpass(ddtDOV_deep,n=10),color='black',label='d/dt(DO)')
-            ax[3].plot(dates_local_daily,ddtDOV_deep,color='black',label='d/dt(DO)')
+            ax[3].plot(dates_local_daily,zfun.lowpass(ddtDOV_deep,n=10),color='black',label='d/dt(DO)')
+            # ax[3].plot(dates_local_daily,ddtDOV_deep,color='black',label='d/dt(DO)')
 
             ax[1].plot(dates_local_daily,zfun.lowpass(airsea_surf,n=10),color='yellowgreen',label='Air-Sea')
         else:
@@ -332,8 +335,8 @@ for i,station in enumerate(sta_dict):
     ax[0].plot(dates_local_daily,zfun.lowpass(traps_surf_flow,n=10),color=traps_color,label='TRAPS')
     ax[2].plot(dates_local_daily,zfun.lowpass(traps_deep_flow,n=10),color=traps_color,label='TRAPS')
     ax[1].plot(dates_local_daily,zfun.lowpass(traps_surf_DO,n=10),color=traps_color,label='TRAPS')
-    # ax[3].plot(dates_local_daily,zfun.lowpass(traps_deep_DO,n=10),color=traps_color,label='TRAPS')
-    ax[3].plot(dates_local_daily,traps_deep_DO,color=traps_color,label='TRAPS')
+    ax[3].plot(dates_local_daily,zfun.lowpass(traps_deep_DO,n=10),color=traps_color,label='TRAPS')
+    # ax[3].plot(dates_local_daily,traps_deep_DO,color=traps_color,label='TRAPS')
 
 # ------------------------------- get vertical exchange ----------------------------------------
 
@@ -361,8 +364,8 @@ for i,station in enumerate(sta_dict):
     ax[0].plot(dates_local_daily,zfun.lowpass(vertX_surf_flow_TEF,n=10),color=vertX_color,label='Vertical')
     ax[2].plot(dates_local_daily,zfun.lowpass(vertX_deep_flow_TEF,n=10),color=vertX_color,label='Vertical')
     ax[1].plot(dates_local_daily,zfun.lowpass(vertX_surf_DO_TEF,n=10),color=vertX_color,label='Vertical')
-    # ax[3].plot(dates_local_daily,zfun.lowpass(vertX_deep_DO_TEF,n=10),color=vertX_color,label='Vertical')
-    ax[3].plot(dates_local_daily,vertX_deep_DO_TEF,color=vertX_color,label='Vertical')
+    ax[3].plot(dates_local_daily,zfun.lowpass(vertX_deep_DO_TEF,n=10),color=vertX_color,label='Vertical')
+    # ax[3].plot(dates_local_daily,vertX_deep_DO_TEF,color=vertX_color,label='Vertical')
 
 # ------------------------------- get budget error ----------------------------------------
 
@@ -408,6 +411,7 @@ for i,station in enumerate(sta_dict):
           lynchcove_dict_10dayhanning['Vertical Transport'] = zfun.lowpass(vertX_deep_DO_TEF,n=10)
           lynchcove_dict_10dayhanning['Photosynthesis'] = zfun.lowpass(photo_deep,n=10)
           lynchcove_dict_10dayhanning['Consumption'] = zfun.lowpass(cons_deep,n=10)
+        #   print(lynchcove_dict_10dayhanning['Error'])
 
      # get inlet name
     if station == 'case':
@@ -528,38 +532,71 @@ for i,station in enumerate(sta_dict):
     # calculate budget error (mg/L per day) ------------------------------
     conversion = (1000 * 32 * 60 * 60 * 24)
     error_TEF = (error_DO/inlet_vol) * conversion # [mg/L/day]
-    inlet_error_ann_avg = np.nanmean(np.abs(error_TEF))
+    inlet_error_ann_avg = np.nanmean(error_TEF)
     # calculate QinDOin (mg/L per day) 
     QinDOin = (TEF_deep/inlet_vol) * conversion # [mg/L/day]
-    inlet_QinDOin_ann_avg = np.nanmean(np.abs(QinDOin))
+    inlet_QinDOin_ann_avg = np.nanmean(QinDOin)
     # calculate biological consumption in deep layer (mg/L per day)
     consumption = (cons_deep/inlet_vol) * conversion # [mg/L/day]
-    inlet_consumption_ann_avg = np.nanmean(np.abs(consumption))
+    consumption_1lay = ((cons_deep+cons_surf)/inlet_vol) * conversion # [mg/L/day]
+    inlet_consumption_ann_avg = np.nanmean(consumption)
     # calculate d/dt(DO) (mg/L per day)
     ddtDO = (ddtDOV_deep/inlet_vol) * conversion # [mg/L/day]
     inlet_ddtDO_ann_avg = np.nanmean(ddtDO)
     # print(inlet_ddtDO_ann_avg)
     ddtDO_onelayer = (ddtDOV_onelayer/inlet_vol) * conversion # [mg/L/day]
-    inlet_ddtDO_onelayer_ann_avg = np.nanmean(np.abs(ddtDO_onelayer))
+    inlet_ddtDO_onelayer_ann_avg = np.nanmean(ddtDO_onelayer)
 
-    # print(inlet_ddtDO_onelayer_ann_avg)
-    # print('------------')
-    # add values to list
-    error_QinDOin_ann_avg.append(inlet_error_ann_avg/inlet_QinDOin_ann_avg)
-    error_consumption_ann_avg.append(inlet_error_ann_avg/inlet_consumption_ann_avg)
-    error_ddtDO_ann_avg.append(inlet_error_ann_avg/inlet_ddtDO_ann_avg)
-    error_ddtDO_onelayer_ann_avg.append(inlet_error_ann_avg/inlet_ddtDO_onelayer_ann_avg)
+    # square_error = np.sum(x**2 for x in error_TEF[:-1])
+    # square_QinDOin = np.sum(x**2 for x in QinDOin[:-1])
+    # square_consumption = np.sum(x**2 for x in consumption[:-1])
+    # rms_error = np.sqrt(square_error/(len(error_TEF)-1))
+    # rms_QinDOin = np.sqrt(square_QinDOin/(len(QinDOin)-1))
+    # rms_consumption = np.sqrt(square_consumption/(len(consumption)-1))
 
-    print('----------------')
-    print(station)
-    print(round(np.nanmean(np.abs(error_TEF/consumption))*100,1))
-    print(round((inlet_error_ann_avg/inlet_consumption_ann_avg)*100,1))
+    # error_QinDOin_ann_avg.append(rms_error/rms_QinDOin)
+    # error_consumption_ann_avg.append(rms_error/rms_consumption)
+
+    error_kmolO2s_ann_avg.append(np.nanmean(error_DO))
+
+    # # calculating annual average before diving
+    # error_QinDOin_ann_avg.append(inlet_error_ann_avg/inlet_QinDOin_ann_avg)
+    # error_consumption_ann_avg.append(inlet_error_ann_avg/inlet_consumption_ann_avg)
+    # error_ddtDO_ann_avg.append(inlet_error_ann_avg/inlet_ddtDO_ann_avg)
+    # error_ddtDO_onelayer_ann_avg.append(inlet_error_ann_avg/inlet_ddtDO_onelayer_ann_avg)
+
+    # calculating division before annual averaging
+    # 0 90 181 272 363 # decline period: 194/256
+    err_minday = 0
+    err_maxday = 363
+
+    error_QinDOin_ann_avg.append(np.abs(np.nanmean(error_DO[err_minday:err_maxday])/np.nanmean(TEF_deep[err_minday:err_maxday])))
+    error_consumption_ann_avg.append(np.abs(np.nanmean(error_DO[err_minday:err_maxday])/np.nanmean(cons_deep[err_minday:err_maxday])))
+    error_Qinvol_ann_avg.append(np.abs(np.nanmean(error_flow[err_minday:err_maxday])/np.nanmean(Q_p[err_minday:err_maxday])))
+
+    # error_ddtDO_ann_avg.append(np.nanmean(error_TEF/ddtDO))
+    # error_ddtDO_onelayer_ann_avg.append(np.nanmean(error_TEF/ddtDO_onelayer))
+
+    # print('----------------')
+    # print(station)
+    # print(np.abs(np.nanmean(error_TEF[err_minday:err_maxday])/np.nanmean(QinDOin[err_minday:err_maxday])))
+    # print(rms_error)
+    # print(np.abs(np.nanmean(error_TEF[err_minday:err_maxday])/np.nanmean(consumption[err_minday:err_maxday]))*100)
+    decline_per_vol_norm_error = np.nanmean((error_DO[err_minday:err_maxday]/vol_deep[err_minday:err_maxday]))* conversion
+    error_over_ddtDO.append(np.abs(decline_per_vol_norm_error/deep_ddtDO_avg))
+    # print(np.round(decline_per_vol_norm_error/deep_ddtDO_avg*100,2))
+    # print(inlet_error_ann_avg/inlet_consumption_ann_avg)
+    # print(np.abs(np.nanmean(error_TEF[err_minday:err_maxday])/np.nanmean(consumption[err_minday:err_maxday])))
+    # print(np.nanmean(np.abs(error_TEF[err_minday:err_maxday]/consumption_1lay[err_minday:err_maxday]))*100)
+    # print(round(np.abs(np.nanmean(error_TEF/consumption))*100,1))
+    # print(round((inlet_error_ann_avg/inlet_consumption_ann_avg)*100,1))
 
 # calculate bulk statistics
 error_QinDOin = np.abs(np.nanmean(error_QinDOin_ann_avg)) * 100
 error_consumption = np.abs(np.nanmean(error_consumption_ann_avg)) * 100
 error_ddtDO = np.abs(np.nanmean(error_ddtDO_ann_avg)) * 100
 error_ddtDO_onelayer = np.abs(np.nanmean(error_ddtDO_onelayer_ann_avg)) * 100
+error_Qinvol = np.abs(np.nanmean(error_Qinvol_ann_avg)) * 100
 #     # add values to list
 #     error_QinDOin_ann_avg.append(np.nanmean(np.abs(error_TEF)/np.abs(QinDOin)))
 #     error_consumption_ann_avg.append(np.nanmean(error_TEF/consumption))
@@ -572,18 +609,26 @@ error_ddtDO_onelayer = np.abs(np.nanmean(error_ddtDO_onelayer_ann_avg)) * 100
 # error_consumption = np.abs(np.nanmean(error_consumption_ann_avg)) * 100
 # error_ddtDO = np.abs(np.nanmean(error_ddtDO_ann_avg)) * 100
 # error_ddtDO_onelayer = np.abs(np.nanmean(error_ddtDO_onelayer_ann_avg)) * 100
+
 # print bulk statistics
 print('(annual mean error)/(annual mean QinDOin) [expressed as percentage]')
 print('    {}%'.format(round(error_QinDOin,2)))
 print('\n')
 print('(annual mean error)/(annual mean deep consumption) [expressed as percentage]')
-print('    {}%'.format(round(error_consumption,2)))
+print('    {}%'.format(round(error_consumption,4)))
+print('\n')
+print('decline period err/ddt(DO) % [which had been volume normalized]')
+print('    {}%'.format(round(np.nanmean(error_over_ddtDO)*100,2)))
 # print('\n')
 # print('(annual mean error)/(annual mean deep d/dt DO) [expressed as percentage]')
 # print('    {}%'.format(round(error_ddtDO,2)))
+
+print('VOLUME BUDGET (annual mean error)/(annual mean Qin) [expressed as percentage]')
+print('    {}%'.format(round(error_Qinvol,2)))
 print('\n')
-print('(annual mean error)/(annual mean one-layer d/dt DO) [expressed as percentage]')
-print('    {}%'.format(round(error_ddtDO_onelayer,2)))
+
+print('\n')
+print(np.nanstd(error_kmolO2s_ann_avg))
 
 
 
@@ -796,7 +841,7 @@ for i,var in enumerate(vars):
         # calculate r^2 and p value
         r,p = pearsonr(inlet_budget_df['SepOctDeepDO[mg/L]'][:-1],inlet_budget_df[var][:-1])
         axes[i].text(0.03,0.16,'R = {}\np = {}'.format(round(r,2),round(p,2)),
-                    transform=axes[i].transAxes, zorder=6, va='top', fontsize=11, color='gray')
+                    transform=axes[i].transAxes, zorder=6, va='top', fontsize=12, color='gray')
         
         # add zero line
         axes[i].axhline(0,0,8, color='gray',linestyle=':')
@@ -805,13 +850,13 @@ for i,var in enumerate(vars):
     if i == 0:
         cbar_ax = fig.add_axes([0.1, 0.92, 0.87, 0.03])
         cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
-        cbar.ax.tick_params(labelsize=12)
-        cbar.set_label(r'Mean depth [m]', fontsize=12)
+        cbar.ax.tick_params(labelsize=14)
+        cbar.set_label(r'Mean depth [m]', fontsize=14)
         cbar.outline.set_visible(False)
 
     
     # format panel
-    axes[i].text(0.03,0.96,letters[i],fontsize=11,fontweight='bold',
+    axes[i].text(0.03,0.96,letters[i],fontsize=12,fontweight='bold',
                  transform=axes[i].transAxes, zorder=6, va='top')
     axes[i].set_xlim([0,8])
     axes[i].set_ylim(ylims[i])

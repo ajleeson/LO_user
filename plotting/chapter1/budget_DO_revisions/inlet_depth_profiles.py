@@ -415,8 +415,8 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
         # Add DO
         ax2 = ax[i].twiny()
         avg_DO = np.nanmean(ds_season['oxygen'],axis=0)* 32/1000 # [mg/L]
-        ax2.plot(avg_DO,avg_depth,linewidth=2,color='saddlebrown',alpha=alpha)
-        ax2.tick_params(axis='x', colors='saddlebrown')
+        ax2.plot(avg_DO,avg_depth,linewidth=2,color='#999933',alpha=alpha)
+        ax2.tick_params(axis='x', colors='#999933')
 
         # else:
         #     alpha=0.5
@@ -443,18 +443,19 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
     ax[i].set_title(station,fontweight='bold')
     # ax[i].axhline(-5,0,1030,color='crimson',linewidth=1)
 
-    # label lines
-    if i == 0 and s == 0:
-        t1 = ax[0].text(23.2,-9,'Daily average salt',color='grey',ha='left',va='top', fontsize=11)
-        t2 = ax[0].text(23.2,-10.1,'Jul-Sep salt',color='black',fontweight='bold',ha='left',va='top', fontsize=11)
-        t3 = ax[0].text(23.2,-11.2,'Jul-Sep DO [mg/L]',color='saddlebrown',fontweight='bold',ha='left',va='top', fontsize=11)
-        t1.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
-        t2.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
-        t3.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    # # label lines
+    # if i == 0 and s == 0:
+    #     t1 = ax[0].text(23.2,-9,'Daily average salt',color='grey',ha='left',va='top', fontsize=11)
+    #     t2 = ax[0].text(23.2,-10.1,'Jul-Sep salt',color='black',fontweight='bold',ha='left',va='top', fontsize=11)
+    #     t3 = ax[0].text(23.2,-11.2,'Jul-Sep DO [mg/L]',color='saddlebrown',fontweight='bold',ha='left',va='top', fontsize=11)
+    #     t1.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    #     t2.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    #     t3.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
 
     # plot all different interface depths
     interface_types = ['drdz','tef','og','halocline','oxycline']
-    colors = ['deeppink','darkorange','limegreen','deepskyblue','purple']
+    colors = ['#332288','#88CCEE','#882255','#CC6677','#117733']
+    linestyles = ['-','-.','-',':','-']
     for t,type in enumerate(interface_types):
         interface_dict = dict()
         with open('interface_depths_' + type + '.csv', 'r') as f:
@@ -462,26 +463,26 @@ for i,station in enumerate(inlets): #enumerate(['elliot']):
                 inlet, interface_depth = line.strip().split(',')
                 interface_dict[inlet] = interface_depth # in meters
         z_interface = float(interface_dict[station])
-        ax[i].axhline(z_interface,0,1030,linewidth=1.5, color=colors[t])
+        ax[i].axhline(z_interface,0,1030,linewidth=2, color=colors[t], linestyle=linestyles[t])
 
         # print('{},{}: {}/{}m'.format(station,type,z_interface,round(np.nanmax(avg_depth)-np.nanmin(avg_depth),1)))
 
-        criteria = ''
-        if type == 'og':
-            criteria = 'Uniform 1/3'
-        elif type == 'tef':
-            criteria = 'TEF'
-        elif type == 'drdz':
-            criteria = r'd$\rho$/dz'
-        elif type == 'halocline':
-            criteria = 'Halocline'
-        elif type == 'oxycline':
-            criteria = 'Oxycline'
+        # criteria = ''
+        # if type == 'og':
+        #     criteria = 'Uniform 1/3'
+        # elif type == 'tef':
+        #     criteria = 'TEF'
+        # elif type == 'drdz':
+        #     criteria = r'd$\rho$/dz'
+        # elif type == 'halocline':
+        #     criteria = 'Halocline'
+        # elif type == 'oxycline':
+        #     criteria = 'Oxycline'
 
-        if i == 5:
-            tbox = ax[5].text(26.6,-12-2.2*t,criteria,color=colors[t],
-                    fontweight='bold',ha='left',va='top', fontsize=11)
-            tbox.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
+        # if i == 5:
+        #     tbox = ax[5].text(26.6,-12-2.2*t,criteria,color=colors[t],
+        #             fontweight='bold',ha='left',va='top', fontsize=11)
+        #     tbox.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='none'))
 
     if i in [0,5,10]:
         ax[i].set_ylabel('z (m)')
@@ -495,85 +496,85 @@ plt.tight_layout()
 plt.show()
 
 
-##########################################################
-## Testing sigma layer (because I averaged incorrectly) ##
-##########################################################
+# ##########################################################
+# ## Testing sigma layer (because I averaged incorrectly) ##
+# ##########################################################
 
-# fig,axes = plt.subplots(3,7, figsize=(15,8.5), sharex=True)
-fig,axes = plt.subplots(1,13, figsize=(15.5,8.5))
-ax = axes.ravel()
+# # fig,axes = plt.subplots(3,7, figsize=(15,8.5), sharex=True)
+# fig,axes = plt.subplots(1,13, figsize=(15.5,8.5))
+# ax = axes.ravel()
     
-# plot density profiles
-for i,station in enumerate(inlets): #enumerate(['elliot']):
-    # download .nc files
-    fn = '../../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
-    ds = xr.open_dataset(fn)
+# # plot density profiles
+# for i,station in enumerate(inlets): #enumerate(['elliot']):
+#     # download .nc files
+#     fn = '../../../../LO_output/extract/' + gtagex + '/moor/' + jobname + '/' + station + '_' + startdate + '_' + enddate + '.nc'
+#     ds = xr.open_dataset(fn)
 
-    # # loop through and plot each day of the year
-    # for day in range(len(ds.ocean_time)):
-    #     depth = ds['z_rho'][day,:]
-    #     salt = ds['salt'][day,:]
-    #     temp = ds['temp'][day,:]
-    #     rho = sw.dens0(salt, temp) # potential density
-    #     ax[i].plot(salt,depth,alpha=0.1,color='silver')
+#     # # loop through and plot each day of the year
+#     # for day in range(len(ds.ocean_time)):
+#     #     depth = ds['z_rho'][day,:]
+#     #     salt = ds['salt'][day,:]
+#     #     temp = ds['temp'][day,:]
+#     #     rho = sw.dens0(salt, temp) # potential density
+#     #     ax[i].plot(salt,depth,alpha=0.1,color='silver')
 
-    # crop to season
-    seasons = {'JFM':['01-01','03-30'],
-               'AMJ':['04-01','06-30'],
-               'JAS':['07-01','09-30'],
-               'OND':['10-01','12-31']}
-    seasons = {'JAS':['07-01','09-30']}
-    colors = ['black']#['royalblue','hotpink','black','darkorange']
-    for s,season in enumerate(seasons):
-        ds_season = ds.sel(ocean_time=slice(np.datetime64(year+'-'+seasons[season][0]),
-                                     np.datetime64(year+'-'+seasons[season][1])))
-        for day in range(len(ds_season.ocean_time)):
-            depth = ds['z_rho'][day,:]
-            salt = ds['salt'][day,:]
-            temp = ds['temp'][day,:]
-            rho = sw.dens0(salt, temp) # potential density
-            ax[i].scatter(salt,depth,alpha=0.5,color='silver',s=10,edgecolor='None')
-        # # calculate average depth profile and standard deviation
-        # avg_depth = np.nanmean(ds_season['z_rho'],axis=0)
-        # avg_salt = np.nanmean(ds_season['salt'],axis=0)
-        # avg_temp = np.nanmean(ds_season['temp'],axis=0)
-        # avg_rho = sw.dens0(avg_salt, avg_temp)
-        # if season == 'JAS':
-        #     alpha=1
-        #     linewidth=3
+#     # crop to season
+#     seasons = {'JFM':['01-01','03-30'],
+#                'AMJ':['04-01','06-30'],
+#                'JAS':['07-01','09-30'],
+#                'OND':['10-01','12-31']}
+#     seasons = {'JAS':['07-01','09-30']}
+#     colors = ['black']#['royalblue','hotpink','black','darkorange']
+#     for s,season in enumerate(seasons):
+#         ds_season = ds.sel(ocean_time=slice(np.datetime64(year+'-'+seasons[season][0]),
+#                                      np.datetime64(year+'-'+seasons[season][1])))
+#         for day in range(len(ds_season.ocean_time)):
+#             depth = ds['z_rho'][day,:]
+#             salt = ds['salt'][day,:]
+#             temp = ds['temp'][day,:]
+#             rho = sw.dens0(salt, temp) # potential density
+#             ax[i].scatter(salt,depth,alpha=0.5,color='silver',s=10,edgecolor='None')
+#         # # calculate average depth profile and standard deviation
+#         # avg_depth = np.nanmean(ds_season['z_rho'],axis=0)
+#         # avg_salt = np.nanmean(ds_season['salt'],axis=0)
+#         # avg_temp = np.nanmean(ds_season['temp'],axis=0)
+#         # avg_rho = sw.dens0(avg_salt, avg_temp)
+#         # if season == 'JAS':
+#         #     alpha=1
+#         #     linewidth=3
 
-        # else:
-        #     alpha=0.5
-        #     linewidth=2
-        # ax[i].plot(avg_salt,avg_depth,linewidth=linewidth,color=colors[s],alpha=alpha)
+#         # else:
+#         #     alpha=0.5
+#         #     linewidth=2
+#         # ax[i].plot(avg_salt,avg_depth,linewidth=linewidth,color=colors[s],alpha=alpha)
 
-    if station == 'elliot':
-        name = 'elliott'
-    else:
-        name = station
-    ax[i].set_title(name,fontweight='bold')
+#     if station == 'elliot':
+#         name = 'elliott'
+#     else:
+#         name = station
+#     ax[i].set_title(name,fontweight='bold')
 
-    # plot all different interface depths
-    interface_types = ['tef']
-    colors = ['crimson']
-    for t,type in enumerate(interface_types):
-        interface_dict = dict()
-        with open('interface_depths_' + type + '.csv', 'r') as f:
-            for line in f:
-                inlet, interface_depth = line.strip().split(',')
-                interface_dict[inlet] = interface_depth # in meters
-        z_interface = float(interface_dict[station])
-        ax[i].axhline(z_interface,0,1030,linewidth=1.5, color=colors[t])
+#     # plot all different interface depths
+#     interface_types = ['tef']
+#     colors = ['crimson']
+#     for t,type in enumerate(interface_types):
+#         interface_dict = dict()
+#         with open('interface_depths_' + type + '.csv', 'r') as f:
+#             for line in f:
+#                 inlet, interface_depth = line.strip().split(',')
+#                 interface_dict[inlet] = interface_depth # in meters
+#         z_interface = float(interface_dict[station])
+#         ax[i].axhline(z_interface,0,1030,linewidth=1.5, color=colors[t])
 
-    # # label lines
-    # ax[0].text(23.2,-9,'Daily averages',color='grey',ha='left',va='top')
-    # ax[0].text(23.2,-10.1,'Jul-Sep average',color='black',fontweight='bold',ha='left',va='top')
+#     # # label lines
+#     # ax[0].text(23.2,-9,'Daily averages',color='grey',ha='left',va='top')
+#     # ax[0].text(23.2,-10.1,'Jul-Sep average',color='black',fontweight='bold',ha='left',va='top')
 
-    if i in [0]:#,5,10]:
-        ax[i].set_ylabel('z (m)')
-    # if i >= 10:
-    ax[i].set_xlabel('Salinity [g/kg]')
+#     if i in [0]:#,5,10]:
+#         ax[i].set_ylabel('z (m)')
+#     # if i >= 10:
+#     ax[i].set_xlabel('Salinity [g/kg]')
 
-plt.subplots_adjust(wspace=0.02,left=0.04,right=0.99)
-# plt.tight_layout()
-plt.show()
+# plt.subplots_adjust(wspace=0.02,left=0.04,right=0.99)
+# # plt.tight_layout()
+# plt.show()
