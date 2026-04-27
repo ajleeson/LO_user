@@ -113,10 +113,11 @@ for year in years:
     # get the dict Ldir
     Ldir = Lfun.Lstart(gridname=gridname, tag=tag, ex_name=ex_name)
     # add more entries to Ldir
-    Ldir['roms_out_num'] = 5
+    Ldir['roms_out'] = Ldir['roms_out5']
     Ldir['ds0'] = year + '.01.01'
     Ldir['ds1'] = year + '.12.31'
     Ldir['list_type'] = 'average'
+    print(Ldir.keys())
     # get history files
     fn_list = Lfun.get_fn_list(Ldir['list_type'], Ldir, Ldir['ds0'], Ldir['ds1'])
 
