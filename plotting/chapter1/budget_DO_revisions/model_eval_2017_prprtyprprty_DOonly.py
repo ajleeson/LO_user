@@ -405,6 +405,20 @@ letter = ['(a)','(b)','(c)',
 fig, ax = plt.subplots(3,2,figsize = (10,9),sharey='row',sharex='col')
 axes = ax.ravel()
 
+# Initialize empty dataframe with specific dtypes
+new_obs_df = pd.DataFrame({
+    'time': pd.Series(dtype='datetime64[ns]'),
+    'inlet': pd.Series(dtype='str'),
+    'layer': pd.Series(dtype='str'),
+    'DO_mgL': pd.Series(dtype='float64')
+})
+new_mod_df = pd.DataFrame({
+    'time': pd.Series(dtype='datetime64[ns]'),
+    'inlet': pd.Series(dtype='str'),
+    'layer': pd.Series(dtype='str'),
+    'DO_mgL': pd.Series(dtype='float64')
+})
+
 # add data
 for i,vn in enumerate(vns):
     for stn, station in enumerate(selected_stns):
@@ -521,8 +535,25 @@ for i,vn in enumerate(vns):
             axis.plot(dates_local, surf_mod_avg2, color='lightseagreen', linewidth=2.5, alpha=0.3, zorder=5)
             axis.plot(dates_local, bott_mod_avg2, color='navy', linewidth=2.5, alpha=0.3, zorder=3,label='model')
 
+            # add surface values to dataframe
+            temp_df = pd.DataFrame({
+                'time': pd.to_datetime(dates_local).values,
+                'inlet': stn_name + ' ('+selected_stns[station]+')',  
+                'layer': 'surface',
+                'DO_mgL': surf_mod_avg2})
+            new_mod_df = pd.concat([new_mod_df,temp_df], ignore_index=True)
+            # add bottom values to dataframe
+            temp_df = pd.DataFrame({
+                'time': pd.to_datetime(dates_local).values,
+                'inlet': stn_name + ' ('+selected_stns[station]+')',  
+                'layer': 'bottom',
+                'DO_mgL': bott_mod_avg2})
+            new_mod_df = pd.concat([new_mod_df,temp_df], ignore_index=True)
+
             if stn == 0:
-                print(dates_local)
+                pass
+                # print(dates_local)
+
 
             # observation
             surf_obs_df = df_ob_stn.where(z >= -(d/2))
@@ -537,6 +568,16 @@ for i,vn in enumerate(vns):
             # plot observations
             unique_time = [pd.Timestamp(x) for x in df_ob_stn['time'].unique()] # one point per timestampe
             axis.scatter(unique_time, surf_obs_avg, color='lightseagreen', s=20,zorder=10)
+
+            # add surface values to dataframe
+            temp_df = pd.DataFrame({
+                'time': unique_time,
+                'inlet': stn_name + ' ('+selected_stns[station]+')',  
+                'layer': 'surface',
+                'DO_mgL': surf_obs_avg})
+            new_obs_df = pd.concat([new_obs_df,temp_df], ignore_index=True)
+
+
             # add value for Carr Inlet
             if stn == 4:
                 bott_obs_avg.loc[pd.Timestamp("2017-08-10 20:18:08")] = np.nan
@@ -544,6 +585,16 @@ for i,vn in enumerate(vns):
                 # print(unique_time)
                 # print(bott_obs_avg)
             axis.scatter(unique_time, bott_obs_avg, color='navy', s=20,zorder=10, label='obs')
+
+            # add bottom values to dataframe
+            temp_df = pd.DataFrame({
+                'time': unique_time,
+                'inlet': stn_name + ' ('+selected_stns[station]+')',  
+                'layer': 'bottom',
+                'DO_mgL': bott_obs_avg})
+            new_obs_df = pd.concat([new_obs_df,temp_df], ignore_index=True)
+
+            # print(bott_obs_avg)
             # if stn == 4:
             #     axis.scatter(unique_time[1::], bott_obs_avg, color='black', s=20,zorder=10, label='obs')
             # else:
@@ -620,3 +671,7 @@ for i,axis in enumerate(axes):
 
 plt.subplots_adjust(wspace=-0.2)      
 plt.tight_layout()
+
+print(new_mod_df)
+new_obs_df.to_csv('obs_DO_timeseries.csv', index=False)
+new_mod_df.to_csv('mod_DO_timeseries.csv', index=False)
