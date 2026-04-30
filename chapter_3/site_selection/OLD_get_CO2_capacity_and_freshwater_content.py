@@ -371,22 +371,20 @@ for year in years:
                                             'xi_rho': ds_raw['xi_rho'].values},
                                     dims=['ocean_time','eta_rho', 'xi_rho'])
 
-        # Cast to float32 HERE to keep RAM usage extremely low while building the list
-        daily_ds = daily_ds.astype(np.float32)
-
         # Append to list
         ds_list.append(daily_ds)
-        
-        # Close the raw dataset to free up memory and prevent file-handle limits
-        ds_raw.close()
 
     # PREPARE DATA FOR SAVING
     # Combine all of the daily datasets into one dataset
     ds = xr.concat(ds_list, dim='ocean_time')
     # Add your metadata once at the end
     ds = add_metadata(ds)
+    # print('    Saving dataset')
+    # ds.to_netcdf(out_dir / (gtagex + '_' + year + '_freshwatercontent_CO2uptake.nc'))
 
     print('    Saving dataset')
+    # Cast variables to float32 to halve the file size
+    ds = ds.astype(np.float32)
     # Create a compression dictionary
     comp = dict(zlib=True, complevel=4)
     encoding = {var: comp for var in ds.data_vars}
