@@ -36,7 +36,7 @@ plt.close('all')
 ##                       USER INPUTS                        ##
 ##############################################################
 
-years = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025']
+years = ['2021','2022','2023','2024','2025'] #['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025']
 
 # which  model run to look at?
 gtagex = 'cas7_t1_x11ab'
@@ -394,7 +394,7 @@ for year in years:
     ds.to_netcdf(out_dir / (gtagex + '_' + year + '_freshwatercontent_CO2uptake.nc'), encoding=encoding)
 
 
-    print(ds)
+    # print(ds)
 
 print('Done')
 
