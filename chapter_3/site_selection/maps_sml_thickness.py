@@ -138,7 +138,7 @@ ymin = 45.5
 ymax = 50.5
 
 # loop through months
-for month in ['Jan']:#,'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']:
+for month in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']:
 
     # open dataset for this month
     ds_month = xr.open_dataset(out_dir / f'monthly_climatology_SML_{month}.nc')
