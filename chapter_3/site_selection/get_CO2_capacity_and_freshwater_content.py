@@ -1,4 +1,6 @@
 """
+To be run on apogee! It took around 20 hours for 10 years
+
 Get CO2 uptake capacity from model history file
 and freshwater content
 and other useful values for understanding the drivers of CO2 uptake capacity

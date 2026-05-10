@@ -33,7 +33,7 @@ plt.close('all')
 ##                       USER INPUTS                        ##
 ##############################################################
 
-years = ['2017']#['2015','2016','2017','2018','2019','2020']
+years = ['2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
 gtagexes = ['cas7_t1noDIN_x11ab','cas7_t1_x11ab']
@@ -142,88 +142,108 @@ dec = 334
 # print('   deep (no-loading): {}'.format(round(np.nanmean(deepDO_clim_noloading[jul:aug])*1000/32,2)))
 
 
-jan_loading_shallow = shallowDO_clim_loading[jan:feb]
-jan_noloading_shallow = shallowDO_clim_noloading[jan:feb]
-jan_loading_deep = deepDO_clim_loading[jan:feb]
-jan_noloading_deep = deepDO_clim_noloading[jan:feb]
+# jan_loading_shallow = shallowDO_clim_loading[jan:feb]
+# jan_noloading_shallow = shallowDO_clim_noloading[jan:feb]
+# jan_loading_deep = deepDO_clim_loading[jan:feb]
+# jan_noloading_deep = deepDO_clim_noloading[jan:feb]
 
-feb_loading_shallow = shallowDO_clim_loading[feb:mar]
-feb_noloading_shallow = shallowDO_clim_noloading[feb:mar]
-feb_loading_deep = deepDO_clim_loading[feb:mar]
-feb_noloading_deep = deepDO_clim_noloading[feb:mar]
+# feb_loading_shallow = shallowDO_clim_loading[feb:mar]
+# feb_noloading_shallow = shallowDO_clim_noloading[feb:mar]
+# feb_loading_deep = deepDO_clim_loading[feb:mar]
+# feb_noloading_deep = deepDO_clim_noloading[feb:mar]
 
-mar_loading_shallow = shallowDO_clim_loading[mar:apr]
-mar_noloading_shallow = shallowDO_clim_noloading[mar:apr]
-mar_loading_deep = deepDO_clim_loading[mar:apr]
-mar_noloading_deep = deepDO_clim_noloading[mar:apr]
+# mar_loading_shallow = shallowDO_clim_loading[mar:apr]
+# mar_noloading_shallow = shallowDO_clim_noloading[mar:apr]
+# mar_loading_deep = deepDO_clim_loading[mar:apr]
+# mar_noloading_deep = deepDO_clim_noloading[mar:apr]
 
-apr_loading_shallow = shallowDO_clim_loading[apr:may]
-apr_noloading_shallow = shallowDO_clim_noloading[apr:may]
-apr_loading_deep = deepDO_clim_loading[apr:may]
-apr_noloading_deep = deepDO_clim_noloading[apr:may]
+# apr_loading_shallow = shallowDO_clim_loading[apr:may]
+# apr_noloading_shallow = shallowDO_clim_noloading[apr:may]
+# apr_loading_deep = deepDO_clim_loading[apr:may]
+# apr_noloading_deep = deepDO_clim_noloading[apr:may]
 
-may_loading_shallow = shallowDO_clim_loading[may:jun]
-may_noloading_shallow = shallowDO_clim_noloading[may:jun]
-may_loading_deep = deepDO_clim_loading[may:jun]
-may_noloading_deep = deepDO_clim_noloading[may:jun]
+# may_loading_shallow = shallowDO_clim_loading[may:jun]
+# may_noloading_shallow = shallowDO_clim_noloading[may:jun]
+# may_loading_deep = deepDO_clim_loading[may:jun]
+# may_noloading_deep = deepDO_clim_noloading[may:jun]
 
-jun_loading_shallow = shallowDO_clim_loading[jun:jul]
-jun_noloading_shallow = shallowDO_clim_noloading[jun:jul]
-jun_loading_deep = deepDO_clim_loading[jun:jul]
-jun_noloading_deep = deepDO_clim_noloading[jun:jul]
+# jun_loading_shallow = shallowDO_clim_loading[jun:jul]
+# jun_noloading_shallow = shallowDO_clim_noloading[jun:jul]
+# jun_loading_deep = deepDO_clim_loading[jun:jul]
+# jun_noloading_deep = deepDO_clim_noloading[jun:jul]
 
-jul_loading_shallow = shallowDO_clim_loading[jul:aug]
-jul_noloading_shallow = shallowDO_clim_noloading[jul:aug]
-jul_loading_deep = deepDO_clim_loading[jul:aug]
-jul_noloading_deep = deepDO_clim_noloading[jul:aug]
+# jul_loading_shallow = shallowDO_clim_loading[jul:aug]
+# jul_noloading_shallow = shallowDO_clim_noloading[jul:aug]
+# jul_loading_deep = deepDO_clim_loading[jul:aug]
+# jul_noloading_deep = deepDO_clim_noloading[jul:aug]
 
-aug_loading_shallow = shallowDO_clim_loading[aug:sep]
-aug_noloading_shallow = shallowDO_clim_noloading[aug:sep]
-aug_loading_deep = deepDO_clim_loading[aug:sep]
-aug_noloading_deep = deepDO_clim_noloading[aug:sep]
+# aug_loading_shallow = shallowDO_clim_loading[aug:sep]
+# aug_noloading_shallow = shallowDO_clim_noloading[aug:sep]
+# aug_loading_deep = deepDO_clim_loading[aug:sep]
+# aug_noloading_deep = deepDO_clim_noloading[aug:sep]
 
-sep_loading_shallow = shallowDO_clim_loading[sep:oct]
-sep_noloading_shallow = shallowDO_clim_noloading[sep:oct]
-sep_loading_deep = deepDO_clim_loading[sep:oct]
-sep_noloading_deep = deepDO_clim_noloading[sep:oct]
+# sep_loading_shallow = shallowDO_clim_loading[sep:oct]
+# sep_noloading_shallow = shallowDO_clim_noloading[sep:oct]
+# sep_loading_deep = deepDO_clim_loading[sep:oct]
+# sep_noloading_deep = deepDO_clim_noloading[sep:oct]
 
-oct_loading_shallow = shallowDO_clim_loading[oct:nov]
-oct_noloading_shallow = shallowDO_clim_noloading[oct:nov]
-oct_loading_deep = deepDO_clim_loading[oct:nov]
-oct_noloading_deep = deepDO_clim_noloading[oct:nov]
+# oct_loading_shallow = shallowDO_clim_loading[oct:nov]
+# oct_noloading_shallow = shallowDO_clim_noloading[oct:nov]
+# oct_loading_deep = deepDO_clim_loading[oct:nov]
+# oct_noloading_deep = deepDO_clim_noloading[oct:nov]
 
-nov_loading_shallow = shallowDO_clim_loading[nov:dec]
-nov_noloading_shallow = shallowDO_clim_noloading[nov:dec]
-nov_loading_deep = deepDO_clim_loading[nov:dec]
-nov_noloading_deep = deepDO_clim_noloading[nov:dec]
+# nov_loading_shallow = shallowDO_clim_loading[nov:dec]
+# nov_noloading_shallow = shallowDO_clim_noloading[nov:dec]
+# nov_loading_deep = deepDO_clim_loading[nov:dec]
+# nov_noloading_deep = deepDO_clim_noloading[nov:dec]
 
-dec_loading_shallow = shallowDO_clim_loading[dec::]
-dec_noloading_shallow = shallowDO_clim_noloading[dec::]
-dec_loading_deep = deepDO_clim_loading[dec::]
-dec_noloading_deep = deepDO_clim_noloading[dec::]
+# dec_loading_shallow = shallowDO_clim_loading[dec::]
+# dec_noloading_shallow = shallowDO_clim_noloading[dec::]
+# dec_loading_deep = deepDO_clim_loading[dec::]
+# dec_noloading_deep = deepDO_clim_noloading[dec::]
 
 ########################
 
+# CLIMATOLOGIES
+# winter_loading_shallow = shallowDO_clim_loading[jan:apr]
+# winter_noloading_shallow = shallowDO_clim_noloading[jan:apr]
+# winter_loading_deep = deepDO_clim_loading[jan:apr]
+# winter_noloading_deep = deepDO_clim_noloading[jan:apr]
 
-winter_loading_shallow = shallowDO_clim_loading[jan:apr]
-winter_noloading_shallow = shallowDO_clim_noloading[jan:apr]
-winter_loading_deep = deepDO_clim_loading[jan:apr]
-winter_noloading_deep = deepDO_clim_noloading[jan:apr]
+# spring_loading_shallow = shallowDO_clim_loading[apr:jul]
+# spring_noloading_shallow = shallowDO_clim_noloading[apr:jul]
+# spring_loading_deep = deepDO_clim_loading[apr:jul]
+# spring_noloading_deep = deepDO_clim_noloading[apr:jul]
 
-spring_loading_shallow = shallowDO_clim_loading[apr:jul]
-spring_noloading_shallow = shallowDO_clim_noloading[apr:jul]
-spring_loading_deep = deepDO_clim_loading[apr:jul]
-spring_noloading_deep = deepDO_clim_noloading[apr:jul]
+# summer_loading_shallow = shallowDO_clim_loading[jul:oct]
+# summer_noloading_shallow = shallowDO_clim_noloading[jul:oct]
+# summer_loading_deep = deepDO_clim_loading[jul:oct]
+# summer_noloading_deep = deepDO_clim_noloading[jul:oct]
 
-summer_loading_shallow = shallowDO_clim_loading[jul:oct]
-summer_noloading_shallow = shallowDO_clim_noloading[jul:oct]
-summer_loading_deep = deepDO_clim_loading[jul:oct]
-summer_noloading_deep = deepDO_clim_noloading[jul:oct]
+# fall_loading_shallow = shallowDO_clim_loading[oct::]
+# fall_noloading_shallow = shallowDO_clim_noloading[oct::]
+# fall_loading_deep = deepDO_clim_loading[oct::]
+# fall_noloading_deep = deepDO_clim_noloading[oct::]
 
-fall_loading_shallow = shallowDO_clim_loading[oct::]
-fall_noloading_shallow = shallowDO_clim_noloading[oct::]
-fall_loading_deep = deepDO_clim_loading[oct::]
-fall_noloading_deep = deepDO_clim_noloading[oct::]
+winter_loading_shallow   = shallowDO_loading_stacked[:,jan:apr].flatten()
+winter_noloading_shallow = shallowDO_noloading_stacked[:,jan:apr].flatten()
+winter_loading_deep   = deepDO_loading_stacked[:,jan:apr].flatten()
+winter_noloading_deep = deepDO_noloading_stacked[:,jan:apr].flatten()
+
+spring_loading_shallow   = shallowDO_loading_stacked[:,apr:jul].flatten()
+spring_noloading_shallow = shallowDO_noloading_stacked[:,apr:jul].flatten()
+spring_loading_deep   = deepDO_loading_stacked[:,apr:jul].flatten()
+spring_noloading_deep = deepDO_noloading_stacked[:,apr:jul].flatten()
+
+summer_loading_shallow   = shallowDO_loading_stacked[:,jul:oct].flatten()
+summer_noloading_shallow = shallowDO_noloading_stacked[:,jul:oct].flatten()
+summer_loading_deep   = deepDO_loading_stacked[:,jul:oct].flatten()
+summer_noloading_deep = deepDO_noloading_stacked[:,jul:oct].flatten()
+
+fall_loading_shallow   = shallowDO_loading_stacked[:,oct::].flatten()
+fall_noloading_shallow = shallowDO_noloading_stacked[:,oct::].flatten()
+fall_loading_deep   = deepDO_loading_stacked[:,oct::].flatten()
+fall_noloading_deep = deepDO_noloading_stacked[:,oct::].flatten()
 
 print('Winter')
 print('   surf (loading): {}'.format(round(np.nanmean(shallowDO_clim_loading[jan:apr]),3)))

@@ -235,7 +235,7 @@ for year in years:
             # PyCO2SYS
             CO2dict = pyco2.sys(par1=alk_kg, par1_type=1, par2=tic_kg, par2_type=2,
                     salinity=salt, temperature=temp, pressure=pres,
-                    total_silicate=0, total_phosphate=0, opt_k_carbonic=10, opt_buffers_mode=0)
+                    total_silicate=50, total_phosphate=2, opt_k_carbonic=10, opt_buffers_mode=0)
             pCO2_ocean = CO2dict['pCO2']
             
             # Transfer & Solubility
