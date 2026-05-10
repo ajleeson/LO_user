@@ -69,7 +69,7 @@ for month_num in range(1, 13):
     
     # Loop through years and get one month at a time
     for year in years:
-        filepath = Path('dat1') / 'kmhewett' / 'LO_output' /'extract' / 'cas7_t1_x11ab' / 'sml_plus' / 'threshold_p125' / ('LO_domain_'+year+'.01.01_'+year+'.12.31') / ('LO_domain_sml_plus_'+year+'.01.01_'+year+'.12.31.nc')
+        filepath = Path('/dat1') / 'kmhewett' / 'LO_output' /'extract'/ 'cas7_t1_x11ab' / 'sml_plus' / 'threshold_p125' / ('LO_domain_'+year+'.01.01_'+year+'.12.31') / ('LO_domain_sml_plus_'+year+'.01.01_'+year+'.12.31.nc')
         
         # Open one year of data
         ds_year = xr.open_dataset(filepath)
