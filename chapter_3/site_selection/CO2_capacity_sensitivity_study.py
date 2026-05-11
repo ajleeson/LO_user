@@ -1,197 +1,166 @@
 """
-Phase 2: Calculate spatial sensitivity of CO2 flux using monthly climatologies
+Full 10-Year CO₂ Flux Sensitivity Plots at Each Site, Using PyCO2SYS On the Fly.
+Atmospheric pCO₂ is allowed to vary for all runs; only a single ocean
+property is varied in each scenario, to focus the sensitivity on ocean conditions.
 """
 
 import numpy as np
 import xarray as xr
-import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
+from pathlib import Path
+import pandas as pd
 import gsw
 import PyCO2SYS as pyco2
-import cmcrameri.cm as cmc
-from lo_tools import Lfun, zrfun
-from lo_tools import plotting_functions as pfun
+from datetime import datetime
+from lo_tools import Lfun,zfun
 
-import sys
-from pathlib import Path
-pth = Path(__file__).absolute().parent.parent.parent.parent / 'LO' / 'pgrid'
-if str(pth) not in sys.path:
-    sys.path.append(str(pth))
-import gfun
-
-Gr = gfun.gstart()
-Ldir = Lfun.Lstart()
 plt.close('all')
 
-# ##############################################################
-# ##                       USER INPUTS                        ##
-# ##############################################################
+# --- USER INPUTS ---
 
-# # Directory where your monthly climatologies are saved
-# data_dir = Ldir['LOo'] / 'chapter_3' / 'data'
-# months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+gtagex = 'cas7_t1_x11ab'
+years = ['2019']#,'2016','2017','2018','2019','2020','2021','2022','2023','2024']
+data_dir = Lfun.Lstart()['LOo'] / 'chapter_3' / 'data'
+grid_file = Lfun.Lstart()['data'] / 'grids/cas7/grid.nc'
 
-# # Assume a constant climatological atmospheric pCO2 for the sensitivity tests (e.g., ~2015-2025 average)
-# PCO2air_mean = 412.0 
+# locations=['Columbia River Plume',
+#         'Saratoga Passage',
+#         'Hood Canal',
+#         'Van Island Coast',
+#         'Quadra Island',
+#         'S. SoG (Fraser plume)',
+#         'S. of San Juan Islands']
+# natural_ys = [464,875,716,1047,1199,1075,898]
+# natural_xs = [360,578,504,186, 233, 468, 513]
 
-# ##############################################################
-# ##                 Important coefficients                   ##
-# ##############################################################
+locations=['Hood Canal']
+natural_ys = [716]
+natural_xs = [504]
 
-# # Schmidt number transfer coefficients (Wanninkhof, 1992)
-# A_CO2, B_CO2, C_CO2, D_CO2, E_CO2 = 2073.1, 125.62, 3.6276, 0.043219, 0.0
+grid_ds = xr.open_dataset(grid_file)
+lon_sites = grid_ds['lon_rho'].values[tuple(natural_ys), tuple(natural_xs)]
+lat_sites = grid_ds['lat_rho'].values[tuple(natural_ys), tuple(natural_xs)]
 
-# # Surface CO2 solubility coefficients (Weiss, 1974)
-# A1, A2, A3 = -60.2409, 93.4517, 23.3585
-# B1, B2, B3 = 0.023517, -0.023656, 0.0047036
+# Schmidt number transfer coefficients (Wanninkhof, 1992)
+A_CO2 = 2073.1
+B_CO2 = 125.62
+C_CO2 = 3.6276
+D_CO2 = 0.043219
+E_CO2 = 0.0
 
-# ##############################################################
-# ##                    HELPER FUNCTIONS                      ##
-# ##############################################################
+# Surface CO2 solubility coefficients (Weiss, 1974)
+A1 = -60.2409
+A2 = 93.4517
+A3 = 23.3585
+B1 = 0.023517
+B2 = -0.023656
+B3 = 0.0047036
 
-# def calc_CO2_flux(temp, salt, alk_vol, tic_vol, wind2, pres, lons, lats, pco2_air):
-#     """ Computes 1D array of CO2 flux. Accepts scalars or 1D arrays """
-#     # Density & Units (alk_vol and tic_vol are in mmol/m3, we need umol/kg for PyCO2SYS)
-#     SA = gsw.SA_from_SP(salt, pres, lons, lats)
-#     CT = gsw.CT_from_pt(SA, temp)
-#     rho = gsw.rho(SA, CT, pres)
-#     alk_kg = 1000 * alk_vol / rho
-#     tic_kg = 1000 * tic_vol / rho
-    
-#     # PyCO2SYS
-#     CO2dict = pyco2.sys(par1=alk_kg, par1_type=1, par2=tic_kg, par2_type=2,
-#             salinity=salt, temperature=temp, pressure=pres,
-#             total_silicate=50, total_phosphate=2, opt_k_carbonic=10, opt_buffers_mode=0)
-#     pCO2_ocean = CO2dict['pCO2']
-    
-#     # Transfer & Solubility
-#     Sc = A_CO2 + B_CO2*temp + C_CO2*temp**2 + D_CO2*temp**3 + E_CO2*temp**4
-#     cff3 = 24/100 * 0.31 * wind2 * (Sc/660)**(-1/2) # [m/day]
-    
-#     tempK0p01 = (temp + 273.15)/100
-#     CO2_sol = np.exp(A1 + A2/tempK0p01 + A3*np.log(tempK0p01) + 
-#                      salt*(B1 + B2*tempK0p01 + B3*tempK0p01**2))
-    
-#     # Capacity and Flux calculations
-#     capacity_ideal = CO2_sol * (pco2_air - pCO2_ocean)
-#     flux = capacity_ideal * cff3
-    
-#     return capacity_ideal, flux, pCO2_ocean
+# Atmospheric secular trend
+D0 = 282.6
+D1 = 0.125
+D2 =-7.18
+D3 = 0.862
+D4 =-0.99
+D5 = 0.28
+D6 =-0.80
+D7 = 0.06
 
-# def map_to_2d(arr_1d, mask):
-#     """ Helper to map 1D valid water cells back to 2D """
-#     arr_2d = np.full(mask.shape, np.nan)
-#     arr_2d[mask == 1] = arr_1d
-#     return arr_2d
+def get_PCO2air_secular(dates):
+    """Vectorized calculation of pCO2_atm for all datetimes."""
+    year = np.array([dt.year for dt in dates])
+    yearday = np.array([int(dt.strftime("%j")) for dt in dates])
+    pmonth = (year - 1951) + yearday/365
+    pi2 = 2 * np.pi
+    PCO2air = (D0 + D1*pmonth*12 + D2*np.sin(pi2*pmonth+D3)
+                + D4*np.sin(pi2*pmonth+D5) + D6*np.sin(pi2*pmonth+D7))
+    return PCO2air
 
-# ##############################################################
-# ##                      PROCESS DATA                        ##
-# ##############################################################
+def calc_CO2_flux(temp, salt, alk_vol, tic_vol, wind, pres, lon, lat, pco2_air):
+    SA = gsw.SA_from_SP(salt, pres, lon, lat)
+    CT = gsw.CT_from_pt(SA, temp)
+    rho = gsw.rho(SA, CT, pres)
+    alk_kg = 1000 * alk_vol / rho
+    tic_kg = 1000 * tic_vol / rho
+    CO2dict = pyco2.sys(par1=alk_kg, par1_type=1, par2=tic_kg, par2_type=2,
+                        salinity=salt, temperature=temp, pressure=pres,
+                        total_silicate=50, total_phosphate=2,
+                        opt_k_carbonic=10, opt_buffers_mode=0)
+    pCO2_ocean = CO2dict['pCO2']
+    Sc = A_CO2 + B_CO2*temp + C_CO2*temp**2 + D_CO2*temp**3 + E_CO2*temp**4
+    cff3 = 24/100 * 0.31 * wind**2 * (Sc/660)**(-0.5)
+    tempK0p01 = (temp + 273.15)/100
+    CO2_sol = np.exp(A1 + A2/tempK0p01 + A3*np.log(tempK0p01) +
+                     salt*(B1 + B2*tempK0p01 + B3*tempK0p01**2))
+    capacity_ideal = CO2_sol * (pco2_air - pCO2_ocean)
+    flux = capacity_ideal * cff3
+    return flux, pCO2_ocean
 
-# # Get grid data once
-# grid_ds = xr.open_dataset(Ldir['data'] / 'grids/cas7/grid.nc')
-# mask_rho = grid_ds.mask_rho.values
-# lon_rho = grid_ds.lon_rho.values
-# lat_rho = grid_ds.lat_rho.values
-# water_idx = (mask_rho == 1)
+site_files = [data_dir / f"{gtagex}_{year}_freshwatercontent_CO2uptake.nc" for year in years]
+ds_all = xr.open_mfdataset(site_files, combine='by_coords')
+y_idx = xr.DataArray(natural_ys, dims="site", coords={"site": locations})
+x_idx = xr.DataArray(natural_xs, dims="site", coords={"site": locations})
+ds_sites = ds_all.isel(eta_rho=y_idx, xi_rho=x_idx)  # shape: (time, site)
 
-# aLon = lon_rho[water_idx]
-# aLat = lat_rho[water_idx]
-# aPres = 0.0 # Surface pressure is 0 dbar
+time = ds_sites["ocean_time"].values  # (time,)
+time_dt = pd.to_datetime(time)
+T = ds_sites['surf_temp'].values      # (time,site)
+S = ds_sites['surf_salt'].values
+A = ds_sites['surf_alk'].values
+C = ds_sites['surf_TIC'].values
+W2 = ds_sites['wind2'].values
+W = np.sqrt(W2)
+flux_actual = ds_sites['CO2_flux_actual'].values  # (time,site)
 
-# print('Starting monthly sensitivity calculations...\n')
+pres = 0
 
-# for month in months:
-#     print(f'Processing {month}...')
-    
-#     # Load the monthly climatology
-#     ds_in = xr.open_dataset(data_dir / f'monthly_climatology_freshwaterCO2_{month}.nc')
-    
-#     # Extract 1D surface mean arrays
-#     aTemp = ds_in['surf_temp_mean'].values[water_idx]
-#     aSalt = ds_in['surf_salt_mean'].values[water_idx]
-#     aALK  = ds_in['surf_alk_mean'].values[water_idx]
-#     aTIC  = ds_in['surf_TIC_mean'].values[water_idx]
-#     aWind2= ds_in['wind2_mean'].values[water_idx]
-    
-#     # Calculate True Domain Averages
-#     mTemp = aTemp.mean()
-#     mSalt = aSalt.mean()
-#     mALK  = aALK.mean()
-#     mTIC  = aTIC.mean()
-#     mWind2= aWind2.mean()
-    
-#     # ---------------- RUN SCENARIOS ----------------
-#     # 1. Fully varying (Actual Climatological Mean Flux)
-#     _, flux_actual, pco2_ocean_actual = calc_CO2_flux(aTemp, aSalt, aALK, aTIC, aWind2, aPres, aLon, aLat, PCO2air_mean)
-    
-#     # 2. Varying ONE variable at a time
-#     _, flux_var_temp, _ = calc_CO2_flux(aTemp, mSalt, mALK, mTIC, mWind2, aPres, aLon, aLat, PCO2air_mean)
-#     _, flux_var_alk, _  = calc_CO2_flux(mTemp, mSalt, aALK, mTIC, mWind2, aPres, aLon, aLat, PCO2air_mean)
-#     _, flux_var_tic, _  = calc_CO2_flux(mTemp, mSalt, mALK, aTIC, mWind2, aPres, aLon, aLat, PCO2air_mean)
-#     _, flux_var_salt, _ = calc_CO2_flux(mTemp, aSalt, mALK, mTIC, mWind2, aPres, aLon, aLat, PCO2air_mean)
-#     _, flux_var_wind, _ = calc_CO2_flux(mTemp, mSalt, mALK, mTIC, aWind2, aPres, aLon, aLat, PCO2air_mean)
-    
-#     # 3. Varying ONLY Delta pCO2
-#     mTempK0p01 = (mTemp + 273.15) / 100
-#     mCO2_sol = np.exp(A1 + A2/mTempK0p01 + A3*np.log(mTempK0p01) + mSalt*(B1 + B2*mTempK0p01 + B3*mTempK0p01**2))
-#     mSc = A_CO2 + B_CO2*mTemp + C_CO2*mTemp**2 + D_CO2*mTemp**3 + E_CO2*mTemp**4
-#     mcff3 = 24/100 * 0.31 * mWind2 * (mSc/660)**(-1/2)
-#     flux_var_dpco2 = mCO2_sol * (PCO2air_mean - pco2_ocean_actual) * mcff3
+for i, site in enumerate(locations):
+    lon = lon_sites[i]
+    lat = lat_sites[i]
+    temp_ts = T[:,i]
+    salt_ts = S[:,i]
+    alk_ts  = A[:,i]
+    tic_ts  = C[:,i]
+    wind_ts = W[:,i]
 
-#     # ---------------- SAVE DATA ----------------
-#     ds_out = xr.Dataset(
-#         data_vars=dict(
-#             flux_actual    = (['eta_rho','xi_rho'], map_to_2d(flux_actual, mask_rho)),
-#             flux_var_temp  = (['eta_rho','xi_rho'], map_to_2d(flux_var_temp, mask_rho)),
-#             flux_var_alk   = (['eta_rho','xi_rho'], map_to_2d(flux_var_alk, mask_rho)),
-#             flux_var_tic   = (['eta_rho','xi_rho'], map_to_2d(flux_var_tic, mask_rho)),
-#             flux_var_salt  = (['eta_rho','xi_rho'], map_to_2d(flux_var_salt, mask_rho)),
-#             flux_var_wind  = (['eta_rho','xi_rho'], map_to_2d(flux_var_wind, mask_rho)),
-#             flux_var_dpco2 = (['eta_rho','xi_rho'], map_to_2d(flux_var_dpco2, mask_rho)),
-#         ),
-#         coords=dict(eta_rho=grid_ds.eta_rho.values, xi_rho=grid_ds.xi_rho.values)
-#     )
-    
-#     # Save the sensitivity dataset
-#     ds_out.to_netcdf(data_dir / f'monthly_sensitivity_CO2_{month}.nc')
-#     ds_in.close()
+    # Means for sensitivity scenarios (over ALL years at this site)
+    mT, mS, mA, mC, mW = map(np.nanmean, [temp_ts, salt_ts, alk_ts, tic_ts, wind_ts])
 
-# print('Done processing all months!')
+    # Vectorized pCO₂_air (shape: n_times) for this location/time
+    PCO2air_vec = get_PCO2air_secular(time_dt)
 
-##############################################
-# TEST PLOTTING (Example: August)
-##############################################
-month_to_plot = 'Aug'
-ds_plot = xr.open_dataset(data_dir / f'monthly_sensitivity_CO2_{month_to_plot}.nc')
+    # Sensitivity runs: for each, pCO2_air varies. Only ONE ocean property varies per run.
+    flux_vary_temp, _ = calc_CO2_flux(temp_ts, mS, mA, mC, mW, pres, lon, lat, PCO2air_vec)
+    flux_vary_salt, _ = calc_CO2_flux(mT, salt_ts, mA, mC, mW, pres, lon, lat, PCO2air_vec)
+    flux_vary_alk,  _ = calc_CO2_flux(mT, mS, alk_ts, mC, mW, pres, lon, lat, PCO2air_vec)
+    flux_vary_tic,  _ = calc_CO2_flux(mT, mS, mA, tic_ts, mW, pres, lon, lat, PCO2air_vec)
+    flux_vary_wind, _ = calc_CO2_flux(mT, mS, mA, mC, wind_ts, pres, lon, lat, PCO2air_vec)
+    # Optionally: only ΔpCO₂ varies (here, still allow PCO2air_vec, as in ocean-only sensitivities)
+    flux_actual_test, pCO2_ocean = calc_CO2_flux(temp_ts, salt_ts, alk_ts, tic_ts, wind_ts, pres, lon, lat, PCO2air_vec)
+    mTempK0p01 = (mT + 273.15)/100
+    mCO2_sol = np.exp(A1 + A2/mTempK0p01 + A3*np.log(mTempK0p01) +
+            mS*(B1 + B2*mTempK0p01 + B3*mTempK0p01**2))
+    mSc = A_CO2 + B_CO2*mT + C_CO2*mT**2 + D_CO2*mT**3 + E_CO2*mT**4
+    mcff3 = 24/100 * 0.31 * mW * (mSc/660)**(-0.5)
+    flux_var_dpco2 = mCO2_sol * (PCO2air_vec - pCO2_ocean) * mcff3
 
-# Calculate the purely spatial effect by subtracting the domain average (baseline)
-# The baseline is roughly the mean of the actual flux.
-baseline = np.nanmean(ds_plot['flux_actual'].values)
-
-spatial_effect_temp = ds_plot['flux_var_temp'].values - baseline
-spatial_effect_tic  = ds_plot['flux_var_tic'].values - baseline
-
-fig, axes = plt.subplots(1, 2, figsize=(14, 7))
-px, py = pfun.get_plon_plat(lon_rho, lat_rho)
-
-# Plot Temp Effect
-cs1 = axes[0].pcolormesh(px, py, spatial_effect_temp, vmin=-10, vmax=10, cmap=cmc.vik)
-axes[0].set_title(f'{month_to_plot}: Spatial Anomaly Driven by Temp', fontweight='bold')
-fig.colorbar(cs1, ax=axes[0], orientation='horizontal', pad=0.05).set_label('mmol m$^{-2}$ d$^{-1}$')
-
-# Plot TIC Effect
-cs2 = axes[1].pcolormesh(px, py, spatial_effect_tic, vmin=-10, vmax=10, cmap=cmc.vik)
-axes[1].set_title(f'{month_to_plot}: Spatial Anomaly Driven by TIC', fontweight='bold')
-fig.colorbar(cs2, ax=axes[1], orientation='horizontal', pad=0.05).set_label('mmol m$^{-2}$ d$^{-1}$')
-
-for ax in axes:
-    pfun.add_coast(ax, color='silver')
-    pfun.dar(ax)
-    ax.set_xlim([-126, -122])
-    ax.set_ylim([45.5, 50.5])
-    ax.tick_params(left=False, bottom=False)
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
-
-plt.tight_layout()
-plt.show()
+    # --------- PLOT ---------
+    colors = ['#4477AA','#66CCEE','#228833','#CCBB44','#EE6677','#AA3377','#BBBBBB']
+    plt.figure(figsize=(8,6))
+    nwin=14
+    plt.plot(time_dt, zfun.lowpass(flux_actual[:,i],n=nwin), label='Actual flux', color='k', lw=3)
+    plt.plot(time_dt, zfun.lowpass(flux_actual_test,n=nwin), label='Actual flux test', color='deeppink', lw=1, linestyle=':')
+    plt.plot(time_dt, zfun.lowpass(flux_vary_temp,n=nwin), label='Vary temp', color='#4477AA')
+    plt.plot(time_dt, zfun.lowpass(flux_vary_salt,n=nwin), label='Vary salt', color='#66CCEE')
+    plt.plot(time_dt, zfun.lowpass(flux_vary_alk,n=nwin),  label='Vary ALK',  color='#228833')
+    plt.plot(time_dt, zfun.lowpass(flux_vary_tic,n=nwin),  label='Vary TIC',  color='#CCBB44')
+    plt.plot(time_dt, zfun.lowpass(flux_vary_wind,n=nwin), label='Vary wind', color='#EE6677')
+    plt.plot(time_dt, zfun.lowpass(flux_var_dpco2,n=nwin), label=r'Vary $\Delta$pCO2', color='#AA3377')
+    plt.axhline(0, color='gray', lw=0.7)
+    plt.ylabel(r'CO$_2$ Flux [mmol m$^{-2}$ d$^{-1}$]')
+    plt.xlabel('Date')
+    plt.title(f'CO2 Flux Sensitivity at {site}\n({nwin}-day Hanning Window)', fontsize=13)
+    plt.legend(fontsize=11, loc='best', ncol=2)
+    plt.grid(True, alpha=0.2)
+    plt.tight_layout()
+    plt.show()
