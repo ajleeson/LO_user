@@ -61,11 +61,13 @@ for m,month in enumerate(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep',
 
     # open dataset for this month
     ds_month = xr.open_dataset(out_dir / f'monthly_climatology_freshwaterCO2_{month}.nc')
+    ds_month_sml = xr.open_dataset(out_dir / f'monthly_climatology_SML_{month}.nc')
 
     # get freshwater content, wind speed, and CO2 capacity
     Fs = ds_month['Fs_30_mean'].values
     wind = np.sqrt(ds_month['wind2_mean'].values)
     CO2_capacity = ds_month['CO2_capacity_ideal_mean'].values
+    sml = ds_month_sml['SML_thickness_mean'].values
 
     # loop through locations
     for l,(x,y,loc) in enumerate(zip(natural_xs,natural_ys,locations)):
@@ -74,10 +76,15 @@ for m,month in enumerate(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep',
             edgecolor = 'deeppink'
         else:
             edgecolor = 'silver'
+        edgecolor = 'none'
 
         # plot location in parameter space
         cs = ax[m].scatter(Fs[y,x], wind[y,x], s=80, edgecolor=edgecolor, zorder=5,
                       c=CO2_capacity[y,x], cmap=cmc.vik, vmin=-30, vmax=30)
+        # cs = ax[m].scatter(Fs[y,x], sml[y,x], s=80, edgecolor=edgecolor, zorder=5,
+        #               c=CO2_capacity[y,x], cmap=cmc.vik, vmin=-30, vmax=30)
+        # cs = ax[m].scatter(sml[y,x], wind[y,x], s=80, edgecolor=edgecolor, zorder=5,
+        #               c=CO2_capacity[y,x], cmap=cmc.vik, vmin=-30, vmax=30)
 
     # create colorbarlegend
     if m == 0 :

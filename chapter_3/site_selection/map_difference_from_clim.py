@@ -32,7 +32,7 @@ plt.close('all')
 ##                       USER INPUTS                        ##
 ##############################################################
 
-vn = 'surf_temp'   # Variable to plot
+vn = 'wind2'   # Variable to plot
 gtagex = 'cas7_t1_x11ab'
 years = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024']
 month_dict = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
@@ -79,7 +79,7 @@ elif vn == 'wind2':
     clim_title = r'Wind speed [m s$^{-1}$]'
     clim_vmin, clim_vmax = 0, 10
     diff_cmap = cmc.vik
-    diff_vmin, diff_vmax = -5, 5
+    diff_vmin, diff_vmax = -4, 4
 elif vn == 'surf_temp':
     clim_cmap = cmc.roma_r
     clim_title = r'Surface Temp [degC]'
@@ -113,6 +113,9 @@ for month_num, month_str in month_dict.items(): # [(7, "Jul")]:
     cax_clim = fig.add_subplot(gs[2, 0])
     cax_anom = fig.add_subplot(gs[2, 1:])
 
+    if vn == 'wind2':
+        clim_mean = np.sqrt(clim_mean)
+
     # --- Plot climatological mean ---
     pc_clim = ax_clim.pcolormesh(px, py, clim_mean, vmin=clim_vmin, vmax=clim_vmax, cmap=clim_cmap)
     ax_clim.set_title('Climatological mean', fontsize=12, fontweight='bold', loc='left')
@@ -139,8 +142,11 @@ for month_num, month_str in month_dict.items(): # [(7, "Jul")]:
             year_mean = np.nanmean(var, axis=0)  # (y, x)
         else:
             year_mean = var
+        if vn == 'wind2':
+            year_mean = np.sqrt(year_mean)
         diff = year_mean - clim_mean
         diffs.append(diff)
+
 
     # Plot difference between year and anomaly
     for i, (year, ax, diff) in enumerate(zip(years, anomaly_axes, diffs)):

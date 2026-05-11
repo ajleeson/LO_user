@@ -93,6 +93,6 @@ def get_box(job, Lon, Lat):
                 + 'zooplankton,SdetritusN,LdetritusN,oxygen,ubar,vbar,AKv,AKs')
     elif job == 'SS_WC': # Salish Sea and Washington Coast for mCDR site selection
         aa = [-126, -122.1, 45.5, 50.5]
-        vn_list =  ('ubar,vbar')
+        vn_list =  ('salt,ubar,vbar') # need at least one 3d variable, so we go with salt
         
     return aa, vn_list
