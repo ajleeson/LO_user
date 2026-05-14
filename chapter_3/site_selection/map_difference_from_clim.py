@@ -32,7 +32,7 @@ plt.close('all')
 ##                       USER INPUTS                        ##
 ##############################################################
 
-vn = 'wind2'   # Variable to plot
+vn = 'SML_thickness'   # Variable to plot
 gtagex = 'cas7_t1_x11ab'
 years = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024']
 month_dict = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
@@ -86,6 +86,13 @@ elif vn == 'surf_temp':
     clim_vmin, clim_vmax = 5, 20
     diff_cmap = cmc.vik
     diff_vmin, diff_vmax = -5, 5
+elif vn == 'SML_thickness':
+    clim_cmap = cmc.lapaz_r
+    clim_title = 'Surface mixed layer thickness [m]'
+    clim_vmin, clim_vmax = 0, 35
+    diff_cmap = cmc.vik
+    diff_vmin, diff_vmax = -10, 10
+    
 else:
     raise ValueError(f"No plotting settings for variable '{vn}'! Add options above.")
 
@@ -95,7 +102,10 @@ else:
 
 for month_num, month_str in month_dict.items(): # [(7, "Jul")]: 
     print(f'Processing month: {month_str}')
-    clim_path = data_dir / f'monthly_climatology_freshwaterCO2_{month_str}.nc'
+    if vn == 'SML_thickness':
+        clim_path = data_dir / f'monthly_climatology_SML_{month_str}.nc'
+    else:
+        clim_path = data_dir / f'monthly_climatology_freshwaterCO2_{month_str}.nc'
     clim_ds = xr.open_dataset(clim_path)
     clim_mean = clim_ds[f'{vn}_mean'].values
 
@@ -134,7 +144,10 @@ for month_num, month_str in month_dict.items(): # [(7, "Jul")]:
     # Calculate difference between each year and climatology
     diffs = []
     for year in years:
-        fpath = data_dir / f"{gtagex}_{year}_freshwatercontent_CO2uptake.nc"
+        if vn == 'SML_thickness':
+            fpath = data_dir / f'LO_domain_sml_plus_{year}.01.01_{year}.12.31.nc'
+        else:
+            fpath = data_dir / f"{gtagex}_{year}_freshwatercontent_CO2uptake.nc"
         ds_year = xr.open_dataset(fpath)
         ds_month = ds_year.sel(ocean_time=ds_year['ocean_time'].dt.month == month_num)
         var = ds_month[vn].values
