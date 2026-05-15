@@ -269,6 +269,9 @@ for month in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov',
                     ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
                     ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
 
+                # # print the lat/lon for each location
+                # print(f"{loc}: lat={lats[y]:.4f}, lon={lons[x]:.4f}")
+
             # format figure
             ax[i].set_xlim([xmin,xmax])
             ax[i].set_ylim([ymin,ymax])

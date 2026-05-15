@@ -288,6 +288,12 @@ def get_sta_dict(job_name):
         'sog': (-123.55, 49.1635),
         'coast': (-125.58, 48.367),
         }
+
+    # Whidbey OAE test site
+    elif job_name == 'whidbey_basin':
+        sta_dict = {
+        'wb': (-122.5674, 48.1956),
+        }
             
             
     else:
