@@ -35,7 +35,7 @@ For testing/debugging these flags can be very useful:
 --move_his False (don't move the results to apogee)
 
 Testing on mac
-run driver_roms00 -g cas7 -t t1 -x x11b -r backfill -0 2025.07.04 -s continuation -np 192 -cpu cpu-g2 -grp macc -vip True -v True --get_forcing False --run_roms False --move_his False
+run driver_roms00oaedye -g cas7 -t t1d -x x11abd -r backfill -0 2020.01.01 -1 2020.01.02 -s continuation -np 192 -cpu cpu-g2 -grp macc -vip True -v True --get_forcing False --run_roms False --move_his False
 
 """
 
@@ -54,7 +54,7 @@ from math import ceil
 # Add the path to lo_tools by hand so that it we can import Lfun on klone
 # without loenv. In general we write code to run on klone using only the
 # default python3 installation.
-pth = Path(__file__).absolute().parent.parent / 'lo_tools' / 'lo_tools'
+pth = Path(__file__).absolute().parent.parent.parent / 'LO' / 'lo_tools' / 'lo_tools'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
 import Lfun
@@ -264,7 +264,68 @@ while dt <= dt1:
     roms_out_dir = Ldir['roms_out'] / Ldir['gtagex'] / f_string
     log_file = roms_out_dir / 'log.txt'
 
-    # >>>>>>>>>>> OAE Code <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # # >>>>>>>>>>> OAE Code <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # import xarray as xr
+    # import numpy as np
+    # import sys
+    # from lo_tools import Lfun, zfun, zrfun
+    # # Will need to run in loenv!!
+    # dt_y = dt - timedelta(days=1) # y is for yesterday
+    # f_string_y = 'f' + dt_y.strftime(Lfun.ds_fmt)
+    # roms_out_dir_y = Ldir['roms_out'] / Ldir['gtagex'] / f_string_y
+    # orig_fn = roms_out_dir_y / 'ORIG_ocean_his_0002.nc'
+    # spiked_fn = roms_out_dir_y / 'ocean_his_0002.nc'
+    # if orig_fn.is_file():
+    #     # assume we have already spiked this day, AND that
+    #     # ORIG_ocean_his_0002.nc is UNSPIKED
+    #     pass
+    # else:
+    #     # assume we have NOT already spiked this day, AND that
+    #     # ocean_his_0002.nc is UNSPIKED
+    #     tt0 = time()
+    #     shutil.move(str(spiked_fn),str(orig_fn))
+    #     print('Time to move file = %0.1f sec' % (time()-tt0))
+    # # In either case we now have the ORIG_ file and we assume it is unspiked,
+    # # and we will add a spike to it.
+    # # I need to think carefully if there are cases where these assumptions might
+    # # be incorrect, e.g. if I run an experiment multiple times.
+    # tt0 = time()
+    # ds = xr.open_dataset(orig_fn)
+    # # Columbia River mouth
+    # lon = -124.11
+    # lat = 46.245
+    # # Amount to increase alkalinity concentration
+    # dalk = 2000 # mmol m-3, same as ROMS units
+    # # find cell location
+    # G, S, T = zrfun.get_basic_info(orig_fn)
+    # Lon = G['lon_rho'][0,:]
+    # Lat = G['lat_rho'][:,0]
+    # # error checking
+    # if (lon < Lon[0]) or (lon > Lon[-1]):
+    #     print('ERROR: lon out of bounds')
+    #     sys.exit()
+    # if (lat < Lat[0]) or (lat > Lat[-1]):
+    #     print('ERROR: lat out of bounds')
+    #     sys.exit()
+    # ix = zfun.find_nearest_ind(Lon, lon)
+    # iy = zfun.find_nearest_ind(Lat, lat)
+    # # error checking
+    # if G['mask_rho'][iy,ix] == 0:
+    #     print('ERROR: point on land mask. Exiting.')
+    #     sys.exit()
+    # # add alkalinity and save to a new file
+    # # In this case we are adding to the top 5 m over a 2.5 km x 2.5 km square.
+    # xypad = 2
+    # ds.alkalinity[0,-16:,iy-xypad:iy+xypad+1,ix-xypad:ix+xypad+1] += dalk
+    # ds.to_netcdf(spiked_fn)
+    # ds.close()
+    # print('Time to spike and save file = %0.1f sec' % (time()-tt0))
+    # # now we have a new initial condition for this day!
+    # # >>>>>>>>>>> End OAE Code <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+    # >>>>>>>>>>> AL OAE & Dye Code <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     import xarray as xr
     import numpy as np
     import sys
@@ -273,8 +334,33 @@ while dt <= dt1:
     dt_y = dt - timedelta(days=1) # y is for yesterday
     f_string_y = 'f' + dt_y.strftime(Lfun.ds_fmt)
     roms_out_dir_y = Ldir['roms_out'] / Ldir['gtagex'] / f_string_y
+
+    # add dye field to his file from cas7_t1_x11ab if this is the first day of the run
+    if dt == dt0:
+        roms_out_dir_nodye = Ldir['roms_out'] / 'cas7_t1_x11ab' / f_string_y # original cas7_t1_x11ab his file
+        nodye_fn = roms_out_dir_nodye / 'ocean_his_0002.nc'
+        ds_nodye = xr.open_dataset(nodye_fn)
+        # make a copy of the original dataset to modify
+        ds_withdye = ds_nodye.copy()
+        # add dye variable to dataset, using a copy of temp as 
+        # a reference of a 3D variable mapped to rho grid.
+        # and set all values to be zero
+        tt_dye = time()
+        dye_conc = xr.zeros_like(ds_nodye['temp'])
+        ds_withdye['dye_01'] = dye_conc
+        ds_withdye['dye_01'].attrs['long_name'] = 'Passive tracer dye concentration'
+        ds_withdye['dye_01'].attrs['standard_name'] = 'mass_concentration_of_dye_'
+        ds_withdye['dye_01'].attrs['units'] = 'kg m-3' 
+        ds_withdye['dye_01'].attrs['field'] = 'dye_' 
+        # save to new gtagex dir
+        out_path = roms_out_dir_y / 'ocean_his_0002.nc'
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        ds_withdye.to_netcdf(out_path)
+        print('Time to create dye variable = %0.1f sec' % (time()-tt_dye))
+    
     orig_fn = roms_out_dir_y / 'ORIG_ocean_his_0002.nc'
     spiked_fn = roms_out_dir_y / 'ocean_his_0002.nc'
+
     if orig_fn.is_file():
         # assume we have already spiked this day, AND that
         # ORIG_ocean_his_0002.nc is UNSPIKED
@@ -317,11 +403,17 @@ while dt <= dt1:
     # In this case we are adding to the top 5 m over a 2.5 km x 2.5 km square.
     xypad = 2
     ds.alkalinity[0,-16:,iy-xypad:iy+xypad+1,ix-xypad:ix+xypad+1] += dalk
+
+    # add the same amount of dye as alkalinity
+    # TODO: determine conversion factor of alkalinity to dye. For now, just use one
+    alk2dye = 1 # conversion from alkalinity to dye, in units of (kg m-3 dye) / (mmol m-3 alkalinity)
+    ds.dye_01[0,-16:,iy-xypad:iy+xypad+1,ix-xypad:ix+xypad+1] += dalk * alk2dye
+
     ds.to_netcdf(spiked_fn)
     ds.close()
     print('Time to spike and save file = %0.1f sec' % (time()-tt0))
     # now we have a new initial condition for this day!
-    # >>>>>>>>>>> End OAE Code <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # >>>>>>>>>>> End  AL OAE & Dye Code <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     # Look to see if there is a user instance of this dot_in, and if so, use it.
     user_dot_in_dir = Ldir['LOu'] / 'dot_in' / Ldir['gtagex']
@@ -360,9 +452,17 @@ while dt <= dt1:
                 pass
             else:
                 force_choice = force_dict[force]
-                cmd_list = ['scp','-r',
-                    remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + f_string + '/' + force_choice,
-                    str(force_dir)]
+                # either look in Aurora's apogee folder for traps and ocean dye forcing...
+                if force_choice in ['trapsN00d','ocnG00d']:
+                    cmd_list = ['scp','-r',
+                        remote_dir + '/LO_output/forcing/' + Ldir['gridname'] + '/' + f_string + '/' + force_choice,
+                        str(force_dir)]
+
+                # or look in Parker's apogee folder for atm and tide forcing
+                else:
+                    cmd_list = ['scp','-r', 'auroral@apogee.ocean.washington.edu:/dat1/parker/LO_output/forcing/' +
+                            Ldir['gridname'] + '/' + f_string + '/' + force_choice, str(force_dir)]
+                    
                 proc = Po(cmd_list, stdout=Pi, stderr=Pi)
                 stdout, stderr = proc.communicate()
                 if len(stderr) > 0:
