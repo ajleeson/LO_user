@@ -26,6 +26,7 @@ import scipy.interpolate as interp
 from scipy.optimize import curve_fit
 from matplotlib.patches import Rectangle
 import pinfo
+import cmcrameri.cm as cmc
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -5241,9 +5242,10 @@ def P_surfdye(in_dict):
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
         # cmap = plt.colormaps.get_cmap('RdPu').copy()
-        cmap = plt.get_cmap('plasma',4).copy()
+        cmap = cmc.oslo_r
+        # cmap = plt.get_cmap('plasma',4).copy()
         cmap.set_bad('silver') 
-        cs = pfun.add_map_field(ax, ds, vn, {'dye_01':(0,0.5)},#pinfo.vlims_dict,
+        cs = pfun.add_map_field(ax, ds, vn, {'dye_01':(0,300)},#pinfo.vlims_dict,
                 cmap=cmap)
         fig.colorbar(cs)
         plt.locator_params(axis='x', nbins=3)

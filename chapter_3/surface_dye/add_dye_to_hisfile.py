@@ -84,7 +84,8 @@ bio_vars = ['NO3', 'NH4', 'chlorophyll',
 for bio_var in bio_vars:
     ds_new = ds_new.drop_vars([bio_var])
 
-# add dye variable to dataset, using a copy of temp as a reference
+# add dye variable to dataset, using a copy of temp as 
+# a reference of a 3D variable mapped to rho grid.
 # and set all values to be zero
 dye_conc = xr.zeros_like(ds_new['temp'])
 ds_new['dye_01'] = dye_conc
