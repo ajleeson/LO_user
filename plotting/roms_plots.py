@@ -5245,7 +5245,7 @@ def P_surfdye(in_dict):
         cmap = cmc.oslo_r
         # cmap = plt.get_cmap('plasma',4).copy()
         cmap.set_bad('silver') 
-        cs = pfun.add_map_field(ax, ds, vn, {'dye_01':(0,300)},#pinfo.vlims_dict,
+        cs = pfun.add_map_field(ax, ds, vn, {'dye_01':(0,5e-5)},#pinfo.vlims_dict,
                 cmap=cmap)
         fig.colorbar(cs)
         plt.locator_params(axis='x', nbins=3)

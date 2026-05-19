@@ -281,24 +281,28 @@ while dt <= dt1:
         roms_out_dir_nodye = Ldir['roms_out'] / 'cas7_t1_x11ab' / f_string_y # original cas7_t1_x11ab his file
         nodye_fn = roms_out_dir_nodye / 'ocean_his_0002.nc'
         ds_nodye = xr.open_dataset(nodye_fn)
-        # make a copy of the original dataset to modify
-        ds_withdye = ds_nodye.copy()
-        # add dye variable to dataset, using a copy of temp as 
-        # a reference of a 3D variable mapped to rho grid.
-        # and set all values to be zero
-        tt_dye = time()
-        print('Initializing dye variable')
-        dye_conc = xr.zeros_like(ds_nodye['temp'])
-        ds_withdye['dye_01'] = dye_conc
-        ds_withdye['dye_01'].attrs['long_name'] = 'Passive tracer dye concentration'
-        ds_withdye['dye_01'].attrs['standard_name'] = 'mass_concentration_of_dye_'
-        ds_withdye['dye_01'].attrs['units'] = 'kg m-3' 
-        ds_withdye['dye_01'].attrs['field'] = 'dye_' 
-        # save to new gtagex dir
-        out_path = roms_out_dir_y / 'ocean_his_0002.nc'
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        ds_withdye.to_netcdf(out_path)
-        print('Time to create dye variable = %0.1f sec' % (time()-tt_dye))
+        # check if dye variable already exists, and if so, skip this part
+        # this edge case would occur if the model stopped in the middle of the run
+        # and i had to restart from a middle day (dt = dt0, but not the first day of the original run)
+        if 'dye_01' not in ds_nodye.data_vars:
+            # make a copy of the original dataset to modify
+            ds_withdye = ds_nodye.copy()
+            # add dye variable to dataset, using a copy of temp as 
+            # a reference of a 3D variable mapped to rho grid.
+            # and set all values to be zero
+            tt_dye = time()
+            print('Initializing dye variable')
+            dye_conc = xr.zeros_like(ds_nodye['temp'])
+            ds_withdye['dye_01'] = dye_conc
+            ds_withdye['dye_01'].attrs['long_name'] = 'Passive tracer dye concentration'
+            ds_withdye['dye_01'].attrs['standard_name'] = 'mass_concentration_of_dye_'
+            ds_withdye['dye_01'].attrs['units'] = 'kg m-3' 
+            ds_withdye['dye_01'].attrs['field'] = 'dye_' 
+            # save to new gtagex dir
+            out_path = roms_out_dir_y / 'ocean_his_0002.nc'
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            ds_withdye.to_netcdf(out_path)
+            print('Time to create dye variable = %0.1f sec' % (time()-tt_dye))
     
     orig_fn = roms_out_dir_y / 'ORIG_ocean_his_0002.nc'
     spiked_fn = roms_out_dir_y / 'ocean_his_0002.nc'

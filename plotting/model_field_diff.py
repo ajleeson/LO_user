@@ -50,7 +50,7 @@ plt.close('all')
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['salt','u', 'v','temp']#['DIN','u','v','oxygen'] # u, v, w, DIN
+vns = ['alkalinity']#['salt','u', 'v','temp']#['DIN','u','v','oxygen'] # u, v, w, DIN
 # date = '2013.04.04'
 # date = '2012.10.31'
 # date = '2012.10.07'
@@ -59,7 +59,11 @@ vns = ['salt','u', 'v','temp']#['DIN','u','v','oxygen'] # u, v, w, DIN
 # date = '2017.02.12'
 # date = '2020.05.31'
 # date = '2020.05.30'
-date = '2020.01.02'
+# date = '2020.01.02'
+date = '2020.06.19'
+
+# file_type = 'ocean_avg_0001.nc'
+file_type = 'ocean_his_0001.nc'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
@@ -71,8 +75,8 @@ date = '2020.01.02'
 # gtagex_longhindcast = 'cas7_t1_x11ab'#'cas7_t1_x11ab'
 # gtagex_noN = 'cas7_t1_x11b'#'cas7_t1noDIN_x11ab'
 
-gtagex_longhindcast = 'cas7_t1_x11ab' # long hindcast
-gtagex_noN = 'cas7_t1d_x11abd' # test dye injection
+gtagex_longhindcast = 'cas7_t1dgeWB_x11abd' # test dye injection 
+gtagex_noN = 'cas7_t1_x11ab' # long hindcast
 
 # gtagex_longhindcast = 'cas7_t1d_x11ad'#'cas7_t1_x11ab'
 # gtagex_noN = 'cas7_t1noDIN_x11ab'#'cas7_t1noDIN_x11ab'
@@ -125,8 +129,8 @@ ymax = 48.45
 # get model output
 # fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_his_0025.nc'
 # fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0025.nc'
-fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_his_0002.nc'
-fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0002.nc'
+fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / file_type
+fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / file_type
 ds_hindcast = xr.open_dataset(fp_hindcast)
 ds_noN = xr.open_dataset(fp_noN)
 
@@ -169,6 +173,10 @@ for vn in vns:
         vn_name = vn
         vmin = -0.00001
         vmax =  0.00001
+    elif vn == 'alkalinity':
+        vn_name = vn
+        vmin = -5
+        vmax =  5
     else:
         print('vmin and vmax not provided for '+ vn)
 
@@ -244,7 +252,7 @@ for vn in vns:
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
         ax.set_title(vn + ' difference at ' + stext + pinfo.units_dict[vn_name], fontsize=16)
-        fig.suptitle('{} minus {}\n'.format(gtagex_longhindcast,gtagex_noN) + date + ' ocean_his_0002',
+        fig.suptitle('{} minus {}\n'.format(gtagex_longhindcast,gtagex_noN) + date + file_type,
                     fontsize=18, fontweight='bold')
 
         # # add 10 km bar
