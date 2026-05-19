@@ -26,9 +26,9 @@ parser = argparse.ArgumentParser()
 # select years 
 parser.add_argument('-gtx', '--gtagex', type=str, default = 'cas7_t1_x11ab')   
 parser.add_argument('-d0', '--ds0', type=str, default = '2015.01.01') 
-parser.add_argument('-d1', '--ds1', type=str, default = '2025.12.31') 
-parser.add_argument('-job', '--jobname', type=str, default = 'wwtp_test') # random job name default from kate's moorings across the shelf
-parser.add_argument('-moor', '--moorname', type=str, default = 'WestPoint')
+parser.add_argument('-d1', '--ds1', type=str, default = '2024.12.31') 
+parser.add_argument('-job', '--jobname', type=str, default = 'whidbey_basin') # random job name default to whidbey basin
+parser.add_argument('-moor', '--moorname', type=str, default = 'wb')
 
 Ldir = Lfun.Lstart()
 
@@ -135,6 +135,7 @@ target_CO2dict = pyco2.sys(par1=TIC0, par1_type=2, par2=pH_target, par2_type=3,
 
 ALK_target = target_CO2dict['alkalinity']
 dALK = ALK_target - ALK0
+print('Alkalinity addition: {}'.format(dALK))
 
 print('Time to calculate alk adjustment for all layers one time = %0.2f sec' % (time()-tt0))
 sys.stdout.flush()
@@ -164,8 +165,8 @@ ae_pH = ae_CO2dict['pH_total']
 plt.close('all')
 fs=14
 plt.rc('font', size=fs)
-fig = plt.figure(figsize=(18,10))
-fig.set_size_inches(18,10, forward=False)
+fig = plt.figure(figsize=(12,8))
+fig.set_size_inches(12,8, forward=False)
 
 '''ax1 = plt.subplot2grid((4,4), (0,0), colspan=1,rowspan=4)
 plt.plot(SIG0,z_rho,'.',color='LightGrey')
@@ -215,8 +216,8 @@ plt.plot(p50,zm,'|',color = 'DodgerBlue', markersize = 5)
 plt.plot(p50+0.5,zm,'o',color = 'red', markersize = 5)
 plt.plot(p50+1.5,zm,'o',color = 'black', markersize = 5)'''
 
-fig2 = plt.figure(figsize=(18,10))
-fig2.set_size_inches(18,10, forward=False)
+fig2 = plt.figure(figsize=(12,8))
+fig2.set_size_inches(12,8, forward=False)
 
 drho = np.diff(SIG0)
 dz = np.diff(z_rho)
@@ -248,8 +249,8 @@ ax22.set_ylabel('z m')
 ##########################################################
 fs=14
 plt.rc('font', size=fs)
-fig3 = plt.figure(figsize=(18,10))
-fig3.set_size_inches(18,10, forward=False)
+fig3 = plt.figure(figsize=(12,8))
+fig3.set_size_inches(12,8, forward=False)
 
 # make a range of values and take avg of salt and temp 
 # will calc at P = 0 here 
