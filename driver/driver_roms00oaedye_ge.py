@@ -276,15 +276,19 @@ while dt <= dt1:
     f_string_y = 'f' + dt_y.strftime(Lfun.ds_fmt)
     roms_out_dir_y = Ldir['roms_out'] / Ldir['gtagex'] / f_string_y
 
+    orig_fn = roms_out_dir_y / 'ORIG_ocean_his_0002.nc'
+    spiked_fn = roms_out_dir_y / 'ocean_his_0002.nc'
+
     # add dye field to his file from cas7_t1_x11ab if this is the first day of the run
     if dt == dt0:
-        roms_out_dir_nodye = Ldir['roms_out'] / 'cas7_t1_x11ab' / f_string_y # original cas7_t1_x11ab his file
-        nodye_fn = roms_out_dir_nodye / 'ocean_his_0002.nc'
-        ds_nodye = xr.open_dataset(nodye_fn)
-        # check if dye variable already exists, and if so, skip this part
+        # check if the spiked file already exists, and if so, assume dye variable already exists.
         # this edge case would occur if the model stopped in the middle of the run
         # and i had to restart from a middle day (dt = dt0, but not the first day of the original run)
-        if 'dye_01' not in ds_nodye.data_vars:
+        if not spiked_fn.is_file():
+            print('First day of launch, and appears to be the first day of experiments (ie. start from long hindcast his file)')
+            roms_out_dir_nodye = Ldir['roms_out'] / 'cas7_t1_x11ab' / f_string_y # original cas7_t1_x11ab his file
+            nodye_fn = roms_out_dir_nodye / 'ocean_his_0002.nc'
+            ds_nodye = xr.open_dataset(nodye_fn)
             # make a copy of the original dataset to modify
             ds_withdye = ds_nodye.copy()
             # add dye variable to dataset, using a copy of temp as 
@@ -304,9 +308,6 @@ while dt <= dt1:
             ds_withdye.to_netcdf(out_path)
             print('Time to create dye variable = %0.1f sec' % (time()-tt_dye))
     
-    orig_fn = roms_out_dir_y / 'ORIG_ocean_his_0002.nc'
-    spiked_fn = roms_out_dir_y / 'ocean_his_0002.nc'
-
     if orig_fn.is_file():
         # assume we have already spiked this day, AND that
         # ORIG_ocean_his_0002.nc is UNSPIKED
