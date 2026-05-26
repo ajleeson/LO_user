@@ -123,6 +123,9 @@ Ldir['list_type'] = 'average'
 # get history files
 fn_list_pert = Lfun.get_fn_list(Ldir['list_type'], Ldir, Ldir['ds0'], Ldir['ds1'])
 
+# Initialize empty list of datasets (meant for daily datasets)
+ds_list = []
+
 # loop through history files for the year
 for i,fn_base in enumerate(fn_list_base):
 
@@ -136,8 +139,6 @@ for i,fn_base in enumerate(fn_list_base):
     ds_base = xr.open_dataset(fn_base)
     ds_pert = xr.open_dataset(fn_pert)
 
-    # Initialize empty list of datasets (meant for daily datasets)
-    ds_list = []
     # initalize dataset to store daily data for this day
     daily_ds = start_ds(ds_base['ocean_time'])
 
