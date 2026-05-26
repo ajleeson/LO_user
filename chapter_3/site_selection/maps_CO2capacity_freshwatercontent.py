@@ -124,7 +124,7 @@ out_dir = Ldir['LOo'] / 'chapter_3' / 'data'
 
 # vns = ['CO2_capacity_ideal', 'CO2_flux_actual', 'surf_temp', 'surf_salt',
 # 'surf_alk', 'surf_TIC', 'wind2', 'delta_pCO2', 'Fs_31', 'Fs_30', 'Fs_29']
-vns = ['CO2_flux_actual']#['CO2_capacity_ideal', 'CO2_flux_actual', 'Fs_30']
+vns = ['wind2']#['CO2_capacity_ideal', 'CO2_flux_actual', 'Fs_30']
 
 stats = ['mean', 'min', 'max']
 
@@ -184,7 +184,7 @@ for month in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov',
             title = r'Freshwater content (s$_0$ = 30) [m]'
         elif vn == 'wind2':
             vmin_mean = 0
-            vmax_mean = 10
+            vmax_mean = 8
             vmin_lims = 0
             vmax_lims = 20
             cmap = cmc.tokyo
@@ -249,25 +249,25 @@ for month in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov',
             #     axins.scatter(lon, lat, color='None', s=80, edgecolor=testbed_outline, linewidth=4, zorder=5, marker='D')
             #     axins.scatter(lon, lat, color='None', s=80, edgecolor=testbed_color,   linewidth=2, zorder=5, marker='D')
 
-            # add selection of natural sites
-            natural_color = 'black'
-            natural_outline = 'white'
-            locations=['Columbia River Plume',
-                    'Saratoga Passage',
-                    'Hood Canal',
-                    'Van Island Coast',
-                    'Quadra Island',
-                    'S. SoG (Fraser plume)',
-                    'S. of San Juan Islands']
-            natural_ys = [464,875,716,1047,1199,1075,898]
-            natural_xs = [360,578,504,186, 233, 468, 513]
-            for x, y, loc in zip(natural_xs, natural_ys, locations):
-                if x in [578,504]: # only plot Whidbey and Hood Canal in inset
-                    axins.scatter(lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
-                    axins.scatter(lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
-                else:
-                    ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
-                    ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
+            # # add selection of natural sites
+            # natural_color = 'black'
+            # natural_outline = 'white'
+            # locations=['Columbia River Plume',
+            #         'Saratoga Passage',
+            #         'Hood Canal',
+            #         'Van Island Coast',
+            #         'Quadra Island',
+            #         'S. SoG (Fraser plume)',
+            #         'S. of San Juan Islands']
+            # natural_ys = [464,875,716,1047,1199,1075,898]
+            # natural_xs = [360,578,504,186, 233, 468, 513]
+            # for x, y, loc in zip(natural_xs, natural_ys, locations):
+            #     if x in [578,504]: # only plot Whidbey and Hood Canal in inset
+            #         axins.scatter(lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
+            #         axins.scatter(lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
+            #     else:
+            #         ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
+            #         ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
 
                 # # print the lat/lon for each location
                 # print(f"{loc}: lat={lats[y]:.4f}, lon={lons[x]:.4f}")

@@ -50,7 +50,9 @@ plt.close('all')
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['alkalinity']#['salt','u', 'v','temp']#['DIN','u','v','oxygen'] # u, v, w, DIN
+# vns = ['salt','u', 'v','temp']#['DIN','u','v','oxygen'] # u, v, w, DIN
+vns = ['alkalinity']
+
 # date = '2013.04.04'
 # date = '2012.10.31'
 # date = '2012.10.07'
@@ -60,10 +62,10 @@ vns = ['alkalinity']#['salt','u', 'v','temp']#['DIN','u','v','oxygen'] # u, v, w
 # date = '2020.05.31'
 # date = '2020.05.30'
 # date = '2020.01.02'
-date = '2020.06.19'
+date = '2020.08.31'
 
-# file_type = 'ocean_avg_0001.nc'
-file_type = 'ocean_his_0001.nc'
+file_type = 'ocean_avg_0001.nc'
+# file_type = 'ocean_his_0001.nc'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  

@@ -153,7 +153,7 @@ for month in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov',
         # get colorbar limits and cmap and units
         if vn == 'SML_thickness':
             vmin_mean = 0
-            vmax_mean = 35
+            vmax_mean = 15
             vmin_lims = 0
             vmax_lims = 150
             cmap = cmc.lapaz_r
@@ -214,25 +214,25 @@ for month in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov',
             #     axins.scatter(lon, lat, color='None', s=80, edgecolor=testbed_outline, linewidth=4, zorder=5, marker='D')
             #     axins.scatter(lon, lat, color='None', s=80, edgecolor=testbed_color,   linewidth=2, zorder=5, marker='D')
 
-            # add selection of natural sites
-            natural_color = 'black'
-            natural_outline = 'white'
-            locations=['Columbia River Plume',
-                    'Saratoga Passage',
-                    'Hood Canal',
-                    'Van Island Coast',
-                    'Quadra Island',
-                    'S. SoG (Fraser plume)',
-                    'S. of San Juan Islands']
-            natural_ys = [464,875,716,1047,1199,1075,898]
-            natural_xs = [360,578,504,186, 233, 468, 513]
-            for x, y, loc in zip(natural_xs, natural_ys, locations):
-                if x in [578,504]: # only plot Whidbey and Hood Canal in inset
-                    axins.scatter(lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
-                    axins.scatter(lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
-                else:
-                    ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
-                    ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
+            # # add selection of natural sites
+            # natural_color = 'black'
+            # natural_outline = 'white'
+            # locations=['Columbia River Plume',
+            #         'Saratoga Passage',
+            #         'Hood Canal',
+            #         'Van Island Coast',
+            #         'Quadra Island',
+            #         'S. SoG (Fraser plume)',
+            #         'S. of San Juan Islands']
+            # natural_ys = [464,875,716,1047,1199,1075,898]
+            # natural_xs = [360,578,504,186, 233, 468, 513]
+            # for x, y, loc in zip(natural_xs, natural_ys, locations):
+            #     if x in [578,504]: # only plot Whidbey and Hood Canal in inset
+            #         axins.scatter(lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
+            #         axins.scatter(lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
+            #     else:
+            #         ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_outline, linewidth=4, zorder=5)
+            #         ax[i].scatter(   lons[x], lats[y], color='None', s=180, edgecolor=natural_color,   linewidth=2, zorder=5)
 
             # format figure
             ax[i].set_xlim([xmin,xmax])
