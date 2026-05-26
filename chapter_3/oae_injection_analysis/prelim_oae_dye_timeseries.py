@@ -37,7 +37,10 @@ fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_2020.06.01_2020.08.31.nc'
 ds = xr.open_dataset(fp)
 
 time = ds.ocean_time.values
-delta_DIC = ds.delta_DIC.values # koml
+delta_DIC = ds.delta_DIC.values # kmol
+delta_Alk = ds.delta_Alk.values # kmol
+total_dye = ds.total_dye.values # kmol
+surf_dye  = ds.surf_dye.values  # kmol
 
 ###################################################################
 ##                         Plotting                              ##  
@@ -49,7 +52,17 @@ fig,ax = plt.subplots(2,2,figsize=(9,6), sharex=True)
 ax = ax.ravel()
 
 # delta DIC
-ax[0].plot(delta_DIC)
+n = -1
+ax[0].plot(delta_DIC[0:n])
+ax[0].set_title(r'$\Delta$ DIC [kmol]', fontsize=14)
+ax[1].plot(delta_Alk[0:n])
+ax[1].set_title(r'$\Delta$ Alk [kmol]', fontsize=14)
+# ax[2].plot(total_dye[0:n])
+# ax[2].plot(surf_dye[0:n])
+ax[2].plot(surf_dye[0:n]/total_dye[0:n])
+ax[2].set_title(r'Surface dye / total dye', fontsize=14)
+ax[3].plot(delta_DIC[0:n]/delta_Alk[0:n])
+ax[3].set_title(r'$\Delta$ DIC / $\Delta$ Alk', fontsize=14)
 
 # # set colormaps
 # dye_alk_cmap = cmc.devon_r
