@@ -34,12 +34,12 @@ Ldir = Lfun.Lstart()
 ##############################################################
 
 ds0 = '2020.06.01'
-# ds0 = '2020.08.31' # testing
-ds1 = '2020.07.18'
+# ds0 = '2020.08.31' # testing ------------------------------ APOGEE CHANGE!!!
+ds1 = '2020.08.31'
 
 # which  model runs to look at?
 gtagex_base = 'cas7_t1_x11ab'
-gtagex_pert  = 'cas7_t1dgeWB_x11abd3monthscont' #'cas7_t1dgeWB_x11abd'
+gtagex_pert  = 'cas7_t1dgeWB_x11abd3monthscont' # 'cas7_t1dgeWB_x11abd' ------------------------------ APOGEE CHANGE!!!
 
 out_dir = Ldir['LOo'] / 'chapter_3' / 'data'
 
@@ -102,7 +102,7 @@ gridname_base, tag_base, ex_base = gtagex_base.split('_')
 # get the dict Ldir
 Ldir = Lfun.Lstart(gridname=gridname_base, tag=tag_base, ex_name=ex_base)
 # add more entries to Ldir
-Ldir['roms_out'] = Ldir['roms_out5'] # Ldir['roms_out'] ------------------------------ APOGEE CHANGE!!!
+Ldir['roms_out'] =  Ldir['roms_out5'] # Ldir['roms_out']------------------------------ APOGEE CHANGE!!!
 Ldir['ds0'] = ds0
 Ldir['ds1'] = ds1
 Ldir['list_type'] = 'average'
@@ -179,18 +179,18 @@ for i,fn_base in enumerate(fn_list_base):
     TIC_pert_minus_base_kmol = TIC_pert_minus_base/1000/1000 # [kmol/m3]
 
     # get total dye and surface dye
-    dye_all = ds_pert['dye_01']          # [kg/m3]
-    dye_surf = ds_pert['dye_01'][-1,:,:] # [kg/m3]
+    dye_all = ds_pert['dye_01']          # [kg/m3] (t,z,y,x)
+    dye_surf = ds_pert['dye_01'][0,-1,:,:] # [kg/m3] (y,x)
     # convert units to kmol/m3
     # where the 1.7e-5 converts dye in kg to mmol (assuming dye is a proxy for OH-)
     dye_all_kmol  = dye_all  / 1.7e-5  / 1000 / 1000 # [kmol/m3]
     dye_surf_kmol = dye_surf / 1.7e-5  / 1000 / 1000 # [kmol/m3]
 
     # Multiply all variables by cell volume to get all final values in units of kmol
-    delta_DIC_individualcells = TIC_pert_minus_base_kmol * vol_all # [kmol] shape is (sigma, eta, xi)
-    delta_Alk_individualcells = alk_pert_minus_base_kmol * vol_all # [kmol]
-    total_dye_individualcells = dye_all_kmol * vol_all   # [kmol]
-    surf_dye_individualcells  = dye_surf_kmol * vol_surf # [kmol]
+    delta_DIC_individualcells = TIC_pert_minus_base_kmol * vol_all # [kmol] dims are (t,z,y,x)
+    delta_Alk_individualcells = alk_pert_minus_base_kmol * vol_all # [kmol] dims are (t,z,y,x)
+    total_dye_individualcells = dye_all_kmol * vol_all   # [kmol] dims are (t,z,y,x)
+    surf_dye_individualcells  = dye_surf_kmol * vol_surf # [kmol] dims are (y,x)
 
     # Crop to sub-domain of model to eliminate boundary noise!!!
     # lon/lat limits (Study Domain)
@@ -208,10 +208,10 @@ for i,fn_base in enumerate(fn_list_base):
     xi_min  = min(range(len(lons)), key=lambda i: abs(lons[i]-xmin))
     xi_max  = min(range(len(lons)), key=lambda i: abs(lons[i]-xmax))
     # crop to sub-domain
-    delta_DIC_individualcells_cropped = delta_DIC_individualcells[:, eta_min:eta_max, xi_min:xi_max]
-    delta_Alk_individualcells_cropped = delta_Alk_individualcells[:, eta_min:eta_max, xi_min:xi_max]
-    total_dye_individualcells_cropped = total_dye_individualcells[:, eta_min:eta_max, xi_min:xi_max]
-    surf_dye_individualcells_cropped  = surf_dye_individualcells[:, eta_min:eta_max, xi_min:xi_max]
+    delta_DIC_individualcells_cropped = delta_DIC_individualcells[0,:, eta_min:eta_max, xi_min:xi_max]
+    delta_Alk_individualcells_cropped = delta_Alk_individualcells[0,:, eta_min:eta_max, xi_min:xi_max]
+    total_dye_individualcells_cropped = total_dye_individualcells[0,:, eta_min:eta_max, xi_min:xi_max]
+    surf_dye_individualcells_cropped  = surf_dye_individualcells[eta_min:eta_max, xi_min:xi_max]
 
     # sum up values to get total volume integral in the sub-domain
     delta_DIC = np.nansum(delta_DIC_individualcells_cropped) #[kmol]
@@ -256,6 +256,6 @@ encoding = {var: comp for var in ds_out.data_vars}
 # Save with encoding
 ds_out.to_netcdf(out_dir / ('oae_deltas_SUBDOMAIN_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
 
-# print(ds_out)
+print(ds_out)
 
 print('Done')
