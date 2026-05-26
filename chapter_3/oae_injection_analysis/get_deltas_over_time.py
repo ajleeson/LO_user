@@ -33,9 +33,9 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-ds0 = '2020.06.01'
+ds0 = '2020.07.01'
 # ds0 = '2020.08.31' # testing
-ds1 = '2020.08.31'
+ds1 = '2020.07.18'
 
 # which  model runs to look at?
 gtagex_base = 'cas7_t1_x11ab'

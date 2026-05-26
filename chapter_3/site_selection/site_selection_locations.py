@@ -40,29 +40,29 @@ plt.subplots_adjust(wspace=0, hspace=0)
 # create colormap
 
 zm[np.transpose(mask_rho) != 0] = -1
-newcmap = plt.get_cmap('Greys_r')
+newcmap = plt.get_cmap('Blues_r')
 newcmap.set_bad(background,1.)
 
 ax0 = fig.add_subplot(1,1,1)
 cs = ax0.pcolormesh(plon, plat, zm, vmin=-5, vmax=0, cmap=newcmap)
 
-# # TEST BED LOCATIONS ------------------------------------------
-# testbed_color = 'deeppink'
-# ax0.scatter(-123.457488,48.129378,      color=testbed_color,s=30,edgecolor='None') # Port Angeles (Ebb Carbon)
-# ax0.scatter(-123.045000,48.078611,      color=testbed_color,s=30,edgecolor='None') # Sequim Bay (Ebb Carbon)
-# ax0.scatter(-123.0121,48.5453,          color=testbed_color,s=30,edgecolor='None') # FHLOO
-# ax0.scatter(-122.342908,47.584536,      color=testbed_color,s=30,edgecolor='None') # Terminal 30 near Port of Seattle
-# ax0.scatter(-122.43131423,47.60079806,  color=testbed_color,s=30,edgecolor='None') # South KC WWTP (~same size as West Point, and near Port of Seattle)
-# ax0.text(-123.0121,48.5453       +0.05,'1',     color=testbed_color, size=11,fontweight='bold', ha='center',va='bottom') # FHLOO
-# ax0.text(-123.457488,48.129378   +0.05,'2',     color=testbed_color, size=11,fontweight='bold', ha='center',va='bottom') # Port Angeles
-# ax0.text(-123.045000,48.078611   +0.05,'3',     color=testbed_color, size=11,fontweight='bold', ha='center',va='bottom') # Sequim Bay
-# ax0.text(-122.43131423 -0.08,47.60079806-0.05,'4', color=testbed_color, size=11,fontweight='bold', ha='right',va='top') # South King WWTP
-# ax0.text(-122.342908   +0.08,47.584536  -0.05,'5', color=testbed_color, size=11,fontweight='bold', ha='left', va='top') # Terminal 30 (Port of Seattle)
-# # label locations
-# ax0.text(-126.5,49.6,'Testbed locations', #48.4
-#          color=testbed_color, fontweight='bold',size=11, ha='left', va='top')
-# ax0.text(-126.4,49.4,'1. FHLOO\n2. Port Angeles PNNL\n3. Seqium Bay PNNL\n4. South King WWTP\n5. Port of Seattle (Terminal 30)',
-#          color=testbed_color, size=11, ha='left', va='top')
+# TEST BED LOCATIONS ------------------------------------------
+testbed_color = 'black'#'deeppink'
+ax0.scatter(-123.457488,48.129378,      color=testbed_color,s=30,edgecolor='None') # Port Angeles (Ebb Carbon)
+ax0.scatter(-123.045000,48.078611,      color=testbed_color,s=30,edgecolor='None') # Sequim Bay (Ebb Carbon)
+ax0.scatter(-123.0121,48.5453,          color=testbed_color,s=30,edgecolor='None') # FHLOO
+ax0.scatter(-122.342908,47.584536,      color=testbed_color,s=30,edgecolor='None') # Terminal 30 near Port of Seattle
+ax0.scatter(-122.43131423,47.60079806,  color=testbed_color,s=30,edgecolor='None') # South KC WWTP (~same size as West Point, and near Port of Seattle)
+ax0.text(-123.0121,48.5453       +0.05,'1',     color=testbed_color, size=14,fontweight='bold', ha='center',va='bottom') # FHLOO
+ax0.text(-123.457488,48.129378   +0.05,'2',     color=testbed_color, size=14,fontweight='bold', ha='center',va='bottom') # Port Angeles
+ax0.text(-123.045000,48.078611   +0.05,'3',     color=testbed_color, size=14,fontweight='bold', ha='center',va='bottom') # Sequim Bay
+ax0.text(-122.43131423 -0.08,47.60079806-0.05,'4', color=testbed_color, size=14,fontweight='bold', ha='right',va='top') # South King WWTP
+ax0.text(-122.342908   +0.08,47.584536  -0.05,'5', color=testbed_color, size=14,fontweight='bold', ha='left', va='top') # Terminal 30 (Port of Seattle)
+# label locations
+ax0.text(-126.5,49.6,'Testbed locations', #48.4
+         color=testbed_color, fontweight='bold',size=11, ha='left', va='top')
+ax0.text(-126.4,49.4,'1. FHLOO\n2. Port Angeles PNNL\n3. Seqium Bay PNNL\n4. South King WWTP\n5. Port of Seattle (Terminal 30)',
+         color=testbed_color, size=11, ha='left', va='top')
 
 # ax0.scatter(-123.457488,48.129378,      color='None',s=100,edgecolor=testbed_color) # Port Angeles (Ebb Carbon)
 # ax0.scatter(-123.045000,48.078611,      color='None',s=100,edgecolor=testbed_color) # Sequim Bay (Ebb Carbon)
@@ -70,21 +70,21 @@ cs = ax0.pcolormesh(plon, plat, zm, vmin=-5, vmax=0, cmap=newcmap)
 # ax0.scatter(-122.342908,47.584536,      color='None',s=100,edgecolor=testbed_color) # Terminal 30 near Port of Seattle
 # ax0.scatter(-122.43131423,47.60079806,  color='None',s=100,edgecolor=testbed_color) # South KC WWTP (~same size as West Point, and near Port of Seattle)
 
-# NATURAL LOCATIONS -------------------------------------------
-natural_ys = [1199,1075,1047,898,875,716,464]
-natural_xs = [233, 468, 186, 513,578,504,360]
-locations=['Quadra Island',
-            'S. SoG (Fraser plume)',
-            'Tofino',
-            'S. of San Juan Islands',
-            'Saratoga Passage',
-            'Hood Canal',
-            'Columbia River Plume']
+# # NATURAL LOCATIONS -------------------------------------------
+# natural_ys = [1199,1075,1047,898,875,716,464]
+# natural_xs = [233, 468, 186, 513,578,504,360]
+# locations=['Quadra Island',
+#             'S. SoG (Fraser plume)',
+#             'Tofino',
+#             'S. of San Juan Islands',
+#             'Saratoga Passage',
+#             'Hood Canal',
+#             'Columbia River Plume']
 
-natural_color = 'royalblue'
-for i, (x, y) in enumerate(zip(natural_xs, natural_ys)):
-    ax0.scatter(X[x],Y[y],color=natural_color,s=30,edgecolor='None')
-    ax0.text(X[x],Y[y]+0.05,str(i+1),color=natural_color, size=11,fontweight='bold', ha='center',va='bottom')
+# natural_color = 'royalblue'
+# for i, (x, y) in enumerate(zip(natural_xs, natural_ys)):
+#     ax0.scatter(X[x],Y[y],color=natural_color,s=30,edgecolor='None')
+#     ax0.text(X[x],Y[y]+0.05,str(i+1),color=natural_color, size=11,fontweight='bold', ha='center',va='bottom')
 
 # ax0.scatter(-125.2220,50.1160,          color=natural_color,s=30,edgecolor='None') # Quadra Island Field Station at Hyacinthe Bay (good based on dye, bad based on surf mixed layer)
 # ax0.scatter(-123.20643409,49.22495359,  color=natural_color,s=30,edgecolor='None') # Iona WWTP
@@ -96,9 +96,9 @@ for i, (x, y) in enumerate(zip(natural_xs, natural_ys)):
 # ax0.text(-123.06369538,47.35532783 +0.05,'9',color=natural_color, size=11,fontweight='bold', ha='center',va='bottom') # Alderbrook Resort & Spa (Hood Canal; good location)
 # ax0.text(-123.946536,46.199841     +0.05,'10',color=natural_color, size=11,fontweight='bold', ha='center',va='bottom') # Point Adams Research Station; Columbia River (good location)
 
-# label locations
-ax0.text(-126.4,48.2,'1. {}\n2. {}\n3. {}\n4. {}\n5. {}\n6. {}\n7. {}'.format(*locations),
-         color=natural_color, size=11, ha='left', va='top')
+# # label locations
+# ax0.text(-126.4,48.2,'1. {}\n2. {}\n3. {}\n4. {}\n5. {}\n6. {}\n7. {}'.format(*locations),
+#          color=natural_color, size=11, ha='left', va='top')
 
 
 # format figure
