@@ -33,13 +33,13 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-ds0 = '2020.07.01'
+ds0 = '2020.06.01'
 # ds0 = '2020.08.31' # testing
 ds1 = '2020.07.18'
 
 # which  model runs to look at?
 gtagex_base = 'cas7_t1_x11ab'
-gtagex_pert  = 'cas7_t1dgeWB_x11abd'
+gtagex_pert  = 'cas7_t1dgeWB_x11abd3monthscont' #'cas7_t1dgeWB_x11abd'
 
 out_dir = Ldir['LOo'] / 'chapter_3' / 'data'
 
@@ -187,10 +187,37 @@ for i,fn_base in enumerate(fn_list_base):
     dye_surf_kmol = dye_surf / 1.7e-5  / 1000 / 1000 # [kmol/m3]
 
     # Multiply all variables by cell volume to get all final values in units of kmol
-    delta_DIC = np.nansum(TIC_pert_minus_base_kmol * vol_all) # [kmol]
-    delta_Alk = np.nansum(alk_pert_minus_base_kmol * vol_all) # [kmol]
-    total_dye = np.nansum(dye_all_kmol * vol_all)   # [kmol]
-    surf_dye  = np.nansum(dye_surf_kmol * vol_surf) # [kmol]
+    delta_DIC_individualcells = TIC_pert_minus_base_kmol * vol_all # [kmol] shape is (sigma, eta, xi)
+    delta_Alk_individualcells = alk_pert_minus_base_kmol * vol_all # [kmol]
+    total_dye_individualcells = dye_all_kmol * vol_all   # [kmol]
+    surf_dye_individualcells  = dye_surf_kmol * vol_surf # [kmol]
+
+    # Crop to sub-domain of model to eliminate boundary noise!!!
+    # lon/lat limits (Study Domain)
+    xmin = -126
+    xmax = -122
+    ymin = 45.5
+    ymax = 50.5
+    # get eta and xi indices corresponding to these limits
+    lon = ds_base.lon_rho.values
+    lat = ds_base.lat_rho.values
+    lons = lon[0,:]
+    lats = lat[:,0]
+    eta_min = min(range(len(lats)), key=lambda i: abs(lats[i]-ymin))
+    eta_max = min(range(len(lats)), key=lambda i: abs(lats[i]-ymax))
+    xi_min  = min(range(len(lons)), key=lambda i: abs(lons[i]-xmin))
+    xi_max  = min(range(len(lons)), key=lambda i: abs(lons[i]-xmax))
+    # crop to sub-domain
+    delta_DIC_individualcells_cropped = delta_DIC_individualcells[:, eta_min:eta_max, xi_min:xi_max]
+    delta_Alk_individualcells_cropped = delta_Alk_individualcells[:, eta_min:eta_max, xi_min:xi_max]
+    total_dye_individualcells_cropped = total_dye_individualcells[:, eta_min:eta_max, xi_min:xi_max]
+    surf_dye_individualcells_cropped  = surf_dye_individualcells[:, eta_min:eta_max, xi_min:xi_max]
+
+    # sum up values to get total volume integral in the sub-domain
+    delta_DIC = np.nansum(delta_DIC_individualcells_cropped) #[kmol]
+    delta_Alk = np.nansum(delta_Alk_individualcells_cropped) #[kmol]
+    total_dye = np.nansum(total_dye_individualcells_cropped) #[kmol]
+    surf_dye  = np.nansum(surf_dye_individualcells_cropped)  #[kmol]
 
     # add data to daily dataset
     daily_ds['delta_DIC'] = xr.DataArray(delta_DIC,
@@ -227,7 +254,7 @@ print('    Saving dataset')
 comp = dict(zlib=True, complevel=4)
 encoding = {var: comp for var in ds_out.data_vars}
 # Save with encoding
-ds_out.to_netcdf(out_dir / ('oae_deltas_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
+ds_out.to_netcdf(out_dir / ('oae_deltas_SUBDOMAIN_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
 
 # print(ds_out)
 

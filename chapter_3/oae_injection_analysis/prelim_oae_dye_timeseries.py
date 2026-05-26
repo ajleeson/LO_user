@@ -68,9 +68,9 @@ ax[1].plot(delta_Alk)
 ax[1].set_title(r'$\Delta$ Alk [kmol]', fontsize=14)
 # ax[2].plot(total_dye[0:n])
 # ax[2].plot(surf_dye[0:n])
-ax[2].plot(surf_dye[0:n]/total_dye)
+ax[2].plot(surf_dye/total_dye)
 ax[2].set_title(r'Surface dye / total dye', fontsize=14)
-ax[3].plot(delta_DIC[0:n]/delta_Alk)
+ax[3].plot(delta_DIC/delta_Alk)
 ax[3].set_title(r'$\Delta$ DIC / $\Delta$ Alk', fontsize=14)
 
 # # set colormaps
