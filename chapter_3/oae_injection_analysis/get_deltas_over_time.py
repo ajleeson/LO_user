@@ -35,11 +35,12 @@ Ldir = Lfun.Lstart()
 
 ds0 = '2020.06.01'
 # ds0 = '2020.08.31' # testing ------------------------------ APOGEE CHANGE!!!
-ds1 = '2020.08.31'
+# ds1 = '2020.08.31'
+ds1 = '2020.08.06'
 
 # which  model runs to look at?
 gtagex_base = 'cas7_t1_x11ab'
-gtagex_pert  = 'cas7_t1dgeWB_x11abd3monthscont' # 'cas7_t1dgeWB_x11abd' ------------------------------ APOGEE CHANGE!!!
+gtagex_pert  = 'cas7_t1dgeWB_x11abd' #'cas7_t1dgeWB_x11abd3monthscont' # 'cas7_t1dgeWB_x11abd' ------------------------------ APOGEE CHANGE!!!
 
 out_dir = Ldir['LOo'] / 'chapter_3' / 'data'
 
@@ -254,7 +255,7 @@ print('    Saving dataset')
 comp = dict(zlib=True, complevel=4)
 encoding = {var: comp for var in ds_out.data_vars}
 # Save with encoding
-ds_out.to_netcdf(out_dir / ('oae_deltas_SUBDOMAIN_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
+ds_out.to_netcdf(out_dir / ('onemonimpulse_oae_deltas_SUBDOMAIN_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
 
 print(ds_out)
 

@@ -49,7 +49,7 @@ plt.close('all')
 # -------------------------
 
 # get data
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_SUBDOMAIN_2020.06.01_2020.07.18.nc'
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_SUBDOMAIN_2020.06.01_2020.08.31.nc'
 ds_cropped = xr.open_dataset(fp)
 
 fp = Ldir['LOo'] / 'chapter_3' / 'data' / '3moncont_oae_deltas_2020.06.01_2020.08.31.nc'
@@ -59,7 +59,7 @@ time_crop = ds_cropped.ocean_time.values
 delta_DIC_crop = ds_cropped.delta_DIC.values # kmol
 delta_Alk_crop = ds_cropped.delta_Alk.values # kmol
 total_dye_crop = ds_cropped.total_dye.values # kmol
-surf_dy_crop   = ds_cropped.surf_dye.values  # kmol
+surf_dye_crop  = ds_cropped.surf_dye.values  # kmol
 
 time_full = ds_fulldomain.ocean_time.values
 delta_DIC_full = ds_fulldomain.delta_DIC.values # kmol
@@ -77,20 +77,24 @@ fig,ax = plt.subplots(2,2,figsize=(9,6), sharex=True)
 ax = ax.ravel()
 
 # delta DIC
-ax[0].plot(delta_DIC_full)
+# ax[0].plot(delta_DIC_full)
 ax[0].plot(delta_DIC_crop)
 ax[0].set_title(r'$\Delta$ DIC [kmol]', fontsize=14)
 
 # delta alkalinity
-ax[1].plot(delta_Alk_full)
+# ax[1].plot(delta_Alk_full)
+ax[1].plot(delta_Alk_crop)
+ax[1].plot(total_dye_crop, linestyle='--')
 ax[1].set_title(r'$\Delta$ Alk [kmol]', fontsize=14)
 
 # dye
 # ax[2].plot(total_dye[0:n])
 # ax[2].plot(surf_dye[0:n])
-ax[2].plot(surf_dye_full/total_dye_full)
+ax[2].plot(surf_dye_crop/total_dye_crop)
 ax[2].set_title(r'Surface dye / total dye', fontsize=14)
 
 # efficiency
-ax[3].plot(delta_DIC_full/delta_Alk_full)
+# ax[3].plot(delta_DIC_full/delta_Alk_full)
+ax[3].plot(delta_DIC_crop/delta_Alk_crop)
+ax[3].plot(np.cumsum(delta_DIC_crop)/np.cumsum(delta_Alk_crop))
 ax[3].set_title(r'$\Delta$ DIC / $\Delta$ Alk', fontsize=14)

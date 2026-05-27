@@ -41,7 +41,9 @@ fig = plt.figure()
 plt.subplots_adjust(wspace=0, hspace=0)
 # create colormap
 # newcmap = cmocean.tools.crop_by_percent(cmocean.cm.deep, 20, which='min')
-newcmap = cmc.tokyo_r
+# newcmap = cmc.tokyo_r
+newcmap = cmc.batlow_r
+newcmap.set_bad(color='white')
 
 # Model Domain ----------------------------------------------------------
 ax0 = fig.add_subplot(1,3,1)
@@ -66,7 +68,8 @@ ax0.xaxis.set_major_locator(MaxNLocator(integer=True))
 ax0.yaxis.set_major_locator(MaxNLocator(integer=True))
 ax0.tick_params(axis='both', labelrotation=45, labelsize=12)
 # add title
-ax0.set_title('(a) Model Domain',fontsize=20, loc='left', fontweight='bold')#,color='#EEEEEE')
+# ax0.set_title('(a) Model Domain',fontsize=20, loc='left', fontweight='bold')#,color='#EEEEEE')
+ax0.text(0.06, 0.95, '(a)', transform=ax0.transAxes, fontsize=16, fontweight='bold')
 # add distance bar
 lat0 = 42.6
 lon0 = -123.6
@@ -97,12 +100,13 @@ ax1.set_ylim([45.5,50.5])
 ax1.set_yticklabels([])
 ax1.set_xticklabels([])
 # add title
-ax1.set_title('(b) Study Domain',fontsize=20,loc='left', fontweight='bold')# color='#EEEEEE')
+# ax1.set_title('(b) Study Domain',fontsize=20,loc='left', fontweight='bold')# color='#EEEEEE')
+ax1.text(0.06, 0.95, '(b)', transform=ax1.transAxes, fontsize=16, fontweight='bold')
 pfun.add_coast(ax1, color='silver')
 
 # draw box around Puget Sound
 bordercolor = 'deeppink'#'#EEEEEE'
-ax1.add_patch(Rectangle((-123.3, 46.93), 1.2, 1.52,
+ax1.add_patch(Rectangle((-123.3, 46.95), 1.2, 1.52,
              edgecolor = bordercolor, facecolor='none', lw=1))
 
 # add distance bar
@@ -145,12 +149,13 @@ pfun.add_coast(ax2, color='silver')
 # format figure
 pfun.dar(ax2)
 # Set axis limits
-ax2.set_xlim(-123.2, -122.1)
-ax2.set_ylim(46.95, 48.4)
+ax2.set_xlim(-123.3, -122.1)
+ax2.set_ylim(46.95, 48.47)
 ax2.set_yticklabels([])
 ax2.set_xticklabels([])
 # add title
-ax2.set_title('(c) Puget Sound',fontsize=20,loc='left', fontweight='bold')# color='#EEEEEE')
+# ax2.set_title('(c) Puget Sound',fontsize=20,loc='left', fontweight='bold')# color='#EEEEEE')
+ax2.text(0.06, 0.95, '(c)', transform=ax2.transAxes, fontsize=16, fontweight='bold')
 
 # add distance bar
 lat0 = 47.05
