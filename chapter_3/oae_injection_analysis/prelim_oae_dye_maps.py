@@ -34,7 +34,7 @@ plt.close('all')
 ##                       USER INPUTS                        ##
 ##############################################################
 
-date = '2020.07.31'
+date = '2020.09.20'
 
 # which  model runs to look at?
 basline = 'cas7_t1_x11ab'
@@ -223,11 +223,17 @@ dye_alk_cmap.set_bad(color='gray')
 # xmin = -123.1
 # xmax = -122.0
 
-# Whidbey and SJdF
-ymin = 47.75
-ymax = 48.5
-xmin = -124
-xmax = -122.0
+# # Whidbey and SJdF
+# ymin = 47.75
+# ymax = 48.5
+# xmin = -124
+# xmax = -122.0
+
+# sub domain
+xmin = -126
+xmax = -122
+ymin = 45.5
+ymax = 50.5
 
 # injection location
 inj_lon = -122.5674

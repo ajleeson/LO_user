@@ -10,6 +10,7 @@ import matplotlib.pylab as plt
 import matplotlib.colors as colors
 from pathlib import Path
 from datetime import datetime
+import pandas as pd
 import matplotlib.dates as mdates
 import gsw
 from matplotlib.patches import Rectangle
@@ -36,7 +37,9 @@ plt.close('all')
 ##############################################################
 
 # date for map
-date = '2020.07.31' 
+date = '2020.09.20' 
+# convert date to format yyy-mm-dd
+date_formatted = date.replace('.','-')
 
 # which  model runs to look at?
 basline = 'cas7_t1_x11ab'
@@ -49,11 +52,18 @@ perturbation = 'cas7_t1dgeWB_x11abd'
 ds_base = xr.open_dataset(Ldir['roms_out'] / basline      / ('f' + date) / 'ocean_avg_0001.nc')
 ds_pert = xr.open_dataset(Ldir['roms_out'] / perturbation / ('f' + date) / 'ocean_avg_0001.nc')
 
-surf_alk_base = ds_base['alkalinity'].values[0,-1,:,:]
-surf_alk_pert = ds_pert['alkalinity'].values[0,-1,:,:]
+# surf_alk_base = ds_base['alkalinity'].values[0,-1,:,:]
+# surf_alk_pert = ds_pert['alkalinity'].values[0,-1,:,:]
+
+# surf_alk_base = ds_base['alkalinity'].values[0,20,:,:]
+# surf_alk_pert = ds_pert['alkalinity'].values[0,20,:,:]
+
+surf_alk_base = ds_base['TIC'].values[0,20,:,:]
+surf_alk_pert = ds_pert['TIC'].values[0,20,:,:]
 
 # get surface dye
 surf_dye = ds_pert['dye_01'].values[0,-1,:,:]
+surf_dye = ds_pert['dye_01'].values[0,20,:,:]
 # convert units from kg/m3 to mmol/m3, to equate to alkaliinty
 surf_dye_alk_units = surf_dye / 1.7e-5 
 
@@ -68,7 +78,7 @@ ds_addition = xr.open_dataset(fp)
 ds_addition = ds_addition.isel(ocean_time=slice(0,30))
 
 # get the remaining time after the first addition
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_SUBDOMAIN_2020.07.01_2020.08.30.nc'
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_SUBDOMAIN_2020.07.01_2020.10.31.nc'
 ds_later = xr.open_dataset(fp)
 
 # combine the two datasets
@@ -80,6 +90,9 @@ delta_Alk_combined = ds_combined.delta_Alk.values # kmol
 total_dye_combined = ds_combined.total_dye.values # kmol
 surf_dye_combined  = ds_combined.surf_dye.values  # kmol
 
+# get index of date in time_combined
+target = np.datetime64(date_formatted+'T12:00:00')
+t_index = np.where(time_combined == target)[0][0]
 
 ###################################################################
 ##                         Plotting                              ##  
@@ -116,7 +129,7 @@ vmin = -1e-2
 vmax =  1e-2
 
 # colormaps
-surf_cmap = cmc.bam_r
+surf_cmap = cmc.broc_r
 surf_cmap.set_bad(color='darkgray')
 
 # add surface dye
@@ -132,8 +145,8 @@ pfun.dar(ax['dyeM'])
 # ax[0].axis('off')
 ax['dyeM'].set_title(r'Surface dye [mmol OH$^-$ m$^{-3}$]', fontsize=14)
 # add injection location
-ax['dyeM'].scatter(inj_lon, inj_lat, color='none', edgecolor='paleturquoise',marker='o', s=100,linewidth=3)
-ax['dyeM'].scatter(inj_lon, inj_lat, color='none', edgecolor='blue',marker='o', s=100,linewidth=2)
+ax['dyeM'].scatter(inj_lon, inj_lat, color='none', edgecolor='pink',marker='o', s=100,linewidth=3)
+ax['dyeM'].scatter(inj_lon, inj_lat, color='none', edgecolor='crimson',marker='o', s=100,linewidth=2)
 # for spine in ax['dyeM'].spines.values():
 #     spine.set_visible(False)
 
@@ -152,16 +165,16 @@ ax['alkM'].set_xticklabels([])
 pfun.dar(ax['alkM'])
 ax['alkM'].set_title(r'Surface $\Delta$ Alk$_{T}$ [meq m$^{-3}$]', fontsize=14)
 # add injection location
-ax['alkM'].scatter(inj_lon, inj_lat, color='none', edgecolor='paleturquoise',marker='o', s=100,linewidth=3)
-ax['alkM'].scatter(inj_lon, inj_lat, color='none', edgecolor='blue',marker='o', s=100,linewidth=2)
+ax['alkM'].scatter(inj_lon, inj_lat, color='none', edgecolor='pink',marker='o', s=100,linewidth=3)
+ax['alkM'].scatter(inj_lon, inj_lat, color='none', edgecolor='crimson',marker='o', s=100,linewidth=2)
 # for spine in ax['alkM'].spines.values():
 #     spine.set_visible(False)
 
 # draw box around analysis region
-xmin = -126
+xmin = -124 #-126
 xmax = -122
-ymin = 45.5
-ymax = 50.5
+ymin = 46.7 #45.5
+ymax = 49 #50.5
 # draw box around study domain
 bordercolor = 'black'
 ax['alkM'].add_patch(Rectangle((xmin, ymin), xmax-xmin, ymax-ymin,
@@ -171,8 +184,9 @@ ax['alkM'].add_patch(Rectangle((xmin, ymin), xmax-xmin, ymax-ymin,
 # plot time series ------------------------------------
 
 # delta alkalinity
-ax['alkT'].plot(time_combined,delta_Alk_combined, linewidth=3, color='darkmagenta',alpha=0.3)
-ax['alkT'].plot(time_combined,total_dye_combined, linewidth=1.5, color='darkmagenta',linestyle='--')
+ax['alkT'].plot(time_combined,delta_Alk_combined, linewidth=3, color='royalblue',alpha=0.3)
+ax['alkT'].plot(time_combined,total_dye_combined, linewidth=1.5, color='royalblue',linestyle='--')
+ax['alkT'].scatter(time_combined[t_index],delta_Alk_combined[t_index],color='black',marker='o', s=50)
 ax['alkT'].set_ylabel(r'$\Delta$ Alk [kmol]', fontsize=14)
 ax['alkT'].set_xticklabels([])
 ax['alkT'].tick_params(axis='x', which='both', labelbottom=False) 
@@ -181,22 +195,39 @@ ax['alkT'].grid(True, color='silver', linestyle=':')
 ax['alkT'].set_ylim([0,8000])
 
 # delta DIC
-ax['dicT'].plot(time_combined,delta_DIC_combined, linewidth=3, color='darkmagenta',alpha=0.3)
+ax['dicT'].plot(time_combined,delta_DIC_combined, linewidth=3, color='royalblue',alpha=0.3)
+ax['dicT'].scatter(time_combined[t_index],delta_DIC_combined[t_index],color='black',marker='o', s=50)
 ax['dicT'].set_ylabel(r'$\Delta$ DIC [kmol]', fontsize=14)
 ax['dicT'].set_xticklabels([])
 ax['dicT'].tick_params(axis='x', which='both', labelbottom=False) 
 ax['dicT'].tick_params(axis='y', labelsize=12, rotation=30)  
 ax['dicT'].grid(True, color='silver', linestyle=':')
-ax['dicT'].set_ylim([0,3000])
+ax['dicT'].set_ylim([0,6000])
 
 # efficiency
-ax['effT'].plot(time_combined,np.cumsum(delta_DIC_combined)/np.cumsum(delta_Alk_combined),
-                linewidth=3, color='darkmagenta',alpha=0.3)
+# ax['effT'].plot(time_combined,np.cumsum(delta_DIC_combined)/np.cumsum(delta_Alk_combined),
+#                 linewidth=3, color='royalblue',alpha=0.3)
+# ax['effT'].scatter(time_combined[t_index],
+#                    np.cumsum(delta_DIC_combined)[t_index]/np.cumsum(delta_Alk_combined)[t_index],
+#                    color='black',marker='o', s=50)
+
+ax['effT'].plot(time_combined,np.cumsum(delta_DIC_combined)/np.nansum(delta_Alk_combined[0:30]),
+                linewidth=3, color='royalblue',alpha=0.3)
+ax['effT'].scatter(time_combined[t_index],
+                   np.cumsum(delta_DIC_combined)[t_index]/np.nansum(delta_Alk_combined[0:30]),
+                   color='black',marker='o', s=50)
+
+# ax['effT'].plot(time_combined,delta_DIC_combined/delta_Alk_combined,
+#                 linewidth=3, color='royalblue',alpha=0.3)
+# ax['effT'].scatter(time_combined[t_index],
+#                    delta_DIC_combined[t_index]/delta_Alk_combined[t_index],
+#                    color='black',marker='o', s=50)
+
 ax['effT'].set_ylabel(r'$\eta = \Delta$ DIC / $\Delta$ Alk', fontsize=14)
 ax['effT'].grid(True, color='silver', linestyle=':')
 ax['effT'].tick_params(axis='both', labelsize=12, rotation=30)  
 loc = mdates.MonthLocator(interval=1)
 ax['effT'].xaxis.set_major_locator(loc)
 ax['effT'].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-ax['effT'].set_xlim([np.datetime64('2020-06-01'), np.datetime64('2020-08-31')])
-ax['effT'].set_ylim([0,1])
+ax['effT'].set_xlim([np.datetime64('2020-06-01'), np.datetime64('2020-10-31')])
+# ax['effT'].set_ylim([0,1])

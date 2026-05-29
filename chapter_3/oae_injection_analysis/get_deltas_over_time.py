@@ -196,10 +196,14 @@ for i,fn_base in enumerate(fn_list_base):
 
     # Crop to sub-domain of model to eliminate boundary noise!!!
     # lon/lat limits (Study Domain)
-    xmin = -126
+    # xmin = -126
+    # xmax = -122
+    # ymin = 45.5
+    # ymax = 50.5
+    xmin = -124 #-126
     xmax = -122
-    ymin = 45.5
-    ymax = 50.5
+    ymin = 46.7 #45.5
+    ymax = 49 #50.5
     # get eta and xi indices corresponding to these limits
     lon = ds_base.lon_rho.values
     lat = ds_base.lat_rho.values
@@ -256,7 +260,7 @@ print('    Saving dataset')
 comp = dict(zlib=True, complevel=4)
 encoding = {var: comp for var in ds_out.data_vars}
 # Save with encoding
-ds_out.to_netcdf(out_dir / ('onemonimpulse_oae_deltas_SUBDOMAIN_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
+ds_out.to_netcdf(out_dir / ('onemonimpulse_oae_deltas_superSUBDOMAIN_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
 
 print(ds_out)
 
