@@ -62,7 +62,7 @@ vns = ['alkalinity']
 # date = '2020.05.31'
 # date = '2020.05.30'
 # date = '2020.01.02'
-date = '2020.08.31'
+date = '2020.07.31'
 
 file_type = 'ocean_avg_0001.nc'
 # file_type = 'ocean_his_0001.nc'
@@ -177,8 +177,8 @@ for vn in vns:
         vmax =  0.00001
     elif vn == 'alkalinity':
         vn_name = vn
-        vmin = -5
-        vmax =  5
+        vmin = -0.02
+        vmax =  0.02
     else:
         print('vmin and vmax not provided for '+ vn)
 

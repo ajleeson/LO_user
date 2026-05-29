@@ -10,7 +10,9 @@ import matplotlib.pylab as plt
 import matplotlib.colors as colors
 from pathlib import Path
 from datetime import datetime
+import matplotlib.dates as mdates
 import gsw
+from matplotlib.patches import Rectangle
 import PyCO2SYS as pyco2
 import cmcrameri.cm as cmc
 from lo_tools import Lfun, zrfun, zfun
@@ -30,7 +32,33 @@ Ldir = Lfun.Lstart()
 plt.close('all')
 
 ##############################################################
-##                        Get data                          ##
+##                       USER INPUTS                        ##
+##############################################################
+
+# date for map
+date = '2020.07.31' 
+
+# which  model runs to look at?
+basline = 'cas7_t1_x11ab'
+perturbation = 'cas7_t1dgeWB_x11abd'
+
+##############################################################
+##                      Get map data                        ##
+##############################################################
+
+ds_base = xr.open_dataset(Ldir['roms_out'] / basline      / ('f' + date) / 'ocean_avg_0001.nc')
+ds_pert = xr.open_dataset(Ldir['roms_out'] / perturbation / ('f' + date) / 'ocean_avg_0001.nc')
+
+surf_alk_base = ds_base['alkalinity'].values[0,-1,:,:]
+surf_alk_pert = ds_pert['alkalinity'].values[0,-1,:,:]
+
+# get surface dye
+surf_dye = ds_pert['dye_01'].values[0,-1,:,:]
+# convert units from kg/m3 to mmol/m3, to equate to alkaliinty
+surf_dye_alk_units = surf_dye / 1.7e-5 
+
+##############################################################
+##                  Get time series data                    ##
 ##############################################################
 
 # get the first month that has continuous alkalinity and dye addition (cropped subdomain)
@@ -40,7 +68,7 @@ ds_addition = xr.open_dataset(fp)
 ds_addition = ds_addition.isel(ocean_time=slice(0,30))
 
 # get the remaining time after the first addition
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_SUBDOMAIN_2020.07.01_2020.08.06.nc'
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_SUBDOMAIN_2020.07.01_2020.08.30.nc'
 ds_later = xr.open_dataset(fp)
 
 # combine the two datasets
@@ -52,60 +80,123 @@ delta_Alk_combined = ds_combined.delta_Alk.values # kmol
 total_dye_combined = ds_combined.total_dye.values # kmol
 surf_dye_combined  = ds_combined.surf_dye.values  # kmol
 
-# -------------------------
-
-# # get data
-# fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_SUBDOMAIN_2020.06.01_2020.08.31.nc'
-# ds_cropped = xr.open_dataset(fp)
-
-# fp = Ldir['LOo'] / 'chapter_3' / 'data' / '3moncont_oae_deltas_2020.06.01_2020.08.31.nc'
-# ds_fulldomain = xr.open_dataset(fp)
-
-# time_crop = ds_cropped.ocean_time.values
-# delta_DIC_crop = ds_cropped.delta_DIC.values # kmol
-# delta_Alk_crop = ds_cropped.delta_Alk.values # kmol
-# total_dye_crop = ds_cropped.total_dye.values # kmol
-# surf_dye_crop  = ds_cropped.surf_dye.values  # kmol
-
-# time_full = ds_fulldomain.ocean_time.values
-# delta_DIC_full = ds_fulldomain.delta_DIC.values # kmol
-# delta_Alk_full = ds_fulldomain.delta_Alk.values # kmol
-# total_dye_full = ds_fulldomain.total_dye.values # kmol
-# surf_dye_full  = ds_fulldomain.surf_dye.values  # kmol
 
 ###################################################################
 ##                         Plotting                              ##  
 ################################################################### 
 
+# get grid info
+lons = ds_base.coords['lon_rho'].values
+lats = ds_base.coords['lat_rho'].values
+px, py = pfun.get_plon_plat(lons,lats)
+
+# injection location
+inj_lon = -122.5674
+inj_lat = 48.1956
+
 # Initialize figure
 plt.close('all')
-fig,ax = plt.subplots(2,2,figsize=(9,6), sharex=True) 
-ax = ax.ravel()
+def generate_axes(fig):
+    gridspec = fig.add_gridspec(nrows=6, ncols=12,wspace=0.5,hspace=0.5)
+    ax = {}
+    ax['alkT'] = fig.add_subplot(gridspec[0:2, 0:4])
+    ax['dicT'] = fig.add_subplot(gridspec[2:4, 0:4], sharex=ax['alkT'])
+    ax['effT'] = fig.add_subplot(gridspec[4:6, 0:4], sharex=ax['alkT'])
+    ax['alkM'] = fig.add_subplot(gridspec[0:6, 4:8])
+    ax['dyeM'] = fig.add_subplot(gridspec[0:6, 8:12])
+    return ax
 
-# delta DIC
-# ax[0].plot(delta_DIC_full)
-# ax[0].plot(delta_DIC_crop)
-ax[0].plot(delta_DIC_combined)
-ax[0].set_title(r'$\Delta$ DIC [kmol]', fontsize=14)
+# Initialize figure
+plt.close('all')
+fig = plt.figure(figsize=(12,7))
+ax = generate_axes(fig)
+
+# color scale for surf dye and alk
+vmin = -1e-2
+vmax =  1e-2
+
+# colormaps
+surf_cmap = cmc.bam_r
+surf_cmap.set_bad(color='darkgray')
+
+# add surface dye
+cs = ax['dyeM'].pcolormesh(px,py,surf_dye_alk_units,cmap=surf_cmap,vmin=vmin,vmax=vmax)
+cbar = fig.colorbar(cs, ax=ax['dyeM'],orientation='horizontal',
+                    location='bottom',pad=0.02,fraction=0.06)
+cbar.ax.tick_params(labelsize=12,rotation=30)
+cbar.outline.set_visible(False)
+# format figure
+ax['dyeM'].set_yticklabels([])
+ax['dyeM'].set_xticklabels([])
+pfun.dar(ax['dyeM'])
+# ax[0].axis('off')
+ax['dyeM'].set_title(r'Surface dye [mmol OH$^-$ m$^{-3}$]', fontsize=14)
+# add injection location
+ax['dyeM'].scatter(inj_lon, inj_lat, color='none', edgecolor='paleturquoise',marker='o', s=100,linewidth=3)
+ax['dyeM'].scatter(inj_lon, inj_lat, color='none', edgecolor='blue',marker='o', s=100,linewidth=2)
+# for spine in ax['dyeM'].spines.values():
+#     spine.set_visible(False)
+
+# add surface alkalinity
+# plot difference in surface alkalinity
+diff = surf_alk_pert - surf_alk_base
+cs = ax['alkM'].pcolormesh(px,py,diff,cmap=surf_cmap,vmin=vmin,vmax=vmax)
+cbar = fig.colorbar(cs, ax=ax['alkM'],orientation='horizontal',
+                    location='bottom',pad=0.02,fraction=0.06)
+cbar.ax.tick_params(labelsize=12,rotation=30)
+cbar.outline.set_visible(False)
+# format figure
+ax['alkM'].set_yticklabels([])
+ax['alkM'].set_xticklabels([])
+# ax[0].axis('off')
+pfun.dar(ax['alkM'])
+ax['alkM'].set_title(r'Surface $\Delta$ Alk$_{T}$ [meq m$^{-3}$]', fontsize=14)
+# add injection location
+ax['alkM'].scatter(inj_lon, inj_lat, color='none', edgecolor='paleturquoise',marker='o', s=100,linewidth=3)
+ax['alkM'].scatter(inj_lon, inj_lat, color='none', edgecolor='blue',marker='o', s=100,linewidth=2)
+# for spine in ax['alkM'].spines.values():
+#     spine.set_visible(False)
+
+# draw box around analysis region
+xmin = -126
+xmax = -122
+ymin = 45.5
+ymax = 50.5
+# draw box around study domain
+bordercolor = 'black'
+ax['alkM'].add_patch(Rectangle((xmin, ymin), xmax-xmin, ymax-ymin,
+             edgecolor = bordercolor, facecolor='none', lw=1.5))
+
+
+# plot time series ------------------------------------
 
 # delta alkalinity
-# ax[1].plot(delta_Alk_full)
-# ax[1].plot(delta_Alk_crop)
-# ax[1].plot(total_dye_crop, linestyle='--')
-ax[1].plot(delta_Alk_combined)
-ax[1].plot(total_dye_combined, linestyle='--')
-ax[1].set_title(r'$\Delta$ Alk [kmol]', fontsize=14)
+ax['alkT'].plot(time_combined,delta_Alk_combined, linewidth=3, color='darkmagenta',alpha=0.3)
+ax['alkT'].plot(time_combined,total_dye_combined, linewidth=1.5, color='darkmagenta',linestyle='--')
+ax['alkT'].set_ylabel(r'$\Delta$ Alk [kmol]', fontsize=14)
+ax['alkT'].set_xticklabels([])
+ax['alkT'].tick_params(axis='x', which='both', labelbottom=False) 
+ax['alkT'].tick_params(axis='y', labelsize=12, rotation=30) 
+ax['alkT'].grid(True, color='silver', linestyle=':')
+ax['alkT'].set_ylim([0,8000])
 
-# dye
-# ax[2].plot(total_dye[0:n])
-# ax[2].plot(surf_dye[0:n])
-# ax[2].plot(surf_dye_crop/total_dye_crop)
-ax[2].plot(surf_dye_combined/total_dye_combined)
-ax[2].set_title(r'Surface dye / total dye', fontsize=14)
+# delta DIC
+ax['dicT'].plot(time_combined,delta_DIC_combined, linewidth=3, color='darkmagenta',alpha=0.3)
+ax['dicT'].set_ylabel(r'$\Delta$ DIC [kmol]', fontsize=14)
+ax['dicT'].set_xticklabels([])
+ax['dicT'].tick_params(axis='x', which='both', labelbottom=False) 
+ax['dicT'].tick_params(axis='y', labelsize=12, rotation=30)  
+ax['dicT'].grid(True, color='silver', linestyle=':')
+ax['dicT'].set_ylim([0,3000])
 
 # efficiency
-# ax[3].plot(delta_DIC_full/delta_Alk_full)
-# ax[3].plot(delta_DIC_crop/delta_Alk_crop)
-# ax[3].plot(np.cumsum(delta_DIC_crop)/np.cumsum(delta_Alk_crop))
-ax[3].plot(np.cumsum(delta_DIC_combined)/np.cumsum(delta_Alk_combined))
-ax[3].set_title(r'$\Delta$ DIC / $\Delta$ Alk', fontsize=14)
+ax['effT'].plot(time_combined,np.cumsum(delta_DIC_combined)/np.cumsum(delta_Alk_combined),
+                linewidth=3, color='darkmagenta',alpha=0.3)
+ax['effT'].set_ylabel(r'$\eta = \Delta$ DIC / $\Delta$ Alk', fontsize=14)
+ax['effT'].grid(True, color='silver', linestyle=':')
+ax['effT'].tick_params(axis='both', labelsize=12, rotation=30)  
+loc = mdates.MonthLocator(interval=1)
+ax['effT'].xaxis.set_major_locator(loc)
+ax['effT'].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+ax['effT'].set_xlim([np.datetime64('2020-06-01'), np.datetime64('2020-08-31')])
+ax['effT'].set_ylim([0,1])

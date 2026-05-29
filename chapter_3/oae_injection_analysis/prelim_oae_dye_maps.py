@@ -34,7 +34,7 @@ plt.close('all')
 ##                       USER INPUTS                        ##
 ##############################################################
 
-date = '2020.08.31'
+date = '2020.07.31'
 
 # which  model runs to look at?
 basline = 'cas7_t1_x11ab'
@@ -217,10 +217,16 @@ dye_alk_cmap.set_bad(color='gray')
 # xmin = -125
 # xmax = -122.0
 
-# Whidbey Basin
+# # Whidbey Basin
+# ymin = 47.75
+# ymax = 48.5
+# xmin = -123.1
+# xmax = -122.0
+
+# Whidbey and SJdF
 ymin = 47.75
 ymax = 48.5
-xmin = -123.1
+xmin = -124
 xmax = -122.0
 
 # injection location
@@ -229,7 +235,7 @@ inj_lat = 48.1956
 
 # plot difference in surface alkalinity
 diff = surf_alk_pert - surf_alk_base
-cs = ax[0].pcolormesh(px,py,diff,cmap=dye_alk_cmap,norm=colors.LogNorm(vmin=1e-2,vmax=1e1))
+cs = ax[0].pcolormesh(px,py,diff,cmap=dye_alk_cmap,norm=colors.LogNorm(vmin=1e-3,vmax=1e-1))
 cbar = fig.colorbar(cs)
 cbar.ax.tick_params(labelsize=14)
 cbar.outline.set_visible(False)
@@ -246,7 +252,7 @@ ax[0].scatter(inj_lon, inj_lat, color='none', edgecolor='pink',marker='o', s=100
 ax[0].scatter(inj_lon, inj_lat, color='none', edgecolor='crimson',marker='o', s=100,linewidth=2)
 
 # plot surface dye
-cs = ax[1].pcolormesh(px,py,surf_dye_alk_units,cmap=dye_alk_cmap,norm=colors.LogNorm(vmin=1e-2,vmax=1e1))
+cs = ax[1].pcolormesh(px,py,surf_dye_alk_units,cmap=dye_alk_cmap,norm=colors.LogNorm(vmin=1e-3,vmax=1e-1))
 cbar = fig.colorbar(cs)
 cbar.ax.tick_params(labelsize=14)
 cbar.outline.set_visible(False)
@@ -281,7 +287,7 @@ ax[2].scatter(inj_lon, inj_lat, color='none', edgecolor='crimson',marker='o', s=
 
 # plot difference in CO2 flux values
 diff = CO2_flux_actual_pert - CO2_flux_actual_base
-cs = ax[3].pcolormesh(px,py,diff,cmap=diff_cmap,vmin=0,vmax=0.03)#,norm=colors.LogNorm(vmin=1e-4,vmax=1e-1))
+cs = ax[3].pcolormesh(px,py,diff,cmap=diff_cmap,vmin=0,vmax=0.003)#,norm=colors.LogNorm(vmin=1e-4,vmax=1e-1))
 cbar = fig.colorbar(cs)
 cbar.ax.tick_params(labelsize=14)
 cbar.outline.set_visible(False)
@@ -320,4 +326,4 @@ ax[3].text(0.95, 0.95, '(d)', transform=ax[3].transAxes, color='white',
 
 # Generate plot
 plt.tight_layout
-plt.suptitle('OAE daily averages on {}\n(after 3 months of daily alkalinity release)'.format(date), fontsize=14, fontweight='bold')
+plt.suptitle('OAE daily averages on {}\n(one month after a one-month pulse of alkalinity)'.format(date), fontsize=14, fontweight='bold')
