@@ -140,7 +140,7 @@ def generate_axes(fig):
 
 # Initialize figure
 plt.close('all')
-fig = plt.figure(figsize=(12,6))
+fig = plt.figure(figsize=(17,9))
 ax = generate_axes(fig)
 
 # color scale for surf dye and alk

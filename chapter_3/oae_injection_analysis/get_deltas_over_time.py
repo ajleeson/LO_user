@@ -33,15 +33,15 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-ds0 = '2020.06.01'
-ds1 = '2020.06.30'
+# ds0 = '2020.06.01'
+# ds1 = '2020.06.30'
 
-# ds0 = '2020.07.01'
-# ds1 = '2020.10.31'
+ds0 = '2020.07.01'
+ds1 = '2020.10.31'
 
 # which  model runs to look at?
 gtagex_base = 'cas7_t1_x11ab'
-gtagex_pert  = 'cas7_t1dgeWB_x11abd3monthscont' #'cas7_t1dgeWB_x11abd' #'cas7_t1dgeWB_x11abd3monthscont' # 'cas7_t1dgeWB_x11abd' ------------------------------ APOGEE CHANGE!!!
+gtagex_pert  = 'cas7_t1dgeWB_x11abd' #'cas7_t1dgeWB_x11abd3monthscont' # 'cas7_t1dgeWB_x11abd' ------------------------------ APOGEE CHANGE!!!
 
 out_dir = Ldir['LOo'] / 'chapter_3' / 'data'
 
