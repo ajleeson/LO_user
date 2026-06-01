@@ -72,15 +72,15 @@ surf_dye_alk_units = surf_dye / 1.7e-5
 ##                  Get time series data                    ##
 ##############################################################
 
-# SMALLER SUB-DOMAIN
-# # get the first month that has continuous alkalinity and dye addition (cropped subdomain)
-# fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_superSUBDOMAIN_2020.06.01_2020.06.30.nc'
-# ds_addition = xr.open_dataset(fp)
-# # # crop to just first 30 days
-# # ds_addition = ds_addition.isel(ocean_time=slice(0,30))
-# # get the remaining time after the first addition
-# fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_superSUBDOMAIN_2020.07.01_2020.10.31.nc'
-# ds_later = xr.open_dataset(fp)
+# FULL DOMAIN
+# get the first month that has continuous alkalinity and dye addition (cropped subdomain)
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / '3moncont_oae_deltas_2020.06.01_2020.08.31.nc'
+ds_addition_full = xr.open_dataset(fp)
+# crop to just first 30 days
+ds_addition_full = ds_addition_full.isel(ocean_time=slice(0,30))
+# get the remaining time after the first addition
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_2020.07.01_2020.07.18.nc'
+ds_later_full = xr.open_dataset(fp)
 
 # BIGGER SUB-DOMAIN
 # get the first month that has continuous alkalinity and dye addition (cropped subdomain)
@@ -93,7 +93,14 @@ fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_SUBDOMAIN_20
 ds_later = xr.open_dataset(fp)
 
 # combine the two datasets
+ds_combined_full = xr.concat([ds_addition_full, ds_later_full], dim='ocean_time')
 ds_combined = xr.concat([ds_addition, ds_later], dim='ocean_time')
+
+time_combined_full = ds_combined_full.ocean_time.values
+delta_DIC_combined_full = ds_combined_full.delta_DIC.values # kmol
+delta_Alk_combined_full = ds_combined_full.delta_Alk.values # kmol
+total_dye_combined_full = ds_combined_full.total_dye.values # kmol
+surf_dye_combined_full = ds_combined_full.surf_dye.values  # kmol
 
 time_combined = ds_combined.ocean_time.values
 delta_DIC_combined = ds_combined.delta_DIC.values # kmol
@@ -220,26 +227,28 @@ ax['dicM'].add_patch(Rectangle((xmin, ymin), xmax-xmin, ymax-ymin,
 # plot time series ------------------------------------
 
 # delta alkalinity
-ax['alkT'].plot(time_combined,delta_Alk_combined, linewidth=3, color='royalblue',alpha=0.3, label='alk')
-ax['alkT'].plot(time_combined,total_dye_combined, linewidth=1.5, color='royalblue',linestyle='--', label='dye')
+ax['alkT'].plot(time_combined,delta_Alk_combined, linewidth=3, color='royalblue',alpha=0.3, label='sub')
+ax['alkT'].plot(time_combined_full,delta_Alk_combined_full, linewidth=2, color='orange',alpha=0.8, label='full')
+ax['alkT'].plot(time_combined,total_dye_combined, linewidth=1.5, color='purple',linestyle='--', label='dye-sub')
 ax['alkT'].scatter(time_combined[t_index],delta_Alk_combined[t_index],color='black',marker='o', s=50)
 ax['alkT'].set_ylabel(r'$\Delta$ Alk [kmol]', fontsize=14)
 ax['alkT'].set_xticklabels([])
 ax['alkT'].tick_params(axis='x', which='both', labelbottom=False) 
 ax['alkT'].tick_params(axis='y', labelsize=12, rotation=30) 
 ax['alkT'].grid(True, color='silver', linestyle=':')
-ax['alkT'].set_ylim([0,10000])
-ax['alkT'].legend(fontsize=10,ncol=2, loc='upper left', frameon=False)
+# ax['alkT'].set_ylim([0,10000])
+ax['alkT'].legend(fontsize=10,ncol=1, loc='upper right', frameon=False)
 
 # delta DIC
 ax['dicT'].plot(time_combined,delta_DIC_combined, linewidth=3, color='royalblue',alpha=0.3)
+ax['dicT'].plot(time_combined_full,delta_DIC_combined_full, linewidth=2, color='orange',alpha=0.8)
 ax['dicT'].scatter(time_combined[t_index],delta_DIC_combined[t_index],color='black',marker='o', s=50)
 ax['dicT'].set_ylabel(r'$\Delta$ DIC [kmol]', fontsize=14)
 ax['dicT'].set_xticklabels([])
 ax['dicT'].tick_params(axis='x', which='both', labelbottom=False) 
 ax['dicT'].tick_params(axis='y', labelsize=12, rotation=30)  
 ax['dicT'].grid(True, color='silver', linestyle=':')
-ax['dicT'].set_ylim([0,6000])
+# ax['dicT'].set_ylim([0,6000])
 
 # efficiency
 # # get cumulative alkalinity up until Jun 30, then hold cumsum constant
@@ -274,6 +283,12 @@ alk_hold = delta_Alk_combined.copy()
 alk_hold[29:] = delta_Alk_combined[29]
 ax['effT'].plot(time_combined,delta_DIC_combined/alk_hold,
                 linewidth=3, color='royalblue',alpha=0.3)
+
+alk_hold_full = delta_Alk_combined_full.copy()
+alk_hold_full[29:] = delta_Alk_combined_full[29]
+ax['effT'].plot(time_combined_full,delta_DIC_combined_full/alk_hold_full,
+                linewidth=2, color='orange',alpha=0.8)
+
 ax['effT'].scatter(time_combined[t_index],
                    delta_DIC_combined[t_index]/alk_hold[t_index],
                    color='black',marker='o', s=50)

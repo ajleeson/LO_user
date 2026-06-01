@@ -62,13 +62,22 @@ def start_ds(ocean_time):
     ds = xr.Dataset(data_vars=dict(
 
         # difference in DIC between perturbation and baseline
-        delta_DIC    = (['ocean_time'], np.zeros((Ndays))),
+        delta_DIC_full    = (['ocean_time'], np.zeros((Ndays))),
+        delta_DIC_subd    = (['ocean_time'], np.zeros((Ndays))),
+        # total DIC in baseline
+        total_DIC_base_full    = (['ocean_time'], np.zeros((Ndays))),
+        total_DIC_base_subd    = (['ocean_time'], np.zeros((Ndays))),
+        
         # difference in total alkalinity between perturbation and baseline
-        delta_Alk    = (['ocean_time'], np.zeros((Ndays))),
+        delta_Alk_full    = (['ocean_time'], np.zeros((Ndays))),
+        delta_Alk_subd    = (['ocean_time'], np.zeros((Ndays))),
+        # total alkalinity in baseline
+        total_Alk_base_full    = (['ocean_time'], np.zeros((Ndays))),
+        total_Alk_base_subd    = (['ocean_time'], np.zeros((Ndays))),
+
         # total amount of dye in domain
-        total_dye   = (['ocean_time'], np.zeros((Ndays))),
-        # amount of dye in surface layer only
-        surf_dye    = (['ocean_time'], np.zeros((Ndays))),
+        total_dye_full   = (['ocean_time'], np.zeros((Ndays))),
+        total_dye_subd   = (['ocean_time'], np.zeros((Ndays))),
             
         ),
     coords=dict(ocean_time=ocean_time))
@@ -79,17 +88,31 @@ def add_metadata(ds):
     '''
     Create metadata for processed CO2 uptake capacity
     '''
-    ds['delta_DIC'].attrs['long_name'] = 'Difference in DIC between perturbation and baseline'
-    ds['delta_DIC'].attrs['units'] = 'kmol C'
+    ds['delta_DIC_full'].attrs['long_name'] = 'Full domain: Difference in DIC between perturbation and baseline'
+    ds['delta_DIC_full'].attrs['units'] = 'kmol C'
+    ds['delta_DIC_subd'].attrs['long_name'] = 'Subdomain: Difference in DIC between perturbation and baseline'
+    ds['delta_DIC_subd'].attrs['units'] = 'kmol C'
 
-    ds['delta_Alk'].attrs['long_name'] = 'Difference in total alkalinity between perturbation and baseline'
-    ds['delta_Alk'].attrs['units'] = 'kmol'
+    ds['total_DIC_base_full'].attrs['long_name'] = 'Full domain: Total DIC in baseline'
+    ds['total_DIC_base_full'].attrs['units'] = 'kmol C'
+    ds['total_DIC_base_subd'].attrs['long_name'] = 'Subdomain: Total DIC in baseline'
+    ds['total_DIC_base_subd'].attrs['units'] = 'kmol C'
 
-    ds['total_dye'].attrs['long_name'] = 'Total amount of dye in domain'
-    ds['total_dye'].attrs['units'] = 'kmol (assuming OH-)'
+    ds['delta_Alk_full'].attrs['long_name'] = 'Full domain:Difference in total alkalinity between perturbation and baseline'
+    ds['delta_Alk_full'].attrs['units'] = 'kmol'
+    ds['delta_Alk_subd'].attrs['long_name'] = 'Full domain:Difference in total alkalinity between perturbation and baseline'
+    ds['delta_Alk_subd'].attrs['units'] = 'kmol'
 
-    ds['surf_dye'].attrs['long_name'] = 'Total amount of dye in surface layer only'
-    ds['surf_dye'].attrs['units'] = 'kmol (assuming OH-)'
+    ds['total_Alk_base_full'].attrs['long_name'] = 'Full domain: Total alkalinity in baseline'
+    ds['total_Alk_base_full'].attrs['units'] = 'kmol'
+    ds['total_Alk_base_subd'].attrs['long_name'] = 'Subdomain: Total alkalinity in baseline'
+    ds['total_Alk_base_subd'].attrs['units'] = 'kmol'
+
+    ds['total_dye_full'].attrs['long_name'] = 'Full domain:Total amount of dye in domain'
+    ds['total_dye_full'].attrs['units'] = 'kmol (assuming OH-)'
+    ds['total_dye_subd'].attrs['long_name'] = 'Subdomain:Total amount of dye in domain'
+    ds['total_dye_subd'].attrs['units'] = 'kmol (assuming OH-)'
+
 
     return ds
 
@@ -174,36 +197,38 @@ for i,fn_base in enumerate(fn_list_base):
     alk_pert = ds_pert['alkalinity'] # [meq/m3]
     alk_pert_minus_base = alk_pert - alk_base # [meq/m3]
     alk_pert_minus_base_kmol = alk_pert_minus_base/1000/1000 # [kmol/m3]
+    alk_base_kmol            = alk_base/1000/1000 # [kmol/m3]
 
     TIC_base = ds_base['TIC'] # [mmol/m3]
     TIC_pert = ds_pert['TIC'] # [mmol/m3]
     TIC_pert_minus_base = TIC_pert - TIC_base # [mmol/m3]
     TIC_pert_minus_base_kmol = TIC_pert_minus_base/1000/1000 # [kmol/m3]
+    TIC_base_kmol            = TIC_base/1000/1000 # [kmol/m3]
 
     # get total dye and surface dye
     dye_all = ds_pert['dye_01']          # [kg/m3] (t,z,y,x)
-    dye_surf = ds_pert['dye_01'][0,-1,:,:] # [kg/m3] (y,x)
+
     # convert units to kmol/m3
     # where the 1.7e-5 converts dye in kg to mmol (assuming dye is a proxy for OH-)
     dye_all_kmol  = dye_all  / 1.7e-5  / 1000 / 1000 # [kmol/m3]
-    dye_surf_kmol = dye_surf / 1.7e-5  / 1000 / 1000 # [kmol/m3]
+
 
     # Multiply all variables by cell volume to get all final values in units of kmol
     delta_DIC_individualcells = TIC_pert_minus_base_kmol * vol_all # [kmol] dims are (t,z,y,x)
     delta_Alk_individualcells = alk_pert_minus_base_kmol * vol_all # [kmol] dims are (t,z,y,x)
     total_dye_individualcells = dye_all_kmol * vol_all   # [kmol] dims are (t,z,y,x)
-    surf_dye_individualcells  = dye_surf_kmol * vol_surf # [kmol] dims are (y,x)
+
+    total_DIC_individualcells_base = TIC_base_kmol * vol_all # [kmol] dims are (t,z,y,x)
+    total_Alk_individualcells_base = alk_base_kmol * vol_all # [kmol] dims are (t,z,y,x)
+
 
     # Crop to sub-domain of model to eliminate boundary noise!!!
     # lon/lat limits (Study Domain)
-    # xmin = -126
-    # xmax = -122
-    # ymin = 45.5
-    # ymax = 50.5
-    xmin = -124 #-126
+    xmin = -126
     xmax = -122
-    ymin = 46.7 #45.5
-    ymax = 49 #50.5
+    ymin = 45.5
+    ymax = 50.5
+
     # get eta and xi indices corresponding to these limits
     lon = ds_base.lon_rho.values
     lat = ds_base.lat_rho.values
@@ -217,28 +242,57 @@ for i,fn_base in enumerate(fn_list_base):
     delta_DIC_individualcells_cropped = delta_DIC_individualcells[0,:, eta_min:eta_max, xi_min:xi_max]
     delta_Alk_individualcells_cropped = delta_Alk_individualcells[0,:, eta_min:eta_max, xi_min:xi_max]
     total_dye_individualcells_cropped = total_dye_individualcells[0,:, eta_min:eta_max, xi_min:xi_max]
-    surf_dye_individualcells_cropped  = surf_dye_individualcells[eta_min:eta_max, xi_min:xi_max]
+    total_DIC_individualcells_base_cropped = total_DIC_individualcells_base[0,:, eta_min:eta_max, xi_min:xi_max]
+    total_Alk_individualcells_base_cropped = total_Alk_individualcells_base[0,:, eta_min:eta_max, xi_min:xi_max]
 
     # sum up values to get total volume integral in the sub-domain
-    delta_DIC = np.nansum(delta_DIC_individualcells_cropped) #[kmol]
-    delta_Alk = np.nansum(delta_Alk_individualcells_cropped) #[kmol]
-    total_dye = np.nansum(total_dye_individualcells_cropped) #[kmol]
-    surf_dye  = np.nansum(surf_dye_individualcells_cropped)  #[kmol]
+    delta_DIC_subd = np.nansum(delta_DIC_individualcells_cropped) #[kmol]
+    delta_Alk_subd = np.nansum(delta_Alk_individualcells_cropped) #[kmol]
+    total_dye_subd = np.nansum(total_dye_individualcells_cropped) #[kmol]
+    total_DIC_base_subd = np.nansum(total_DIC_individualcells_base_cropped) #[kmol]
+    total_Alk_base_subd = np.nansum(total_Alk_individualcells_base_cropped) #[kmol]
+
+    # sum up values to get total volume integral in the full domain
+    delta_DIC_full = np.nansum(delta_DIC_individualcells[0,:,:,:]) #[kmol]
+    delta_Alk_full = np.nansum(delta_Alk_individualcells[0,:,:,:]) #[kmol]
+    total_dye_full = np.nansum(total_dye_individualcells[0,:,:,:]) #[kmol]
+    total_DIC_base_full = np.nansum(total_DIC_individualcells_base[0,:,:,:]) #[kmol]
+    total_Alk_base_full = np.nansum(total_Alk_individualcells_base[0,:,:,:]) #[kmol]
 
     # add data to daily dataset
-    daily_ds['delta_DIC'] = xr.DataArray(delta_DIC,
+    daily_ds['delta_DIC_subd'] = xr.DataArray(delta_DIC_subd,
                                 coords={'ocean_time': ds_base['ocean_time'].values},
                                 dims=['ocean_time'])
-    daily_ds['delta_Alk'] = xr.DataArray(delta_Alk,
+    daily_ds['delta_DIC_full'] = xr.DataArray(delta_DIC_full,
                                 coords={'ocean_time': ds_base['ocean_time'].values},
                                 dims=['ocean_time'])
-    daily_ds['total_dye'] = xr.DataArray(total_dye,
+    daily_ds['total_DIC_base_full'] = xr.DataArray(total_DIC_base_full,
                                 coords={'ocean_time': ds_base['ocean_time'].values},
                                 dims=['ocean_time'])
-    daily_ds['surf_dye'] = xr.DataArray(surf_dye,
+    daily_ds['total_DIC_base_subd'] = xr.DataArray(total_DIC_base_subd,
                                 coords={'ocean_time': ds_base['ocean_time'].values},
                                 dims=['ocean_time'])
-
+    
+    daily_ds['delta_Alk_subd'] = xr.DataArray(delta_Alk_subd,
+                                coords={'ocean_time': ds_base['ocean_time'].values},
+                                dims=['ocean_time'])
+    daily_ds['delta_Alk_full'] = xr.DataArray(delta_Alk_full,
+                                coords={'ocean_time': ds_base['ocean_time'].values},
+                                dims=['ocean_time'])
+    daily_ds['total_Alk_base_full'] = xr.DataArray(total_Alk_base_full,
+                                coords={'ocean_time': ds_base['ocean_time'].values},
+                                dims=['ocean_time'])
+    daily_ds['total_Alk_base_subd'] = xr.DataArray(total_Alk_base_subd,
+                                coords={'ocean_time': ds_base['ocean_time'].values},
+                                dims=['ocean_time'])
+    
+    daily_ds['total_dye_subd'] = xr.DataArray(total_dye_subd,
+                                coords={'ocean_time': ds_base['ocean_time'].values},
+                                dims=['ocean_time'])
+    daily_ds['total_dye_full'] = xr.DataArray(total_dye_full,
+                                coords={'ocean_time': ds_base['ocean_time'].values},
+                                dims=['ocean_time'])
+    
     # Cast to float32 HERE to keep RAM usage extremely low while building the list
     daily_ds = daily_ds.astype(np.float32)
 
@@ -260,7 +314,7 @@ print('    Saving dataset')
 comp = dict(zlib=True, complevel=4)
 encoding = {var: comp for var in ds_out.data_vars}
 # Save with encoding
-ds_out.to_netcdf(out_dir / ('onemonimpulse_oae_deltas_superSUBDOMAIN_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
+ds_out.to_netcdf(out_dir / ('noise_allintegral_oae_deltas_'+ds0+'_'+ds1+'.nc'), encoding=encoding)
 
 print(ds_out)
 
