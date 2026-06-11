@@ -42,7 +42,7 @@ zm[np.transpose(mask_rho) == 0] = np.nan
 
 # Initialize figure
 plt.close('all')
-fs = 10
+fs = 14
 pfun.start_plot(fs=fs, figsize=(10,7))
 fig = plt.figure()
 plt.subplots_adjust(wspace=0, hspace=0)
@@ -63,8 +63,8 @@ ax0 = fig.add_subplot(1,2,1)
 cs = ax0.pcolormesh(plon, plat, zm, vmin=0, vmax=4000, cmap=newcmap)
 # cs = ax0.pcolormesh(plon, plat, zm, vmin=-4000, vmax=0, cmap='gist_stern_r')
 cbar = plt.colorbar(cs,ax=ax0, location='right', pad=0.05)
-cbar.ax.tick_params(labelsize=11)#, color='#EEEEEE')#, rotation=30)
-cbar.ax.set_ylabel('Depth [m]', fontsize=11)#, color='#EEEEEE')
+cbar.ax.tick_params(labelsize=14)#, color='#EEEEEE')#, rotation=30)
+cbar.ax.set_ylabel('Depth [m]', fontsize=14)#, color='#EEEEEE')
 cbar.outline.set_visible(False)
 cbar_yticks = plt.getp(cbar.ax.axes, 'yticklabels')
 # plt.setp(cbar_yticks, color='#EEEEEE')

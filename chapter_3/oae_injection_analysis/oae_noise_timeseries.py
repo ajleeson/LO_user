@@ -11,6 +11,7 @@ import matplotlib.colors as colors
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
+import matplotlib.colors as mcolors
 import matplotlib.dates as mdates
 import gsw
 from matplotlib.patches import Rectangle
@@ -72,41 +73,31 @@ surf_dye_alk_units = surf_dye / 1.7e-5
 ##                  Get time series data                    ##
 ##############################################################
 
-# FULL DOMAIN
-# get the first month that has continuous alkalinity and dye addition (cropped subdomain)
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / '3moncont_oae_deltas_2020.06.01_2020.08.31.nc'
-ds_addition_full = xr.open_dataset(fp)
-# crop to just first 30 days
-ds_addition_full = ds_addition_full.isel(ocean_time=slice(0,30))
-# get the remaining time after the first addition
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_2020.07.01_2020.07.18.nc'
-ds_later_full = xr.open_dataset(fp)
 
 # BIGGER SUB-DOMAIN
 # get the first month that has continuous alkalinity and dye addition (cropped subdomain)
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_SUBDOMAIN_2020.06.01_2020.08.31.nc'
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'noise_allintegral_oae_deltas_2020.06.01_2020.06.30.nc'
 ds_addition = xr.open_dataset(fp)
-# crop to just first 30 days
-ds_addition = ds_addition.isel(ocean_time=slice(0,30))
+
 # get the remaining time after the first addition
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_SUBDOMAIN_2020.07.01_2020.10.31.nc'
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'noise_allintegral_oae_deltas_2020.07.01_2020.10.31.nc'
 ds_later = xr.open_dataset(fp)
 
 # combine the two datasets
-ds_combined_full = xr.concat([ds_addition_full, ds_later_full], dim='ocean_time')
 ds_combined = xr.concat([ds_addition, ds_later], dim='ocean_time')
 
-time_combined_full = ds_combined_full.ocean_time.values
-delta_DIC_combined_full = ds_combined_full.delta_DIC.values # kmol
-delta_Alk_combined_full = ds_combined_full.delta_Alk.values # kmol
-total_dye_combined_full = ds_combined_full.total_dye.values # kmol
-surf_dye_combined_full = ds_combined_full.surf_dye.values  # kmol
-
 time_combined = ds_combined.ocean_time.values
-delta_DIC_combined = ds_combined.delta_DIC.values # kmol
-delta_Alk_combined = ds_combined.delta_Alk.values # kmol
-total_dye_combined = ds_combined.total_dye.values # kmol
-surf_dye_combined  = ds_combined.surf_dye.values  # kmol
+delta_DIC_full_combined = ds_combined.delta_DIC_full.values # kmol
+delta_Alk_full_combined = ds_combined.delta_Alk_full.values # kmol
+total_DIC_base_full_combined = ds_combined.total_DIC_base_full.values # kmol
+total_Alk_base_full_combined = ds_combined.total_Alk_base_full.values # kmol
+total_dye_full_combined = ds_combined.total_dye_full.values # kmol
+
+delta_DIC_subd_combined = ds_combined.delta_DIC_subd.values # kmol
+delta_Alk_subd_combined = ds_combined.delta_Alk_subd.values # kmol
+total_DIC_base_subd_combined = ds_combined.total_DIC_base_subd.values # kmol
+total_Alk_base_subd_combined = ds_combined.total_Alk_base_subd.values # kmol
+total_dye_subd_combined = ds_combined.total_dye_subd.values # kmol
 
 # get index of date in time_combined
 target = np.datetime64(date_formatted+'T12:00:00')
@@ -128,14 +119,13 @@ inj_lat = 48.1956
 # Initialize figure
 plt.close('all')
 def generate_axes(fig):
-    gridspec = fig.add_gridspec(nrows=6, ncols=15, wspace=0.5, hspace=0.5)
+    gridspec = fig.add_gridspec(nrows=6, ncols=16, wspace=0.5, hspace=0.5)
     ax = {}
-    ax['alkT'] = fig.add_subplot(gridspec[0:2, 0:3])
-    ax['dicT'] = fig.add_subplot(gridspec[2:4, 0:3], sharex=ax['alkT'])
-    ax['effT'] = fig.add_subplot(gridspec[4:6, 0:3], sharex=ax['alkT'])
-    ax['dyeM'] = fig.add_subplot(gridspec[0:6, 3:7])
-    ax['alkM'] = fig.add_subplot(gridspec[0:6, 7:11])
-    ax['dicM'] = fig.add_subplot(gridspec[0:6, 11:15])
+    ax['alkT'] = fig.add_subplot(gridspec[0:3, 0:4])
+    ax['dicT'] = fig.add_subplot(gridspec[3:6, 0:4], sharex=ax['alkT'])
+    ax['dyeM'] = fig.add_subplot(gridspec[0:6, 4:8])
+    ax['alkM'] = fig.add_subplot(gridspec[0:6, 8:12])
+    ax['dicM'] = fig.add_subplot(gridspec[0:6, 12:16])
     return ax
 
 # Initialize figure
@@ -227,83 +217,80 @@ ax['dicM'].add_patch(Rectangle((xmin, ymin), xmax-xmin, ymax-ymin,
 # plot time series ------------------------------------
 
 # delta alkalinity
-ax['alkT'].plot(time_combined,delta_Alk_combined, linewidth=3, color='royalblue',alpha=0.3, label='sub')
-ax['alkT'].plot(time_combined_full,delta_Alk_combined_full, linewidth=2, color='orange',alpha=0.8, label='full')
-ax['alkT'].plot(time_combined,total_dye_combined, linewidth=1.5, color='purple',linestyle='--', label='dye-sub')
-ax['alkT'].scatter(time_combined[t_index],delta_Alk_combined[t_index],color='black',marker='o', s=50)
+ax['alkT'].plot(time_combined,delta_Alk_subd_combined, linewidth=3, color='royalblue',alpha=0.5, label='sub')
+ax['alkT'].plot(time_combined,delta_Alk_full_combined, linewidth=2, color='orange',alpha=0.8, label='full')
+ax['alkT'].plot(time_combined,total_dye_full_combined, linewidth=1, color='purple', label='dye full')
+# add text of total alkalinity in top right of plot
+ax['alkT'].text(0.03, 0.7,
+                f'Total Alk (full): {np.nanmean(total_Alk_base_full_combined):.1e}\nTotal Alk (sub): {np.nanmean(total_Alk_base_subd_combined):.1e}',
+                transform=ax['alkT'].transAxes, fontsize=10, verticalalignment='top', horizontalalignment='left')
+# add time period of map
+ax['alkT'].axvline(time_combined[t_index],color='black')
 ax['alkT'].set_ylabel(r'$\Delta$ Alk [kmol]', fontsize=14)
 ax['alkT'].set_xticklabels([])
 ax['alkT'].tick_params(axis='x', which='both', labelbottom=False) 
 ax['alkT'].tick_params(axis='y', labelsize=12, rotation=30) 
 ax['alkT'].grid(True, color='silver', linestyle=':')
-# ax['alkT'].set_ylim([0,10000])
-ax['alkT'].legend(fontsize=10,ncol=1, loc='upper right', frameon=False)
+ax['alkT'].set_ylim([0,1.4e5])
+ax['alkT'].legend(fontsize=10,ncol=1, loc='upper left', frameon=False)
 
 # delta DIC
-ax['dicT'].plot(time_combined,delta_DIC_combined, linewidth=3, color='royalblue',alpha=0.3)
-ax['dicT'].plot(time_combined_full,delta_DIC_combined_full, linewidth=2, color='orange',alpha=0.8)
-ax['dicT'].scatter(time_combined[t_index],delta_DIC_combined[t_index],color='black',marker='o', s=50)
+ax['dicT'].plot(time_combined,delta_DIC_subd_combined, linewidth=3, color='royalblue',alpha=0.5, label='sub')
+ax['dicT'].plot(time_combined,delta_DIC_full_combined, linewidth=2, color='orange',alpha=0.8, label='full')
+ax['dicT'].plot(time_combined,total_dye_full_combined*0.9, linewidth=1, color='purple', label='theoretical dic (dye*0.9)')
+# add text of total DIC in top right of plot
+ax['dicT'].text(0.03, 0.2,
+                f'Total DIC (full): {np.nanmean(total_DIC_base_full_combined):.1e}\nTotal DIC (sub): {np.nanmean(total_DIC_base_subd_combined):.1e}',
+                transform=ax['dicT'].transAxes, fontsize=10, verticalalignment='top', horizontalalignment='left')
 ax['dicT'].set_ylabel(r'$\Delta$ DIC [kmol]', fontsize=14)
-ax['dicT'].set_xticklabels([])
 ax['dicT'].tick_params(axis='x', which='both', labelbottom=False) 
 ax['dicT'].tick_params(axis='y', labelsize=12, rotation=30)  
 ax['dicT'].grid(True, color='silver', linestyle=':')
+ax['dicT'].axvline(time_combined[t_index],color='black')
+ax['dicT'].legend(fontsize=10,ncol=1, loc='center left', frameon=False)
 # ax['dicT'].set_ylim([0,6000])
 
-# efficiency
-# # get cumulative alkalinity up until Jun 30, then hold cumsum constant
-# totalalk = np.cumsum(delta_Alk_combined)
-# totalalk29 = totalalk[29]                          # sum of indices 0..29 (first 30 points)
-# totalalk_hold = np.concatenate([totalalk[:30],     # keep through index 29
-#                           np.full(len(totalalk) - 30, totalalk29)])  # hold constant after
-# ax['effT'].plot(time_combined,delta_DIC_combined/totalalk_hold,
+# # efficiency
+
+# alk_hold = delta_Alk_combined.copy()
+# alk_hold[29:] = delta_Alk_combined[29]
+# ax['effT'].plot(time_combined,delta_DIC_combined/alk_hold,
 #                 linewidth=3, color='royalblue',alpha=0.3)
+
+# alk_hold_full = delta_Alk_combined_full.copy()
+# alk_hold_full[29:] = delta_Alk_combined_full[29]
+# ax['effT'].plot(time_combined_full,delta_DIC_combined_full/alk_hold_full,
+#                 linewidth=2, color='orange',alpha=0.8)
+
 # ax['effT'].scatter(time_combined[t_index],
-#                    delta_DIC_combined[t_index]/totalalk_hold[t_index],
+#                    delta_DIC_combined[t_index]/alk_hold[t_index],
 #                    color='black',marker='o', s=50)
 
-# # get cumulative alkalinity up until Jun 30, then hold cumsum constant
-# totalalk = np.cumsum(delta_Alk_combined)
-# totalalk29 = totalalk[29]                          # sum of indices 0..29 (first 30 points)
-# totalalk_hold = np.concatenate([totalalk[:30],     # keep through index 29
-#                           np.full(len(totalalk) - 30, totalalk29)])  # hold constant after
-# ax['effT'].plot(time_combined,np.cumsum(delta_DIC_combined)/totalalk_hold,
-#                 linewidth=3, color='royalblue',alpha=0.3)
-# ax['effT'].scatter(time_combined[t_index],
-#                    np.cumsum(delta_DIC_combined)[t_index]/totalalk_hold[t_index],
-#                    color='black',marker='o', s=50)
+# # ax['effT'].plot(time_combined,delta_DIC_combined/delta_Alk_combined,
+# #                 linewidth=3, color='royalblue',alpha=0.3)
+# # ax['effT'].scatter(time_combined[t_index],
+# #                    delta_DIC_combined[t_index]/delta_Alk_combined[t_index],
+# #                    color='black',marker='o', s=50)
 
-# ax['effT'].plot(time_combined,np.cumsum(delta_DIC_combined)/np.nansum(delta_Alk_combined[0:30]),
-#                 linewidth=3, color='royalblue',alpha=0.3)
-# ax['effT'].scatter(time_combined[t_index],
-#                    np.cumsum(delta_DIC_combined)[t_index]/np.nansum(delta_Alk_combined[0:30]),
-#                    color='black',marker='o', s=50)
+# ax['effT'].set_ylabel(r'$\eta = \Delta$ DIC / $\Delta$ Alk', fontsize=14)
+# ax['effT'].grid(True, color='silver', linestyle=':')
+# ax['effT'].tick_params(axis='both', labelsize=12, rotation=30)  
+# # ax['effT'].set_ylim([0,1])
 
-alk_hold = delta_Alk_combined.copy()
-alk_hold[29:] = delta_Alk_combined[29]
-ax['effT'].plot(time_combined,delta_DIC_combined/alk_hold,
-                linewidth=3, color='royalblue',alpha=0.3)
-
-alk_hold_full = delta_Alk_combined_full.copy()
-alk_hold_full[29:] = delta_Alk_combined_full[29]
-ax['effT'].plot(time_combined_full,delta_DIC_combined_full/alk_hold_full,
-                linewidth=2, color='orange',alpha=0.8)
-
-ax['effT'].scatter(time_combined[t_index],
-                   delta_DIC_combined[t_index]/alk_hold[t_index],
-                   color='black',marker='o', s=50)
-
-# ax['effT'].plot(time_combined,delta_DIC_combined/delta_Alk_combined,
-#                 linewidth=3, color='royalblue',alpha=0.3)
-# ax['effT'].scatter(time_combined[t_index],
-#                    delta_DIC_combined[t_index]/delta_Alk_combined[t_index],
-#                    color='black',marker='o', s=50)
-
-ax['effT'].set_ylabel(r'$\eta = \Delta$ DIC / $\Delta$ Alk', fontsize=14)
-ax['effT'].grid(True, color='silver', linestyle=':')
-ax['effT'].tick_params(axis='both', labelsize=12, rotation=30)  
 loc = mdates.MonthLocator(interval=1)
-ax['effT'].xaxis.set_major_locator(loc)
-ax['effT'].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-ax['effT'].set_xlim([np.datetime64('2020-06-01'), np.datetime64('2020-10-31')])
-# ax['effT'].set_ylim([0,1])
+ax['alkT'].xaxis.set_major_locator(loc)
+ax['alkT'].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+
+
+####################################
+
+
+fig,ax = plt.subplots(1,1,figsize=(12,6))
+
+# crop colormap so the darkest color isn't so dark
+cmap_dye = cmc.devon_r
+cmap_dye = mcolors.ListedColormap(cmap_dye(np.linspace(0, 0.65, 256)))
+cmap_dye.set_bad(color='#0B0036')
+cs = ax.pcolormesh(px,py,surf_dye_alk_units,cmap=cmap_dye,vmin=0,vmax=0.01)#,norm=colors.LogNorm(vmin=1e-4,vmax=1e0))
+pfun.dar(ax)
+

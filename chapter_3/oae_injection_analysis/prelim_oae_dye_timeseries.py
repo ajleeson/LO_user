@@ -37,7 +37,7 @@ plt.close('all')
 ##############################################################
 
 # date for map
-date = '2020.09.20' 
+date = '2020.06.19'#'2020.09.20' 
 # convert date to format yyy-mm-dd
 date_formatted = date.replace('.','-')
 

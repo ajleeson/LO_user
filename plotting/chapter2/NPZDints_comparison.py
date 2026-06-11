@@ -45,7 +45,7 @@ Ldir = Lfun.Lstart()
 
 remove_straits = True
 
-WWTP_loc = True
+WWTP_loc = False
 
 # Hanning window length
 nwin = 20
@@ -301,6 +301,10 @@ for j,var_vol_norm in enumerate([NO3_vol_norm,NH4_vol_norm,phyto_vol_norm,zoop_v
     # initialize figure
     fig, (ax0, ax1) = plt.subplots(1,2,figsize = (14,8),gridspec_kw={'width_ratios': [1, 2]})
     fig.suptitle(vars[j], fontsize = 16)
+
+    # All Puget Sound
+    ax0.pcolormesh(plon, plat, np.where(mask_rho == 0, np.nan, mask_rho),
+                vmin=0, vmax=1.1, cmap='bone' )
 
     # Hood Canal
     ax0.pcolormesh(plon, plat, np.where(mask_hc == 0, np.nan, mask_hc),

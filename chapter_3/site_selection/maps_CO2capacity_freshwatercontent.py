@@ -124,7 +124,7 @@ out_dir = Ldir['LOo'] / 'chapter_3' / 'data'
 
 # vns = ['CO2_capacity_ideal', 'CO2_flux_actual', 'surf_temp', 'surf_salt',
 # 'surf_alk', 'surf_TIC', 'wind2', 'delta_pCO2', 'Fs_31', 'Fs_30', 'Fs_29']
-vns = ['wind2']#['CO2_capacity_ideal', 'CO2_flux_actual', 'Fs_30']
+vns = ['Fs_30']#['CO2_capacity_ideal', 'CO2_flux_actual', 'Fs_30', 'wind2']
 
 stats = ['mean', 'min', 'max']
 
@@ -184,7 +184,7 @@ for month in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov',
             title = r'Freshwater content (s$_0$ = 30) [m]'
         elif vn == 'wind2':
             vmin_mean = 0
-            vmax_mean = 8
+            vmax_mean = 10#8
             vmin_lims = 0
             vmax_lims = 20
             cmap = cmc.tokyo
