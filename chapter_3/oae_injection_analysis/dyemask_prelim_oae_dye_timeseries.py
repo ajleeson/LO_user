@@ -73,24 +73,14 @@ surf_dye_alk_units = surf_dye / 1.7e-5
 ##                  Get time series data                    ##
 ##############################################################
 
-# SMALLER SUB-DOMAIN
-# # get the first month that has continuous alkalinity and dye addition (cropped subdomain)
-# fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_superSUBDOMAIN_2020.06.01_2020.06.30.nc'
-# ds_addition = xr.open_dataset(fp)
-# # # crop to just first 30 days
-# # ds_addition = ds_addition.isel(ocean_time=slice(0,30))
-# # get the remaining time after the first addition
-# fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_superSUBDOMAIN_2020.07.01_2020.10.31.nc'
-# ds_later = xr.open_dataset(fp)
-
-# BIGGER SUB-DOMAIN
+# Using dye mask (threshold = 5e-4 mmol/m3)
 # get the first month that has continuous alkalinity and dye addition (cropped subdomain)
 fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_SUBDOMAIN_2020.06.01_2020.08.31.nc'
 ds_addition = xr.open_dataset(fp)
 # crop to just first 30 days
 ds_addition = ds_addition.isel(ocean_time=slice(0,30))
 # get the remaining time after the first addition
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'onemonimpulse_oae_deltas_SUBDOMAIN_2020.07.01_2020.10.31.nc'
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'dyemask_allintegral_oae_deltas_2020.07.01_2020.10.31.nc'
 ds_later = xr.open_dataset(fp)
 
 # combine the two datasets
