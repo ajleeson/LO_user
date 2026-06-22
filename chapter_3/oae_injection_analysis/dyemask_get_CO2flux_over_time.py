@@ -269,7 +269,7 @@ for i,fn_base in enumerate(fn_list_base):
     CO2_sol = np.exp(A1 + A2/tempK0p01 + A3*np.log(tempK0p01) + 
                         S*(B1 + B2*tempK0p01 + B3*tempK0p01**2))
     # GET PCO2 OF ATMOSPHERE [uatm]
-    date_obj = datetime.strptime(date_str, "%Y.%m.%d")
+    date_obj = datetime.strptime(date_str[1::], "%Y.%m.%d")
     yearday = int(date_obj.strftime("%j")) # yearday from date
     pmonth = int(2020) - 1951 + yearday/365 # months since January 1951
     pi2 = 2 * np.pi
