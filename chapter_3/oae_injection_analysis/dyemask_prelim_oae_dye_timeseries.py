@@ -75,10 +75,10 @@ surf_dye_alk_units = surf_dye / 1.7e-5
 
 # Using dye mask (threshold = 5e-4 mmol/m3)
 # get the first month that has continuous alkalinity and dye addition (cropped subdomain)
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'oae_deltas_SUBDOMAIN_2020.06.01_2020.08.31.nc'
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'dyemask_allintegral_oae_deltas_2020.06.01_2020.06.30.nc'
 ds_addition = xr.open_dataset(fp)
-# crop to just first 30 days
-ds_addition = ds_addition.isel(ocean_time=slice(0,30))
+# # crop to just first 30 days
+# ds_addition = ds_addition.isel(ocean_time=slice(0,30))
 # get the remaining time after the first addition
 fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'dyemask_allintegral_oae_deltas_2020.07.01_2020.10.31.nc'
 ds_later = xr.open_dataset(fp)
@@ -87,10 +87,9 @@ ds_later = xr.open_dataset(fp)
 ds_combined = xr.concat([ds_addition, ds_later], dim='ocean_time')
 
 time_combined = ds_combined.ocean_time.values
-delta_DIC_combined = ds_combined.delta_DIC.values # kmol
-delta_Alk_combined = ds_combined.delta_Alk.values # kmol
-total_dye_combined = ds_combined.total_dye.values # kmol
-surf_dye_combined  = ds_combined.surf_dye.values  # kmol
+delta_DIC_combined = ds_combined.delta_DIC_full.values # kmol
+delta_Alk_combined = ds_combined.delta_Alk_full.values # kmol
+total_dye_combined = ds_combined.total_dye_full.values # kmol
 
 # get index of date in time_combined
 target = np.datetime64(date_formatted+'T12:00:00')
@@ -238,7 +237,7 @@ ax['dicT'].set_xticklabels([])
 ax['dicT'].tick_params(axis='x', which='both', labelbottom=False) 
 ax['dicT'].tick_params(axis='y', labelsize=12, rotation=30)  
 ax['dicT'].grid(True, color='silver', linestyle=':')
-ax['dicT'].set_ylim([0,6000])
+ax['dicT'].set_ylim([0,2000])
 
 # efficiency
 # # get cumulative alkalinity up until Jun 30, then hold cumsum constant

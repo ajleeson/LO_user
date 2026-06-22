@@ -65,7 +65,7 @@ print('\n')
 # --------------------------- get TEF exchange flow terms ----------------------------------------
 section = 'ai' # Admiralty Inlet
 
-in_dir = Ldir['LOo'] / 'extract' / 'cas7_t1_x11b' / 'tef2' / ('bulk_'+year+'.01.01_'+year+'.12.31')
+in_dir = Ldir['LOo'] / 'extract' / 'cas7_t1_x11b' / 'tef2' / 'cps' / ('bulk_'+year+'.01.01_'+year+'.12.31')
 tef_df, vn_list, vec_list = tef_fun.get_two_layer(in_dir,section)
 # get inflowing values
 Q_in = tef_df['q_p'] # Qin [m3/s]
@@ -80,3 +80,6 @@ QinDINin_kg_d = QinDINin_mmol_s / 71.4 * 86.4 # [kg/day] (71.4 gets from mmol/m3
 plt.close('all')
 plt.plot(dates_local_daily[1:-1],QinDINin_kg_d)
 print(np.nanmean(QinDINin_kg_d))
+
+monthly_mean = QinDINin_kg_d.resample("M").mean()
+print(monthly_mean)

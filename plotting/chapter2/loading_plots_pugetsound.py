@@ -173,6 +173,48 @@ if WWTP_loc == True:
     no3_dailyloaddf_LOrivbio = 86.4*no3df_LOrivbio*flowdf_LOrivflo # kg/d = 86.4 * mg/L * m3/s
     nh4_dailyloaddf_LOrivbio = 86.4*nh4df_LOrivbio*flowdf_LOrivflo # kg/d = 86.4 * mg/L * m3/s
 
+    #####################################################
+    # June 2026 edit to get monthly average loads
+    # Build a dummy leap-year date index so Feb 29 exists
+    dates = pd.date_range("2000-01-01", "2000-12-31", freq="D")  # 366 days
+    def monthly_climatology_mean(df, dates=dates):
+        """
+        Convert daily climatology (366 rows incl. Feb 29) to monthly mean climatology.
+        Returns a new dataframe indexed by month abbreviations (Jan..Dec).
+        """
+        out = df.copy()
+        out.index = dates
+        out = out.groupby(out.index.month).mean()
+        out.index = pd.Index(
+            pd.to_datetime(out.index, format="%m").strftime("%b"),
+            name="month"
+        )
+        return out
+    # Apply to all dfs
+    moh20_no3_dailyloaddf_wwtps_MONTHAVG = monthly_climatology_mean(moh20_no3_dailyloaddf_wwtps)
+    was24_no3_dailyloaddf_wwtps_MONTHAVG = monthly_climatology_mean(was24_no3_dailyloaddf_wwtps)
+    moh20_nh4_dailyloaddf_wwtps_MONTHAVG = monthly_climatology_mean(moh20_nh4_dailyloaddf_wwtps)
+    was24_nh4_dailyloaddf_wwtps_MONTHAVG = monthly_climatology_mean(was24_nh4_dailyloaddf_wwtps)
+    no3_dailyloaddf_triv_MONTHAVG        = monthly_climatology_mean(no3_dailyloaddf_triv)
+    no3_dailyloaddf_LOrivbio_MONTHAVG    = monthly_climatology_mean(no3_dailyloaddf_LOrivbio[0:-1])
+    nh4_dailyloaddf_triv_MONTHAVG        = monthly_climatology_mean(nh4_dailyloaddf_triv)
+    nh4_dailyloaddf_LOrivbio_MONTHAVG    = monthly_climatology_mean(nh4_dailyloaddf_LOrivbio[0:-1])
+    # sum to get DIN, and concatenate river and WWTP loads
+    # 1) Sum NH4 + NO3 to get DIN monthly means
+    moh20_din_dailyloaddf_wwtps_MONTHAVG = moh20_nh4_dailyloaddf_wwtps_MONTHAVG.add(
+        moh20_no3_dailyloaddf_wwtps_MONTHAVG, fill_value=0)
+    was24_din_dailyloaddf_wwtps_MONTHAVG = was24_nh4_dailyloaddf_wwtps_MONTHAVG.add(
+        was24_no3_dailyloaddf_wwtps_MONTHAVG, fill_value=0)
+    din_dailyloaddf_triv_MONTHAVG = nh4_dailyloaddf_triv_MONTHAVG.add(
+        no3_dailyloaddf_triv_MONTHAVG, fill_value=0)
+    din_dailyloaddf_LOrivbio_MONTHAVG = nh4_dailyloaddf_LOrivbio_MONTHAVG.add(
+        no3_dailyloaddf_LOrivbio_MONTHAVG, fill_value=0)
+    # 2) Concatenate river + WWTP DIN dfs (monthly climatology)
+    din_wwtps_MONTHAVG = pd.concat([moh20_din_dailyloaddf_wwtps_MONTHAVG,was24_din_dailyloaddf_wwtps_MONTHAVG],axis=1)
+    # 2b) Concatenate river DIN dfs: triv + LOrivbio
+    din_rivs_MONTHAVG = pd.concat([din_dailyloaddf_triv_MONTHAVG,din_dailyloaddf_LOrivbio_MONTHAVG],axis=1)
+    #####################################################
+
     # total_m3_s = (np.nansum(moh20_flowdf_wwtps.mean(axis=0)) +
     #                 np.nansum(was24_flowdf_wwtps.mean(axis=0)) +
     #                 np.nansum(flowdf_trivs.mean(axis=0)) +
@@ -346,6 +388,22 @@ if WWTP_loc == True:
 
     LOriv_lon = avgload_LOriv['lon']
     LOriv_lat = avgload_LOriv['lat']
+
+
+    #########################################################
+    # June 2026 edit to get monthly mean loads
+    # get list of all WWTPs and rivers that are in Puget Sound
+    puget_sound_wwtps = moh20_avgload_wwtps.index.values.tolist() + was24_avgload_wwtps.index.values.tolist()
+    puget_sound_rivs  = avgload_trivs.index.values.tolist() + avgload_LOriv.index.values.tolist()
+    # crop the monthly mean df to only include Puget Sound sources
+    din_wwtps_MONTHAVG_pugetsoundonly = din_wwtps_MONTHAVG[puget_sound_wwtps] 
+    din_rivs_MONTHAVG_pugetsoundonly = din_rivs_MONTHAVG[puget_sound_rivs] 
+    # create new df with sum of all WWTP and river loads
+    df_monthlyavg_pugetsoundonly = pd.DataFrame(index=din_wwtps_MONTHAVG.index)
+    df_monthlyavg_pugetsoundonly['WWTP_DIN_load(kg/d)'] = din_wwtps_MONTHAVG_pugetsoundonly.sum(axis=1)
+    df_monthlyavg_pugetsoundonly['River_DIN_load(kg/d)'] = din_rivs_MONTHAVG_pugetsoundonly.sum(axis=1)
+    #########################################################
+
     
     # define marker sizes (minimum size is 10 so dots don't get too small)
     moh20_sizes_wwtps = [max(0.05*load,5) for load in moh20_avgload_wwtps['avg-daily-load(kg/d)']]
