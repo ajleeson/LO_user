@@ -294,6 +294,15 @@ def get_sta_dict(job_name):
         sta_dict = {
         'wb': (-122.5674, 48.1956),
         }
+
+    # PECS wwtp loading test locations
+    elif job_name == 'wwtp_tests':
+        sta_dict = {
+        'mainbasin': (-122.4460, 47.6210),
+        'lynchcove': (-122.9490, 47.3897),
+        'caseinlet': (-122.8065, 47.3313),
+        'penncove':  (-122.7036, 48.2305),
+        }
             
             
     else:
