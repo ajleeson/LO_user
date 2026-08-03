@@ -54,15 +54,15 @@ years = ['2015','2016','2017','2018','2019','2020']
 # which  model run to look at?
 gtagexes = ['cas7_t1noDIN_x11ab','cas7_t1_x11ab']
 
-# # where to put output figures
-# out_dir = Ldir['LOo'] / 'pugetsound_DO' / 'figures'
-# Lfun.make_dir(out_dir)
+# where to put output figures
+out_dir = Ldir['LOo'] / 'chapter_2' / 'figures' / 'bottom_DO_maps'
+Lfun.make_dir(out_dir)
 
 region = 'Puget Sound'
 
-# hypoxic season
-start = '09-01'
-end = '10-31'
+# # hypoxic season
+# start = '09-01'
+# end = '10-31'
 
 ##############################################################
 ##                    HELPER FUNCTIONS                      ##
@@ -246,17 +246,6 @@ if region == 'Puget Sound':
     ymin = 46.95 
     ymax = 48.5#48.93
 
-# set axes range for different state variables
-vmin = 0
-vmax = 10
-cmap = plt.cm.get_cmap('rainbow_r', 10)
-
-# Initialize figure
-fs = 10
-pfun.start_plot(fs=fs, figsize=(9,7.2))
-fig,axes = plt.subplots(1,len(gtagexes))
-ax = axes.ravel()
-
 # get lat and lon
 fp = Ldir['LOo'] / 'extract' / 'cas7_t0_x4b' / 'box' / ('pugetsoundDO_2013.01.01_2013.12.31.nc')
 ds = xr.open_dataset(fp)
@@ -264,251 +253,307 @@ lons = ds.coords['lon_rho'].values
 lats = ds.coords['lat_rho'].values
 px, py = pfun.get_plon_plat(lons,lats)
 
-# average over hypoxic season
-# get julian day of hypoxic season (subtract one because python indexes from 0)
-start_day_index = pd.to_datetime('2001-' + start).dayofyear - 1
-end_day_index   = pd.to_datetime('2001-' + end).dayofyear - 1
-# crop to hypoxic season
-hypseason_botDO_loading = bottDO_clim_loading[start_day_index:end_day_index,:,:]
-hypseason_botDO_noloading = bottDO_clim_noloading[start_day_index:end_day_index,:,:]
-# aveage over hypoxic season
-mean_botDO_loading = np.average(hypseason_botDO_loading,axis=0)    
-mean_botDO_noloading = np.average(hypseason_botDO_noloading,axis=0)
+# loop through months
+months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+for month in months:
 
-# plot no loading
-cs = ax[0].pcolormesh(px,py,mean_botDO_noloading, vmin=vmin, vmax=vmax, cmap=cmap)#cmocean.cm.balance_r)
-cbar = fig.colorbar(cs, location='left',pad=cbar_pad)
-cbar.ax.tick_params(labelsize=14)#,length=10, width=2)
-cbar.outline.set_visible(False)
-ax[0].set_title('(a) No-Loading', fontsize=14,
-                loc='left', fontweight='bold')
+    # Initialize figure
+    fs = 10
+    pfun.start_plot(fs=fs, figsize=(9,7.2))
+    fig,axes = plt.subplots(1,len(gtagexes))
+    ax = axes.ravel()
 
+    # set axes range for different state variables
+    vmin = 0
+    vmax = 10
+    cmap = plt.cm.get_cmap('rainbow_r', 10)
 
-diff = (mean_botDO_loading - mean_botDO_noloading)
-mindiff = np.nanmin(diff)
-maxdiff = np.nanmax(diff)
-# make sure colorbar axis contains zero
-if mindiff > 0 and maxdiff > 0:
-    mindiff = maxdiff*-1.01
-if mindiff < 0 and maxdiff < 0:
-    maxdiff = mindiff*-1.01
-# don't let colorbar axis scale get too large
-if maxdiff > vmax:
-    maxdiff = vmax
-mindiff = -0.25
-maxdiff = 0.05
-# make sure the colorbar is always centered about zero
-cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
-cs = ax[1].pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
-ax[1].set_title(r'(b) Loading $-$ No-Loading', fontsize=14,
-                loc='left', fontweight='bold')
-cbar = fig.colorbar(cs, location='right',pad=cbar_pad)
-cbar.ax.tick_params(labelsize=14)#,length=10, width=2)
-cbar.outline.set_visible(False)
+    if month == 'Jan':
+        start = '01-01'
+        end = '01-31'
+    elif month == 'Feb':
+        start = '02-01'
+        end = '02-28'
+    elif month == 'Mar':   
+        start = '03-01'
+        end = '03-31'
+    elif month == 'Apr':
+        start = '04-01'
+        end = '04-30'
+    elif month == 'May':
+        start = '05-01'
+        end = '05-31'
+    elif month == 'Jun':
+        start = '06-01'
+        end = '06-30'
+    elif month == 'Jul':
+        start = '07-01'
+        end = '07-31'
+    elif month == 'Aug':
+        start = '08-01'
+        end = '08-31'
+    elif month == 'Sep':
+        start = '09-01'
+        end = '09-30'
+    elif month == 'Oct':
+        start = '10-01'
+        end = '10-31'
+    elif month == 'Nov':
+        start = '11-01'
+        end = '11-30'
+    elif month == 'Dec':
+        start = '12-01'
+        end = '12-31'
 
-# calculate mean difference in Puget Sound (weighted by area)
-# calculate area of each grid cell (and apply Puget Sound mask)
-# get horizontal area
-fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / 'pugetsoundDO_2014.01.01_2014.12.31.nc'
-box_ds = xr.open_dataset(fp)
-DX = (box_ds.pm.values)**-1
-DY = (box_ds.pn.values)**-1
-DA = DX*DY * np.where(mask_ps == 0, np.nan, mask_ps) # get area in m2 (within Puget Sound mask)
-# multiply area by difference, and sum
-sum_diff_x_area = np.nansum(diff * DA)
-# calculate total area of Puget Sound
-total_area = np.nansum(DA)
-# get area-weighted difference
-mean_ps_diff = sum_diff_x_area/total_area
-# mean_ps_diff = np.nanmean(diff * np.where(mask_ps == 0, np.nan, mask_ps))
+    # average over hypoxic season
+    # get julian day of hypoxic season (subtract one because python indexes from 0)
+    start_day_index = pd.to_datetime('2001-' + start).dayofyear - 1
+    end_day_index   = pd.to_datetime('2001-' + end).dayofyear - 1
+    # crop to hypoxic season
+    hypseason_botDO_loading = bottDO_clim_loading[start_day_index:end_day_index,:,:]
+    hypseason_botDO_noloading = bottDO_clim_noloading[start_day_index:end_day_index,:,:]
+    # aveage over hypoxic season
+    mean_botDO_loading = np.average(hypseason_botDO_loading,axis=0)    
+    mean_botDO_noloading = np.average(hypseason_botDO_noloading,axis=0)
 
-print('\n=========================\n'+
-      'Average difference across Puget Sound of\n'+
-      'mean climatological bottom DO concentration\n'+
-      'during {} to {}: {} mg/L'.format(
-    start, end, round(mean_ps_diff,3)))
-
-# format figure
-for axis in ax:
-    axis.set_xlim([xmin,xmax])
-    axis.set_ylim([ymin,ymax])
-    # axis.tick_params(axis='both',rotation=30)
-    # axis.set_xlabel('Lon',fontsize=12)
-    pfun.dar(axis)
-    axis.axes.xaxis.set_visible(False)
-    axis.axes.yaxis.set_visible(False)
-
-# add wwtp locations
-if WWTP_loc == True:
-    ax[1].scatter(moh20_lon_wwtps,moh20_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=moh20_sizes_wwtps, label='WWTPs')
-    ax[1].scatter(was24_lon_wwtps,was24_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=was24_sizes_wwtps)
-    leg_szs = [100, 1000, 10000]
-    szs = [0.05*(leg_sz) for leg_sz in leg_szs]
-    l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=1)
-    l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=1)
-    l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=1)
-    labels = ['< 100', '1,000', '10,000']
-    legend = ax[1].legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
-        title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
-    plt.setp(legend.get_title(),fontsize=9)
-
-# # add 10 km bar
-# lat0 = 46.94 + 0.1
-# lon0 = -123.05 +0.7
-# lat1 = lat0
-# lon1 = -122.91825+0.7
-# distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
-# x_dist_km = round(distances_m[0]/1000)
-# ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=2)
-# ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=10)
-
-# # # format figure
-# # ax[0].set_xlim([xmin,xmax])
-# # ax[0].set_ylim([ymin,ymax])
-# # ax[0].set_yticklabels([])
-# # ax[0].set_xticklabels([])
-# # ax[0].axis('off')
-# # pfun.dar(ax[0])
-                                                     
-# Add colormap title
-plt.suptitle('Sep-Oct average bottom DO [mg/L]',
-            fontsize=16, y=0.95)
-
-# Generate plot
-plt.tight_layout
-plt.subplots_adjust(left=0.05, right=0.92, top=0.85, wspace=0.1)
+    # plot no loading
+    cs = ax[0].pcolormesh(px,py,mean_botDO_noloading, vmin=vmin, vmax=vmax, cmap=cmap)#cmocean.cm.balance_r)
+    cbar = fig.colorbar(cs, location='left',pad=cbar_pad)
+    cbar.ax.tick_params(labelsize=14)#,length=10, width=2)
+    cbar.outline.set_visible(False)
+    ax[0].set_title('(a) No-Loading', fontsize=14,
+                    loc='left', fontweight='bold')
 
 
-##############################################################
-##                BOTTOM DO VS. CHANGE IN DO               ##
-##############################################################
+    diff = (mean_botDO_loading - mean_botDO_noloading)
+    mindiff = np.nanmin(diff)
+    maxdiff = np.nanmax(diff)
+    # make sure colorbar axis contains zero
+    if mindiff > 0 and maxdiff > 0:
+        mindiff = maxdiff*-1.01
+    if mindiff < 0 and maxdiff < 0:
+        maxdiff = mindiff*-1.01
+    # don't let colorbar axis scale get too large
+    if maxdiff > vmax:
+        maxdiff = vmax
+    mindiff = -0.25
+    maxdiff = 0.05
+    # make sure the colorbar is always centered about zero
+    cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
+    cs = ax[1].pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
+    ax[1].set_title(r'(b) Loading $-$ No-Loading', fontsize=14,
+                    loc='left', fontweight='bold')
+    cbar = fig.colorbar(cs, location='right',pad=cbar_pad)
+    cbar.ax.tick_params(labelsize=14)#,length=10, width=2)
+    cbar.outline.set_visible(False)
 
-# initialize figure
-fig, (ax0, ax1) = plt.subplots(1,2,figsize = (6.9,4.5),gridspec_kw={'width_ratios': [1, 2]})
+    # calculate mean difference in Puget Sound (weighted by area)
+    # calculate area of each grid cell (and apply Puget Sound mask)
+    # get horizontal area
+    fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / 'pugetsoundDO_2014.01.01_2014.12.31.nc'
+    box_ds = xr.open_dataset(fp)
+    DX = (box_ds.pm.values)**-1
+    DY = (box_ds.pn.values)**-1
+    DA = DX*DY * np.where(mask_ps == 0, np.nan, mask_ps) # get area in m2 (within Puget Sound mask)
+    # multiply area by difference, and sum
+    sum_diff_x_area = np.nansum(diff * DA)
+    # calculate total area of Puget Sound
+    total_area = np.nansum(DA)
+    # get area-weighted difference
+    mean_ps_diff = sum_diff_x_area/total_area
+    # mean_ps_diff = np.nanmean(diff * np.where(mask_ps == 0, np.nan, mask_ps))
 
-# Hood Canal
-ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_hc == 0, np.nan, mask_hc),
-            vmin=0, vmax=2.5, cmap='RdPu' )
-# South Sound
-ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_ss == 0, np.nan, mask_ss),
-            vmin=0, vmax=2, cmap='Purples' )
-# Whidbey Basin
-ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_wb == 0, np.nan, mask_wb),
-            vmin=0, vmax=3, cmap='cool' )
-# Main Basin
-ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_mb == 0, np.nan, mask_mb),
-            vmin=0, vmax=1.5, cmap='summer' )
-# format figure
-ax0.set_xlim([xmin,xmax])
-ax0.set_ylim([ymin,ymax])
-# ax0.set_ylabel('Latitude', fontsize=12)
-# ax0.set_xlabel('Longitude', fontsize=12)
-# ax0.tick_params(axis='both', labelsize=12, rotation=30)
-ax0.set_xticks([])
-ax0.set_yticks([])
-ax0.set_title('(a)', loc='left', fontsize=14, fontweight='bold')
-pfun.dar(ax0)
+    print('\n=========================\n'+
+        'Average difference across Puget Sound of\n'+
+        'mean climatological bottom DO concentration\n'+
+        'during {} to {}: {} mg/L'.format(
+        start, end, round(mean_ps_diff,3)))
 
-# # pick some case-study locations
-# testi = 130
-# testj = 200
-# ax0.scatter(lon_basins[0,testi],lat_basins[testj,0],s=20,color='black')
+    # format figure
+    for axis in ax:
+        axis.set_xlim([xmin,xmax])
+        axis.set_ylim([ymin,ymax])
+        # axis.tick_params(axis='both',rotation=30)
+        # axis.set_xlabel('Lon',fontsize=12)
+        pfun.dar(axis)
+        axis.axes.xaxis.set_visible(False)
+        axis.axes.yaxis.set_visible(False)
 
-# get mean bottom DO in all basins
-mean_botDO_noloading_hc = np.where(mask_hc == 0, np.nan, mean_botDO_noloading)
-mean_botDO_noloading_wb = np.where(mask_wb == 0, np.nan, mean_botDO_noloading)
-mean_botDO_noloading_mb = np.where(mask_mb == 0, np.nan, mean_botDO_noloading)
-mean_botDO_noloading_ss = np.where(mask_ss == 0, np.nan, mean_botDO_noloading)
+    # add wwtp locations
+    if WWTP_loc == True:
+        ax[1].scatter(moh20_lon_wwtps,moh20_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=moh20_sizes_wwtps, label='WWTPs')
+        ax[1].scatter(was24_lon_wwtps,was24_lat_wwtps,color='none', edgecolors='k', linewidth=1, s=was24_sizes_wwtps)
+        leg_szs = [100, 1000, 10000]
+        szs = [0.05*(leg_sz) for leg_sz in leg_szs]
+        l0 = plt.scatter([],[], s=szs[0], color='none', edgecolors='k', linewidth=1)
+        l1 = plt.scatter([],[], s=szs[1], color='none', edgecolors='k', linewidth=1)
+        l2 = plt.scatter([],[], s=szs[2], color='none', edgecolors='k', linewidth=1)
+        labels = ['< 100', '1,000', '10,000']
+        legend = ax[1].legend([l0, l1, l2], labels, fontsize = 10, markerfirst=False,
+            title='WWTP loading \n'+r' (kg N d$^{-1}$)',loc='upper left', labelspacing=1, borderpad=0.8)
+        plt.setp(legend.get_title(),fontsize=9)
 
-diff_hc = np.where(mask_hc == 0, np.nan, diff)
-diff_wb = np.where(mask_wb == 0, np.nan, diff)
-diff_mb = np.where(mask_mb == 0, np.nan, diff)
-diff_ss = np.where(mask_ss == 0, np.nan, diff)
+    # # add 10 km bar
+    # lat0 = 46.94 + 0.1
+    # lon0 = -123.05 +0.7
+    # lat1 = lat0
+    # lon1 = -122.91825+0.7
+    # distances_m = zfun.ll2xy(lon1,lat1,lon0,lat0)
+    # x_dist_km = round(distances_m[0]/1000)
+    # ax[0].plot([lon0,lon1],[lat0,lat1],color='k',linewidth=2)
+    # ax[0].text(lon0-0.04,lat0+0.01,'{} km'.format(x_dist_km),color='k',fontsize=10)
 
+    # # # format figure
+    # # ax[0].set_xlim([xmin,xmax])
+    # # ax[0].set_ylim([ymin,ymax])
+    # # ax[0].set_yticklabels([])
+    # # ax[0].set_xticklabels([])
+    # # ax[0].axis('off')
+    # # pfun.dar(ax[0])
+                                                        
+    # Add colormap title
+    plt.suptitle(month + ' average bottom DO [mg/L]',
+                fontsize=16, y=0.95)
 
-hc_color = '#f582a0'
-wb_color = '#5bacfc'
-ss_color = '#9893c9'
-mb_color = '#addb69'
-# size=6
-size=300
-alpha=0.8
+    # Generate plot
+    plt.tight_layout
+    plt.subplots_adjust(left=0.05, right=0.92, top=0.85, wspace=0.1)
 
-# ax1.scatter(mean_botDO_noloading_wb.flatten(),diff_wb.flatten(),
-#             alpha=0.6,edgecolor='none',facecolor=wb_color, s=size)
-# ax1.scatter(mean_botDO_noloading_mb.flatten(),diff_mb.flatten(),
-#             alpha=0.6,edgecolor='none',facecolor=mb_color, s=size)
-# ax1.scatter(mean_botDO_noloading_ss.flatten(),diff_ss.flatten(),
-#             alpha=0.6,edgecolor='none',facecolor=ss_color, s=size)
-# ax1.scatter(mean_botDO_noloading_hc.flatten(),diff_hc.flatten(),
-#             alpha=0.6,edgecolor='none',facecolor=hc_color, s=size)
-
-# # make legend
-# hc_patch = mpatches.Patch(color=hc_color, label='Hood Canal', alpha=1.0)
-# wb_patch = mpatches.Patch(color=wb_color, label='Whidbey Basin', alpha=1.0)
-# ss_patch = mpatches.Patch(color=ss_color, label='South Sound', alpha=1.0)
-# mb_patch = mpatches.Patch(color=mb_color, label='Main Basin', alpha=1.0)
-# ax1.legend(loc='lower right', fontsize=10, ncol=2,
-#            handles=[hc_patch,wb_patch,ss_patch,mb_patch])
+    plt.savefig(out_dir / ('bottomDO_map_'+month+'.png'))
 
 
-# plot mean of each basin
-ax1.scatter(np.nanmean(mean_botDO_noloading_wb),np.nanmean(diff_wb),
-            alpha=alpha,edgecolor='none',facecolor=wb_color, s=size)
-ax1.scatter(np.nanmean(mean_botDO_noloading_mb),np.nanmean(diff_mb),
-            alpha=alpha,edgecolor='none',facecolor=mb_color, s=size)
-ax1.scatter(np.nanmean(mean_botDO_noloading_ss),np.nanmean(diff_ss),
-            alpha=alpha,edgecolor='none',facecolor=ss_color, s=size)
-ax1.scatter(np.nanmean(mean_botDO_noloading_hc),np.nanmean(diff_hc),
-            alpha=alpha,edgecolor='none',facecolor=hc_color, s=size)
+    ##############################################################
+    ##                BOTTOM DO VS. CHANGE IN DO               ##
+    ##############################################################
 
-# plot case studies
-# lynch cove
-i = 53
-j = 100
-ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,edgecolor='darkred',facecolor='none')
-ax1.scatter(mean_botDO_noloading_hc[j,i],diff_hc[j,i],
-            alpha=1,edgecolor='darkred',facecolor='none', s=size/9)
-# Hood Canal elbow
-i = 23
-j = 93
-ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='darkred')
-ax1.scatter(mean_botDO_noloading_hc[j,i],diff_hc[j,i],
-            alpha=1,edgecolor='none',facecolor='darkred', s=size/9)
-# Elliott Bay
-i = 132
-j = 146
-ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='darkgreen', marker='^')
-ax1.scatter(mean_botDO_noloading_mb[j,i],diff_mb[j,i],
-            alpha=1,edgecolor='none',facecolor='darkgreen', s=size/9, marker='^')
-# Port Susan
-i = 130
-j = 270
-ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='mediumblue',marker='x')
-ax1.scatter(mean_botDO_noloading_wb[j,i],diff_wb[j,i],
-            alpha=1,facecolor='mediumblue', s=size/9, marker='x')
-# # Budd Inlet
-# i = 56
-# j = 34
-# ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='black')
-# ax1.scatter(mean_botDO_noloading_ss[j,i],diff_ss[j,i],
-#             alpha=1,edgecolor='none',facecolor='black', s=size/15)
+    # initialize figure
+    fig, (ax0, ax1) = plt.subplots(1,2,figsize = (6.9,4.5),gridspec_kw={'width_ratios': [1, 2]})
 
-# make legend
-hc_patch = mpatches.Patch(color=hc_color, label='Hood Canal', alpha=1.0)
-wb_patch = mpatches.Patch(color=wb_color, label='Whidbey Basin', alpha=1.0)
-ss_patch = mpatches.Patch(color=ss_color, label='South Sound', alpha=1.0)
-mb_patch = mpatches.Patch(color=mb_color, label='Main Basin', alpha=1.0)
-ax1.legend(loc='lower right', fontsize=10, ncol=2,
-           handles=[hc_patch,wb_patch,ss_patch,mb_patch])
+    # Hood Canal
+    ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_hc == 0, np.nan, mask_hc),
+                vmin=0, vmax=2.5, cmap='RdPu' )
+    # South Sound
+    ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_ss == 0, np.nan, mask_ss),
+                vmin=0, vmax=2, cmap='Purples' )
+    # Whidbey Basin
+    ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_wb == 0, np.nan, mask_wb),
+                vmin=0, vmax=3, cmap='cool' )
+    # Main Basin
+    ax0.pcolormesh(plon_basins, plat_basins, np.where(mask_mb == 0, np.nan, mask_mb),
+                vmin=0, vmax=1.5, cmap='summer' )
+    # format figure
+    ax0.set_xlim([xmin,xmax])
+    ax0.set_ylim([ymin,ymax])
+    # ax0.set_ylabel('Latitude', fontsize=12)
+    # ax0.set_xlabel('Longitude', fontsize=12)
+    # ax0.tick_params(axis='both', labelsize=12, rotation=30)
+    ax0.set_xticks([])
+    ax0.set_yticks([])
+    ax0.set_title('(a)', loc='left', fontsize=14, fontweight='bold')
+    pfun.dar(ax0)
 
-# format figure
-ax1.axhline(0,linestyle=':',color='silver')
-ax1.set_title('(b)', loc='left', fontsize=14, fontweight='bold')
-ax1.set_xlim([0,8])
-# ax1.set_ylim([-0.30,0.05])
-ax1.set_ylim([-0.22,0.02])
-ax1.tick_params(axis='both', labelsize=12, rotation=3)
-ax1.set_xlabel('No-loading Sep-Oct bottom DO [mg/L]',fontsize=12)
-ax1.set_ylabel(r'Loading $-$ No-loading [mg/L]',fontsize=12)
-plt.tight_layout()
+    # # pick some case-study locations
+    # testi = 130
+    # testj = 200
+    # ax0.scatter(lon_basins[0,testi],lat_basins[testj,0],s=20,color='black')
+
+    # get mean bottom DO in all basins
+    mean_botDO_noloading_hc = np.where(mask_hc == 0, np.nan, mean_botDO_noloading)
+    mean_botDO_noloading_wb = np.where(mask_wb == 0, np.nan, mean_botDO_noloading)
+    mean_botDO_noloading_mb = np.where(mask_mb == 0, np.nan, mean_botDO_noloading)
+    mean_botDO_noloading_ss = np.where(mask_ss == 0, np.nan, mean_botDO_noloading)
+
+    diff_hc = np.where(mask_hc == 0, np.nan, diff)
+    diff_wb = np.where(mask_wb == 0, np.nan, diff)
+    diff_mb = np.where(mask_mb == 0, np.nan, diff)
+    diff_ss = np.where(mask_ss == 0, np.nan, diff)
+
+
+    hc_color = '#f582a0'
+    wb_color = '#5bacfc'
+    ss_color = '#9893c9'
+    mb_color = '#addb69'
+    # size=6
+    size=300
+    alpha=0.8
+
+    # ax1.scatter(mean_botDO_noloading_wb.flatten(),diff_wb.flatten(),
+    #             alpha=0.6,edgecolor='none',facecolor=wb_color, s=size)
+    # ax1.scatter(mean_botDO_noloading_mb.flatten(),diff_mb.flatten(),
+    #             alpha=0.6,edgecolor='none',facecolor=mb_color, s=size)
+    # ax1.scatter(mean_botDO_noloading_ss.flatten(),diff_ss.flatten(),
+    #             alpha=0.6,edgecolor='none',facecolor=ss_color, s=size)
+    # ax1.scatter(mean_botDO_noloading_hc.flatten(),diff_hc.flatten(),
+    #             alpha=0.6,edgecolor='none',facecolor=hc_color, s=size)
+
+    # # make legend
+    # hc_patch = mpatches.Patch(color=hc_color, label='Hood Canal', alpha=1.0)
+    # wb_patch = mpatches.Patch(color=wb_color, label='Whidbey Basin', alpha=1.0)
+    # ss_patch = mpatches.Patch(color=ss_color, label='South Sound', alpha=1.0)
+    # mb_patch = mpatches.Patch(color=mb_color, label='Main Basin', alpha=1.0)
+    # ax1.legend(loc='lower right', fontsize=10, ncol=2,
+    #            handles=[hc_patch,wb_patch,ss_patch,mb_patch])
+
+
+    # plot mean of each basin
+    ax1.scatter(np.nanmean(mean_botDO_noloading_wb),np.nanmean(diff_wb),
+                alpha=alpha,edgecolor='none',facecolor=wb_color, s=size)
+    ax1.scatter(np.nanmean(mean_botDO_noloading_mb),np.nanmean(diff_mb),
+                alpha=alpha,edgecolor='none',facecolor=mb_color, s=size)
+    ax1.scatter(np.nanmean(mean_botDO_noloading_ss),np.nanmean(diff_ss),
+                alpha=alpha,edgecolor='none',facecolor=ss_color, s=size)
+    ax1.scatter(np.nanmean(mean_botDO_noloading_hc),np.nanmean(diff_hc),
+                alpha=alpha,edgecolor='none',facecolor=hc_color, s=size)
+
+    # plot case studies
+    # lynch cove
+    i = 53
+    j = 100
+    ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,edgecolor='darkred',facecolor='none')
+    ax1.scatter(mean_botDO_noloading_hc[j,i],diff_hc[j,i],
+                alpha=1,edgecolor='darkred',facecolor='none', s=size/9)
+    # Hood Canal elbow
+    i = 23
+    j = 93
+    ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='darkred')
+    ax1.scatter(mean_botDO_noloading_hc[j,i],diff_hc[j,i],
+                alpha=1,edgecolor='none',facecolor='darkred', s=size/9)
+    # Elliott Bay
+    i = 132
+    j = 146
+    ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='darkgreen', marker='^')
+    ax1.scatter(mean_botDO_noloading_mb[j,i],diff_mb[j,i],
+                alpha=1,edgecolor='none',facecolor='darkgreen', s=size/9, marker='^')
+    # Port Susan
+    i = 130
+    j = 270
+    ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='mediumblue',marker='x')
+    ax1.scatter(mean_botDO_noloading_wb[j,i],diff_wb[j,i],
+                alpha=1,facecolor='mediumblue', s=size/9, marker='x')
+    # Case Inlet
+    i = 69
+    j = 80
+    ax0.scatter(lon_basins[0,i],lat_basins[j,0],s=size/15,color='black', marker = 's')
+    ax1.scatter(mean_botDO_noloading_ss[j,i],diff_ss[j,i],
+                alpha=1,edgecolor='none',facecolor='black', s=size/15, marker='s')
+
+    # make legend
+    hc_patch = mpatches.Patch(color=hc_color, label='Hood Canal', alpha=1.0)
+    wb_patch = mpatches.Patch(color=wb_color, label='Whidbey Basin', alpha=1.0)
+    ss_patch = mpatches.Patch(color=ss_color, label='South Sound', alpha=1.0)
+    mb_patch = mpatches.Patch(color=mb_color, label='Main Basin', alpha=1.0)
+    ax1.legend(loc='lower right', fontsize=10, ncol=2,
+            handles=[hc_patch,wb_patch,ss_patch,mb_patch])
+
+    # format figure
+    ax1.axhline(0,linestyle=':',color='silver')
+    ax1.set_title('(b)', loc='left', fontsize=14, fontweight='bold')
+    ax1.set_xlim([0,8])
+    # ax1.set_ylim([-0.30,0.05])
+    ax1.set_ylim([-0.22,0.02])
+    ax1.tick_params(axis='both', labelsize=12, rotation=3)
+    ax1.set_xlabel('No-loading '+month+' bottom DO [mg/L]',fontsize=12)
+    ax1.set_ylabel(r'Loading $-$ No-loading [mg/L]',fontsize=12)
+    plt.tight_layout()
+
+    plt.savefig(out_dir / ('DOchange_scatter_'+month+'.png'))

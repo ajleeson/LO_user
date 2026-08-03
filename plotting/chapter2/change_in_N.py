@@ -638,10 +638,10 @@ print('DO no-loading {} mmol/m3'.format(DO_mols_daily_avg_noloading/PugetSound_v
 ##############################################################
 
 # Puget Sound bounds
-xmin = -130#-123.29
+xmin = -123.29
 xmax = -122.1
-ymin = 43#46.95
-ymax = 52#48.50
+ymin = 46.95
+ymax = 48.50
 
 
 # initialize figure

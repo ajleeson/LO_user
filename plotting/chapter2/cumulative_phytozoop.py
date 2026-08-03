@@ -1,6 +1,6 @@
 """
-Compare average bottom DO between multiple years
-(Set up to run for 6 years)
+Comapre annual cumulative amount of phytoplankton and zooplankton
+in Loading and No-Loading runs
 
 """
 
@@ -43,17 +43,15 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-WWTP_loc = False
+remove_straits = True
 
-# Hanning window length
-nwin = 20
+WWTP_loc = True
 
 # years =  ['2015']
-years =  ['2013','2014','2015','2016','2017','2018','2019','2020']
-# years =  ['2014','2015','2016','2017','2018','2019','2020']
+years =  ['2014','2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
-gtagexes = ['cas7_t1_x11ab'] 
+gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'chapter_2' / 'figures'
@@ -182,22 +180,18 @@ plon, plat = pfun.get_plon_plat(lon,lat)
 # get average concentration per basin
 
 # initialize empty dictionaries and fill with vertical integrals
-NO3_vert_dict = {}
-DO_vert_dict = {}
+phyto_vert_dict = {}
+zoop_vert_dict = {}
 
 for year in years:
     for gtagex in gtagexes:
         ds = xr.open_dataset(Ldir['LOo'] / 'chapter_2' / 'data' / (gtagex + '_pugetsoundDO_' + year + '_NPZD_vert_ints.nc'))
-        NO3_vert_int = ds['NO3_vert_int'].values
+
         phyto_vert_int = ds['phyto_vert_int'].values
         zoop_vert_int = ds['zoop_vert_int'].values
-        NH4_vert_int = ds['NH4_vert_int'].values
-        LdetritusN_vert_int = ds['LdetritusN_vert_int'].values
-        SdetritusN_vert_int = ds['SdetritusN_vert_int'].values
-        DO_vert_int = ds['DO_vert_int'].values
-        # add data to dictionaries
-        NO3_vert_dict[gtagex+year] = NO3_vert_int
-        DO_vert_dict[gtagex+year] = DO_vert_int
+
+        phyto_vert_dict[gtagex+year] = phyto_vert_int
+        zoop_vert_dict[gtagex+year] = zoop_vert_int
 
 # grid cell areas
 fp = Ldir['LOo'] / 'extract' / 'cas7_t1_x11ab' / 'box' / ('pugetsoundDO_2014.01.01_2014.12.31.nc')
@@ -207,9 +201,9 @@ DY = (box_ds.pn.values)**-1
 DA = DX*DY # get area in m2
 
 
-# initialize dictionary for average concentration (volume integrals [mol], normalized by volume)
-NO3_vol_norm = {}
-DO_vol_norm = {}
+# initialize dictionary for cumulative amount of stuff
+phyto_cumulative = {}
+zoop_cumulative = {}
 
 for year in years:
     for region in regions:
@@ -226,21 +220,19 @@ for year in years:
         elif region == 'All Puget Sound':
             mask = mask_ps
 
-        # basin volume
-        h_masked = h * mask
-        basin_vol = np.sum(h_masked * DA) # [m3]
-
         for gtagex in gtagexes:
 
-            NO3_vert_int = NO3_vert_dict[gtagex+year]
-            NO3_vert_int_masked = NO3_vert_int * mask
-            NO3_vol_timeseries = np.sum(NO3_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            NO3_vol_norm[gtagex+region+year] = NO3_vol_timeseries / basin_vol *1000 # [mmol/m3]
+            phyto_vert_int = phyto_vert_dict[gtagex+year]
+            phyto_vert_int_masked = phyto_vert_int * mask
+            phyto_vol_timeseries = np.sum(phyto_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            phyto_cumulative[gtagex+region+year] = np.cumsum(phyto_vol_timeseries) /1000 /1000 /1000 # [gigamols]
+            # phyto_vol_norm[gtagex+region+year] = phyto_vol_timeseries / basin_vol *1000 # [mmol/m3]
 
-            DO_vert_int = DO_vert_dict[gtagex+year]
-            DO_vert_int_masked = DO_vert_int * mask
-            DO_vol_timeseries = np.sum(DO_vert_int_masked * DA, axis=(1, 2)) # [mol]
-            DO_vol_norm[gtagex+region+year] = DO_vol_timeseries / basin_vol *1000 # [mmol/m3]
+            zoop_vert_int = zoop_vert_dict[gtagex+year]
+            zoop_vert_int_masked = zoop_vert_int * mask
+            zoop_vol_timeseries = np.sum(zoop_vert_int_masked * DA, axis=(1, 2)) # [mol]
+            zoop_cumulative[gtagex+region+year] = np.cumsum(zoop_vol_timeseries) /1000 /1000 /1000 # [gigamols]
+            # zoop_vol_norm[gtagex+region+year] = zoop_vol_timeseries / basin_vol *1000 # [mmol/m3]
 
 ##############################################################
 ##                    Plot basin map                        ##
@@ -253,16 +245,17 @@ ymin = 46.95
 ymax = 48.50#48.93
 
 # variables
-vars = ['NO3','Dissolved Oxygen']
-for j,var_vol_norm in enumerate([NO3_vol_norm,DO_vol_norm]):
+vars = ['Phytoplankton','Zooplankton']
+for j,cumsum_dict in enumerate([phyto_cumulative,zoop_cumulative]):
 
     # initialize figure
-    fig, (ax0, ax1) = plt.subplots(1,2,figsize = (11,5),gridspec_kw={'width_ratios': [1, 2]})
+    fig, (ax0, ax1) = plt.subplots(1,2,figsize = (14,8),gridspec_kw={'width_ratios': [1, 2]})
     fig.suptitle(vars[j], fontsize = 16)
 
     # All Puget Sound
     ax0.pcolormesh(plon, plat, np.where(mask_rho == 0, np.nan, mask_rho),
                 vmin=0, vmax=1.1, cmap='bone' )
+
     # Hood Canal
     ax0.pcolormesh(plon, plat, np.where(mask_hc == 0, np.nan, mask_hc),
                 vmin=0, vmax=2.5, cmap='RdPu' )
@@ -309,94 +302,101 @@ for j,var_vol_norm in enumerate([NO3_vol_norm,DO_vol_norm]):
 ##    Sub-basins and multiple years and percent change      ##
 ##############################################################
 
-# # plot timeseries
-#     for year in years:
-#         # create time vector
-#         startdate = year+'.01.01'
-#         enddate = year+'.12.31'
-#         dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
-#         dates_local = [pfun.get_dt_local(x) for x in dates]
-#         # loop through model runs
-#         for k,region in enumerate(regions):
-#             # get data for the basin and gtagex and year
-#             gtagex = 'cas7_t1_x11ab'
-#             avg_concentration = var_vol_norm[gtagex+region+year]
-#             # pass through hanning window
-#             avg_concentration_filtered = zfun.lowpass(avg_concentration,n=nwin)
-#             # plot data
-#             if region == 'All Puget Sound':
-#                 ax1.plot(dates_local,avg_concentration_filtered,linewidth=2,
-#                         color=colors[k], alpha=1,linestyle='--')
-#             else:
-#                 ax1.plot(dates_local,avg_concentration_filtered,linewidth=3,
-#                     color=colors[k], alpha=0.8)
-
-    # plot timeseries
-    gtagex = gtagexes[0]
-
-    for k, region in enumerate(regions):
-        all_dates_local = []
-        all_avg_concentration = []
-
-        # concatenate all years first
-        for year in years:
-            startdate = year + '.01.01'
-            enddate = year + '.12.31'
-            dates = pd.date_range(start=startdate, end=enddate, freq='1D')
-            dates_local = [pfun.get_dt_local(x) for x in dates]
-
-            avg_concentration = var_vol_norm[gtagex + region + year]
-
-            all_dates_local.extend(dates_local)
-            all_avg_concentration.extend(avg_concentration)
-
-        # convert to array
-        all_avg_concentration = np.array(all_avg_concentration)
-
-        # apply lowpass to the full concatenated series
-        all_avg_concentration_filtered = zfun.lowpass(all_avg_concentration, n=nwin)
-
-        # plot the full filtered series
-        if region == 'All Puget Sound':
-            ax1.plot(all_dates_local, all_avg_concentration_filtered,
-                    linewidth=1, color=colors[k], alpha=1, linestyle='--')
-        else:
-            ax1.plot(all_dates_local, all_avg_concentration_filtered,
-                    linewidth=2, color=colors[k], alpha=0.8)
+# plot timeseries
+    for year in years:
+        # create time vector
+        startdate = year+'.01.01'
+        enddate = year+'.12.31'
+        dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+        dates_local = [pfun.get_dt_local(x) for x in dates]
+        # loop through model runs
+        for k,region in enumerate(regions):
+            # get data for the basin and gtagex and year
+            gtagex = 'cas7_t1noDIN_x11ab'
+            cumsum_amount = cumsum_dict[gtagex+region+year]
+            # plot data
+            if region == 'All Puget Sound':
+                ax1.plot(dates_local,cumsum_amount,linewidth=1,
+                        color=colors[k], alpha=1,linestyle='--')
+            else:
+                ax1.plot(dates_local,cumsum_amount,linewidth=2,
+                    color=colors[k], alpha=0.8)
                 
     # format figure
     ax1.grid(visible=True, axis='both', color='silver', linestyle='--')
-    ax1.tick_params(axis='both', labelsize=12, rotation=30)
-    ax1.set_ylabel(r'mmol/m3', fontsize=12)
+    ax1.set_xticklabels([])
+    ax1.tick_params(axis='y', labelsize=12, rotation=30)
+    ax1.set_ylabel(r'Gmol', fontsize=12)
     # create time vector
     startdate = years[0]+'.01.01'
     enddate = years[-1]+'.12.31'
     dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
     dates_local = [pfun.get_dt_local(x) for x in dates]
     ax1.set_xlim([dates_local[0],dates_local[-1]])
-    ax1.hlines(y=0, xmin=dates_local[0], xmax=dates_local[-1],
-               color='silver', linestyle='--', linewidth=0.75)
     ax1.xaxis.set_major_locator(mdates.YearLocator())
-    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-    ax1.set_title('(b) Avg. Conc. ({}-day Hanning Window)'.format(nwin), loc='left', fontsize=14, fontweight='bold')
-    
+    ax1.set_title('(b) No-Loading annual cumulative amount', loc='left', fontsize=14, fontweight='bold')
+    # ax1.set_title('(b) No-Loading Avg. Conc. ({}-day Hanning Window)'.format(nwin), loc='left', fontsize=14, fontweight='bold')
 
     # set y-lims
-    if vars[j] == 'NO3':
-        ymax_conc = 40
-    elif vars[j] == 'NH4':
-        ymax_conc = 1.75
-    elif vars[j] == 'Phytoplankton':
+    if vars[j] == 'Phytoplankton':
         ymax_conc = 1.75
     elif vars[j] == 'Zooplankton':
         ymax_conc = 0.175
-    elif vars[j] == 'Large Detritus':
-        ymax_conc = 0.04
-    elif vars[j] == 'Small Detritus':
-        ymax_conc = 1.2
-    elif vars[j] == 'Dissolved Oxygen':
-        ymax_conc = 300
-    ax1.set_ylim([0,ymax_conc])
+    # ax1.set_ylim([0,ymax_conc])
+
+    # add difference plot -----------------------------------------------------------
+    divider = make_axes_locatable(ax1)
+    ax2 = divider.append_axes("bottom", size='50%', pad=0.4)
+    ax1.figure.add_axes(ax2)
+    ax2.set_xlim([dates_local[0],dates_local[-1]])
+
+    # plot difference
+    for year in years:
+        # create time vector
+        startdate = year+'.01.01'
+        enddate = year+'.12.31'
+        dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+        dates_local = [pfun.get_dt_local(x) for x in dates]
+        # loop through model runs
+        for k,region in enumerate(regions):
+            # get data for the basin and gtagex and year
+            noloading = 'cas7_t1noDIN_x11ab'
+            avg_concentration_noloading = cumsum_dict[noloading+region+year]
+            loading = 'cas7_t1_x11ab'
+            avg_concentration_loading = cumsum_dict[loading+region+year]
+            # calculate difference
+            diff =  avg_concentration_loading - avg_concentration_noloading
+            # plot data
+            if region == 'All Puget Sound':
+                ax2.plot(dates_local,diff,linewidth=1,
+                        color=colors[k], alpha=1,linestyle='--')
+            else:
+                ax2.plot(dates_local,diff,linewidth=2,
+                    color=colors[k], alpha=0.8)
+                
+    # format figure
+    ax2.grid(visible=True, axis='x', color='silver', linestyle='--')
+    ax2.tick_params(axis='both', labelsize=12, rotation=30)
+    ax2.set_ylabel(r'Gmol', fontsize=12)
+    # create time vector
+    startdate = years[0]+'.01.01'
+    enddate = years[-1]+'.12.31'
+    dates = pd.date_range(start= startdate, end= enddate, freq= '1d')
+    dates_local = [pfun.get_dt_local(x) for x in dates]
+    ax2.set_xlim([dates_local[0],dates_local[-1]])
+    ax2.hlines(y=0, xmin=dates_local[0], xmax=dates_local[-1],
+               color='silver', linestyle='--', linewidth=0.75)
+    ax2.xaxis.set_major_locator(mdates.YearLocator())
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+    ax2.set_title('(c) Loading - No-Loading', loc='left', fontsize=14, fontweight='bold')
+
+    # set y-lims
+    if vars[j] == 'Phytoplankton':
+        ymin_diff = -0.12
+    elif vars[j] == 'Zooplankton':
+        ymin_diff = -0.01
+    ymax_diff = ymin_diff*-1
+    # ax2.set_ylim([ymin_diff,ymax_diff])
 
     plt.tight_layout()
     plt.show()
