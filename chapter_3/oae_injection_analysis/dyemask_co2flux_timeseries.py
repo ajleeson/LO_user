@@ -208,7 +208,7 @@ ds_addition = xr.open_dataset(fp)
 # # crop to just first 30 days
 # ds_addition = ds_addition.isel(ocean_time=slice(0,30))
 # get the remaining time after the first addition
-fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'dyemask_allintegral_oae_deltas_2020.07.01_2020.10.31.nc'
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'dyemask_CO2flux_2020.07.01_2020.10.31.nc'
 ds_later = xr.open_dataset(fp)
 
 # combine the two datasets
