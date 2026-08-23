@@ -484,3 +484,134 @@ for y,date in enumerate(dates):
     pfun.add_coast(ax[y,1], color='black')
 
 # plt.adjust_subplots(wspace=0.05, hspace=0.05)
+
+
+###################################################################
+##                         Plotting                              ##  
+################################################################### 
+
+dates = ['2020.06.30']
+
+# Initialize figure
+plt.close('all')
+fig,ax = plt.subplots(1,2,figsize=(12.3,4.5), sharex=True, sharey=True) 
+
+for y,date in enumerate(dates):
+
+    # get grid info
+    lons = ds_base.coords['lon_rho'].values
+    lats = ds_base.coords['lat_rho'].values
+    px, py = pfun.get_plon_plat(lons,lats)
+
+    # set colormaps
+    dye_alk_cmap = cmc.devon_r
+    flux_cmap = cmc.roma_r #cmc.vik
+    diff_cmap = cmc.batlowW_r #cmc.tokyo_r #cmc.lajolla_r #
+    flux_cmap.set_bad(color   ='gainsboro')
+    diff_cmap.set_bad(color   ='gainsboro')
+    dye_alk_cmap.set_bad(color='gainsboro')
+
+    # # Southern Salish Sea
+    # ymin = 46.8
+    # ymax = 48.9
+    # xmin = -125
+    # xmax = -122.0
+
+    # # Whidbey Basin
+    # ymin = 47.75
+    # ymax = 48.5
+    # xmin = -123.1
+    # xmax = -122.0
+
+    # # Whidbey Basin 2.0
+    # ymin = 47.75
+    # ymax = 48.5
+    # xmin = -123.5
+    # xmax = -122.0
+
+    # # Whidbey and SJdF
+    # ymin = 47.75
+    # ymax = 48.5
+    # xmin = -124
+    # xmax = -122.0
+
+    # Whidbey and SJdF 2.0
+    ymin = 47.3
+    ymax = 48.5
+    xmin = -124.8
+    xmax = -122.0
+
+    # injection location
+    inj_lon = -122.5674
+    inj_lat = 48.1956
+
+    # plot difference in surface alkalinity
+    vmin = 1e-3
+    clipped = np.where(dict_data_final[date]['alk_diff'] <= 0, vmin, dict_data_final[date]['alk_diff'])
+    cs = ax[0].pcolormesh(px,py,clipped,cmap=dye_alk_cmap,norm=colors.LogNorm(vmin=vmin,vmax=1e1))
+    # cs = ax[y,0].pcolormesh(px,py,dict_data_final[date]['alk_diff'],vmin=0,vmax=1,cmap=dye_alk_cmap)
+    cbar = fig.colorbar(cs)
+    cbar.ax.tick_params(labelsize=14, rotation=30)
+    cbar.outline.set_visible(False)
+    cbar.outline.set_visible(False)
+    # if y == 0:
+    #     cax = inset_axes(ax[0],width="100%",height="9%",loc="lower left",
+    #     bbox_to_anchor=(0., -0.12, 1, 1),bbox_transform=ax[0].transAxes, borderpad=0)
+    #     cbar = fig.colorbar(cs, cax=cax, orientation='horizontal')
+    #     cbar.ax.tick_params(labelsize=14, rotation=30)
+    #     cbar.outline.set_visible(False)
+    if y == 0:
+        ax[0].set_title(r'Surface $\Delta$ Alk$_{T}$'+'\n'+r'[meq m$^{-3}$]', fontsize=14)
+    # format figure
+    ax[0].set_xlim([xmin,xmax])
+    ax[0].set_ylim([ymin,ymax])
+    ax[0].tick_params(axis='x', labelrotation=30)
+    # ax[0].set_yticklabels([])
+    # ax[0].set_xticklabels([])
+    # ax[0].axis('off')
+    pfun.dar(ax[0])
+    # ax[0,y].set_title(r'Surface $\Delta$ Alk$_{T}$ [meq m$^{-3}$]', fontsize=14)
+    # add injection location
+    ax[0].scatter(inj_lon, inj_lat, color='none', edgecolor='pink',marker='o',    s=100,linewidth=3, zorder=5)
+    ax[0].scatter(inj_lon, inj_lat, color='none', edgecolor='crimson',marker='o', s=100,linewidth=2, zorder=5)
+    # add date label
+    ax[0].set_ylabel('Lat', fontsize=14)
+    ax[0].set_xlabel('Lon', fontsize=14)
+    pfun.add_coast(ax[0], color='black')
+
+    # plot difference in CO2 flux values
+    vmin = 1e-4
+    clipped = np.where(dict_data_final[date]['CO2_flux_diff'] <= 0, vmin, dict_data_final[date]['CO2_flux_diff'])
+    cs = ax[1].pcolormesh(px,py,clipped,cmap=diff_cmap,norm=colors.LogNorm(vmin=vmin,vmax=1e-2)) # ,vmin=0,vmax=0.008)#
+    # cs = ax[y,1].pcolormesh(px,py,dict_data_final[date]['CO2_flux_diff'],cmap=diff_cmap,vmin=0,vmax=0.008)#
+    cbar = fig.colorbar(cs)
+    cbar.ax.tick_params(labelsize=14, rotation=30)
+    cbar.outline.set_visible(False)
+    cbar.outline.set_visible(False)
+    # if y == 0:
+    #     cax = inset_axes(ax[1],width="100%",height="9%",loc="lower left",
+    #     bbox_to_anchor=(0., -0.12, 1, 1),bbox_transform=ax[1].transAxes, borderpad=0)
+    #     cbar = fig.colorbar(cs, cax=cax, orientation='horizontal')
+    #     cbar.ax.tick_params(labelsize=14, rotation=30)
+    #     cbar.outline.set_visible(False)
+    #     cbar.outline.set_visible(False)
+    if y == 0:
+        ax[1].set_title(r'$\Delta$ CO$_2$ flux'+'\n'+r'mmol m$^{-2}$ d$^{-1}$]', fontsize=14)
+    # format figure
+    ax[1].set_xlim([xmin,xmax])
+    ax[1].set_ylim([ymin,ymax])
+    ax[1].tick_params(axis='x', labelrotation=30)
+    # ax[1].set_yticklabels([])
+    # ax[1].set_xticklabels([])
+    ax[1].set_xlabel('Lon', fontsize=14)
+    # ax[3].axis('off')
+    pfun.dar(ax[1])
+    # ax[1,y].set_title(r'$\Delta$ CO$_2$ flux [mmol m$^{-2}$ d$^{-1}$]', fontsize=14)
+    # add injection location
+    ax[1].scatter(inj_lon, inj_lat, color='none', edgecolor='pink',marker='o',    s=100,linewidth=3, zorder=5)
+    ax[1].scatter(inj_lon, inj_lat, color='none', edgecolor='crimson',marker='o', s=100,linewidth=2, zorder=5)
+    pfun.add_coast(ax[1], color='black')
+
+    plt.tight_layout()
+
+# plt.adjust_subplots(wspace=0.05, hspace=0.05)

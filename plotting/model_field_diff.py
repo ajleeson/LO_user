@@ -62,10 +62,12 @@ vns = ['alkalinity']
 # date = '2020.05.31'
 # date = '2020.05.30'
 # date = '2020.01.02'
-date = '2020.07.31'
+# date = '2020.07.31'
 
-file_type = 'ocean_avg_0001.nc'
-# file_type = 'ocean_his_0001.nc'
+date = '2020.06.07'
+
+# file_type = 'ocean_avg_0001.nc'
+file_type = 'ocean_his_0002.nc'
 
 ###################################################################
 ##          load output folder, grid data, model output          ##  
@@ -77,8 +79,8 @@ file_type = 'ocean_avg_0001.nc'
 # gtagex_longhindcast = 'cas7_t1_x11ab'#'cas7_t1_x11ab'
 # gtagex_noN = 'cas7_t1_x11b'#'cas7_t1noDIN_x11ab'
 
-gtagex_longhindcast = 'cas7_t1dgeWB_x11abd' # test dye injection 
-gtagex_noN = 'cas7_t1_x11ab' # long hindcast
+gtagex_perturbation = 'cas7_t1dgeWB_x11abd3monthscont' # (e.g., long-hindcast for WWTP loading, aklalinity addition) 
+gtagex_baseline = 'cas7_t1_x11ab' # (e.g., no nutrients run, long-hindcast for alkalinity addition)
 
 # gtagex_longhindcast = 'cas7_t1d_x11ad'#'cas7_t1_x11ab'
 # gtagex_noN = 'cas7_t1noDIN_x11ab'#'cas7_t1noDIN_x11ab'
@@ -131,8 +133,8 @@ ymax = 48.45
 # get model output
 # fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / 'ocean_his_0025.nc'
 # fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / 'ocean_his_0025.nc'
-fp_hindcast = Ldir['roms_out'] / gtagex_longhindcast / ('f'+date) / file_type
-fp_noN = Ldir['roms_out'] / gtagex_noN / ('f'+date) / file_type
+fp_hindcast = Ldir['roms_out'] / gtagex_perturbation / ('f'+date) / file_type
+fp_noN = Ldir['roms_out'] / gtagex_baseline / ('f'+date) / file_type
 ds_hindcast = xr.open_dataset(fp_hindcast)
 ds_noN = xr.open_dataset(fp_noN)
 
@@ -177,8 +179,8 @@ for vn in vns:
         vmax =  0.00001
     elif vn == 'alkalinity':
         vn_name = vn
-        vmin = -0.02
-        vmax =  0.02
+        vmin = -0.00001
+        vmax =  0.00001
     else:
         print('vmin and vmax not provided for '+ vn)
 
@@ -225,7 +227,7 @@ for vn in vns:
     # ################################################################### 
 
     # Initialize figure
-    fig = plt.figure(figsize=(12,9)) # 15,11 for Puget sound and 18,8 for Salish Sea
+    fig = plt.figure(figsize=(18,8)) # 15,11 for Puget sound and 18,8 for Salish Sea
     plt.tight_layout()
 
     subplotnums = [121,122]
@@ -254,7 +256,7 @@ for vn in vns:
         # pfun.add_coast(ax, color='k')
         pfun.dar(ax)
         ax.set_title(vn + ' difference at ' + stext + pinfo.units_dict[vn_name], fontsize=16)
-        fig.suptitle('{} minus {}\n'.format(gtagex_longhindcast,gtagex_noN) + date + file_type,
+        fig.suptitle('{} minus {}\n'.format(gtagex_perturbation,gtagex_baseline) + date + file_type,
                     fontsize=18, fontweight='bold')
 
         # # add 10 km bar

@@ -4,7 +4,6 @@ Dictionaries of defaults to be used for plotting.
 """
 
 from cmocean import cm
-import cmcrameri.cm as cmc
 
 # default figure size
 figsize = (13,8) # laptop
@@ -12,11 +11,11 @@ figsize = (13,8) # laptop
 # Color limits
 # If you use () then the limits will be set by the first plot
 # and then held constant at those levels thereafter.    
-vlims_dict = {'salt': (29.9,30),#(14, 35),
+vlims_dict = {'salt':  (25, 34),
         'temp': (7, 18),
         'dye_01': (0,1),
         'NO3': (0, 35),
-        'NH4': (0, 5),
+        'NH4': (0, 15),
         'phytoplankton': (0,40),
         'zooplankton': (0, 0.6),
         'oxygen': (0, 10),
@@ -28,26 +27,28 @@ vlims_dict = {'salt': (29.9,30),#(14, 35),
         'LdetritusN': (0,0.1),
         'u': (-0.5,0.5),
         'v': (-0.3,0.3),
-        'w': (-0.005,0.005)}
+        'w': (-0.005,0.005),
+        'dye_01': (0,0.2)}
 
 # Colormaps (use _r for reverse)
 cmap_dict = {'salt': cm.haline,#'Spectral_r',
              'temp': 'RdYlBu_r',#'bwr',
-             'NO3': cmc.batlow_r,
-             'NH4': cmc.batlow_r,
-             'phytoplankton': cm.algae,
-             'zooplankton': cm.algae,
-             'oxygen': cmc.roma, #cm.oxy,
+             'NO3': 'gist_stern', #cm.matter,
+             'NH4': 'gist_stern', #cm.matter,
+             'phytoplankton': 'gist_stern', #cm.algae,
+             'zooplankton': 'gist_stern',
+             'oxygen': 'rainbow_r', #cm.oxy,
              'TIC': 'rainbow',
              'alkalinity': 'rainbow',
              'PH': 'jet',
              'ARAG': 'rainbow',
-             'SdetritusN': cmc.batlow_r,
-             'LdetritusN': cmc.batlow_r,
+             'SdetritusN': 'gist_stern', #'rainbow',
+             'LdetritusN': 'gist_stern', #'rainbow',
              'u': cm.balance,
              'v': cm.balance,
              'w': cm.balance,
-             'zeta': 'rainbow'}
+             'zeta': 'rainbow',
+             'dye_01': 'RdPu'}
 
 # Units (after multiplying by scaling factor)
 units_dict = {'salt': '$(g\ kg^{-1})$',
@@ -68,7 +69,8 @@ units_dict = {'salt': '$(g\ kg^{-1})$',
              'v': ' $(m\ s^{-1})$',
              'ubar': ' $(m\ s^{-1})$',
              'vbar': ' $(m\ s^{-1})$',
-             'zeta': ' (m)'}
+             'zeta': ' (m)',
+             'dye_01': ' $(\mu\ equivalents\ L^{-1})$'}
 
 # Scaling factors
 fac_dict =  {'salt': 1,
@@ -89,7 +91,8 @@ fac_dict =  {'salt': 1,
              'v': 1,
              'ubar': 1,
              'vbar': 1,
-             'zeta': 1}
+             'zeta': 1,
+             'dye_01': 1.7e5,}
              
 # String form to use in titles
 tstr_dict = {'salt': 'Salinity',
@@ -110,7 +113,8 @@ tstr_dict = {'salt': 'Salinity',
              'v': 'V',
              'ubar': 'Ubar',
              'vbar': 'Vbar',
-             'zeta': 'Zeta'}
+             'zeta': 'Zeta',
+             'dye_01': 'dye_01'}
              
 # this is used by plotting_functions.auto_lims to decide how many
 # standard deviations +/- to set the color limits relative to the mean
@@ -131,4 +135,5 @@ range_dict =  {'salt': 1,
              'v': 3,
              'ubar': 3,
              'vbar': 3,
-             'zeta': 3}
+             'zeta': 3,
+             'dye_01': 3}

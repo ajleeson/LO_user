@@ -51,8 +51,8 @@ WWTP_loc = True
 nwin = 20
 
 # years =  ['2014','2015']
-# years =  ['2014','2015','2016','2017','2018','2019','2020']
-years =  ['2017']#['2015','2016','2017','2018','2019','2020']
+years =  ['2015','2016','2017','2018','2019','2020']
+# years =  ['2017']#['2015','2016','2017','2018','2019','2020']
 
 # which  model run to look at?
 gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab'] 
@@ -608,6 +608,7 @@ TN_loading = (NO3_mols_daily_avg_loading +
                 Sdet_mols_daily_avg_loading +
                 Ldet_mols_daily_avg_loading)
 
+
 print('----------')
 print('Vol-integrated TN in Puget Sound increased by: {} perc'.format( round(
     (TN_loading-TN_noloading)/TN_noloading * 100 ,2)))
@@ -623,8 +624,8 @@ print('Vol-integrated DO in Puget Sound decreased by: {} perc'.format( round(
 h_masked = h * mask_ps
 PugetSound_vol = np.sum(h_masked * DA) # [m3]
 print('Change in concentrations ----------------')
-print('Puget Sound TN Loading: {} mmol/m3'.format( round((TN_loading / PugetSound_vol *1000),2)))
-print('Puget Sound TN No-Loading: {} mmol/m3'.format( round((TN_noloading / PugetSound_vol *1000),2)))
+print('Puget Sound TN Loading: {} mmol/m3'.format( round((TN_loading / PugetSound_vol *1000),3)))
+print('Puget Sound TN No-Loading: {} mmol/m3'.format( round((TN_noloading / PugetSound_vol *1000),3)))
 print('Puget Sound NO3 Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_loading / PugetSound_vol *1000),2)))
 print('Puget Sound NO3 No-Loading: {} mmol/m3'.format( round((NO3_mols_daily_avg_noloading / PugetSound_vol *1000),2)))
 print('Puget Sound NH4 Loading: {} mmol/m3'.format( round((NH4_mols_daily_avg_loading / PugetSound_vol *1000),2)))
@@ -714,6 +715,36 @@ if WWTP_loc == True:
     
     ax0.text(-123.2,48.05,'WWTPs',color='crimson',fontsize=12,fontweight='bold')
     ax0.text(-123.2,48.0,'Rivers',color='blue',fontsize=12,fontweight='bold')
+
+
+#######################################################
+##                Stacked bar chart                  ##
+#######################################################
+# plt.close('all')
+fig,ax = plt.subplots(1,1,figsize=(6,3))
+
+run = ['No-loading', 'Loading']
+x = np.arange(len(run))
+vals = np.array([TN_noloading/1000, TN_loading/1000], dtype=float)
+
+colors = ['cadetblue', 'cadetblue']
+width = 0.8
+
+ax.bar(x, vals, width=width, color=colors, edgecolor='None', alpha=0.4)
+
+ax.set_xticks(x)
+ax.set_xticklabels(run, fontsize=14)
+ax.tick_params(axis='y', labelsize=14)
+ax.set_ylabel('TN (kmol N)', fontsize=14)  # change units label if needed
+ax.set_title('Total Nitrogen in Puget Sound\n(mean of 2015-2020)', fontsize=16)
+ax.grid(axis='y', alpha=0.3)
+
+# # optional value labels
+# for xi, v in zip(x, vals):
+#     ax.text(xi, v, f'{v:.2e}', ha='center', va='bottom', fontsize=12)
+
+plt.tight_layout()
+plt.show()
 
 # ##############################################################
 # ##    Sub-basins and multiple years and percent change      ##

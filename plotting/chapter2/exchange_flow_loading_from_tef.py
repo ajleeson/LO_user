@@ -93,6 +93,9 @@ TN_out = DIN_out + phyt_out + zoop_out + Sdet_out + Ldet_out # TNin [mmol/m3]
 # determine Qin*DINin and Qin*TNin
 QinDINin_mmol_s = Q_in * DIN_in # [mmol/m3]
 QinTNin_mmol_s = Q_in * TN_in # [mmol/m3]
+print('Loading')
+print(np.nanmean(QinTNin_mmol_s))
+print('------------------')
 # determine Qout*DINout and Qout*TNout
 QoutDINout_mmol_s = Q_out * DIN_out # [mmol/m3]
 QoutTNout_mmol_s = Q_out * TN_out # [mmol/m3]
@@ -105,7 +108,7 @@ QoutTNout_kg_d = QoutTNout_mmol_s / 71.4 * 86.4 # [kg/day] (71.4 gets from mmol/
 plt.close('all')
 plt.plot(dates_local_daily[1:-1],QoutDINout_kg_d+QinDINin_kg_d,linestyle='--',color='teal',label='Loading')
 # plt.plot(dates_local_daily[1:-1],QinTNin_kg_d,linewidth=0.5,color='crimson',label='Loading')
-print(np.nanmean(QoutDINout_kg_d+QinDINin_kg_d))
+# print(np.nanmean(QoutDINout_kg_d+QinDINin_kg_d))
 
 # monthly_mean = QinDINin_kg_d.resample("M").mean()
 # print(monthly_mean)
@@ -139,6 +142,9 @@ TN_out = DIN_out + phyt_out + zoop_out + Sdet_out + Ldet_out # TNin [mmol/m3]
 # determine Qin*DINin and Qin*TNin
 QinDINin_mmol_s = Q_in * DIN_in # [mmol/m3]
 QinTNin_mmol_s = Q_in * TN_in # [mmol/m3]
+print('No-loading')
+print(np.nanmean(QinTNin_mmol_s))
+print('------------------')
 # determine Qout*DINout and Qout*TNout
 QoutDINout_mmol_s = Q_out * DIN_out # [mmol/m3]
 QoutTNout_mmol_s = Q_out * TN_out # [mmol/m3]
@@ -150,7 +156,7 @@ QoutTNout_kg_d = QoutTNout_mmol_s / 71.4 * 86.4 # [kg/day] (71.4 gets from mmol/
 
 plt.plot(dates_local_daily[1:-1],QoutDINout_kg_d+QinDINin_kg_d,color='cadetblue',linewidth=2,alpha=0.5,label='No-Loading')
 # plt.plot(dates_local_daily[1:-1],QinTNin_kg_d,color='red',linewidth=2,alpha=0.5,label='No-Loading')
-print(np.nanmean(QoutDINout_kg_d+QinDINin_kg_d))
+# print(np.nanmean(QoutDINout_kg_d+QinDINin_kg_d))
 
 # monthly_mean = QinDINin_kg_d.resample("M").mean()
 # print(monthly_mean)

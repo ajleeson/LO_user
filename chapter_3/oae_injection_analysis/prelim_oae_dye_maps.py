@@ -34,7 +34,7 @@ plt.close('all')
 ##                       USER INPUTS                        ##
 ##############################################################
 
-date = '2020.09.20'
+date = '2020.06.30'#'2020.09.20'
 
 # which  model runs to look at?
 basline = 'cas7_t1_x11ab'

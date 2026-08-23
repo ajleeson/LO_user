@@ -254,7 +254,8 @@ lats = ds.coords['lat_rho'].values
 px, py = pfun.get_plon_plat(lons,lats)
 
 # loop through months
-months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+# months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+months = ['Aug']
 for month in months:
 
     # Initialize figure
@@ -323,6 +324,27 @@ for month in months:
     cbar.outline.set_visible(False)
     ax[0].set_title('(a) No-Loading', fontsize=14,
                     loc='left', fontweight='bold')
+    
+    # # mooring extraction locations
+    # job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' / 'job_lists.py')
+    # # Get mooring stations:
+    # jobname = 'wwtp_tests'
+    # sta_dict = job_lists.get_sta_dict(jobname)
+    # for station in list(sta_dict.keys()):
+    #     lon = sta_dict[station][0]
+    #     lat = sta_dict[station][1]
+    #     ax[0].scatter(lon,lat,marker='o',color='None',edgecolor='k',s=150,zorder=5)
+    
+    # # wwtp locations only
+    # # read in masks
+    # basin_mask_ds = xr.open_dataset('../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
+    # mask_rho = basin_mask_ds.mask_rho.values
+    # lon = basin_mask_ds['lon_rho'].values
+    # lat = basin_mask_ds['lat_rho'].values
+    # plon, plat = pfun.get_plon_plat(lon,lat)
+    # cs = ax[1].pcolormesh(plon, plat, np.where(mask_rho == 0, np.nan, mask_rho), vmin=0, vmax=1.2, cmap='bone' )
+    # ax[1].set_title(r'(b) WWTP locations', fontsize=14,
+    #                 loc='left', fontweight='bold')
 
 
     diff = (mean_botDO_loading - mean_botDO_noloading)
@@ -336,8 +358,8 @@ for month in months:
     # don't let colorbar axis scale get too large
     if maxdiff > vmax:
         maxdiff = vmax
-    mindiff = -0.25
-    maxdiff = 0.05
+    mindiff = -0.35#-0.25
+    maxdiff =  0.05
     # make sure the colorbar is always centered about zero
     cmap = cmocean.tools.crop(cmocean.cm.balance_r, mindiff, maxdiff, 0)
     cs = ax[1].pcolormesh(px,py,diff, vmin=mindiff, vmax=maxdiff, cmap=cmap)
