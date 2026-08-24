@@ -50,7 +50,7 @@ plt.close('all')
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['dye_01','alkalinity']
+vns = ['salt','dye_01','alkalinity']
 date = '2020.06.01' #'2020.06.25'
 
 # # filetype = 'ocean_avg_0001.nc'
@@ -60,13 +60,9 @@ date = '2020.06.01' #'2020.06.25'
 ##          load output folder, grid data, model output          ##  
 ################################################################### 
 
-model1 = 'cas7_t1dgeWB_x11abd3monthscont'
+# model1 = 'cas7_t1dgeWB_x11abd3monthscont'
+model1 = 'cas7_t1noisetest_x11abd'
 model2 = 'cas7_t1_x11ab'
-# model1 = 'cas7_newtraps00_debugx11ab_OG'
-# # model2 = 'cas7_newtraps01_debugx11ab'
-# model2 = 'cas7_newtraps00noWP_debugx11ab_OG'
-# model1 = 'cas7_newtraps_x11ab'
-# model2 = 'cas7_newtrapsnoN_x11ab'
 
 # where to put output figures
 out_dir = Ldir['LOo'] / 'AL_custom_plots' / 'hourly_noise'
