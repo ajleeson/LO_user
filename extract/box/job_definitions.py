@@ -95,7 +95,7 @@ def get_box(job, Lon, Lat):
         aa = [-126, -122.1, 45.5, 50.5]
         vn_list =  ('ubar,vbar') 
     elif job == 'cresst3':
-        aa = [-130, -122, 45, 52]
+        aa = [-129.9, -122.1, 45, 51.9]
         vn_list = 'h,pm,pn,mask_rho,alkalinity,DIC,u,v,w'
         
     return aa, vn_list
