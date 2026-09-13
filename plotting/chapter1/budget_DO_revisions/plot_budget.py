@@ -571,7 +571,8 @@ for i,station in enumerate(sta_dict):
     err_maxday = 363
 
     error_QinDOin_ann_avg.append(np.abs(np.nanmean(error_DO[err_minday:err_maxday])/np.nanmean(TEF_deep[err_minday:err_maxday])))
-    error_consumption_ann_avg.append(np.abs(np.nanmean(error_DO[err_minday:err_maxday])/np.nanmean(cons_deep[err_minday:err_maxday])))
+    error_consumption_ann_avg.append(np.abs(np.nanmean(error_DO[err_minday:err_maxday])/
+                                            np.nanmean(cons_deep[err_minday:err_maxday]+cons_surf[err_minday:err_maxday])))
     error_Qinvol_ann_avg.append(np.abs(np.nanmean(error_flow[err_minday:err_maxday])/np.nanmean(Q_p[err_minday:err_maxday])))
 
     # error_ddtDO_ann_avg.append(np.nanmean(error_TEF/ddtDO))

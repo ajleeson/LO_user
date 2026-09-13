@@ -66,7 +66,9 @@ if stations == 'all':
     del sta_dict['budd']
     del sta_dict['eld']
     del sta_dict['killsut']
-    # del sta_dict['dabob']
+
+    # del sta_dict['sinclair']
+    # del sta_dict['quartermaster']
 else:
     sta_dict = stations
 
@@ -309,7 +311,7 @@ for i,station in enumerate(sta_dict):
     # volume-normalized
     # ax[1].plot(dates_local_daily,zfun.lowpass(error_DO/vol_deep*conversion,n=10),color='white',
     #         alpha=0.8, linewidth=2)
-    ax[1].plot(dates_local_daily,zfun.lowpass(error_DO/vol_deep*conversion,n=10),color=error_color,
+    ax[1].plot(dates_local_daily,zfun.lowpass(error_DO/vol_total*conversion,n=10),color=error_color,
             alpha=0.8, linewidth=1.5)
     # print('Volume-normalized: {}'.format(np.nanmean(error_DO/vol_deep*conversion)))
     

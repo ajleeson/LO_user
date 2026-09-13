@@ -251,6 +251,14 @@ def get_sta_dict(job_name):
         'henderson': (-122.834437, 47.143149),    # 21. Henderson Inlet
         }
 
+    # 2026.09.13 Subset of inlets to extract wind data
+    elif job_name == 'inletsubset':
+        sta_dict = {
+        'lynchcove': (-122.928299, 47.398331),    # 12. Lynch Cove (Ecology monitoring station HCB007) 
+        'penn': (-122.688449, 48.230183),         # 04. Penn Cove 
+        'case': (-122.807292, 47.332090),         # 13. Case Inlet
+        }
+
     # 2024.11.16 Extraction locations Ecology CTD stations in Main Basin
     elif job_name == 'mainbasin_EcolCTD':
         sta_dict = {

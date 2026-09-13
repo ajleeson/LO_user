@@ -548,7 +548,7 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
                     year+'.12.01_'+year+'.12.31',]
         
 
-        interface_types = ['tef'] # how to define dividing depth
+        interface_types = ['oxycline'] # how to define dividing depth
         # loop through different interface types
         for t,type in enumerate(interface_types):
              
@@ -716,7 +716,7 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
 # ---------------------------------- get BGC terms --------------------------------------------
         bgc_dir = Ldir['LOo'] / 'pugetsound_DO' / 'budget_revisons' / ('DO_budget_' + startdate + '_' + enddate) / '2layer_bgc' / station
 
-        interface_types = ['tef'] # how to define dividing depth
+        interface_types = ['oxycline'] # how to define dividing depth
         # loop through different interface types
         for t,type in enumerate(interface_types):
 
@@ -769,4 +769,4 @@ for i,station in enumerate(inlets):#enumerate(sta_dict):
 
 # save to csv file
 print(monthly_mean_df)
-# monthly_mean_df.to_csv('../../../../terminal_inlet_DO_rev2/inlet_monthly_means.csv', index=False)
+monthly_mean_df.to_csv('../../../../terminal_inlet_DO_rev3/inlet_monthly_means_oxycline.csv', index=False)
