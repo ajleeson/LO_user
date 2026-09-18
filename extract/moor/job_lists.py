@@ -270,6 +270,17 @@ def get_sta_dict(job_name):
         'EAP001': (-122.37999725341797,47.41667175292969)
         }
 
+    # 2026.09.18 Extraction locations Ecology CTD stations in Terminal Inlets
+    elif job_name == 'terminlet_EcolCTD':
+        sta_dict = {
+        'ELB015': (-122.36830139160156,47.5966682434082),
+        'HCB007': (-122.92829895019531,47.39833068847656),
+        'HCB004': (-123.02330017089844,47.35667037963867),
+        'CMB003': (-122.44830322265625,47.290000915527344),
+        'CRR001': (-122.70829772949219,47.276668548583984),
+        'SIN001': (-122.6417007446289,47.54999923706055)
+        }
+
     # Columbia River mouth (location of massive alkalinity dump)
     elif job_name == 'oae_mod_test':
         sta_dict = {

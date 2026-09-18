@@ -79,37 +79,6 @@ dates_local_daily = dates_local_daily
 
 print('\n')
 
-
-######################
-# wind data
-
-# Add daily average wind speed
-col_names = [ "YY","MM","DD","hh","mm",
-    "WDIR","WSPD","GST","WVHT","DPD","APD","MWD",
-    "PRES","ATMP","WTMP","DEWP","VIS","TIDE"]
-df = pd.read_csv("46121h2017.txt",
-    sep=r"\s+",
-    comment="#",
-    names=col_names,
-    na_values=[99, 99.0, 999, 999.0, 9999, 9999.0])
-# rename for datetime parsing
-df = df.rename(columns={"YY": "year",
-    "MM": "month",
-    "DD": "day",
-    "hh": "hour",
-    "mm": "minute"})
-# create datetime index
-df["datetime"] = pd.to_datetime(df[["year","month","day","hour","minute"]])
-print(df)
-df = df.set_index("datetime").drop(columns=["year","month","day","hour","minute"])
-df_daily = df.resample("D").mean()
-full_index = pd.date_range(
-start="2017-01-02",
-end="2017-12-30",
-freq="D")
-df_daily_aligned = df_daily.reindex(full_index)
-df_daily_aligned.index.name = "date"
-
 ##########################################################
 ##            Get all variables for analysis            ##
 ##########################################################
@@ -131,7 +100,8 @@ DY = (ds_box.pn.values)**-1
 DA = DX*DY # get area of each grid cell in m^2
 
 # COLLAPSE
-for i,station in enumerate(sta_dict):
+wind_stations = ['lynchcove','penn','case']
+for i,station in enumerate(wind_stations):
         
     # initialize figure
     fig,ax = plt.subplots(1,1, figsize=(10,5))
@@ -193,6 +163,20 @@ for i,station in enumerate(sta_dict):
             linewidth=0.5,label='d/dt(DO) unfiltered')
     ax.plot(dates_local_daily,ddtDO_volnorm_godin,color='deeppink',
             linewidth=2,label='d/dt(DO) Godin-filtered', zorder=5)
+    
+    # wind data
+    wind_fn = Ldir['LOo'] / 'extract' / 'cas7_t1_x11b' / 'moor' / 'inletsubset' / (station + '_2017.01.01_2017.12.31.nc')
+    wind_ds = xr.open_dataset(wind_fn)
+    uwind = wind_ds['Uwind'].values # dim: t
+    vwind = wind_ds['Vwind'].values # dim: t
+    windspeed = np.sqrt(uwind**2 + vwind**2) # dim: t; m/s
+
+    # plot windspeed
+    axw = ax.twinx() 
+    axw.plot(dates_local,windspeed,color='royalblue',
+            linewidth=1,label='Wind speed', zorder=5)
+    axw.set_ylabel(r'Wind Speed [m s$^{-1}$]', fontsize=14, color='royalblue')
+    axw.tick_params(axis='y', labelsize=12, labelcolor='royalblue')
         
     # format budget time series figures
     ax.set_xlim([dates_hrly[0],dates_hrly[-2]])
@@ -200,9 +184,11 @@ for i,station in enumerate(sta_dict):
     ax.plot([dates_hrly[0],dates_hrly[-2]],[0,0],color='black',linewidth=1)
     ax.grid(True,color='gainsboro',linewidth=1,linestyle='--',axis='both')
     ax.tick_params(axis='x', labelrotation=30, labelsize=12)
-    ax.tick_params(axis='y', labelsize=12)
+    ax.tick_params(axis='y', labelsize=12, labelcolor='deeppink')
     loc = mdates.MonthLocator(interval=1)
     ax.xaxis.set_major_locator(loc)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-    ax.set_ylabel(r'DO change [mg L$^{-1}$ d$^{-1}$]', fontsize=14)
+    ax.set_ylabel(r'DO change [mg L$^{-1}$ d$^{-1}$]', fontsize=14, color='deeppink')
     ax.legend(loc='upper right', fontsize=12)
+
+    
