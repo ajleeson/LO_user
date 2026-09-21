@@ -1,3 +1,7 @@
+# Modified Jilian's budget code to get DO rate terms
+# in different sub-basins of Puget Sound
+# for loading and no-loading runs
+
 # O2 production from new (NO3) and regenrated production(NH4)
 # O2 consumption in water column (nitrification + remi) + sediment (denitrification)
 
@@ -17,25 +21,32 @@ tt0 = time()
 
 #-----------------------------------------------
 
-jobname = 'twentyoneinlets'
-
 burial=50 # 50% burial of sinking detritus in the Salish Sea
+
+# gtagex = 'cas7_t1_x11b' # loading
+gtagex = 'cas7_t1noDIN_x11b' # no-loading
+
+basins = ['hoodcanal','whidbey','mainbasin','southsound']
+basin_seg_dict = {'hoodcanal':'hc_m',
+                  'whidbey':'wb_p',
+                  'mainbasin':'hc_p',
+                  'southsound':'ss_m'}
 
 #%------------------------------------------------
 Ldir = Lfun.Lstart()
 # Ldir['roms_out'] = Ldir['roms_out2']
 # Ldir['roms_out'] = Ldir['roms_out1']
-# Ldir['roms_out'] = Ldir['roms_out5'] # for apogee
-Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc
-Ldir['gtagex'] = 'cas7_t1_x11b'
+# Ldir['roms_out'] = Ldir['roms_out5'] # for apogee loading run
+Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc or no-loading run
+Ldir['gtagex'] = gtagex
 
 # ds0 = '2017.01.01'
 # ds1 = '2017.01.02'
 year = '2017'
 
 # jan
-# ds0 = '2017.01.01'
-# ds1 = '2017.01.31'
+ds0 = '2017.01.01'
+ds1 = '2017.01.31'
 # feb
 # ds0 = '2017.02.01'
 # ds1 = '2017.02.28'
@@ -68,11 +79,11 @@ year = '2017'
 # ds0 = '2017.11.01'
 # ds1 = '2017.11.30'
 # dec
-ds0 = '2017.12.01'
-ds1 = '2017.12.31'
+# ds0 = '2017.12.01'
+# ds1 = '2017.12.31'
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'pugetsound_DO' / ('DO_budget_'+year+'.01.01_'+year+'.12.31') / '2layer_bgc'
+out_dir = Ldir['LOo'] / 'chapter_2' / 'data' / ('DO_budget_terms_'+year+'.01.01_'+year+'.12.31')
 Lfun.make_dir(out_dir)
 
 
@@ -112,34 +123,11 @@ OC0 = -0.000000488682
 
 #%%
 
-# find job lists from the extract moor
-job_lists = Lfun.module_from_file('job_lists', Ldir['LOu'] / 'extract' / 'moor' / 'job_lists.py')
-
-# Get mooring stations:
-sta_dict = job_lists.get_sta_dict(jobname)
-
 # create dictionary of empty dataframes
-df_dict = {'lynchcove': pd.DataFrame(),
-           'penn': pd.DataFrame(),
-           'budd': pd.DataFrame(),
-           'carr': pd.DataFrame(),
-           'case': pd.DataFrame(),
-           'commencement': pd.DataFrame(),
-           'crescent': pd.DataFrame(),
-           'dabob': pd.DataFrame(),
-           'dyes': pd.DataFrame(),
-           'eld': pd.DataFrame(),
-           'elliot': pd.DataFrame(),
-           'hammersley': pd.DataFrame(),
-           'henderson': pd.DataFrame(),
-           'holmes': pd.DataFrame(),
-           'killsut': pd.DataFrame(),
-           'oak': pd.DataFrame(),
-           'portsusan': pd.DataFrame(),
-           'quartermaster': pd.DataFrame(),
-           'similk': pd.DataFrame(),
-           'sinclair': pd.DataFrame(),
-           'totten': pd.DataFrame()}
+df_dict = {'hoodcanal': pd.DataFrame(),
+           'whidbey': pd.DataFrame(),
+           'mainbasin': pd.DataFrame(),
+           'southsound': pd.DataFrame()}
 
 cnt = 0
 #%%
@@ -268,15 +256,18 @@ while dt00 <= dt1:  # loop each day and every history file
         O2satu = 1000./22.3916 * np.exp(AA) # mmol/m3
 
         ###################################################################
-        ## GET VALUES IN EACH TERMINAL INLET AND SAVE IN INDIVIDUAL FILE ##
+        ##    GET VALUES IN EACH SUB-BASIN AND SAVE IN INDIVIDUAL FILE   ##
         ###################################################################
 
-        for station in sta_dict: # stations: 
+        for basin in basins: # loop through basins: 
+
+            # get segment name
+            segment = basin_seg_dict[basin]
 
             # get segment information
-            seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
+            seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_cps_trapsN00.p'
             seg_df = pd.read_pickle(seg_name)
-            ji_list = seg_df[station+'_p']['ji_list']
+            ji_list = seg_df[segment]['ji_list']
             jj = [x[0] for x in ji_list]
             ii = [x[1] for x in ji_list]
 
@@ -303,12 +294,12 @@ while dt00 <= dt1:  # loop each day and every history file
             # get dataframe for saving
             if cnt == 0:
                 # start data
-                df_dict[station]['DO*V [mmol]'] = [ret_DOvol]
-                df_dict[station]['photo [mmol/hr]'] = [ret_photo]
-                df_dict[station]['nitri [mmol/hr]'] = [ret_nitri]
-                df_dict[station]['respi [mmol/hr]'] = [ret_respi]
-                df_dict[station]['SOD [mmol/hr]'] = [ret_sod]
-                df_dict[station]['airsea [mmol/hr]'] = [ret_airsea]
+                df_dict[basin]['DO*V [mmol]'] = [ret_DOvol]
+                df_dict[basin]['photo [mmol/hr]'] = [ret_photo]
+                df_dict[basin]['nitri [mmol/hr]'] = [ret_nitri]
+                df_dict[basin]['respi [mmol/hr]'] = [ret_respi]
+                df_dict[basin]['SOD [mmol/hr]'] = [ret_sod]
+                df_dict[basin]['airsea [mmol/hr]'] = [ret_airsea]
             else:
                 # get temp dataframe
                 df_tmp = pd.DataFrame()
@@ -319,9 +310,9 @@ while dt00 <= dt1:  # loop each day and every history file
                 df_tmp['SOD [mmol/hr]'] = [ret_sod]
                 df_tmp['airsea [mmol/hr]'] = [ret_airsea]
                 # append data
-                df_dict[station] = pd.concat([df_dict[station],df_tmp])
+                df_dict[basin] = pd.concat([df_dict[basin],df_tmp])
                 # reset index
-                df_dict[station].reset_index(drop=True, inplace=True)
+                df_dict[basin].reset_index(drop=True, inplace=True)
 
 
         cnt += 1
@@ -329,9 +320,9 @@ while dt00 <= dt1:  # loop each day and every history file
         ds.close()       
     dt00 = dt00 + timedelta(days=1)
 
-for station in sta_dict: #for station in stations:
+for basin in basins: #for station in stations:
     # get dataframe for saving
-    df = df_dict[station]
+    df = df_dict[basin]
     # save to pickle file
-    Lfun.make_dir(out_dir/station)
-    df.to_pickle(out_dir / station / (station + '_' + ds0 + '_' + ds1 + '.p'))
+    Lfun.make_dir(out_dir/basin)
+    df.to_pickle(out_dir / basin / (gtagex + '_' + ds0 + '_' + ds1 + '.p'))
