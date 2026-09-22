@@ -23,8 +23,8 @@ tt0 = time()
 
 burial=50 # 50% burial of sinking detritus in the Salish Sea
 
-gtagex = 'cas7_t1_x11b' # loading
-# gtagex = 'cas7_t1noDIN_x11b' # no-loading
+# gtagex = 'cas7_t1_x11b' # loading
+gtagex = 'cas7_t1noDIN_x11b' # no-loading
 
 basins = ['hoodcanal','whidbey','mainbasin','southsound']
 basin_seg_dict = {'hoodcanal':'hc_m',
@@ -36,7 +36,7 @@ basin_seg_dict = {'hoodcanal':'hc_m',
 Ldir = Lfun.Lstart()
 # Ldir['roms_out'] = Ldir['roms_out2']
 # Ldir['roms_out'] = Ldir['roms_out1']
-# Ldir['roms_out'] = Ldir['roms_out5'] # for apogee loading run
+# Ldir['roms_out'] = Ldir['roms_out5'] 
 Ldir['roms_out'] = Ldir['roms_out'] # testing on local pc or no-loading run
 Ldir['gtagex'] = gtagex
 
@@ -45,6 +45,7 @@ Ldir['gtagex'] = gtagex
 year = '2017'
 
 # jan
+# running
 ds0 = '2017.01.01'
 ds1 = '2017.01.31'
 # feb
