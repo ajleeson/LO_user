@@ -109,7 +109,7 @@ DY = (ds_box.pn.values)**-1
 DA = DX*DY # get area of each grid cell in m^2
 
 # initialize figure
-fig,axes = plt.subplots(2,1, figsize=(10,6), sharex=True)
+fig,axes = plt.subplots(3,1, figsize=(10,6), sharex=True)
 ax = axes.ravel()
 # format budget time series figures
 for axis in ax:
@@ -121,10 +121,12 @@ for axis in ax:
     axis.xaxis.set_major_locator(loc)
 ax[0].set_title('2017 error terms (10-day Hanning Window)',fontsize=14, fontweight='bold', loc='left')
 ax[1].xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-ax[0].set_ylabel(r'DO transport [kmol O$_2$ s$^{-1}$]', fontsize=12)
-ax[1].set_ylabel(r'DO transport [mg L$^{-1}$ d$^{-1}$]', fontsize=12)
-ax[0].text(0.05,0.9,'(a) Volume-integrated', transform=ax[0].transAxes, fontsize=12, fontweight='bold')
-ax[1].text(0.05,0.9,'(b) Volume-normalized', transform=ax[1].transAxes, fontsize=12, fontweight='bold')
+ax[0].set_ylabel('DO transport\n' + r'[kmol O$_2$ s$^{-1}$]', fontsize=12)
+ax[1].set_ylabel('DO transport\n' + r'[mg L$^{-1}$ d$^{-1}$]', fontsize=12)
+ax[2].set_ylabel('Percentage', fontsize=12)
+ax[0].text(0.02,0.85,'(a) Volume-integrated', transform=ax[0].transAxes, fontsize=12, fontweight='bold')
+ax[1].text(0.02,0.85,'(b) Volume-normalized', transform=ax[1].transAxes, fontsize=12, fontweight='bold')
+ax[2].text(0.02,0.85,r'(c) $\%$ of Q$_{in}$DO$_{in}$', transform=ax[2].transAxes, fontsize=12, fontweight='bold')
 
 
 # COLLAPSE
@@ -270,15 +272,6 @@ for i,station in enumerate(sta_dict):
     
     vertX_deep_flow_TEF = ddtvol_deep - (Q_p.values + traps_deep_flow)
 
-    # # calculate correlation between surface and deep vertical transports (this should be -1)
-    # # calculate r^2 and p value
-    # r,p = pearsonr(vertX_surf_DO_TEF[:-1],vertX_deep_DO_TEF[:-1])
-    # R2 = round(r**2,2)
-    # print('=================')
-    # print(station)
-    # print('r = {}'.format(round(r,4)))
-    # print('p = {}'.format(p))
-
 # ------------------------------- get budget error ----------------------------------------
 
     # calculate error
@@ -314,6 +307,10 @@ for i,station in enumerate(sta_dict):
     ax[1].plot(dates_local_daily,zfun.lowpass(error_DO/vol_total*conversion,n=10),color=error_color,
             alpha=0.8, linewidth=1.5)
     # print('Volume-normalized: {}'.format(np.nanmean(error_DO/vol_deep*conversion)))
+
+    # plot error as percentage of QinDOin
+    ax[2].plot(dates_local_daily,zfun.lowpass(error_DO/TEF_deep*100,n=10),color=error_color,
+            alpha=0.8, linewidth=1.5)
     
     
 # create colorbar

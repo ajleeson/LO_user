@@ -721,7 +721,7 @@ if WWTP_loc == True:
 ##                Stacked bar chart                  ##
 #######################################################
 # plt.close('all')
-fig,ax = plt.subplots(1,1,figsize=(6,3))
+fig,ax = plt.subplots(1,1,figsize=(3.5,2))
 
 run = ['No-loading', 'Loading']
 x = np.arange(len(run))

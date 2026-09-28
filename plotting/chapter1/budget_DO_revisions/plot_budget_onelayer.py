@@ -107,6 +107,7 @@ inlet_budget_df = pd.DataFrame(columns=['Inlet', 'QinDOin', 'QinDOin_err', 'Qout
        'MeanDepth[m]'])
 # initialize lynchcove budget dict
 lynchcove_dict_10dayhanning = {}
+carr_dict_10dayhanning = {}
 # initialize dict to save DO concentrations
 DOTI_timeseries = {} # TI = terminal inlets
 DOin_DOout_timeseries = {} # save DOin-DOout for each inlet
@@ -321,6 +322,18 @@ for i,station in enumerate(sta_dict):
           lynchcove_dict_10dayhanning['Consumption'] = zfun.lowpass(cons_total,n=10)
           lynchcove_dict_10dayhanning['AirSea'] = zfun.lowpass(airsea_surf,n=10)
           lynchcove_dict_10dayhanning['Rivers'] = zfun.lowpass(traps_total_DO,n=10)
+        #   print(lynchcove_dict_10dayhanning['Error'])
+
+    # Save Crescent Harbor budget terms (with 10-day Hanning Window)
+    if station == 'carr':
+          carr_dict_10dayhanning['d/dt(DO)'] = zfun.lowpass(ddtDOV_total,n=10)
+          carr_dict_10dayhanning['Error'] = zfun.lowpass(error_DO,n=10)
+          carr_dict_10dayhanning['Inflow'] = zfun.lowpass(TEF_deep,n=10)
+          carr_dict_10dayhanning['Outflow'] = zfun.lowpass(TEF_surf,n=10)
+          carr_dict_10dayhanning['Photosynthesis'] = zfun.lowpass(photo_total,n=10)
+          carr_dict_10dayhanning['Consumption'] = zfun.lowpass(cons_total,n=10)
+          carr_dict_10dayhanning['AirSea'] = zfun.lowpass(airsea_surf,n=10)
+          carr_dict_10dayhanning['Rivers'] = zfun.lowpass(traps_total_DO,n=10)
         #   print(lynchcove_dict_10dayhanning['Error'])
 
      # get inlet name
@@ -626,3 +639,12 @@ inlet_budget_df = pd.concat([inlet_budget_df, df_new_rows],ignore_index=True)
 # lynchcove_budget_df.insert(0, 'date', date_list)
 # lynchcove_budget_df.to_csv('../../../../terminal_inlet_DO_rev3/lynchcove_2017_budget_kmolO2_s_10dayHanning_onelayer.csv', index=False)
 # print(lynchcove_budget_df)
+
+
+# save crescent harbor to csv file
+carr_budget_df = pd.DataFrame.from_dict(carr_dict_10dayhanning)
+dates = pd.date_range(start='2017-01-02', end='2017-12-30', freq='D')
+date_list = dates.strftime('%Y-%m-%d').tolist()
+carr_budget_df.insert(0, 'date', date_list)
+carr_budget_df.to_csv('../../../../terminal_inlet_DO_rev3/carr_2017_budget_kmolO2_s_10dayHanning_onelayer.csv', index=False)
+print(carr_budget_df)

@@ -33,9 +33,7 @@ Ldir = Lfun.Lstart()
 ##                       USER INPUTS                        ##
 ##############################################################
 
-regions = ['pugetsoundDO']
-
-years = ['2014','2015','2016','2017','2018','2019','2020']
+years = ['2015','2016','2017','2018','2019','2020']
 
 gtagexes = ['cas7_t1_x11ab','cas7_t1noDIN_x11ab']
 
@@ -58,10 +56,19 @@ def start_ds(ocean_time):
     ds = xr.Dataset(data_vars=dict(
 
         # average shallow DO concentration (z <= 10 m)
-        shallow_DO_mgL      = (['ocean_time'], np.zeros((Ndays))),
+        shallow_DO_mgL_ps = (['ocean_time'], np.zeros((Ndays))),
+        shallow_DO_mgL_wb = (['ocean_time'], np.zeros((Ndays))),
+        shallow_DO_mgL_ss = (['ocean_time'], np.zeros((Ndays))),
+        shallow_DO_mgL_mb = (['ocean_time'], np.zeros((Ndays))),
+        shallow_DO_mgL_hc = (['ocean_time'], np.zeros((Ndays))),
 
         # average deep DO concentration (z > 10 m)
-        deep_DO_mgL  = (['ocean_time'], np.zeros((Ndays))),),
+        deep_DO_mgL_ps  = (['ocean_time'], np.zeros((Ndays))),
+        deep_DO_mgL_wb  = (['ocean_time'], np.zeros((Ndays))),
+        deep_DO_mgL_ss  = (['ocean_time'], np.zeros((Ndays))),
+        deep_DO_mgL_mb  = (['ocean_time'], np.zeros((Ndays))),
+        deep_DO_mgL_hc  = (['ocean_time'], np.zeros((Ndays))),),
+
     coords=dict(ocean_time=ocean_time),)
     
     return ds
@@ -71,11 +78,27 @@ def add_metadata(ds):
     Create metadata for processed DO data
     '''
 
-    ds['shallow_DO_mgL'].attrs['long_name'] = 'average DO concentration in the shallow (z <= 10 m) layer of Puget Sound'
-    ds['shallow_DO_mgL'].attrs['units'] = 'mg/L'
+    ds['shallow_DO_mgL_ps'].attrs['long_name'] = 'average DO concentration in the shallow (z <= 10 m) layer of Puget Sound'
+    ds['shallow_DO_mgL_ps'].attrs['units'] = 'mg/L'
+    ds['shallow_DO_mgL_wb'].attrs['long_name'] = 'average DO concentration in the shallow (z <= 10 m) layer of Whidbey Basin'
+    ds['shallow_DO_mgL_wb'].attrs['units'] = 'mg/L'
+    ds['shallow_DO_mgL_ss'].attrs['long_name'] = 'average DO concentration in the shallow (z <= 10 m) layer of South Sound'
+    ds['shallow_DO_mgL_ss'].attrs['units'] = 'mg/L'
+    ds['shallow_DO_mgL_mb'].attrs['long_name'] = 'average DO concentration in the shallow (z <= 10 m) layer of Mabin Basin'
+    ds['shallow_DO_mgL_mb'].attrs['units'] = 'mg/L'
+    ds['shallow_DO_mgL_hc'].attrs['long_name'] = 'average DO concentration in the shallow (z <= 10 m) layer of Hood Canal'
+    ds['shallow_DO_mgL_hc'].attrs['units'] = 'mg/L'
 
-    ds['deep_DO_mgL'].attrs['long_name'] = 'average DO concentration in the deep (z > 10 m) layer of Puget Sound'
-    ds['deep_DO_mgL'].attrs['units'] = 'mg/L'
+    ds['deep_DO_mgL_ps'].attrs['long_name'] = 'average DO concentration in the deep (z > 10 m) layer of Puget Sound'
+    ds['deep_DO_mgL_ps'].attrs['units'] = 'mg/L'
+    ds['deep_DO_mgL_wb'].attrs['long_name'] = 'average DO concentration in the deep (z <= 10 m) layer of Whidbey Basin'
+    ds['deep_DO_mgL_wb'].attrs['units'] = 'mg/L'
+    ds['deep_DO_mgL_ss'].attrs['long_name'] = 'average DO concentration in the deep (z <= 10 m) layer of South Sound'
+    ds['deep_DO_mgL_ss'].attrs['units'] = 'mg/L'
+    ds['deep_DO_mgL_mb'].attrs['long_name'] = 'average DO concentration in the deep (z <= 10 m) layer of Mabin Basin'
+    ds['deep_DO_mgL_mb'].attrs['units'] = 'mg/L'
+    ds['deep_DO_mgL_hc'].attrs['long_name'] = 'average DO concentration in the deep (z <= 10 m) layer of Hood Canal'
+    ds['deep_DO_mgL_hc'].attrs['units'] = 'mg/L'
 
     return ds
 
@@ -89,6 +112,10 @@ print('Processing started...\n')
 # read in masks
 basin_mask_ds = grid_ds = xr.open_dataset('../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
 mask_rho = basin_mask_ds.mask_rho.values
+mask_hc = basin_mask_ds.mask_hoodcanal.values
+mask_ss = basin_mask_ds.mask_southsound.values
+mask_wb = basin_mask_ds.mask_whidbeybasin.values
+mask_mb = basin_mask_ds.mask_mainbasin.values
 mask_ps = basin_mask_ds.mask_pugetsound.values
 
 # get horizontal area
@@ -99,12 +126,11 @@ DY = (box_ds.pn.values)**-1
 DA = DX*DY # get area in m2
 
 for gtagex in gtagexes:
-    for region in regions:
         for year in years:
-            print('{}, {}, {}'.format(gtagex,region,year))
+            print('{}, {}'.format(gtagex,year))
 
             # get data
-            fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / (region+'_'+year+'.01.01_'+year+'.12.31.nc')
+            fp = Ldir['LOo'] / 'extract' / gtagex / 'box' / ('pugetsoundDO_'+year+'.01.01_'+year+'.12.31.nc')
             ds_raw = xr.open_dataset(fp)
 
             # initialize dataset
@@ -147,21 +173,65 @@ for gtagex in gtagexes:
             # water_depth = np.nansum(dzr_all, axis=1) # [m], with shape t,y,x
             water_depth_shallow = np.nansum(dzr_shallow, axis=1) # [m], with shape t,y,x
             water_depth_deeper  = np.nansum(dzr_deeper, axis=1) # [m], with shape t,y,x
-            # apply Puget Sound mask
+
+            # apply basin masks and get volume
             # PS_water_depth = water_depth * mask_ps # [m], with shape t,y,x
+            # Puget Sound
             PS_water_depth_shallow = water_depth_shallow * mask_ps # [m], with shape t,y,x
-            PS_water_depth_deeper  = water_depth_deeper * mask_ps # [m], with shape t,y,x
+            PS_water_depth_deeper  = water_depth_deeper  * mask_ps # [m], with shape t,y,x
+            # South Sound
+            SS_water_depth_shallow = water_depth_shallow * mask_ss # [m], with shape t,y,x
+            SS_water_depth_deeper  = water_depth_deeper  * mask_ss # [m], with shape t,y,x
+            # Whidbey Basin
+            WB_water_depth_shallow = water_depth_shallow * mask_wb # [m], with shape t,y,x
+            WB_water_depth_deeper  = water_depth_deeper  * mask_wb # [m], with shape t,y,x
+            # Main Basin
+            MB_water_depth_shallow = water_depth_shallow * mask_mb # [m], with shape t,y,x
+            MB_water_depth_deeper  = water_depth_deeper  * mask_mb # [m], with shape t,y,x
+            # Hood Canal
+            HC_water_depth_shallow = water_depth_shallow * mask_hc # [m], with shape t,y,x
+            HC_water_depth_deeper  = water_depth_deeper  * mask_hc # [m], with shape t,y,x
+
             # multiply by area to get volume of each water column
             # PS_volume_per_column = PS_water_depth * DA # [m3], with shape t,y,x
+            # Puget Sound
             PS_volume_per_column_shallow = PS_water_depth_shallow * DA # [m3], with shape t,y,x
-            PS_volume_per_column_deeper = PS_water_depth_deeper * DA # [m3], with shape t,y,x
+            PS_volume_per_column_deeper = PS_water_depth_deeper  * DA # [m3], with shape t,y,x
+            # South Sound
+            SS_volume_per_column_shallow = SS_water_depth_shallow * DA # [m3], with shape t,y,x
+            SS_volume_per_column_deeper = SS_water_depth_deeper  * DA # [m3], with shape t,y,x
+            # Whidbey Basin
+            WB_volume_per_column_shallow = WB_water_depth_shallow * DA # [m3], with shape t,y,x
+            WB_volume_per_column_deeper = WB_water_depth_deeper  * DA # [m3], with shape t,y,x
+            # Main Basin
+            MB_volume_per_column_shallow = MB_water_depth_shallow * DA # [m3], with shape t,y,x
+            MB_volume_per_column_deeper = MB_water_depth_deeper  * DA # [m3], with shape t,y,x
+            # Hood Canal
+            HC_volume_per_column_shallow = HC_water_depth_shallow * DA # [m3], with shape t,y,x
+            HC_volume_per_column_deeper = HC_water_depth_deeper  * DA # [m3], with shape t,y,x
+
             # sum over y and x to get total Puget Sound volum
             # PS_total_volume = np.sum(PS_volume_per_column, axis=(1, 2)) # [m3], with shape t
+            # Puget Sound
             PS_total_volume_shallow = np.sum(PS_volume_per_column_shallow, axis=(1, 2)) # [m3], with shape t
             PS_total_volume_deeper = np.sum(PS_volume_per_column_deeper, axis=(1, 2)) # [m3], with shape t
+            # South Sound
+            SS_total_volume_shallow = np.sum(SS_volume_per_column_shallow, axis=(1, 2)) # [m3], with shape t
+            SS_total_volume_deeper = np.sum(SS_volume_per_column_deeper, axis=(1, 2)) # [m3], with shape t
+            # Whidbey Basin
+            WB_total_volume_shallow = np.sum(WB_volume_per_column_shallow, axis=(1, 2)) # [m3], with shape t
+            WB_total_volume_deeper = np.sum(WB_volume_per_column_deeper, axis=(1, 2)) # [m3], with shape t
+            # Main Basin
+            MB_total_volume_shallow = np.sum(MB_volume_per_column_shallow, axis=(1, 2)) # [m3], with shape t
+            MB_total_volume_deeper = np.sum(MB_volume_per_column_deeper, axis=(1, 2)) # [m3], with shape t
+            # Hood Canal
+            HC_total_volume_shallow = np.sum(HC_volume_per_column_shallow, axis=(1, 2)) # [m3], with shape t
+            HC_total_volume_deeper = np.sum(HC_volume_per_column_deeper, axis=(1, 2)) # [m3], with shape t
+
 
             print('    Calculate average DO concentrations')
             # Now get oxygen values at every grid cell and convert to mg/L
+            # just for the month of August
             oxy_mgL = pinfo.fac_dict['oxygen'] * ds_raw['oxygen'].values # [mg/L], with shape t,z,y,x
 
             # get vertical integral within each sigma layer
@@ -174,27 +244,79 @@ for gtagex in gtagexes:
             DO_vert_int_shallow = np.nansum(DO_sigma_m_mgL_shallow,axis=1) # [m * mg/L], with shape t,y,x
             DO_vert_int_deeper  = np.nansum(DO_sigma_m_mgL_deeper,axis=1) # [m * mg/L], with shape t,y,x
 
-            # apply Puget Sound mask
+            # apply basin masks
             eta_rho = ds_raw['eta_rho']
             xi_rho = ds_raw['xi_rho']
             # PS_DO_m_mgL = DO_vert_int * mask_ps # [m * mg/L], with shape t,y,x
+            # Puget Sound
             PS_DO_m_mgL_shallow = DO_vert_int_shallow * mask_ps # [m * mg/L], with shape t,y,x
-            PS_DO_m_mgL_deeper  = DO_vert_int_deeper * mask_ps # [m * mg/L], with shape t,y,x
+            PS_DO_m_mgL_deeper  = DO_vert_int_deeper  * mask_ps # [m * mg/L], with shape t,y,x
+            # South Sound
+            SS_DO_m_mgL_shallow = DO_vert_int_shallow * mask_ss # [m * mg/L], with shape t,y,x
+            SS_DO_m_mgL_deeper  = DO_vert_int_deeper  * mask_ss # [m * mg/L], with shape t,y,x
+            # Whidbey Basin
+            WB_DO_m_mgL_shallow = DO_vert_int_shallow * mask_wb # [m * mg/L], with shape t,y,x
+            WB_DO_m_mgL_deeper  = DO_vert_int_deeper  * mask_wb # [m * mg/L], with shape t,y,x
+            # Main Basin
+            MB_DO_m_mgL_shallow = DO_vert_int_shallow * mask_mb # [m * mg/L], with shape t,y,x
+            MB_DO_m_mgL_deeper  = DO_vert_int_deeper  * mask_mb # [m * mg/L], with shape t,y,x
+            # Hood Canal
+            HC_DO_m_mgL_shallow = DO_vert_int_shallow * mask_hc # [m * mg/L], with shape t,y,x
+            HC_DO_m_mgL_deeper  = DO_vert_int_deeper  * mask_hc # [m * mg/L], with shape t,y,x
 
             # multiply by area to get volume integral
             # PS_DO_vol_int = PS_DO_m_mgL * DA # [m3 * mg/L], with shape t,y,x
+            # Puget Sound
             PS_DO_vol_int_shallow = PS_DO_m_mgL_shallow * DA # [m3 * mg/L], with shape t,y,x
-            PS_DO_vol_int_deeper  = PS_DO_m_mgL_deeper * DA # [m3 * mg/L], with shape t,y,x
+            PS_DO_vol_int_deeper  = PS_DO_m_mgL_deeper  * DA # [m3 * mg/L], with shape t,y,x
+            # South Sound
+            SS_DO_vol_int_shallow = SS_DO_m_mgL_shallow * DA # [m3 * mg/L], with shape t,y,x
+            SS_DO_vol_int_deeper  = SS_DO_m_mgL_deeper  * DA # [m3 * mg/L], with shape t,y,x
+            # Whidbey Basin
+            WB_DO_vol_int_shallow = WB_DO_m_mgL_shallow * DA
+            WB_DO_vol_int_deeper  = WB_DO_m_mgL_deeper  * DA
+            # Main Basin
+            MB_DO_vol_int_shallow = MB_DO_m_mgL_shallow * DA
+            MB_DO_vol_int_deeper  = MB_DO_m_mgL_deeper  * DA
+            # Hood Canal
+            HC_DO_vol_int_shallow = HC_DO_m_mgL_shallow * DA
+            HC_DO_vol_int_deeper  = HC_DO_m_mgL_deeper  * DA
 
             # sum over y and x to get total DO in Puget Sound
             # PS_total_DO = np.sum(PS_DO_vol_int, axis=(1, 2)) # [m3 * mg/L], with shape t
+            # Puget Sound
             PS_total_DO_shallow = np.sum(PS_DO_vol_int_shallow, axis=(1, 2)) # [m3 * mg/L], with shape t
             PS_total_DO_deeper  = np.sum(PS_DO_vol_int_deeper, axis=(1, 2)) # [m3 * mg/L], with shape t
+            # South Sound
+            SS_total_DO_shallow = np.sum(SS_DO_vol_int_shallow, axis=(1, 2))
+            SS_total_DO_deeper  = np.sum(SS_DO_vol_int_deeper, axis=(1, 2))
+            # Whidbey Basin
+            WB_total_DO_shallow = np.sum(WB_DO_vol_int_shallow, axis=(1, 2))
+            WB_total_DO_deeper  = np.sum(WB_DO_vol_int_deeper, axis=(1, 2))
+            # Main Basin
+            MB_total_DO_shallow = np.sum(MB_DO_vol_int_shallow, axis=(1, 2))
+            MB_total_DO_deeper  = np.sum(MB_DO_vol_int_deeper, axis=(1, 2))
+            # Hood Canal
+            HC_total_DO_shallow = np.sum(HC_DO_vol_int_shallow, axis=(1, 2))
+            HC_total_DO_deeper  = np.sum(HC_DO_vol_int_deeper, axis=(1, 2))
 
             # get average concentration over time
             # PS_avg_DO = PS_total_DO / PS_total_volume # [mg/L], with shape t
+            # Puget Sound
             PS_avg_DO_shallow = PS_total_DO_shallow / PS_total_volume_shallow # [mg/L], with shape t
             PS_avg_DO_deeper  = PS_total_DO_deeper / PS_total_volume_deeper # [mg/L], with shape t
+            # South Sound
+            SS_avg_DO_shallow = SS_total_DO_shallow / SS_total_volume_shallow
+            SS_avg_DO_deeper  = SS_total_DO_deeper / SS_total_volume_deeper
+            # Whidbey Basin
+            WB_avg_DO_shallow = WB_total_DO_shallow / WB_total_volume_shallow
+            WB_avg_DO_deeper  = WB_total_DO_deeper / WB_total_volume_deeper
+            # Main Basin
+            MB_avg_DO_shallow = MB_total_DO_shallow / MB_total_volume_shallow
+            MB_avg_DO_deeper  = MB_total_DO_deeper / MB_total_volume_deeper
+            # Hood Canal
+            HC_avg_DO_shallow = HC_total_DO_shallow / HC_total_volume_shallow
+            HC_avg_DO_deeper  = HC_total_DO_deeper / HC_total_volume_deeper
 
 
             # # outflow of skagit river
@@ -215,16 +337,50 @@ for gtagex in gtagexes:
             print('    Adding data to dataset')
 
             # Average Puget Sound DO concentration time series in depths 10 m or shallower
-            ds['shallow_DO_mgL'] = xr.DataArray(PS_avg_DO_shallow,
+            # Puget Sound
+            ds['shallow_DO_mgL_ps'] = xr.DataArray(PS_avg_DO_shallow,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values},
+                                        dims=['ocean_time'])
+            # South Sound
+            ds['shallow_DO_mgL_ss'] = xr.DataArray(SS_avg_DO_shallow,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values},
+                                        dims=['ocean_time'])
+            # Whidbey Basin
+            ds['shallow_DO_mgL_wb'] = xr.DataArray(WB_avg_DO_shallow,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values},
+                                        dims=['ocean_time'])
+            # Main Basin
+            ds['shallow_DO_mgL_mb'] = xr.DataArray(MB_avg_DO_shallow,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values},
+                                        dims=['ocean_time'])
+            # Hood Canal
+            ds['shallow_DO_mgL_hc'] = xr.DataArray(HC_avg_DO_shallow,
                                         coords={'ocean_time': ds_raw['ocean_time'].values},
                                         dims=['ocean_time'])
             
             # Average Puget Sound DO concentration time series in deeper than 10 m
-            ds['deep_DO_mgL'] = xr.DataArray(PS_avg_DO_deeper,
+            # Puget Sound
+            ds['deep_DO_mgL_ps'] = xr.DataArray(PS_avg_DO_deeper,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values},
+                                        dims=['ocean_time'])
+            # South Sound
+            ds['deep_DO_mgL_ss'] = xr.DataArray(SS_avg_DO_deeper,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values},
+                                        dims=['ocean_time'])
+            # Whidbey Basin
+            ds['deep_DO_mgL_wb'] = xr.DataArray(WB_avg_DO_deeper,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values},
+                                        dims=['ocean_time'])
+            # Main Basin
+            ds['deep_DO_mgL_mb'] = xr.DataArray(MB_avg_DO_deeper,
+                                        coords={'ocean_time': ds_raw['ocean_time'].values},
+                                        dims=['ocean_time'])
+            # Hood Canal
+            ds['deep_DO_mgL_hc'] = xr.DataArray(HC_avg_DO_deeper,
                                         coords={'ocean_time': ds_raw['ocean_time'].values},
                                         dims=['ocean_time'])
 
             print('    Saving dataset')
-            ds.to_netcdf(out_dir / (gtagex + '_' + region + '_' + year + '_shallow10m_deep_DO.nc'))
+            ds.to_netcdf(out_dir / (gtagex + 'AUGUST_pugetsoundbasins_' + year + '_shallow10m_deep_DO.nc'))
 
 print('Done')

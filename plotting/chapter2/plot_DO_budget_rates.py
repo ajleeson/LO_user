@@ -39,8 +39,8 @@ startdate = year + '.01.01'
 # enddate = year + '.12.31'
 # enddate_hrly = str(int(year)+1)+'.01.01 00:00:00'
 
-enddate = year + '.01.02'
-enddate_hrly = '2017.01.02 23:00:00'
+enddate = year + '.01.31'
+enddate_hrly = '2017.01.31 23:00:00'
 
 # parse gtagex
 gridname, tag, ex_name = gtagex.split('_')
@@ -95,7 +95,7 @@ for i,basin in enumerate(basins):
 #                 year+'.11.01_'+year+'.11.30',
 #                 year+'.12.01_'+year+'.12.31',]
     bgc_dir = Ldir['LOo'] / 'chapter_2' / 'data' / ('DO_budget_terms_' + startdate + '_2017.12.31') / basin
-    months = [year+'.01.01_'+year+'.01.02']
+    months = [year+'.01.01_'+year+'.01.31']
 
             
     # initialize arrays to save values
@@ -170,13 +170,21 @@ for i,basin in enumerate(basins):
 #     DO_deep_unfiltered = o2vol_deep_unfiltered/vol_deep_unfiltered * 32/1000 # mg/L
 #     DO_total_unfiltered = (o2vol_deep_unfiltered+o2vol_surf_unfiltered) / (vol_deep_unfiltered+vol_surf_unfiltered) * 32/1000 # mg/L
 
-#     # apply Godin filter
-#     photo  = zfun.lowpass(photosynthesis_unfiltered, f='godin')[36:-34:24]
-#     nitri  = zfun.lowpass(nitrification_unfiltered, f='godin')[36:-34:24]
-#     respi  = zfun.lowpass(respiration_unfiltered, f='godin')[36:-34:24]
-#     sod    = zfun.lowpass(sod_unfiltered, f='godin')[36:-34:24]
-#     airsea = zfun.lowpass(airsea_unfiltered, f='godin')[36:-34:24]
-#     ddtDOV = zfun.lowpass(ddtDOV_unfiltered, f='godin')[36:-34:24]
+    # apply Godin filter
+    # loading
+    photo_load  = zfun.lowpass(photosynthesis_unfiltered_load, f='godin')[36:-34:24]
+    nitri_load  = zfun.lowpass(nitrification_unfiltered_load, f='godin')[36:-34:24]
+    respi_load  = zfun.lowpass(respiration_unfiltered_load, f='godin')[36:-34:24]
+    sod_load    = zfun.lowpass(sod_unfiltered_load, f='godin')[36:-34:24]
+    airsea_load = zfun.lowpass(airsea_unfiltered_load, f='godin')[36:-34:24]
+    ddtDOV_load = zfun.lowpass(ddtDOV_unfiltered_load, f='godin')[36:-34:24]
+    # no loading
+    photo_noload  = zfun.lowpass(photosynthesis_unfiltered_noload, f='godin')[36:-34:24]
+    nitri_noload  = zfun.lowpass(nitrification_unfiltered_noload, f='godin')[36:-34:24]
+    respi_noload  = zfun.lowpass(respiration_unfiltered_noload, f='godin')[36:-34:24]
+    sod_noload    = zfun.lowpass(sod_unfiltered_noload, f='godin')[36:-34:24]
+    airsea_noload = zfun.lowpass(airsea_unfiltered_noload, f='godin')[36:-34:24]
+    ddtDOV_noload = zfun.lowpass(ddtDOV_unfiltered_noload, f='godin')[36:-34:24]
 
     # plot budget time series
 #     ax.plot(dates_local,zfun.lowpass(photosynthesis_unfiltered,n=10),color='#8F0445', label='Photosynthesis')
@@ -186,18 +194,18 @@ for i,basin in enumerate(basins):
 #     ax.plot(dates_local,zfun.lowpass(airsea_unfiltered,n=10),color='teal', label='Air-Sea') 
 
     # plot no-loading
-    ax.plot(dates_local,photosynthesis_unfiltered_noload,color='#8F0445', label='Photosynthesis', linewidth=2, alpha=0.5)
-    ax.plot(dates_local,nitrification_unfiltered_noload,color='#FCC2DD', label='Nitrification', linewidth=2, alpha=0.5)
-    ax.plot(dates_local,respiration_unfiltered_noload,color='yellowgreen', label='Respiration', linewidth=2, alpha=0.5)
-    ax.plot(dates_local,sod_unfiltered_noload,color='#0D4B91', label='Sediment oxygen demand', linewidth=2, alpha=0.5)
-    ax.plot(dates_local,airsea_unfiltered_noload,color='teal', label='Air-Sea', linewidth=2, alpha=0.5)
+    ax.plot(dates_local_daily,photo_noload,color='#8F0445', label='Photosynthesis', linewidth=2, alpha=0.5)
+    ax.plot(dates_local_daily,nitri_noload,color='#FCC2DD', label='Nitrification', linewidth=2, alpha=0.5)
+    ax.plot(dates_local_daily,respi_noload,color='yellowgreen', label='Respiration', linewidth=2, alpha=0.5)
+    ax.plot(dates_local_daily,sod_noload,color='#0D4B91', label='Sediment oxygen demand', linewidth=2, alpha=0.5)
+    ax.plot(dates_local_daily,airsea_noload,color='teal', label='Air-Sea', linewidth=2, alpha=0.5)
 
     # plot loading
-    ax.plot(dates_local,photosynthesis_unfiltered_load,color='#8F0445', linewidth=1, linestyle='--', alpha=1)
-    ax.plot(dates_local,nitrification_unfiltered_load,color='#FCC2DD', linewidth=1, linestyle='--', alpha=1)
-    ax.plot(dates_local,respiration_unfiltered_load,color='yellowgreen', linewidth=1, linestyle='--', alpha=1)
-    ax.plot(dates_local,sod_unfiltered_load,color='#0D4B91', linewidth=1, linestyle='--', alpha=1)
-    ax.plot(dates_local,airsea_unfiltered_load,color='teal', linewidth=1, linestyle='--', alpha=1)
+    ax.plot(dates_local_daily,photo_load,color='#8F0445', linewidth=1, linestyle='--', alpha=1)
+    ax.plot(dates_local_daily,nitri_load,color='#FCC2DD', linewidth=1, linestyle='--', alpha=1)
+    ax.plot(dates_local_daily,respi_load,color='yellowgreen', linewidth=1, linestyle='--', alpha=1)
+    ax.plot(dates_local_daily,sod_load,color='#0D4B91', linewidth=1, linestyle='--', alpha=1)
+    ax.plot(dates_local_daily,airsea_load,color='teal', linewidth=1, linestyle='--', alpha=1)
 
 
     ax.legend(loc='upper right')

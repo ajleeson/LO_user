@@ -225,9 +225,11 @@ QwNH4w_noloading_avg = np.nanmean(Qw_noloading*NH4w_noloading) / 71.4 * 86.4 # [
 # print('River QrTNr: ', QrTNr_noloading_avg, 'mmol/s')
 # print('WWTP QwTNw: ', QwTNw_noloading_avg, 'mmol/s')
 
-# print WWTP nutrient concentrations
-print('WWTP NH4 concentration: {} mmol/m3'.format(np.nanmean(NH4w_loading)))
-print('WWTP NO3 concentration: {} mmol/m3'.format(np.nanmean(NO3w_loading)))
+# print WWTP nutrient concentrations (flow-weighted average)
+wwtp_NH4_conc = QwNH4w_loading_avg / np.nanmean(Qw_loading) # mmol/m3
+wwtp_NO3_conc = QwNO3w_loading_avg / np.nanmean(Qw_loading) # mmol/m3
+print('WWTP NH4 concentration: {} mmol/m3'.format(np.nanmean(wwtp_NH4_conc)))
+print('WWTP NO3 concentration: {} mmol/m3'.format(np.nanmean(wwtp_NO3_conc)))
 
 
 #######################################################

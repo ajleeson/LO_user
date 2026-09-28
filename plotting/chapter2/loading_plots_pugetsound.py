@@ -590,7 +590,8 @@ ax2.set_ylim([ymin,ymax])
 pfun.dar(ax2)
 ax2.text(-122.15,47.0, f'{int(ocn_load):,d}' + r' kg d$^{-1}$',
          fontsize=12, fontweight='bold', ha='right')
-ax2.set_title('(c) Exchange Flow',loc='left',fontsize=14,fontweight='bold')
+# ax2.set_title('(c) Exchange Flow',loc='left',fontsize=14,fontweight='bold')
+ax2.set_title('(c) Ocean',loc='left',fontsize=14,fontweight='bold')
 
 plt.tight_layout()
 plt.show()
