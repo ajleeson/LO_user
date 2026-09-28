@@ -381,6 +381,6 @@ for gtagex in gtagexes:
                                         dims=['ocean_time'])
 
             print('    Saving dataset')
-            ds.to_netcdf(out_dir / (gtagex + 'AUGUST_pugetsoundbasins_' + year + '_shallow10m_deep_DO.nc'))
+            ds.to_netcdf(out_dir / ('basins_shallow10m_deep_DO_' + gtagex + year + '.nc'))
 
 print('Done')
