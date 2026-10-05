@@ -23,8 +23,8 @@ tt0 = time()
 
 burial=50 # 50% burial of sinking detritus in the Salish Sea
 
-# gtagex = 'cas7_t1_x11b' # loading
-gtagex = 'cas7_t1noDIN_x11b' # no-loading
+gtagex = 'cas7_t1_x11b' # loading
+# gtagex = 'cas7_t1noDIN_x11b' # no-loading
 
 basins = ['hoodcanal','whidbey','mainbasin','southsound']
 basin_seg_dict = {'hoodcanal':'hc_m',
@@ -93,12 +93,63 @@ in_dir = Ldir['roms_out'] / Ldir['gtagex']
 G, S, T = zrfun.get_basic_info(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
 
 fn0 = xr.open_dataset(in_dir / ('f' + Ldir['ds0']) / 'ocean_his_0002.nc')
-dx = 1/fn0.pm.values
-dy = 1/fn0.pn.values
-lonr = fn0.lon_rho.values
-latr = fn0.lat_rho.values
+# # original code to get grid cell size
+# dx = 1/fn0.pm.values
+# dy = 1/fn0.pn.values
+# lonr = fn0.lon_rho.values
+# latr = fn0.lat_rho.values
+# area = dx * dy
+# NX, NY = dx.shape
+
+# Get Puget Sound mask to make the code goes faster
+basin_mask_ds = xr.open_dataset('../../../LO_output/chapter_2/data/basin_masks_from_pugetsoundDObox.nc')
+mask_ps = basin_mask_ds.mask_pugetsound.values
+
+######################################################
+# AI assisted code to crop grid to just Puget Sound, so the code runs faster
+
+# Puget sound mask lat/lon/depth
+mask_lon = basin_mask_ds['lon_rho'].values
+mask_lat = basin_mask_ds['lat_rho'].values
+mask_h = basin_mask_ds['h'].values
+
+# full model domain lat/lon/depth
+model_lon = fn0['lon_rho'].values
+model_lat = fn0['lat_rho'].values
+model_h = fn0['h'].values
+
+# get bottom left corner lat/lon for the mask
+target_lon = mask_lon[0, 0]
+target_lat = mask_lat[0, 0]
+
+# get squared distance between the mask's bottom left corner and every point in the model domain
+distance2 = ((model_lon - target_lon) ** 2
+    + (model_lat - target_lat) ** 2)
+
+# get the coordinate of the closest point in the model domain to the mask's bottom left corner
+eta0, xi0 = np.unravel_index(np.nanargmin(distance2),model_lon.shape)
+
+# get model domain index corresponding to the mask's upper right corner
+eta1 = eta0 + mask_lon.shape[0]
+xi1 = xi0 + mask_lon.shape[1]
+
+# code to get cropped grid cell size
+# Crop static grid variables to the extracted Puget Sound box.
+dx = 1 / fn0.pm.values[eta0:eta1, xi0:xi1]
+dy = 1 / fn0.pn.values[eta0:eta1, xi0:xi1]
+lonr = fn0.lon_rho.values[eta0:eta1, xi0:xi1]
+latr = fn0.lat_rho.values[eta0:eta1, xi0:xi1]
 area = dx * dy
-NX, NY = dx.shape
+NX, NY = area.shape
+# Read the mask on the same cropped grid.
+mask_ps = basin_mask_ds.mask_pugetsound.values
+mask_ps_bool = mask_ps == 1
+# Confirm alignment.
+assert area.shape == mask_ps_bool.shape
+assert (NX, NY) == (441, 177)
+
+######################################################
+
 
 AttSW = np.zeros((NX, NY)) + 0.05
 AttSW[(lonr > -123.89) & (latr < 50.29) & (latr > 47.02)] = 0.15
@@ -122,7 +173,6 @@ OA4 = -0.256847;    OA5 = 3.88767;       OB0 = -0.00624523
 OB1 = -0.00737614;  OB2 = -0.0103410;    OB3 = -0.00817083
 OC0 = -0.000000488682    
 
-#%%
 
 # create dictionary of empty dataframes
 df_dict = {'hoodcanal': pd.DataFrame(),
@@ -131,33 +181,59 @@ df_dict = {'hoodcanal': pd.DataFrame(),
            'southsound': pd.DataFrame()}
 
 cnt = 0
-#%%
+
+# get basin indices
+basin_indices = {}
+# get segment information
+seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_cps_trapsN00.p'
+seg_df = pd.read_pickle(seg_name)
+# get segment name
+for basin in basins:
+    segment = basin_seg_dict[basin]
+    ji_list = seg_df[segment]['ji_list']
+    jj_full = np.asarray([x[0] for x in ji_list])
+    ii_full = np.asarray([x[1] for x in ji_list])
+    # convert basin indices to indices that match the Puget Sound mask
+    jj = jj_full - eta0
+    ii = ii_full - xi0
+    # add basin indices to dict
+    basin_indices[basin] = (jj, ii)
+    # verify that the basin indices are within the cropped Puget Sound box
+    if (np.any(jj < 0) or np.any(jj >= NX)or np.any(ii < 0) or np.any(ii >= NY)):
+        raise IndexError(f'{basin} contains indices outside the cropped Puget Sound box')
+
+############################################################
+# Loop through each history file
 while dt00 <= dt1:  # loop each day and every history file
     print(dt00)
     sys.stdout.flush()
     ds00 = dt00.strftime(Lfun.ds_fmt)
     fn_list = Lfun.get_fn_list('hourly', Ldir, ds00, ds00)
-    #%%
+    
     for hr,fn in enumerate(fn_list[0:-1]): 
         print('    hour {}'.format(hr+1))
         sys.stdout.flush()
         # print(fn)
 
         ds = xr.open_dataset(fn)
-        swrad = ds.swrad.values.squeeze()
-        chl = ds.chlorophyll.values.squeeze()
-        zeta = ds.zeta.values.squeeze()
-        h = ds.h.values
-        zw = zrfun.get_z(h, zeta, S, only_w=True)
+
+        # crop to just Puget Sound to speed things up
+        ds_crop = ds.isel(eta_rho=slice(eta0, eta1),xi_rho=slice(xi0, xi1))
+
+        swrad = ds_crop.swrad.values.squeeze()
+        chl = ds_crop.chlorophyll.values.squeeze()
+        zeta = ds_crop.zeta.values.squeeze()
+        h = ds_crop.h.values
+        z_w = zrfun.get_z(h, zeta, S, only_w=True)
         zrho = zrfun.get_z(h, zeta, S, only_rho=True)
-        dz = np.diff(zw, axis=0)
-        salt = ds.salt.values.squeeze()
-        NH4 = ds.NH4.values.squeeze()
-        NO3 = ds.NO3.values.squeeze()
-        phy = ds.phytoplankton.values.squeeze()
-        SDeN = ds.SdetritusN.values.squeeze()
-        LDeN = ds.LdetritusN.values.squeeze()
-        Oxy = ds.oxygen.values.squeeze()
+        dz = np.diff(z_w, axis=0)
+        salt = ds_crop.salt.values.squeeze()
+        NH4 = ds_crop.NH4.values.squeeze()
+        NO3 = ds_crop.NO3.values.squeeze()
+        phy = ds_crop.phytoplankton.values.squeeze()
+        SDeN = ds_crop.SdetritusN.values.squeeze()
+        LDeN = ds_crop.LdetritusN.values.squeeze()
+        Oxy = ds_crop.oxygen.values.squeeze()
 
        # PARsur = PARfrac * swrad #* rho0 * Cp # surface PAR, watts/m2
         Att = np.zeros(salt.shape)
@@ -172,7 +248,6 @@ while dt00 <= dt1:  # loop each day and every history file
         Oxy_remi = np.zeros(Att.shape) # O2 consumption by remineralization in water column
         Oxy_sed = np.zeros([ni,nj]) # O2 consumption by SOD
         
-        z_w = zrfun.get_z(h, zeta, S, only_rho=False, only_w=True)
         vol = np.diff(z_w,axis=0) * area # grid cell volume
         
         #if np.nanmin(PARsur) > 0: # doing photosysnthesis
@@ -240,11 +315,11 @@ while dt00 <= dt1:  # loop each day and every history file
         NH4_gain_flux = NH4_gain_flux_L + NH4_gain_flux_S
                 
         #---------- air-sea flux ----------
-        Uwind = ds.Uwind.values.squeeze()
-        Vwind = ds.Vwind.values.squeeze()
-        temp_surf = ds.temp.values[0,-1,:,:] # surface temp
-        salt_surf = ds.salt.values[0,-1,:,:] # surface salt
-        Oxy_surf = ds.oxygen.values[0,-1,:,:] # surface O2
+        Uwind = ds_crop.Uwind.values.squeeze()
+        Vwind = ds_crop.Vwind.values.squeeze()
+        temp_surf = ds_crop.temp.values[0,-1,:,:] # surface temp
+        salt_surf = ds_crop.salt.values[0,-1,:,:] # surface salt
+        Oxy_surf = ds_crop.oxygen.values[0,-1,:,:] # surface O2
         # Compute O2 transfer velocity: u10squared (u10 in m/s)
         u10squ = Uwind * Uwind + Vwind * Vwind  # ifdef BULK_FLUXES
         
@@ -262,15 +337,8 @@ while dt00 <= dt1:  # loop each day and every history file
 
         for basin in basins: # loop through basins: 
 
-            # get segment name
-            segment = basin_seg_dict[basin]
-
-            # get segment information
-            seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_cps_trapsN00.p'
-            seg_df = pd.read_pickle(seg_name)
-            ji_list = seg_df[segment]['ji_list']
-            jj = [x[0] for x in ji_list]
-            ii = [x[1] for x in ji_list]
+            # get indices for the basin
+            jj, ii = basin_indices[basin]
 
             # get storage term
             tmp_zrho = zrho[:,jj,ii] # in domain
@@ -318,7 +386,7 @@ while dt00 <= dt1:  # loop each day and every history file
 
         cnt += 1
         # t.append(ds.ocean_time.values)
-        ds.close()       
+        ds.close()
     dt00 = dt00 + timedelta(days=1)
 
 for basin in basins: #for station in stations:
