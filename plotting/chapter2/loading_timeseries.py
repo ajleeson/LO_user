@@ -153,15 +153,15 @@ tef_df, vn_list, vec_list = tef_fun.get_two_layer(in_dir,section)
 Q_in = tef_df['q_p'] # Qin [m3/s]
 NO3_in = tef_df['NO3_p'] # NO3in [mmol/m3]
 NH4_in = tef_df['NH4_p'] # NH4in [mmol/m3]
-# get outflowing values
-Q_out = tef_df['q_m'] # Qin [m3/s]
-NO3_out = tef_df['NO3_m'] # NO3in [mmol/m3]
-NH4_out = tef_df['NH4_m'] # NH4in [mmol/m3]
 # combine terms
 DIN_in = NO3_in + NH4_in # DINin [mmol/m3]
-# determine Qin*DINin and Qin*TNin
+# determine Qin*DINin
+QinNO3in_mmol_s = Q_in * NO3_in # [mmol/m3]
+QinNH4in_mmol_s = Q_in * NH4_in # [mmol/m3]
 QinDINin_mmol_s = Q_in * DIN_in # [mmol/m3]
 # convert to kg/d
+QinNO3in_kg_d = QinNO3in_mmol_s / 71.4 * 86.4 # [kg/day] (71.4 gets from mmol/m3 to mg/L, and 86.4 gets to kg/d)
+QinNH4in_kg_d = QinNH4in_mmol_s / 71.4 * 86.4 # [kg/day] (71.4 gets from mmol/m3 to mg/L, and 86.4 gets to kg/d)
 QinDINin_kg_d = QinDINin_mmol_s / 71.4 * 86.4 # [kg/day] (71.4 gets from mmol/m3 to mg/L, and 86.4 gets to kg/d)
 
 # TEF dates
@@ -169,13 +169,15 @@ tef_start_date = '2017.01.02'
 tef_end_date = '2017.12.30'
 dates_daily_tef = pd.date_range(start=tef_start_date, end=tef_end_date, freq= 'd')
 
+# pad ocean values for stacked time series
+QinDINin_kg_d_padded = np.pad(QinDINin_kg_d,(732, 1097),constant_values=np.nan)
 
 #######################################################
 ##               Plot time series                    ##
 #######################################################
 
 plt.close('all')
-fig,ax = plt.subplots(3,1,figsize=(8,7),sharex=True)
+fig,ax = plt.subplots(4,1,figsize=(9,7),sharex=True)
 
 # get colors
 rivcolor = 'mediumpurple'
@@ -187,37 +189,53 @@ oceancolor = 'cornflowerblue'
 ax[0].plot(dates_local_daily,QwNO3w_loading_avg,linewidth=3,alpha=0.5,color=wwtpcolor,label='NO3')
 ax[0].plot(dates_local_daily,QwNH4w_loading_avg,linewidth=1.5,color='olivedrab',label='NH4')
 ax[0].legend(loc='upper right',fontsize=12)
-ax[0].text(0.02,0.85,'(a) WWTP Loading',transform=ax[0].transAxes,fontsize=14,fontweight='bold')
+ax[0].text(0.016,0.85,'(a) WWTP Loading',transform=ax[0].transAxes,fontsize=14,fontweight='bold')
+ax[0].set_ylabel(r'Load [kg d$^{-1}$]',fontsize=12)
 
 # River
 ax[1].plot(dates_local_daily,QrNO3r_loading_avg,linewidth=3,alpha=0.5,color=rivcolor,label='NO3')
 ax[1].plot(dates_local_daily,QrNH4r_loading_avg,linewidth=1.5,color='rebeccapurple',label='NH4')
 ax[1].legend(loc='upper right',fontsize=12)
-ax[1].text(0.02,0.85,'(b) River Loading',transform=ax[1].transAxes,fontsize=14,fontweight='bold')
+ax[1].text(0.016,0.85,'(b) River Loading',transform=ax[1].transAxes,fontsize=14,fontweight='bold')
+ax[1].set_ylabel(r'Load [kg d$^{-1}$]',fontsize=12)
+
+# Ocean
+ax[2].plot(dates_daily_tef,QinNO3in_kg_d,linewidth=3,alpha=0.5,color=oceancolor,label='NO3')
+ax[2].plot(dates_daily_tef,QinNH4in_kg_d,linewidth=1.5,color='royalblue',label='NH4')
+ax[2].legend(loc='upper right',fontsize=12)
+ax[2].text(0.016,0.85,'(c) Ocean Loading',transform=ax[2].transAxes,fontsize=14,fontweight='bold')
+ax[2].set_ylabel(r'Load [kg d$^{-1}$]',fontsize=12)
 
 # Stacked DIN
-ax[2].stackplot(dates_local_daily,
+ax[3].stackplot(dates_local_daily,
              QwNO3w_loading_avg + QwNH4w_loading_avg, 
              QrNO3r_loading_avg + QrNH4r_loading_avg,
-             labels=['WWTPs', 'Rivers'],
-             colors=[wwtpcolor, rivcolor],
-             alpha=0.9)
-ax[2].plot(dates_daily_tef,QinDINin_kg_d,color=oceancolor,alpha=0.5)
-ax[2].text(0.02,0.85,'(c) Stacked DIN Loads',transform=ax[2].transAxes,fontsize=14,fontweight='bold')
-# ax[2].set_yscale('log') 
+             QinDINin_kg_d_padded,
+             labels=['WWTPs', 'Rivers', 'Ocean'],
+             colors=[wwtpcolor, rivcolor, oceancolor],
+             edgecolor='black',
+             linewidth=0.4,
+             alpha=0.5)
+ax[3].text(0.016,0.85,'(d) Stacked DIN Loads',transform=ax[3].transAxes,fontsize=14,fontweight='bold')
+ax[3].set_yscale('log') 
+ax[3].legend(loc='upper right',fontsize=12)
+ax[3].set_ylabel(r'Load [kg d$^{-1}$]',fontsize=12)
 
 # format figure
 ax[0].set_xlim([dates_local_daily[0],dates_local_daily[-1]])
-ax[0].set_ylim([0,200000])
+ax[0].set_ylim([0,50000])
 ax[1].set_ylim([0,200000])
-ax[2].set_ylim([0,3000000])
+ax[2].set_ylim([0,2500000])
+ax[3].set_ylim([0,2500000])
 ax[0].tick_params(axis='x', labelrotation=30)
 ax[0].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[1].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[3].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[0].tick_params(axis='both', labelsize=12)
 ax[1].tick_params(axis='both', labelsize=12)
 ax[2].tick_params(axis='both', labelsize=12)
+ax[3].tick_params(axis='both', labelsize=12)
 
 plt.tight_layout()
 plt.show()

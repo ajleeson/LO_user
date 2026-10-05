@@ -39,10 +39,10 @@ startdate = year + '.01.01'
 # enddate = year + '.12.31'
 # enddate_hrly = str(int(year)+1)+'.01.01 00:00:00'
 
-enddate = year + '.01.02'
-enddate_hrly = '2017.01.02 23:00:00'
-# enddate = year + '.01.31'
-# enddate_hrly = '2017.01.31 23:00:00'
+# enddate = year + '.01.02'
+# enddate_hrly = '2017.01.02 23:00:00'
+enddate = year + '.01.31'
+enddate_hrly = '2017.01.31 23:00:00'
 
 # parse gtagex
 gridname, tag, ex_name = gtagex.split('_')
@@ -97,7 +97,7 @@ for i,basin in enumerate(basins):
 #                 year+'.11.01_'+year+'.11.30',
 #                 year+'.12.01_'+year+'.12.31',]
     bgc_dir = Ldir['LOo'] / 'chapter_2' / 'data' / ('DO_budget_terms_' + startdate + '_2017.12.31') / basin
-    months = [year+'.01.01_'+year+'.01.02']
+    months = [year+'.01.01_'+year+'.01.31']
 
             
     # initialize arrays to save values
