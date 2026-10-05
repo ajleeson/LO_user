@@ -26,6 +26,8 @@ burial=50 # 50% burial of sinking detritus in the Salish Sea
 gtagex = 'cas7_t1_x11b' # loading
 # gtagex = 'cas7_t1noDIN_x11b' # no-loading
 
+print(gtagex)
+
 basins = ['hoodcanal','whidbey','mainbasin','southsound']
 basin_seg_dict = {'hoodcanal':'hc_m',
                   'whidbey':'wb_p',
@@ -49,12 +51,13 @@ year = '2017'
 # ds0 = '2017.01.01'
 # ds1 = '2017.01.31'
 # feb
-# running
-ds0 = '2017.02.01'
-ds1 = '2017.02.28'
+# done
+# ds0 = '2017.02.01'
+# ds1 = '2017.02.28'
 # mar
-# ds0 = '2017.03.01'
-# ds1 = '2017.03.31'
+# running
+ds0 = '2017.03.01'
+ds1 = '2017.03.31'
 # apr
 # ds0 = '2017.04.01'
 # ds1 = '2017.04.30'
