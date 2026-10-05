@@ -15,6 +15,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.patches as mpatches
+import tef_fun
 
 Ldir = Lfun.Lstart()
 
@@ -27,6 +28,7 @@ Ldir = Lfun.Lstart()
 # end_date = '2017.12.31'
 start_date = '2015.01.01'
 end_date = '2020.12.31'
+year = '2017'
 
 # create time_vector
 dates_daily = pd.date_range(start= start_date, end=end_date, freq= 'd')
@@ -133,30 +135,89 @@ QrNH4r_loading_avg = (Qr_loading*NH4r_loading) / 71.4 * 86.4 # [kg/day] (71.4 ge
 QwNH4w_loading_avg = (Qw_loading*NH4w_loading) / 71.4 * 86.4 # [kg/day] (71.4 gets from mmol/m3 to mg/L, and 86.4 gets to kg/d)
 
 
-############# ##########################################
+######################################################
+# Get Ocean load from TEF
+
+##########################################################
+##                    Define inputs                     ##
+##########################################################
+
+gtagex = 'cas7_t1_x11b'
+
+section = 'ai' # Admiralty Inlet
+
+# NO-LOADING RUN
+in_dir = Ldir['LOo'] / 'extract' / 'cas7_t1noDIN_x11b' / 'tef2' / ('bulk_'+year+'.01.01_'+year+'.12.31')
+tef_df, vn_list, vec_list = tef_fun.get_two_layer(in_dir,section)
+# get inflowing values
+Q_in = tef_df['q_p'] # Qin [m3/s]
+NO3_in = tef_df['NO3_p'] # NO3in [mmol/m3]
+NH4_in = tef_df['NH4_p'] # NH4in [mmol/m3]
+# get outflowing values
+Q_out = tef_df['q_m'] # Qin [m3/s]
+NO3_out = tef_df['NO3_m'] # NO3in [mmol/m3]
+NH4_out = tef_df['NH4_m'] # NH4in [mmol/m3]
+# combine terms
+DIN_in = NO3_in + NH4_in # DINin [mmol/m3]
+# determine Qin*DINin and Qin*TNin
+QinDINin_mmol_s = Q_in * DIN_in # [mmol/m3]
+# convert to kg/d
+QinDINin_kg_d = QinDINin_mmol_s / 71.4 * 86.4 # [kg/day] (71.4 gets from mmol/m3 to mg/L, and 86.4 gets to kg/d)
+
+# TEF dates
+tef_start_date = '2017.01.02'
+tef_end_date = '2017.12.30'
+dates_daily_tef = pd.date_range(start=tef_start_date, end=tef_end_date, freq= 'd')
+
+
+#######################################################
 ##               Plot time series                    ##
 #######################################################
 
 plt.close('all')
-fig,ax = plt.subplots(2,1,figsize=(10,6),sharex=True)
+fig,ax = plt.subplots(3,1,figsize=(8,7),sharex=True)
+
+# get colors
+rivcolor = 'mediumpurple'
+wwtpcolor = 'yellowgreen'
+oceancolor = 'cornflowerblue'
+
+
+# WWTP 
+ax[0].plot(dates_local_daily,QwNO3w_loading_avg,linewidth=3,alpha=0.5,color=wwtpcolor,label='NO3')
+ax[0].plot(dates_local_daily,QwNH4w_loading_avg,linewidth=1.5,color='olivedrab',label='NH4')
+ax[0].legend(loc='upper right',fontsize=12)
+ax[0].text(0.02,0.85,'(a) WWTP Loading',transform=ax[0].transAxes,fontsize=14,fontweight='bold')
 
 # River
-ax[0].plot(dates_local_daily,QrNO3r_loading_avg)
-ax[0].plot(dates_local_daily,QrNH4r_loading_avg)
+ax[1].plot(dates_local_daily,QrNO3r_loading_avg,linewidth=3,alpha=0.5,color=rivcolor,label='NO3')
+ax[1].plot(dates_local_daily,QrNH4r_loading_avg,linewidth=1.5,color='rebeccapurple',label='NH4')
+ax[1].legend(loc='upper right',fontsize=12)
+ax[1].text(0.02,0.85,'(b) River Loading',transform=ax[1].transAxes,fontsize=14,fontweight='bold')
 
-# WWTP
-ax[1].plot(dates_local_daily,QwNO3w_loading_avg)
-ax[1].plot(dates_local_daily,QwNH4w_loading_avg)
+# Stacked DIN
+ax[2].stackplot(dates_local_daily,
+             QwNO3w_loading_avg + QwNH4w_loading_avg, 
+             QrNO3r_loading_avg + QrNH4r_loading_avg,
+             labels=['WWTPs', 'Rivers'],
+             colors=[wwtpcolor, rivcolor],
+             alpha=0.9)
+ax[2].plot(dates_daily_tef,QinDINin_kg_d,color=oceancolor,alpha=0.5)
+ax[2].text(0.02,0.85,'(c) Stacked DIN Loads',transform=ax[2].transAxes,fontsize=14,fontweight='bold')
+# ax[2].set_yscale('log') 
 
 # format figure
 ax[0].set_xlim([dates_local_daily[0],dates_local_daily[-1]])
 ax[0].set_ylim([0,200000])
-ax[1].set_ylim([0,40000])
+ax[1].set_ylim([0,200000])
+ax[2].set_ylim([0,3000000])
 ax[0].tick_params(axis='x', labelrotation=30)
 ax[0].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[1].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
+ax[2].grid(True,color='silver',linewidth=1,linestyle='--',axis='both')
 ax[0].tick_params(axis='both', labelsize=12)
 ax[1].tick_params(axis='both', labelsize=12)
+ax[2].tick_params(axis='both', labelsize=12)
 
 plt.tight_layout()
 plt.show()
