@@ -160,10 +160,10 @@ Ldir_pert_2   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd')
 Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1', ex_name='x11ab')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
-fn_list_pert_1   = Lfun.get_fn_list(list_type, Ldir_pert_1, d0, d0end, Ldir['roms_out'])
-fn_list_pert_2   = Lfun.get_fn_list(list_type, Ldir_pert_2, d1start, d1, Ldir['roms_out'])
+fn_list_pert_1   = get_fn_list(list_type, Ldir_pert_1, d0, d0end, Ldir['roms_out'])
+fn_list_pert_2   = get_fn_list(list_type, Ldir_pert_2, d1start, d1, Ldir['roms_out'])
 fn_list_pert = fn_list_pert_1 + fn_list_pert_2
-fn_list_base = Lfun.get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out5'])
+fn_list_base = get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out5'])
 
 # Get grid data
 G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
