@@ -160,7 +160,7 @@ Lfun.make_dir(out_dir)
 # gtagex of files to difference
 # Ldir_pert_1   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd3monthscont')
 # Ldir_pert_2   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd')
-Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd')
+Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd3monthscont')
 Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1', ex_name='x11ab')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
