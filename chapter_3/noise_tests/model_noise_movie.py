@@ -129,10 +129,13 @@ def get_fn_list(list_type, Ldir, ds0, ds1, roms_out, his_num=2):
 vns = ['TIC','alkalinity']
 
 d0= '2020.06.01'
-d1 = '2020.10.31'
-# for switching between adding alkalinity and not adding
-d0end = '2020.06.30'
-d1start = '2020.07.01'
+d1 = '2020.08.31'
+
+# d0= '2020.06.01'
+# d1 = '2020.10.31'
+# # for switching between adding alkalinity and not adding
+# d0end = '2020.06.30'
+# d1start = '2020.07.01'
 
 list_type = 'average'
 
@@ -155,14 +158,16 @@ Lfun.make_dir(out_dir)
 # ----------------------------------------------------------------
 
 # gtagex of files to difference
-Ldir_pert_1   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd3monthscont')
-Ldir_pert_2   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd')
+# Ldir_pert_1   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd3monthscont')
+# Ldir_pert_2   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd')
+Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd')
 Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1', ex_name='x11ab')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
-fn_list_pert_1   = get_fn_list(list_type, Ldir_pert_1, d0, d0end, Ldir['roms_out'])
-fn_list_pert_2   = get_fn_list(list_type, Ldir_pert_2, d1start, d1, Ldir['roms_out'])
-fn_list_pert = fn_list_pert_1 + fn_list_pert_2
+# fn_list_pert_1   = get_fn_list(list_type, Ldir_pert_1, d0, d0end, Ldir['roms_out'])
+# fn_list_pert_2   = get_fn_list(list_type, Ldir_pert_2, d1start, d1, Ldir['roms_out'])
+# fn_list_pert = fn_list_pert_1 + fn_list_pert_2
+fn_list_pert   = get_fn_list(list_type, Ldir_pert, d0, d1, Ldir['roms_out'])
 fn_list_base = get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out5'])
 
 # Get grid data
