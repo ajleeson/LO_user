@@ -50,8 +50,8 @@ plt.close('all')
 ##                          User Inputs                          ##  
 ################################################################### 
 
-vns = ['salt','dye_01','alkalinity']
-date = '2020.06.01' #'2020.06.25'
+vns = ['alkalinity']
+date = '2020.06.30' #'2020.06.25'
 
 # # filetype = 'ocean_avg_0001.nc'
 # filetype = 'ocean_his_0002.nc'
@@ -61,7 +61,11 @@ date = '2020.06.01' #'2020.06.25'
 ################################################################### 
 
 # model1 = 'cas7_t1dgeWB_x11abd3monthscont'
-model1 = 'cas7_t1noisetest_x11abd'
+# model1 = 'cas7_t1noisetest_x11abd'
+# model2 = 'cas7_t1_x11ab'
+
+
+model1 = 'cas7_t1alkNOISE_x11ab'
 model2 = 'cas7_t1_x11ab'
 
 # where to put output figures
@@ -79,7 +83,7 @@ lon_v = grid_ds.lon_v.values
 lat_v = grid_ds.lat_v.values
 
 # loop through all history files
-for i in np.linspace(1,2,2):
+for i in [2]:#]:
     if i < 10:
         oceanhis = 'ocean_his_000' +str(int(i)) + '.nc'
     else:

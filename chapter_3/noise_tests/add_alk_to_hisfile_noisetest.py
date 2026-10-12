@@ -5,7 +5,7 @@ Modify ocean history file to add
 Based on Parker's driver_roms00oae script
 and my modify_ocn_forcing script
 
-run add_alk_to_hisfile_noisetest -gtx cas7_t1_x11ab -0 2020.05.30 -ro 5
+run add_alk_to_hisfile_noisetest -gtx cas7_t1_x11ab -0 2020.05.30 -ro 0
 
 Note that this script can only be run for one day at a time
 
@@ -164,6 +164,7 @@ fig, ax = plt.subplots(1,1,figsize = (6,8))
 diff = ds_new.alkalinity[0,-1,:,:] - ds_og_his.alkalinity[0,-1,:,:]
 cs = ax.pcolormesh(plon, plat, diff, cmap='plasma', vmin=0, vmax=120)
 cbar = fig.colorbar(cs)
+cbar.ax.set_ylabel('mmol/m3', rotation=270)
 pfun.dar(ax)
 plt.show()
 

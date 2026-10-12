@@ -128,8 +128,11 @@ def get_fn_list(list_type, Ldir, ds0, ds1, roms_out, his_num=2):
 
 vns = ['TIC','alkalinity']
 
-d0= '2020.06.01'
-d1 = '2020.08.31'
+d0= '2020.05.31'
+d1 = '2020.06.30'
+
+# d0= '2020.06.29'
+# d1 = '2020.06.30'
 
 # d0= '2020.06.01'
 # d1 = '2020.10.31'
@@ -160,7 +163,8 @@ Lfun.make_dir(out_dir)
 # gtagex of files to difference
 # Ldir_pert_1   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd3monthscont')
 # Ldir_pert_2   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd')
-Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd3monthscont')
+# Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1dgeWB', ex_name='x11abd3monthscont')
+Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1alkNOISE', ex_name='x11ab')
 Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1', ex_name='x11ab')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
@@ -169,6 +173,7 @@ Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1', ex_name='x11ab')
 # fn_list_pert = fn_list_pert_1 + fn_list_pert_2
 fn_list_pert   = get_fn_list(list_type, Ldir_pert, d0, d1, Ldir['roms_out'])
 fn_list_base = get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out5'])
+# fn_list_base = get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out'])
 
 # Get grid data
 G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
@@ -180,14 +185,34 @@ lat_u = grid_ds.lat_u.values
 lon_v = grid_ds.lon_v.values
 lat_v = grid_ds.lat_v.values
 
+# Get grid data
+G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
+grid_ds = xr.open_dataset(Ldir['data'] / 'grids/cas7/grid.nc')
+lon = grid_ds.lon_rho.values
+plon, plat = pfun.get_plon_plat(lon,lat)
+lons = lon[0,:]
+lats = lat[:,0]
 
-###################################################################
-##                      Binary differences                       ##  
-################################################################### 
+# get injection location
+site_lon_test = -127.25
+site_lat_test = 45.5
+# get nearest lat/lon indices to random point selected on google maps
+site_y = min(range(len(lats)), key=lambda i: abs(lats[i]-site_lat_test))
+site_x = min(range(len(lons)), key=lambda i: abs(lons[i]-site_lon_test))
+# get actual lat/lon
+inj_lon = lons[site_x]
+inj_lat = lats[site_y]
 
 for vn in vns:
 
     for i,fn_pert in enumerate(fn_list_pert):
+
+        # Initialize figure
+        fig, ax = plt.subplots(1,2, figsize=(12, 8), sharex=True, sharey=True)
+
+###################################################################
+##                      Binary differences                       ##  
+###################################################################
 
         # get model output
         fn_base = fn_list_base[i]
@@ -209,25 +234,6 @@ for vn in vns:
         else:
             raise ValueError(f"No vertical dimension found for {vn}")
 
-        if ('eta_rho' in v1.dims) and ('xi_rho' in v1.dims):
-            h_dims = ('eta_rho', 'xi_rho')
-            lon = ds_model1['lon_rho']
-            lat = ds_model1['lat_rho']
-        elif ('eta_u' in v1.dims) and ('xi_u' in v1.dims):
-            h_dims = ('eta_u', 'xi_u')
-            lon = ds_model1['lon_u']
-            lat = ds_model1['lat_u']
-        elif ('eta_v' in v1.dims) and ('xi_v' in v1.dims):
-            h_dims = ('eta_v', 'xi_v')
-            lon = ds_model1['lon_v']
-            lat = ds_model1['lat_v']
-        elif ('eta_psi' in v1.dims) and ('xi_psi' in v1.dims):
-            h_dims = ('eta_psi', 'xi_psi')
-            lon = ds_model1['lon_psi']
-            lat = ds_model1['lat_psi']
-        else:
-            raise ValueError(f"Unknown grid type for variable '{vn}'.")
-
         # Compute strict difference (True where different, False where equal)
         diff_mask = (v1 != v2) | (v1.isnull() != v2.isnull())
         diff_2d = diff_mask.any(dim=vert_dim)
@@ -246,86 +252,29 @@ for vn in vns:
 
         # Plotting -------------------------------------------------- 
 
-        # Initialize figure
-        fig, ax = plt.subplots(1,1, figsize=(10, 8))
-
         # plot
-        plt.pcolormesh(lon, lat, plot_data, cmap=cmap, norm=norm, shading='auto')
+        ax[0].pcolormesh(plon, plat, plot_data, cmap=cmap, norm=norm, shading='auto')
         # cbar = plt.colorbar(map, ticks=[0, 1])
         # cbar.ax.set_yticklabels(['No differences', 'Differences'],fontsize=12)
 
         # add alkalinity addition location
-        inj_lon = -122.5674
-        inj_lat = 48.1956
-        ax.scatter(inj_lon,inj_lat,s=80, facecolors='none', edgecolors='deeppink')
+        ax[0].scatter(inj_lon,inj_lat,s=80, facecolors='none', edgecolors='deeppink')
 
         # format figure
-        ax.text(0.96, 0.95, 'Differences', color='black', fontweight='bold', fontsize=12,
-                transform=ax.transAxes, ha='right')
-        ax.text(0.96, 0.92, 'No Differences', color='turquoise', fontweight='bold', fontsize=12,
-                transform=ax.transAxes, ha='right')
-        plt.suptitle('Locations where {} differs between runs at any s-level'.format(vn),fontsize=14,fontweight='bold')
+        ax[0].text(0.96, 0.95, 'Differences', color='black', fontweight='bold', fontsize=12,
+                transform=ax[0].transAxes, ha='right')
+        ax[0].text(0.96, 0.92, 'No Differences', color='turquoise', fontweight='bold', fontsize=12,
+                transform=ax[0].transAxes, ha='right')
+        ax[0].set_title('Locations where {} differs between runs at any s-level'.format(vn),fontsize=12)
         date = ds_model1["ocean_time"].dt.strftime("%Y.%m.%d").item()
-        ax.set_title('{} and {} (daily avg on {})'.format(model1,model2,date))
-        plt.xlabel('Lon', fontsize=12)
-        plt.ylabel('Lat', fontsize=12)
-        pfun.dar(ax)
-
-        plt.tight_layout()
-
-        # prepare a directory for results
-        nouts = ('0000' + str(i))[-4:]
-        outname = 'plot_' + nouts + '.png'
-        outfile = out_dir /('binary_' + vn)
-        Lfun.make_dir(outfile)
-        save_name = outfile / outname
-        print('Plotting ' + str(fn_pert))
-        sys.stdout.flush()
-        plt.savefig(save_name)
-        plt.close()
-
-    # make movie
-    if len(fn_list_pert) > 1:
-        cmd_list = ['ffmpeg','-r','8','-i', str(out_dir / ('binary_' + vn) )+'/plot_%04d.png', '-vcodec', 'libx264',
-            '-pix_fmt', 'yuv420p', '-crf', '25', str(out_dir / ('binary_' + vn))+'/movie.mp4']
-        proc = Po(cmd_list, stdout=Pi, stderr=Pi)
-        stdout, stderr = proc.communicate()
-        if len(stdout) > 0:
-            print('\n'+stdout.decode())
-        if len(stderr) > 0:
-            print('\n'+stderr.decode())
+        # ax[0].set_title('{} and {} (daily avg on {})'.format(model1,model2,date))
+        ax[0].set_xlabel('Lon', fontsize=12)
+        ax[0].set_ylabel('Lat', fontsize=12)
+        pfun.dar(ax[0])
 
 ###################################################################
 ##                Vertical integral differences                  ##  
 ################################################################### 
-
-for vn in vns:
-
-    for i,fn_pert in enumerate(fn_list_pert):
-
-        # get model output
-        fn_base = fn_list_base[i]
-        ds_model1 = xr.open_dataset(fn_pert)
-        ds_model2 = xr.open_dataset(fn_base)
-
-        if ('eta_rho' in v1.dims) and ('xi_rho' in v1.dims):
-            h_dims = ('eta_rho', 'xi_rho')
-            lon = ds_model1['lon_rho']
-            lat = ds_model1['lat_rho']
-        elif ('eta_u' in v1.dims) and ('xi_u' in v1.dims):
-            h_dims = ('eta_u', 'xi_u')
-            lon = ds_model1['lon_u']
-            lat = ds_model1['lat_u']
-        elif ('eta_v' in v1.dims) and ('xi_v' in v1.dims):
-            h_dims = ('eta_v', 'xi_v')
-            lon = ds_model1['lon_v']
-            lat = ds_model1['lat_v']
-        elif ('eta_psi' in v1.dims) and ('xi_psi' in v1.dims):
-            h_dims = ('eta_psi', 'xi_psi')
-            lon = ds_model1['lon_psi']
-            lat = ds_model1['lat_psi']
-        else:
-            raise ValueError(f"Unknown grid type for variable '{vn}'.")
 
         # set bounds
         if vn in ['NO3','NH4']:
@@ -366,36 +315,32 @@ for vn in vns:
 
         # Get difference
         vertint_diff = vertint_vn_model1 - vertint_vn_model2
-
-        # Initialize figure
-        fig,ax = plt.subplots(1,1, figsize=(6,8))
-        # plt.tight_layout()
         value = vertint_diff[0,:,:]
         # values = [surf_vn_model1,bott_vn_model1]
 
         newcmap = cmocean.tools.crop_by_percent(cmocean.cm.balance_r, 20, which='both', N=None)
 
         # plot values
-        cs = ax.pcolormesh(lon, lat,value,vmin=vmin, vmax=vmax, cmap=newcmap)
+        cs = ax[1].pcolormesh(plon, plat,value,vmin=vmin, vmax=vmax, cmap=newcmap)
         # cs = ax.pcolormesh(lon, lat,values[i],vmin=0, vmax=0.005)#, cmap=newcmap)
         cbar = fig.colorbar(cs)
         cbar.ax.tick_params(labelsize=12)
         cbar.outline.set_visible(False)
         # format figure
-        ax.set_yticklabels([])
-        ax.set_xticklabels([])
-        ax.axis('off')
-        ax.scatter(inj_lon,inj_lat,s=80, facecolors='none', edgecolors='deeppink')
-        pfun.dar(ax)
-        ax.set_title(vn + ' vertical integral difference ' + pinfo.units_dict[vn_name] + ' * m', fontsize=12)
+        ax[1].set_yticklabels([])
+        ax[1].set_xticklabels([])
+        ax[1].axis('off')
+        ax[1].scatter(inj_lon,inj_lat,s=80, facecolors='none', edgecolors='deeppink')
+        pfun.dar(ax[1])
+        ax[1].set_title(vn + ' vertical integral difference (mmol/m2)', fontsize=12)
         date = ds_model1["ocean_time"].dt.strftime("%Y.%m.%d").item()
-        fig.suptitle('Perturbation minus Baseline ({})'.format(date),
-                    fontsize=11, fontweight='bold')
+        # fig.suptitle('Perturbation minus Baseline ({})'.format(date),
+        #             fontsize=11, fontweight='bold')
         
         # prepare a directory for results
         nouts = ('0000' + str(i))[-4:]
         outname = 'plot_' + nouts + '.png'
-        outfile = out_dir /('vertint_' + vn)
+        outfile = out_dir /('pert_minus_base_' + vn)
         Lfun.make_dir(outfile)
         save_name = outfile / outname
         print('Plotting ' + str(fn_pert))
@@ -405,8 +350,8 @@ for vn in vns:
 
     # make movie
     if len(fn_list_pert) > 1:
-        cmd_list = ['ffmpeg','-r','8','-i', str(out_dir / ('vertint_' + vn) )+'/plot_%04d.png', '-vcodec', 'libx264',
-            '-pix_fmt', 'yuv420p', '-crf', '25', str(out_dir / ('vertint_' + vn))+'/movie.mp4']
+        cmd_list = ['ffmpeg','-r','8','-i', str(out_dir / ('pert_minus_base_' + vn) )+'/plot_%04d.png', '-vcodec', 'libx264',
+            '-pix_fmt', 'yuv420p', '-crf', '25', str(out_dir / ('pert_minus_base_' + vn))+'/movie.mp4']
         proc = Po(cmd_list, stdout=Pi, stderr=Pi)
         stdout, stderr = proc.communicate()
         if len(stdout) > 0:
