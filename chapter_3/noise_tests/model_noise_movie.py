@@ -333,7 +333,7 @@ for vn in vns:
         pfun.dar(ax[1])
         ax[1].set_title(vn + ' vertical integral difference (mmol/m2)', fontsize=12)
         date = ds_model1["ocean_time"].dt.strftime("%Y.%m.%d").item()
-        ax[1].text(0.7,0.2,'{}'.format(date),ax[1].transAxes, fontsize=12, fontweight='bold', color='black')
+        ax[1].text(0.7,0.2,'{}'.format(date),transform=ax[1].transAxes, fontsize=12, fontweight='bold', color='black')
         # fig.suptitle('Perturbation minus Baseline ({})'.format(date),
         #             fontsize=11, fontweight='bold')
         
