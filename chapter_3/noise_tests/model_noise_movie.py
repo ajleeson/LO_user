@@ -267,7 +267,6 @@ for vn in vns:
                 transform=ax[0].transAxes, ha='right')
         ax[0].set_title('Locations where {} differs between runs at any s-level'.format(vn),fontsize=12)
         date = ds_model1["ocean_time"].dt.strftime("%Y.%m.%d").item()
-        # ax[0].set_title('{} and {} (daily avg on {})'.format(model1,model2,date))
         ax[0].set_xlabel('Lon', fontsize=12)
         ax[0].set_ylabel('Lat', fontsize=12)
         pfun.dar(ax[0])
@@ -334,6 +333,7 @@ for vn in vns:
         pfun.dar(ax[1])
         ax[1].set_title(vn + ' vertical integral difference (mmol/m2)', fontsize=12)
         date = ds_model1["ocean_time"].dt.strftime("%Y.%m.%d").item()
+        ax[1].text(0.7,0.2,'{}'.format(date),ax[1].transAxes, fontsize=12, fontweight='bold', color='black')
         # fig.suptitle('Perturbation minus Baseline ({})'.format(date),
         #             fontsize=11, fontweight='bold')
         
