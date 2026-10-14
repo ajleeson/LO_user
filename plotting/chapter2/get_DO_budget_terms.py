@@ -23,8 +23,8 @@ tt0 = time()
 
 burial=50 # 50% burial of sinking detritus in the Salish Sea
 
-# gtagex = 'cas7_t1_x11b' # loading
-gtagex = 'cas7_t1noDIN_x11b' # no-loading
+gtagex = 'cas7_t1_x11b' # loading
+# gtagex = 'cas7_t1noDIN_x11b' # no-loading
 
 print(gtagex)
 
@@ -55,12 +55,13 @@ year = '2017'
 # ds0 = '2017.02.01'
 # ds1 = '2017.02.28'
 # mar
-# running
-ds0 = '2017.03.01'
-ds1 = '2017.03.31'
+# done
+# ds0 = '2017.03.01'
+# ds1 = '2017.03.31'
 # apr
-# ds0 = '2017.04.01'
-# ds1 = '2017.04.30'
+# running
+ds0 = '2017.04.01'
+ds1 = '2017.04.30'
 # may
 # ds0 = '2017.05.01'
 # ds1 = '2017.05.31'
