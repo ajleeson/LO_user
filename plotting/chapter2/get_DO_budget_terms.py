@@ -23,8 +23,8 @@ tt0 = time()
 
 burial=50 # 50% burial of sinking detritus in the Salish Sea
 
-gtagex = 'cas7_t1_x11b' # loading
-# gtagex = 'cas7_t1noDIN_x11b' # no-loading
+# gtagex = 'cas7_t1_x11b' # loading
+gtagex = 'cas7_t1noDIN_x11b' # no-loading
 
 print(gtagex)
 
