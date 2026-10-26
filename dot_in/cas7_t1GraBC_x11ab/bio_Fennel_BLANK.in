@@ -367,8 +367,8 @@ ad_Vadvection == C4                             ! idbio(:), compact
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 7), SdetritusN
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 8), LdetritusC
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 9), SdetritusC
-                     Gra     Gra     Gra     Gra  \    ! idbio(10), TIC
-                     Gra     Gra     Gra     Gra  \    ! idbio(11), alkalinity
+                     $Woae$  $Soae$  $Eoae$  $Noae$ \    ! idbio(10), TIC
+                     $Woae$  $Soae$  $Eoae$  $Noae$ \    ! idbio(11), alkalinity
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio(12), oxygen
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio(13), PO4
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio(14), RdetritusN
