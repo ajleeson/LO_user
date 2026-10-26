@@ -358,7 +358,7 @@ ad_Vadvection == C4                             ! idbio(:), compact
 !  LBC(isTvar) ==   $W3$    $S3$    $E3$    $N3$     ! all variables
 
 ! ALedit to make alkalinity and DIC have Gra BCs
-    LBC(isTvar) ==   $W3$    $S3$    $E3$    $N3$ \    ! idbio( 1), NO3
+    LBC(isTvar) ==   $Woae$  $Soae$  $Eoae$  $Noae$ \  ! idbio( 1), NO3
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 2), NH4
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 3), chlorophyll
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 4), phytoplankton
