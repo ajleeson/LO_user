@@ -176,8 +176,8 @@ Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1GraBC', ex_name='x11ab')
 # fn_list_pert_2   = get_fn_list(list_type, Ldir_pert_2, d1start, d1, Ldir['roms_out'])
 # fn_list_pert = fn_list_pert_1 + fn_list_pert_2
 fn_list_pert   = get_fn_list(list_type, Ldir_pert, d0, d1, Ldir['roms_out'])
-fn_list_base = get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out5'])
-# fn_list_base = get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out'])
+# fn_list_base = get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out5'])
+fn_list_base = get_fn_list(list_type, Ldir_base, d0, d1, Ldir['roms_out'])
 
 # Get grid data
 G = zrfun.get_basic_info(Ldir['data'] / 'grids/cas7/grid.nc', only_G=True)
