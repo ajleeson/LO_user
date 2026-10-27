@@ -94,10 +94,12 @@ for O in list('NSEW'):
         D[O+'fs'] = 'Cha'
         D[O+'2']  = 'Fla'
         D[O+'3']  = 'RadNud'
+        D[O+'oae']  = 'Gra'
     else:
         D[O+'fs'] = 'Clo'
         D[O+'2']  = 'Clo'
         D[O+'3']  = 'Clo'
+        D[O+'oae']  = 'Clo'
 
 #### END USER DEFINED VALUES ####
 

@@ -358,7 +358,7 @@ ad_Vadvection == C4                             ! idbio(:), compact
 !  LBC(isTvar) ==   $W3$    $S3$    $E3$    $N3$     ! all variables
 
 ! ALedit to make alkalinity and DIC have Gra BCs
-    LBC(isTvar) ==   $W3$    $S3$    $E3$    $N3$ \    ! idbio( 1), NO3
+    LBC(isTvar) ==   $W3$    $S3$    $E3$    $N3$ \  ! idbio( 1), NO3
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 2), NH4
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 3), chlorophyll
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 4), phytoplankton
@@ -367,12 +367,12 @@ ad_Vadvection == C4                             ! idbio(:), compact
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 7), SdetritusN
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 8), LdetritusC
                      $W3$    $S3$    $E3$    $N3$ \    ! idbio( 9), SdetritusC
-                     Gra     Gra     Gra     Gra  \    ! idbio(10), TIC
-                     Gra     Gra     Gra     Gra  \    ! idbio(11), alkalinity
-                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(12), oxygen
-                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(13), PO4
-                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(14), RdetritusN
-                     $W3$    $S3$    $E3$    $N3$      ! idbio(15), RdetritusC
+                     $Woae$  $Soae$  $Eoae$  $Noae$ \  ! idbio(10), TIC
+                     $Woae$  $Soae$  $Eoae$  $Noae$ \  ! idbio(11), alkalinity
+                     $W3$    $S3$    $E3$    $N3$     ! idbio(12), oxygen
+!                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(13), PO4
+!                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(14), RdetritusN
+!                     $W3$    $S3$    $E3$    $N3$      ! idbio(15), RdetritusC
    
 !    LBC(isTvar) ==   Per     Clo     Per     Clo \    ! idbio( 1), NO3
 !                     Per     Clo     Per     Clo \    ! idbio( 2), NH4
