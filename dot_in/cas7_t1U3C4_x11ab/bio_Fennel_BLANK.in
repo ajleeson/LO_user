@@ -294,7 +294,7 @@ LtracerSponge == 15*F
                  MPDATA    \                     ! idbio( 9), SdetritusC
                  U3        \                     ! idbio(10), TIC
                  U3        \                     ! idbio(11), alkalinity
-                 MPDATA    \                     ! idbio(12), oxygen
+                 MPDATA                          ! idbio(12), oxygen
 !                MPDATA    \                     ! idbio(13), PO4
 !                MPDATA    \                     ! idbio(14), RdetritusN
 !                MPDATA                          ! idbio(15), RdetritusC
@@ -310,7 +310,7 @@ LtracerSponge == 15*F
                  MPDATA    \                     ! idbio( 9), SdetritusC
                  C4        \                     ! idbio(10), TIC
                  C4        \                     ! idbio(11), alkalinity
-                 MPDATA    \                     ! idbio(12), oxygen
+                 MPDATA                          ! idbio(12), oxygen
 !                MPDATA    \                     ! idbio(13), PO4
 !                MPDATA    \                     ! idbio(14), RdetritusN
 !                MPDATA                          ! idbio(15), RdetritusC
