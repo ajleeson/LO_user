@@ -154,7 +154,7 @@ model1 = 'Perturbation'
 model2 = 'Baseline'
 
 # where to put output figures
-out_dir = Ldir['LOo'] / 'chapter_3' / 'figures' / 'noise_test' / 'Gra_BCs'
+out_dir = Ldir['LOo'] / 'chapter_3' / 'figures' / 'noise_test' / 'U3_C4_Advection'
 Lfun.make_dir(out_dir)
 
 # get his files
@@ -168,8 +168,8 @@ Lfun.make_dir(out_dir)
 # Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1alkNOISE', ex_name='x11ab')
 # Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1', ex_name='x11ab')
 
-Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1alkNOISEGraBC', ex_name='x11ab')
-Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1GraBC', ex_name='x11ab')
+Ldir_pert   = Lfun.Lstart(gridname='cas7', tag='t1alkNOISEU3B4', ex_name='x11ab')
+Ldir_base = Lfun.Lstart(gridname='cas7', tag='t1U3B4', ex_name='x11ab')
 
 # get list of history files to plot (and skip ocean_his_0025 from previous day)
 # fn_list_pert_1   = get_fn_list(list_type, Ldir_pert_1, d0, d0end, Ldir['roms_out'])
