@@ -232,6 +232,29 @@
 
      pCO2air == 370.0d0
 
+! ALedit to add alkalinity addition via .in file ---------------------------
+! Adding flux for particulate feedstock [unit of particle/m2/day]
+! Used only if TALK_FILE undefined 
+
+    alkalinity_load == 0.0d0   ! mol/s
+
+! Grid points location for adding particles
+! Used only if TALK_FILE undefined
+
+    iloc_alkalinity == 144
+    jloc_alkalinity == 345
+    kloc_alkalinity_min == 20   ! minimum vertical layer (0=bottom)
+    kloc_alkalinity_max == 29   ! maximum vertical layer (N=surface)
+
+! Starting and ending day for adding particles
+! Used only if TALK_FILE undefined
+! This one is tricky because dstart is always the run day in LO 
+! and this is measured as days from the reference dstart
+
+    alkalinity_startload == 1.0
+    alkalinity_endload   == 2.0
+! end ALedit ---------------------------------------------------------------
+
 ! Harmonic/biharmonic horizontal diffusion of biological tracer for
 ! nonlinear model and adjoint-based algorithms: [1:NBT,Ngrids].
 
@@ -281,6 +304,7 @@ LtracerSponge == 15*F
 ! two letters, regardless if using uppercase or lowercase. If nested
 ! grids, specify values for each grid.
 
+! ALedit to add dTIC and dTA
    Hadvection == MPDATA    \                     ! idbio( 1), NO3
                  MPDATA    \                     ! idbio( 2), NH4
                  MPDATA    \                     ! idbio( 3), chlorophyll
@@ -292,10 +316,12 @@ LtracerSponge == 15*F
                  MPDATA    \                     ! idbio( 9), SdetritusC
                  MPDATA    \                     ! idbio(10), TIC
                  MPDATA    \                     ! idbio(11), alkalinity
-                 MPDATA    \                     ! idbio(12), oxygen
-                 MPDATA    \                     ! idbio(13), PO4
-                 MPDATA    \                     ! idbio(14), RdetritusN
-                 MPDATA                          ! idbio(15), RdetritusC
+                 MPDATA    \                     ! idbio(12), dTIC
+                 MPDATA    \                     ! idbio(13), dTA
+                 MPDATA                          ! idbio(14), oxygen
+!                 MPDATA    \                     ! idbio(13), PO4
+!                 MPDATA    \                     ! idbio(14), RdetritusN
+!                 MPDATA                          ! idbio(15), RdetritusC
 
    Vadvection == MPDATA    \                     ! idbio( 1), NO3
                  MPDATA    \                     ! idbio( 2), NH4
@@ -308,10 +334,12 @@ LtracerSponge == 15*F
                  MPDATA    \                     ! idbio( 9), SdetritusC
                  MPDATA    \                     ! idbio(10), TIC
                  MPDATA    \                     ! idbio(11), alkalinity
-                 MPDATA    \                     ! idbio(12), oxygen
-                 MPDATA    \                     ! idbio(13), PO4
-                 MPDATA    \                     ! idbio(14), RdetritusN
-                 MPDATA                          ! idbio(15), RdetritusC
+                 MPDATA    \                     ! idbio(12), dTIC
+                 MPDATA    \                     ! idbio(13), dTA
+                 MPDATA                          ! idbio(14), oxygen
+!                 MPDATA    \                     ! idbio(13), PO4
+!                 MPDATA    \                     ! idbio(14), RdetritusN
+!                 MPDATA                          ! idbio(15), RdetritusC
 
 ! Adjoint-based algorithms can have different horizontal and schemes
 ! for active and inert tracers.
@@ -355,7 +383,25 @@ ad_Vadvection == C4                             ! idbio(:), compact
 !
 !                   1       2       3       4
 
-   LBC(isTvar) ==   $W3$    $S3$    $E3$    $N3$     ! all variables
+!  LBC(isTvar) ==   $W3$    $S3$    $E3$    $N3$     ! all variables
+! ALedit to add dTIC and dTA with clamped BCs
+    LBC(isTvar) ==   $W3$    $S3$    $E3$    $N3$ \  ! idbio( 1), NO3
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio( 2), NH4
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio( 3), chlorophyll
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio( 4), phytoplankton
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio( 5), zooplankton
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio( 6), LdetritusN
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio( 7), SdetritusN
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio( 8), LdetritusC
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio( 9), SdetritusC
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(10), TIC
+                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(11), alkalinity
+                     $Wtwin$ $Stwin$ $Etwin$ $Ntwin$ \ ! idbio(12), dTIC
+                     $Wtwin$ $Stwin$ $Etwin$ $Ntwin$ \ ! idbio(13), dTA
+                     $W3$    $S3$    $E3$    $N3$      ! idbio(14), oxygen
+!                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(13), PO4
+!                     $W3$    $S3$    $E3$    $N3$ \    ! idbio(14), RdetritusN
+!                     $W3$    $S3$    $E3$    $N3$      ! idbio(15), RdetritusC
    
 !    LBC(isTvar) ==   Per     Clo     Per     Clo \    ! idbio( 1), NO3
 !                     Per     Clo     Per     Clo \    ! idbio( 2), NH4
@@ -387,10 +433,12 @@ ad_LBC(isTvar) ==   Per     Clo     Per     Clo \    ! idbio( 1), NO3
                     Per     Clo     Per     Clo \    ! idbio( 9), SdetritusC
                     Per     Clo     Per     Clo \    ! idbio(10), TIC
                     Per     Clo     Per     Clo \    ! idbio(11), alkalinity
-                    Per     Clo     Per     Clo \    ! idbio(12), oxygen
-                    Per     Clo     Per     Clo \    ! idbio(13), PO4
-                    Per     Clo     Per     Clo \    ! idbio(14), RdetritusN
-                    Per     Clo     Per     Clo      ! idbio(15), RdetritusC
+                    Per     Clo     Per     Clo \    ! idbio(12), dTIC
+                    Per     Clo     Per     Clo \    ! idbio(13), dTA
+                    Per     Clo     Per     Clo      ! idbio(14), oxygen
+!                    Per     Clo     Per     Clo \    ! idbio(13), PO4
+!                    Per     Clo     Per     Clo \    ! idbio(14), RdetritusN
+!                    Per     Clo     Per     Clo      ! idbio(15), RdetritusC
 
 ! Logical switches (TRUE/FALSE) to activate biological tracers point
 ! Sources/Sinks (like river runoff) and to specify which tracer variables
@@ -455,13 +503,18 @@ Dout(iTvdif) == 15*T    ! ..., NO3_vdiff, ...     vertical diffusion
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged,
 ! biological processes diagnostics terms into DIAGNOSTIC output file [Ngrids].
 
-Dout(iCOfx) == T        ! CO2_airsea         air-sea CO2 flux
-Dout(iDNIT) == T        ! denitrification    denitrification flux
-Dout(ipCO2) == T        ! pCO2               CO2 partial pressure
+! ALedit to add control and addition pCO2 CO2 flux
+!Dout(iCOfx) == T        ! CO2_airsea         air-sea CO2 flux
+Dout(iCfxc) == T        ! CO2_airsea         air-sea CO2 flux (control)
+Dout(iCfxa) == T        ! CO2_airsea         air-sea CO2 flux (addition)
+Dout(iDNIT) == F        ! denitrification    denitrification flux
+!Dout(ipCO2) == T        ! pCO2               CO2 partial pressure
+Dout(ipCO2c) == T       ! pCO2               CO2 partial pressure (control)
+Dout(ipCO2a) == T       ! pCO2               CO2 partial pressure (addition)
 Dout(iO2fx) == T        ! O2_airsea          air-sea O2 flux
-Dout(iPPro) == T        ! P_Production       primary production
-Dout(iNO3u) == T        ! NO3_uptake         NO3 uptake
-Dout(iNifx) == T        ! Nitrification      Nitrification flux
+Dout(iPPro) == F        ! P_Production       primary production
+Dout(iNO3u) == F        ! NO3_uptake         NO3 uptake
+Dout(iNifx) == F        ! Nitrification      Nitrification flux
 
 !
 !  GLOSSARY:
@@ -482,7 +535,9 @@ Dout(iNifx) == T        ! Nitrification      Nitrification flux
 ! idbio( 9)     SdetritusC        Small detritus C-concentration     if CARBON
 ! idbio(10)     TIC               Total inorganic carbon             if CARBON
 ! idbio(11)     alkalinity        Alkalinity                         if CARBON
-! idbio(12)     oxygen            Oxygen concentration               if OXYGEN
+! idbio(12)     dTIC              additional TIC (OAE)               if TALK_ADDITION
+! idbio(13)     dTA               Additional TA (OAE)                if TALK_ADDITION
+! idbio(14)     oxygen            Oxygen concentration               if OXYGEN
 ! idbio(13)     PO4               Phosphate concentration            if PO4
 ! idbio(14)     RdetritusN        River detritus N-concentration     if RIVER_DON
 ! idbio(15)     RdetritusC        River detritus C-concentration     if RIVER_DON
@@ -948,7 +1003,9 @@ Dout(iNifx) == T        ! Nitrification      Nitrification flux
 !                   idTvar(idbio( 9))=iSDeC    Small detritus C-concentration
 !                   idTvar(idbio(10))=iTIC_    Total inorganic carbon
 !                   idTvar(idbio(11))=iTAlk    Alkalinity
-!                   idTvar(idbio(12))=iOxyg    Oxygen concentration
+!                   idTvar(idbio(12))=idTIC    Added Total inorganic carbon
+!                   idTvar(idbio(13))=idTA     Added Alkalinity (total)
+!                   idTvar(idbio(14))=iOxyg    Oxygen concentration
 !                   idTvar(idbio(13))=iPO4_    Phosphate concentration
 !                   idTvar(idbio(14))=iRDeN    River N-detritus
 !                   idTvar(idbio(15))=iRDeC    River C-detritus
@@ -1014,8 +1071,12 @@ Dout(iNifx) == T        ! Nitrification      Nitrification flux
 !  are expected:
 !
 !  Dout(iCOfx)    Write out air-sea CO2 flux.
+!  Dout(iCfxc)    Write out air-sea CO2 flux (control).
+!  Dout(iCfxa)    Write out air-sea CO2 flux (addition).
 !  Dout(iDNIT)    Write out denitrification flux.
 !  Dout(ipCO2)    Write out CO2 partial pressure.
+!  Dout(ipCO2c)   Write out CO2 partial pressure (control).
+!  Dout(ipCO2a)   Write out CO2 partial pressure (addition).
 !  Dout(iO2fx)    Write out air-sea O2 flux.
 !  Dout(iPPro)    Write out primary production.
 !  Dout(iNO3u)    Write out NO3 uptake.
