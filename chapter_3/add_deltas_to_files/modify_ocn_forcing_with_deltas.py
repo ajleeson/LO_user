@@ -5,7 +5,7 @@ to add a dTIC and dTA variables with values of zero.
 Based on Parker's driver_forcing00 script
 and Jilian's script that modified nudging to climatology
 
-run modify_ocn_forcing -g cas7 -f ocnG00 -0 2020.05.31 -1 2020.06.30
+run modify_ocn_forcing_with_deltas -g cas7 -f ocnG00 -0 2020.05.31 -1 2020.06.30
 '''
 
 import sys
@@ -45,7 +45,7 @@ while dt <= dt1:
 
     # make output directory
     out_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / \
-        date / (args.frc + 'd')
+        date / (args.frc + 'delta')
     Lfun.make_dir(out_dir)
     
     # get forcing files from Parker's apogee account
@@ -53,45 +53,74 @@ while dt <= dt1:
     # parker's apogee: ../../../../parker/LO_output/forcing/cas7/
     ds_bry = xr.open_dataset('../../../../parker/LO_output/forcing/cas7/' + date + '/' + args.frc + '/ocean_bry.nc')
     ds_clm = xr.open_dataset('../../../../parker/LO_output/forcing/cas7/' + date + '/' + args.frc + '/ocean_clm.nc')
+    # ds_bry = xr.open_dataset('../../../LO_output/forcing/cas7/' + date + '/' + args.frc + '/ocean_bry.nc')
+    # ds_clm = xr.open_dataset('../../../LO_output/forcing/cas7/' + date + '/' + args.frc + '/ocean_clm.nc')
 
     # add dye to the different datasets, using a copy of temp as a reference
 
     # Ocean boundary conditions
     # North
-    dye_time_north = xr.zeros_like(ds_bry['temp_north']).rename({'temp_time': 'dye_time'})
-    ds_bry['dye_north_01'] = dye_time_north
-    ds_bry['dye_north_01'].attrs['long_name'] = 'Passive tracer dye northern boundary conditions'
-    ds_bry['dye_north_01'].attrs['units'] = 'kg m-3' 
+    dTIC_time_north = xr.zeros_like(ds_bry['temp_north']).rename({'temp_time': 'dTIC_time'})
+    ds_bry['dTIC_north'] = dTIC_time_north
+    ds_bry['dTIC_north'].attrs['long_name'] = 'delta TIC northern boundary conditions'
+    ds_bry['dTIC_north'].attrs['units'] = 'mmol m-3' 
+
+    dTA_time_north = xr.zeros_like(ds_bry['temp_north']).rename({'temp_time': 'dTA_time'})
+    ds_bry['dTA_north'] = dTA_time_north
+    ds_bry['dTA_north'].attrs['long_name'] = 'delta alkalinity northern boundary conditions'
+    ds_bry['dTA_north'].attrs['units'] = 'meq m-3' 
 
     # South
-    dye_time_south = xr.zeros_like(ds_bry['temp_south']).rename({'temp_time': 'dye_time'})
-    ds_bry['dye_south_01'] = dye_time_south
-    ds_bry['dye_south_01'].attrs['long_name'] = 'Passive tracer dye southern boundary conditions'
-    ds_bry['dye_south_01'].attrs['units'] = 'kg m-3' 
+    dTIC_time_south = xr.zeros_like(ds_bry['temp_south']).rename({'temp_time': 'dTIC_time'})
+    ds_bry['dTIC_south'] = dTIC_time_south
+    ds_bry['dTIC_south'].attrs['long_name'] = 'delta TIC southern boundary conditions'
+    ds_bry['dTIC_south'].attrs['units'] = 'mmol m-3' 
+
+    dTA_time_south = xr.zeros_like(ds_bry['temp_south']).rename({'temp_time': 'dTA_time'})
+    ds_bry['dTA_south'] = dTA_time_south
+    ds_bry['dTA_south'].attrs['long_name'] = 'delta alkalinity southern boundary conditions'
+    ds_bry['dTA_south'].attrs['units'] = 'meq m-3' 
 
     # East
-    dye_time_east = xr.zeros_like(ds_bry['temp_east']).rename({'temp_time': 'dye_time'})
-    ds_bry['dye_east_01'] = dye_time_east
-    ds_bry['dye_east_01'].attrs['long_name'] = 'Passive tracer dye eastern boundary conditions'
-    ds_bry['dye_east_01'].attrs['units'] = 'kg m-3' 
+    dTIC_time_east = xr.zeros_like(ds_bry['temp_east']).rename({'temp_time': 'dTIC_time'})
+    ds_bry['dTIC_east'] = dTIC_time_east
+    ds_bry['dTIC_east'].attrs['long_name'] = 'delta TIC eastern boundary conditions'
+    ds_bry['dTIC_east'].attrs['units'] = 'mmol m-3' 
+
+    dTA_time_east = xr.zeros_like(ds_bry['temp_east']).rename({'temp_time': 'dTA_time'})
+    ds_bry['dTA_east'] = dTA_time_east
+    ds_bry['dTA_east'].attrs['long_name'] = 'delta alkalinity eastern boundary conditions'
+    ds_bry['dTA_east'].attrs['units'] = 'meq m-3'
 
     # West
-    dye_time_west = xr.zeros_like(ds_bry['temp_west']).rename({'temp_time': 'dye_time'})
-    ds_bry['dye_west_01'] = dye_time_west
-    ds_bry['dye_west_01'].attrs['long_name'] = 'Passive tracer dye western boundary conditions'
-    ds_bry['dye_west_01'].attrs['units'] = 'kg m-3' 
+    dTIC_time_west = xr.zeros_like(ds_bry['temp_west']).rename({'temp_time': 'dTIC_time'})
+    ds_bry['dTIC_west'] = dTIC_time_west
+    ds_bry['dTIC_west'].attrs['long_name'] = 'delta TIC western boundary conditions'
+    ds_bry['dTIC_west'].attrs['units'] = 'mmol m-3' 
 
-    # Add dye_time coordinate
-    ds_bry['dye_time'].attrs = ds_bry['temp_time'].attrs.copy()
+    dTA_time_west = xr.zeros_like(ds_bry['temp_west']).rename({'temp_time': 'dTA_time'})
+    ds_bry['dTA_west'] = dTA_time_west
+    ds_bry['dTA_west'].attrs['long_name'] = 'delta alkalinity western boundary conditions'
+    ds_bry['dTA_west'].attrs['units'] = 'meq m-3'
+
+    # Add dTIC_time coordinate
+    ds_bry['dTIC_time'].attrs = ds_bry['temp_time'].attrs.copy()
+    ds_bry['dTA_time'].attrs = ds_bry['temp_time'].attrs.copy()
 
     # Ocean climatology
-    dye_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dye_01_time'})
-    ds_clm['dye_01'] = dye_time
-    ds_clm['dye_01'].attrs['long_name'] = 'Passive tracer dye concentration'
-    ds_clm['dye_01'].attrs['units'] = 'kg m-3' 
+    dTIC_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dTIC_time'})
+    ds_clm['dTIC'] = dTIC_time
+    ds_clm['dTIC'].attrs['long_name'] = 'delta TIC concentration'
+    ds_clm['dTIC'].attrs['units'] = 'mmol m-3' 
 
-    # Add dye_time coordinate
-    ds_clm['dye_01_time'].attrs = ds_clm['temp_time'].attrs.copy()
+    dTA_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dTA_time'})
+    ds_clm['dTA'] = dTA_time
+    ds_clm['dTA'].attrs['long_name'] = 'delta alkalinity concentration'
+    ds_clm['dTA'].attrs['units'] = 'meq m-3'
+
+    # Add dTIC_time coordinate
+    ds_clm['dTIC_time'].attrs = ds_clm['temp_time'].attrs.copy()
+    ds_clm['dTA_time'].attrs = ds_clm['temp_time'].attrs.copy()
 
 
     ################################################################

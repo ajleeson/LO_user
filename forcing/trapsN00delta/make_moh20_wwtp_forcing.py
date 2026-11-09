@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import rivfun
 import trapsfun
+import zrfun_delta
 
 #################################################################################
 #                   Initialize function and empty dataset                       #
@@ -116,7 +117,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
 
         # Add Vshape
         vn = 'river_Vshape'
-        vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+        vinfo = zrfun_delta.get_varinfo(vn, vartype='climatology')
         dims = ('s_rho', 'river')
         # All discharge coming from the bottom layer
         Vshape = np.zeros((N, NWWTP))
@@ -130,7 +131,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
 
         # Add position and direction
         for vn in ['river_Xposition', 'river_Eposition', 'river_direction']:
-            vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+            vinfo = zrfun_delta.get_varinfo(vn, vartype='climatology')
             # set point source diretion to enter vertically (Dsrc = 2)
             if vn == 'river_direction':
                 wwtp_direction = 2 * np.ones(NWWTP) 
@@ -156,7 +157,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
 
         # Add transport
         vn = 'river_transport'
-        vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+        vinfo = zrfun_delta.get_varinfo(vn, vartype='climatology')
         dims = (vinfo['time'],) + ('river',)
         Q_mat = np.zeros((NT, NWWTP))
         for rr,rn in enumerate(gri_df_no_ovrlp.index):
@@ -187,7 +188,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
 
         # Add salinity and temperature
         for vn in ['river_salt', 'river_temp']:
-            vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+            vinfo = zrfun_delta.get_varinfo(vn, vartype='climatology')
             dims = (vinfo['time'],) + ('s_rho', 'river')
             # salinity is always zero
             if vn == 'river_salt':
@@ -226,7 +227,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
         # Add biologeochemistry parameters
         for var in ['NO3', 'NH4', 'TIC', 'TAlk', 'Oxyg']:
             vn = 'river_' + var
-            vinfo = zrfun.get_varinfo(vn, vartype='climatology')
+            vinfo = zrfun_delta.get_varinfo(vn, vartype='climatology')
             dims = (vinfo['time'],) + ('s_rho', 'river')
             B_mat = np.nan * np.zeros((NT, N, NWWTP))
             for rr,rn in enumerate(gri_df_no_ovrlp.index):
@@ -262,7 +263,7 @@ def make_forcing(N,NT,NRIV,NTRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD
         bvn_list = ['Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo', 'LDeC', 'SDeC', 'dTIC', 'dTA']
         for bvn in bvn_list:
             vn = 'river_' + bvn
-            vinfo = zrfun.get_varinfo(vn)
+            vinfo = zrfun_delta.get_varinfo(vn)
             dims = (vinfo['time'],) + ('s_rho', 'river')
             B_mat = np.nan * np.zeros((NT, N, NWWTP))
             # loop through all sources and fill with zeros
