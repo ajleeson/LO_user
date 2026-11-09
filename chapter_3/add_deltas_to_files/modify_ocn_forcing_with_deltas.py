@@ -104,8 +104,8 @@ while dt <= dt1:
     ds_bry['dTA_west'].attrs['units'] = 'meq m-3'
 
     # Add dTIC_time coordinate
-    ds_bry['dTIC_time'].attrs = ds_bry['temp_time'].attrs.copy()
-    ds_bry['dTA_time'].attrs = ds_bry['temp_time'].attrs.copy()
+    ds_bry['bry_time'].attrs = ds_bry['temp_time'].attrs.copy()
+    ds_bry['bry_time'].attrs = ds_bry['temp_time'].attrs.copy()
 
     # Ocean climatology
     dTIC_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dTIC_time'})
@@ -119,8 +119,8 @@ while dt <= dt1:
     ds_clm['dTA'].attrs['units'] = 'meq m-3'
 
     # Add dTIC_time coordinate
-    ds_clm['dTIC_time'].attrs = ds_clm['temp_time'].attrs.copy()
-    ds_clm['dTA_time'].attrs = ds_clm['temp_time'].attrs.copy()
+    ds_clm['clm_time'].attrs = ds_clm['temp_time'].attrs.copy()
+    ds_clm['clm_time'].attrs = ds_clm['temp_time'].attrs.copy()
 
 
     ################################################################
