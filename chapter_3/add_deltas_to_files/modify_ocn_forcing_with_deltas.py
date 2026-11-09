@@ -108,19 +108,19 @@ while dt <= dt1:
     ds_bry['bry_time'].attrs = ds_bry['temp_time'].attrs.copy()
 
     # Ocean climatology
-    dTIC_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'clm_time'})
+    dTIC_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dTIC_time'})
     ds_clm['dTIC'] = dTIC_time
     ds_clm['dTIC'].attrs['long_name'] = 'delta TIC concentration'
     ds_clm['dTIC'].attrs['units'] = 'mmol m-3' 
 
-    dTA_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'clm_time'})
+    dTA_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dTA_time'})
     ds_clm['dTA'] = dTA_time
     ds_clm['dTA'].attrs['long_name'] = 'delta alkalinity concentration'
     ds_clm['dTA'].attrs['units'] = 'meq m-3'
 
     # Add dTIC_time coordinate
-    ds_clm['clm_time'].attrs = ds_clm['temp_time'].attrs.copy()
-    ds_clm['clm_time'].attrs = ds_clm['temp_time'].attrs.copy()
+    ds_clm['dTIC_time'].attrs = ds_clm['temp_time'].attrs.copy()
+    ds_clm['dTA_time'].attrs = ds_clm['temp_time'].attrs.copy()
 
 
     ################################################################
