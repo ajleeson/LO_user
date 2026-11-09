@@ -60,45 +60,45 @@ while dt <= dt1:
 
     # Ocean boundary conditions
     # North
-    dTIC_time_north = xr.zeros_like(ds_bry['temp_north']).rename({'temp_time': 'dTIC_time'})
+    dTIC_time_north = xr.zeros_like(ds_bry['temp_north']).rename({'temp_time': 'bry_time'})
     ds_bry['dTIC_north'] = dTIC_time_north
     ds_bry['dTIC_north'].attrs['long_name'] = 'delta TIC northern boundary conditions'
     ds_bry['dTIC_north'].attrs['units'] = 'mmol m-3' 
 
-    dTA_time_north = xr.zeros_like(ds_bry['temp_north']).rename({'temp_time': 'dTA_time'})
+    dTA_time_north = xr.zeros_like(ds_bry['temp_north']).rename({'temp_time': 'bry_time'})
     ds_bry['dTA_north'] = dTA_time_north
     ds_bry['dTA_north'].attrs['long_name'] = 'delta alkalinity northern boundary conditions'
     ds_bry['dTA_north'].attrs['units'] = 'meq m-3' 
 
     # South
-    dTIC_time_south = xr.zeros_like(ds_bry['temp_south']).rename({'temp_time': 'dTIC_time'})
+    dTIC_time_south = xr.zeros_like(ds_bry['temp_south']).rename({'temp_time': 'bry_time'})
     ds_bry['dTIC_south'] = dTIC_time_south
     ds_bry['dTIC_south'].attrs['long_name'] = 'delta TIC southern boundary conditions'
     ds_bry['dTIC_south'].attrs['units'] = 'mmol m-3' 
 
-    dTA_time_south = xr.zeros_like(ds_bry['temp_south']).rename({'temp_time': 'dTA_time'})
+    dTA_time_south = xr.zeros_like(ds_bry['temp_south']).rename({'temp_time': 'bry_time'})
     ds_bry['dTA_south'] = dTA_time_south
     ds_bry['dTA_south'].attrs['long_name'] = 'delta alkalinity southern boundary conditions'
     ds_bry['dTA_south'].attrs['units'] = 'meq m-3' 
 
     # East
-    dTIC_time_east = xr.zeros_like(ds_bry['temp_east']).rename({'temp_time': 'dTIC_time'})
+    dTIC_time_east = xr.zeros_like(ds_bry['temp_east']).rename({'temp_time': 'bry_time'})
     ds_bry['dTIC_east'] = dTIC_time_east
     ds_bry['dTIC_east'].attrs['long_name'] = 'delta TIC eastern boundary conditions'
     ds_bry['dTIC_east'].attrs['units'] = 'mmol m-3' 
 
-    dTA_time_east = xr.zeros_like(ds_bry['temp_east']).rename({'temp_time': 'dTA_time'})
+    dTA_time_east = xr.zeros_like(ds_bry['temp_east']).rename({'temp_time': 'bry_time'})
     ds_bry['dTA_east'] = dTA_time_east
     ds_bry['dTA_east'].attrs['long_name'] = 'delta alkalinity eastern boundary conditions'
     ds_bry['dTA_east'].attrs['units'] = 'meq m-3'
 
     # West
-    dTIC_time_west = xr.zeros_like(ds_bry['temp_west']).rename({'temp_time': 'dTIC_time'})
+    dTIC_time_west = xr.zeros_like(ds_bry['temp_west']).rename({'temp_time': 'bry_time'})
     ds_bry['dTIC_west'] = dTIC_time_west
     ds_bry['dTIC_west'].attrs['long_name'] = 'delta TIC western boundary conditions'
     ds_bry['dTIC_west'].attrs['units'] = 'mmol m-3' 
 
-    dTA_time_west = xr.zeros_like(ds_bry['temp_west']).rename({'temp_time': 'dTA_time'})
+    dTA_time_west = xr.zeros_like(ds_bry['temp_west']).rename({'temp_time': 'bry_time'})
     ds_bry['dTA_west'] = dTA_time_west
     ds_bry['dTA_west'].attrs['long_name'] = 'delta alkalinity western boundary conditions'
     ds_bry['dTA_west'].attrs['units'] = 'meq m-3'
@@ -108,12 +108,12 @@ while dt <= dt1:
     ds_bry['bry_time'].attrs = ds_bry['temp_time'].attrs.copy()
 
     # Ocean climatology
-    dTIC_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dTIC_time'})
+    dTIC_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'clm_time'})
     ds_clm['dTIC'] = dTIC_time
     ds_clm['dTIC'].attrs['long_name'] = 'delta TIC concentration'
     ds_clm['dTIC'].attrs['units'] = 'mmol m-3' 
 
-    dTA_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'dTA_time'})
+    dTA_time = xr.zeros_like(ds_clm['temp']).rename({'temp_time': 'clm_time'})
     ds_clm['dTA'] = dTA_time
     ds_clm['dTA'].attrs['long_name'] = 'delta alkalinity concentration'
     ds_clm['dTA'].attrs['units'] = 'meq m-3'
