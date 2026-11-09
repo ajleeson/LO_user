@@ -368,7 +368,7 @@ def make_forcing(N,NT,NRIV,NTRIV,NWWTP_moh,dt_ind, yd_ind,ot_vec,Ldir,enable,tra
 
         # Add remaining biology (see the lineup near the end of fennel_var.h)
         # Right now, this is simply filling everything with zeros
-        bvn_list = ['Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo', 'LDeC', 'SDeC']
+        bvn_list = ['Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo', 'LDeC', 'SDeC', 'dTIC', 'dTA']
         for bvn in bvn_list:
             vn = 'river_' + bvn
             vinfo = zrfun.get_varinfo(vn)
