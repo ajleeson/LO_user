@@ -64,7 +64,7 @@
 !
 ! Application title.
 
-       TITLE = LiveOcean input file
+       TITLE = LiveOcean input file with twin vars and OAE
 
 ! C-preprocessing Flag.
 
@@ -463,6 +463,13 @@ LtracerSponge == F F                            ! temperature, salinity, inert
 
   LtracerSrc == T T                        ! temperature, salinity, inert
 
+! ALedit to add OAE
+! Logical switches (TRUE/FALSE) to activate tracers addition for OAE
+! and to specify which tracer variables to consider:
+! [1:NAT+NPT,Ngrids]. (I think this is false if we have forcing file)
+
+  LtracerAdd == T T
+  
 ! Logical switches (TRUE/FALSE) to read and process climatology fields.
 ! See glossary below for details.
 
@@ -607,6 +614,8 @@ Hout(idWorb) == F       ! Ub_swan            wave bottom orbital velocity
 Hout(idWdis) == F       ! Wave_dissip        wave dissipation
 
 Hout(idPair) == T       ! Pair               surface air pressure
+! ALedit to add alkalinity addition
+Hout(idAtrc) == T       ! TA addition        Alkalinity addition
 Hout(idTair) == T       ! Tair               surface air temperature
 Hout(idUair) == T       ! Uair               surface U-wind component
 Hout(idVair) == T       ! Vair               surface V-wind component
@@ -711,6 +720,9 @@ Qout(idWpbt) == F       ! Pwave_bot          wave bottom period
 Qout(idWorb) == F       ! Ub_swan            wave bottom orbital velocity
 Qout(idWdis) == F       ! Wave_dissip        wave dissipation
 
+! ALedit to add alkalinity addition quicksave option
+Qout(idAtrc) == F       ! TA addition        Alkalinity addition
+
 Qout(idPair) == F       ! Pair               surface air pressure
 Qout(idTair) == F       ! Tair               surface air temperature
 Qout(idUair) == F       ! Uair               surface U-wind component
@@ -784,6 +796,8 @@ Aout(idV3rs) == F       ! v_Rstress          3D V-radiation stress
 Aout(idU3Sd) == F       ! u_stokes           3D U-Stokes velocity
 Aout(idV3Sd) == F       ! v_stokes           3D V-Stokes velocity
 
+! ALedit to add alkalinity addition to avg file
+Aout(idAtrc) == T       ! TA addition        Alkalinity addition
 Aout(idPair) == F       ! Pair               surface air pressure
 Aout(idTair) == F       ! Tair               surface air temperature
 Aout(idUair) == T       ! Uair               surface U-wind component
@@ -835,55 +849,55 @@ Aout(iHVTav) == F F     ! Hvom_temp, ...     tracer volume flux, <Hvom*t>
 ! Logical switches (TRUE/FALSE) to activate writing of extra inert passive
 ! tracers other than biological and sediment tracers into the AVERAGE file.
 
- Aout(inert) == T       ! dye_01, ...        inert passive tracers
+ Aout(inert) == F       ! dye_01, ...        inert passive tracers
 
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged,
 ! 2D momentum (ubar,vbar) diagnostic terms into DIAGNOSTIC output file.
 
-Dout(M2rate) == T       ! ubar_accel, ...    acceleration
-Dout(M2pgrd) == T       ! ubar_prsgrd, ...   pressure gradient
-Dout(M2fcor) == T       ! ubar_cor, ...      Coriolis force
-Dout(M2hadv) == T       ! ubar_hadv, ...     horizontal total advection
-Dout(M2xadv) == T       ! ubar_xadv, ...     horizontal XI-advection
-Dout(M2yadv) == T       ! ubar_yadv, ...     horizontal ETA-advection
-Dout(M2hrad) == T       ! ubar_hrad, ...     horizontal total radiation stress
-Dout(M2hvis) == T       ! ubar_hvisc, ...    horizontal total viscosity
-Dout(M2xvis) == T       ! ubar_xvisc, ...    horizontal XI-viscosity
-Dout(M2yvis) == T       ! ubar_yvisc, ...    horizontal ETA-viscosity
-Dout(M2sstr) == T       ! ubar_sstr, ...     surface stress
-Dout(M2bstr) == T       ! ubar_bstr, ...     bottom stress
+Dout(M2rate) == F       ! ubar_accel, ...    acceleration
+Dout(M2pgrd) == F       ! ubar_prsgrd, ...   pressure gradient
+Dout(M2fcor) == F       ! ubar_cor, ...      Coriolis force
+Dout(M2hadv) == F       ! ubar_hadv, ...     horizontal total advection
+Dout(M2xadv) == F       ! ubar_xadv, ...     horizontal XI-advection
+Dout(M2yadv) == F       ! ubar_yadv, ...     horizontal ETA-advection
+Dout(M2hrad) == F       ! ubar_hrad, ...     horizontal total radiation stress
+Dout(M2hvis) == F       ! ubar_hvisc, ...    horizontal total viscosity
+Dout(M2xvis) == F       ! ubar_xvisc, ...    horizontal XI-viscosity
+Dout(M2yvis) == F       ! ubar_yvisc, ...    horizontal ETA-viscosity
+Dout(M2sstr) == F       ! ubar_sstr, ...     surface stress
+Dout(M2bstr) == F       ! ubar_bstr, ...     bottom stress
 
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged,
 ! 3D momentum (u,v) diagnostic terms into DIAGNOSTIC output file.
 
-Dout(M3rate) == T       ! u_accel, ...       acceleration
-Dout(M3pgrd) == T       ! u_prsgrd, ...      pressure gradient
-Dout(M3fcor) == T       ! u_cor, ...         Coriolis force
-Dout(M3hadv) == T       ! u_hadv, ...        horizontal total advection
-Dout(M3xadv) == T       ! u_xadv, ...        horizontal XI-advection
-Dout(M3yadv) == T       ! u_yadv, ...        horizontal ETA-advection
-Dout(M3vadv) == T       ! u_vadv, ...        vertical advection
-Dout(M3hrad) == T       ! u_hrad, ...        horizontal total radiation stress
-Dout(M3vrad) == T       ! u_vrad, ...        vertical radiation stress
-Dout(M3hvis) == T       ! u_hvisc, ...       horizontal total viscosity
-Dout(M3xvis) == T       ! u_xvisc, ...       horizontal XI-viscosity
-Dout(M3yvis) == T       ! u_yvisc, ...       horizontal ETA-viscosity
-Dout(M3vvis) == T       ! u_vvisc, ...       vertical viscosity
+Dout(M3rate) == F       ! u_accel, ...       acceleration
+Dout(M3pgrd) == F       ! u_prsgrd, ...      pressure gradient
+Dout(M3fcor) == F       ! u_cor, ...         Coriolis force
+Dout(M3hadv) == F       ! u_hadv, ...        horizontal total advection
+Dout(M3xadv) == F       ! u_xadv, ...        horizontal XI-advection
+Dout(M3yadv) == F       ! u_yadv, ...        horizontal ETA-advection
+Dout(M3vadv) == F       ! u_vadv, ...        vertical advection
+Dout(M3hrad) == F       ! u_hrad, ...        horizontal total radiation stress
+Dout(M3vrad) == F       ! u_vrad, ...        vertical radiation stress
+Dout(M3hvis) == F       ! u_hvisc, ...       horizontal total viscosity
+Dout(M3xvis) == F       ! u_xvisc, ...       horizontal XI-viscosity
+Dout(M3yvis) == F       ! u_yvisc, ...       horizontal ETA-viscosity
+Dout(M3vvis) == F       ! u_vvisc, ...       vertical viscosity
 
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged,
 ! active (temperature and salinity) and passive (inert) tracer diagnostic
 ! terms into DIAGNOSTIC output file: [1:NAT+NPT,Ngrids].
 
-Dout(iTrate) == T T     ! temp_rate, ...     time rate of change
-Dout(iThadv) == T T     ! temp_hadv, ...     horizontal total advection
-Dout(iTxadv) == T T     ! temp_xadv, ...     horizontal XI-advection
-Dout(iTyadv) == T T     ! temp_yadv, ...     horizontal ETA-advection
-Dout(iTvadv) == T T     ! temp_vadv, ...     vertical advection
-Dout(iThdif) == T T     ! temp_hdiff, ...    horizontal total diffusion
-Dout(iTxdif) == T T     ! temp_xdiff, ...    horizontal XI-diffusion
-Dout(iTydif) == T T     ! temp_ydiff, ...    horizontal ETA-diffusion
-Dout(iTsdif) == T T     ! temp_sdiff, ...    horizontal S-diffusion
-Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
+Dout(iTrate) == F F     ! temp_rate, ...     time rate of change
+Dout(iThadv) == F F     ! temp_hadv, ...     horizontal total advection
+Dout(iTxadv) == F F     ! temp_xadv, ...     horizontal XI-advection
+Dout(iTyadv) == F F     ! temp_yadv, ...     horizontal ETA-advection
+Dout(iTvadv) == F F     ! temp_vadv, ...     vertical advection
+Dout(iThdif) == F F     ! temp_hdiff, ...    horizontal total diffusion
+Dout(iTxdif) == F F     ! temp_xdiff, ...    horizontal XI-diffusion
+Dout(iTydif) == F F     ! temp_ydiff, ...    horizontal ETA-diffusion
+Dout(iTsdif) == F F     ! temp_sdiff, ...    horizontal S-diffusion
+Dout(iTvdif) == F F     ! temp_vdiff, ...    vertical diffusion
 
 ! Generic User parameters, [1:NUSER].
 

@@ -161,7 +161,9 @@ D['dstart'] = int(Lfun.datetime_to_modtime(fdt) / 86400.)
 D['grid_dir'] = Ldir['grid']
 force_dir = Ldir['LOo'] / 'forcing' / Ldir['gridname'] / ('f' + Ldir['date_string'])
 D['force_dir'] = force_dir
-D['roms_varinfo_dir'] = Ldir['parent'] / 'LO_roms_source_git' / 'ROMS' / 'External'
+# ALedit to change ROMS source directory to use twin var implementation
+#D['roms_varinfo_dir'] = Ldir['parent'] / 'LO_roms_source_git' / 'ROMS' / 'External'
+D['roms_varinfo_dir'] = Ldir['parent'] / 'LO_roms_source_twinOAE' / 'ROMS' / 'External'
 
 # get horizontal coordinate info
 with open(Ldir['grid'] / 'XY_COORDINATE_INFO.csv','r') as xyf:
