@@ -239,7 +239,7 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD,ctag)
                 for nn in range(N):
                     B_mat[:, nn, rr] = bvals
             # check for nans
-            if np.isnan(TS_mat).any():
+            if np.isnan(B_mat).any():
                 print('Error from traps: nans in tiny river bio!')
                 sys.exit()
             # add metadata
@@ -253,13 +253,10 @@ def make_forcing(N,NT,NRIV,dt_ind, yd_ind,ot_vec,Ldir,enable,trapsP,trapsD,ctag)
 
         # Add remaining biology (see the lineup near the end of fennel_var.h)
         # Right now, this is simply filling everything with zeros
-        bvn_list = ['Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo', 'LDeC', 'SDeC', 'dye_01']
+        bvn_list = ['Phyt', 'Zoop', 'LDeN', 'SDeN', 'Chlo', 'LDeC', 'SDeC']
         for bvn in bvn_list:
             vn = 'river_' + bvn
-            if vn == 'river_dye_01':
-                vinfo = zrfun.get_varinfo('river_dye_')
-            else:
-                vinfo = zrfun.get_varinfo(vn)
+            vinfo = zrfun.get_varinfo(vn)
             dims = (vinfo['time'],) + ('s_rho', 'river')
             B_mat = np.nan * np.zeros((NT, N, NTRIV))
             # loop through all sources and fill with zeros
