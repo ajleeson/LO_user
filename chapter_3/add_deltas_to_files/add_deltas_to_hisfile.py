@@ -75,9 +75,9 @@ ds_new = ds_og_his.copy(deep=True)
 
 # add delta variable to dataset, using a copy of TIC as 
 # a reference of a 3D variable mapped to rho grid.
-# and set all values to be zero
+# and set all values to be zero, but preserve the nans of the land mask
 # dTIC
-dTIC_conc = xr.zeros_like(ds_new['TIC'])
+dTIC_conc = ds_new['TIC'].copy()*0
 ds_new['dTIC'] = dTIC_conc
 ds_new['dTIC'].attrs['long_name'] = 'Difference in TIC due to OAE'
 ds_new['dTIC'].attrs['standard_name'] = 'molar_concentration_of_dTIC_'
@@ -85,7 +85,7 @@ ds_new['dTIC'].attrs['units'] = 'mmol m-3'
 ds_new['dTIC'].attrs['field'] = 'dTIC_' 
 # dTA
 dTA_conc = xr.zeros_like(ds_new['alkalinity'])
-ds_new['dTA'] = dTA_conc
+ds_new['dTA'] = ds_new['TIC'].copy()*0
 ds_new['dTA'].attrs['long_name'] = 'Difference in TA due to OAE'
 ds_new['dTA'].attrs['standard_name'] = 'molar_concentration_of_dTA_'
 ds_new['dTA'].attrs['units'] = 'meq m-3' 
@@ -175,8 +175,8 @@ ds_new.dTA.values[0,-1:,iy-pad:iy+pad+1,ix-pad:ix+pad+1] += dalk_nominal
 # plot to visualize site alkalinity dosing
 plt.close('all')
 fig, ax = plt.subplots(1,1,figsize = (6,8))
-diff = ds_new.dTA[0,-1,:,:] - ds_og_his.dTA[0,-1,:,:]
-cs = ax.pcolormesh(plon, plat, diff, cmap='plasma', vmin=0, vmax=120)
+delta = ds_new.dTA[0,-1,:,:]
+cs = ax.pcolormesh(plon, plat, delta, cmap='plasma', vmin=0, vmax=120)
 cbar = fig.colorbar(cs)
 cbar.ax.set_ylabel('meq/m3', rotation=270)
 pfun.dar(ax)
