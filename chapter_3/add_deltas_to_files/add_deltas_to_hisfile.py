@@ -82,14 +82,14 @@ ds_new['dTIC'] = dTIC_conc
 ds_new['dTIC'].attrs['long_name'] = 'Difference in TIC due to OAE'
 ds_new['dTIC'].attrs['standard_name'] = 'molar_concentration_of_dTIC_'
 ds_new['dTIC'].attrs['units'] = 'mmol m-3' 
-ds_new['dTIC'].attrs['field'] = 'dTIC_' 
+ds_new['dTIC'].attrs['field'] = 'dTIC' 
 # dTA
 dTA_conc = xr.zeros_like(ds_new['alkalinity'])
 ds_new['dTA'] = ds_new['TIC'].copy()*0
 ds_new['dTA'].attrs['long_name'] = 'Difference in TA due to OAE'
 ds_new['dTA'].attrs['standard_name'] = 'molar_concentration_of_dTA_'
 ds_new['dTA'].attrs['units'] = 'meq m-3' 
-ds_new['dTA'].attrs['field'] = 'dTA_' 
+ds_new['dTA'].attrs['field'] = 'dTA' 
 
 # add alkalinity as a blob to dTA state var ---------------------------------------
 

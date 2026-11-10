@@ -451,7 +451,9 @@ ad_LBC(isTvar) ==   Per     Clo     Per     Clo \    ! idbio( 1), NO3
 ! climatology fields: [NBT,Ngrids] values are expected. See glossary below
 ! for details.
 
-  LtracerCLM == 15*T
+! ALedit to have no climatology for dTA and dTIC
+! LtracerCLM == 15*T
+  LtracerCLM == 11*T 2*F T
 
 ! Logical switches (TRUE/FALSE) to nudge the desired biological tracer
 ! climatology field. If not analytical climatology fields, users need to
@@ -459,7 +461,9 @@ ad_LBC(isTvar) ==   Per     Clo     Per     Clo \    ! idbio( 1), NO3
 ! climatology NetCDF file that are needed for nudging; [NBT,Ngrids]
 ! values are expected. See glossary below for details.
 
-  LnudgeTCLM == 15*T
+! ALedit to have no nudging to climatology for dTA and dTIC
+! LnudgeTCLM == 15*T
+  LnudgeTCLM  == 11*T 2*F T
 
 ! Logical switches (TRUE/FALSE) to activate writing of biological fields
 ! into HISTORY output file: [1:NBT,Ngrids].
