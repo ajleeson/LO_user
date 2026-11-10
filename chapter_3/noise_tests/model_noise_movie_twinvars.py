@@ -322,7 +322,7 @@ for vn in vns:
         plt.close()
 
     # make movie
-    if len(fn) > 1:
+    if len(fn_list) > 1:
         cmd_list = ['ffmpeg','-r','8','-i', str(out_dir / ('delta_' + vn) )+'/plot_%04d.png', '-vcodec', 'libx264',
             '-pix_fmt', 'yuv420p', '-crf', '25', str(out_dir / ('delta_' + vn))+'/movie.mp4']
         proc = Po(cmd_list, stdout=Pi, stderr=Pi)
