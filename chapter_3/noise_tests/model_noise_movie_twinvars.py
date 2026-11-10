@@ -265,10 +265,6 @@ for vn in vns:
             vn_name = vn
             vmin = -0.00001#-0.01
             vmax =  0.00001#0.01
-        elif vn == 'oxygen':
-            vn_name = vn
-            vmin = -0.001
-            vmax =  0.001
         elif vn == 'salt':
             vn_name = vn
             vmin = -0.00001
@@ -286,11 +282,8 @@ for vn in vns:
         else:
             print('vmin and vmax not provided for '+ vn)
 
-        # scale variable
-        scale =  pinfo.fac_dict[vn_name]
-
         # Get model1 data
-        vertint_vn_model = ds_model [vn].sum(dim=vert_dim, skipna=False).values * scale
+        vertint_vn_model = ds_model [vn].sum(dim=vert_dim, skipna=False).values
 
         # Get difference
         vertint_diff = vertint_vn_model              
