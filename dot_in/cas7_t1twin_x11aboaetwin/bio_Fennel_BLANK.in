@@ -258,30 +258,30 @@
 ! Harmonic/biharmonic horizontal diffusion of biological tracer for
 ! nonlinear model and adjoint-based algorithms: [1:NBT,Ngrids].
 
-        TNU2 == 15*0.0d0                        ! m2/s
-        TNU4 == 15*0.0d0                        ! m4/s
+        TNU2 == 14*0.0d0                        ! m2/s
+        TNU4 == 14*0.0d0                        ! m4/s
 
-     ad_TNU2 == 15*0.0d0                        ! m2/s
-     ad_TNU4 == 15*0.0d0                        ! m4/s
+     ad_TNU2 == 14*0.0d0                        ! m2/s
+     ad_TNU4 == 14*0.0d0                        ! m4/s
 
 ! Logical switches (TRUE/FALSE) to increase/decrease horizontal diffusivity
 ! in specific areas of the application domain (like sponge areas) for the
 ! desired grid: [Ngrids]
 
-LtracerSponge == 15*F
+LtracerSponge == 14*F
 
 ! Vertical mixing coefficients for biological tracers for nonlinear
 ! model and basic state scale factor in adjoint-based algorithms:
 ! [1:NBT,Ngrids].
 
-     AKT_BAK == 15*1.0d-6                       ! m2/s
+     AKT_BAK == 14*1.0d-6                       ! m2/s
 
-  ad_AKT_fac == 15*1.0d0                        ! nondimensional
+  ad_AKT_fac == 14*1.0d0                        ! nondimensional
 
 ! Nudging/relaxation time scales, inverse scales will be computed
 ! internally: [1:NBT,Ngrids].
 
-       TNUDG == 15*0.0d0                        ! days
+       TNUDG == 14*0.0d0                        ! days
 
 ! Set horizontal and vertical advection schemes for biological tracers.
 ! A different advection scheme is allowed for each tracer. For example,
@@ -445,14 +445,14 @@ ad_LBC(isTvar) ==   Per     Clo     Per     Clo \    ! idbio( 1), NO3
 ! to consider: [NBT,Ngrids] values are expected. See glossary below for
 ! details.
 
-  LtracerSrc == 15*T
+  LtracerSrc == 14*T
 
 ! Logical switches (TRUE/FALSE) to read and process biological tracer
 ! climatology fields: [NBT,Ngrids] values are expected. See glossary below
 ! for details.
 
-! ALedit to have no climatology for dTA and dTIC
-! LtracerCLM == 15*T
+! dTIC and dTA are state variables initialized from the history file, not
+! climatology fields.  The final T is oxygen (idbio(14)).
   LtracerCLM == 11*T 2*F T
 
 ! Logical switches (TRUE/FALSE) to nudge the desired biological tracer
@@ -461,48 +461,47 @@ ad_LBC(isTvar) ==   Per     Clo     Per     Clo \    ! idbio( 1), NO3
 ! climatology NetCDF file that are needed for nudging; [NBT,Ngrids]
 ! values are expected. See glossary below for details.
 
-! ALedit to have no nudging to climatology for dTA and dTIC
-! LnudgeTCLM == 15*T
+! dTIC and dTA must not be relaxed toward zero-valued climatology fields.
   LnudgeTCLM  == 11*T 2*F T
 
 ! Logical switches (TRUE/FALSE) to activate writing of biological fields
 ! into HISTORY output file: [1:NBT,Ngrids].
 
-Hout(idTvar) == 15*T    ! ..., NO3, ...           biological tracer
-Hout(idTsur) == 15*F    ! ..., NO3_sflux, ...     surface tracer flux
+Hout(idTvar) == 14*T    ! ..., NO3, ...           biological tracer
+Hout(idTsur) == 14*F    ! ..., NO3_sflux, ...     surface tracer flux
 
 ! Logical switches (TRUE/FALSE) to activate writing of biological fields
 ! into QUICKSAVE output file: [1:NBT,Ngrids].
 
-Qout(idTvar) == 15*F    ! ..., NO3, ...           biological tracer
-Qout(idsurT) == 15*F    ! ..., NO3_sur, ...       surface biological tracer
-Qout(idTsur) == 15*F    ! ..., NO3_sflux, ...     surface tracer flux
+Qout(idTvar) == 14*F    ! ..., NO3, ...           biological tracer
+Qout(idsurT) == 14*F    ! ..., NO3_sur, ...       surface biological tracer
+Qout(idTsur) == 14*F    ! ..., NO3_sflux, ...     surface tracer flux
 
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged fields
 ! into AVERAGE output file: [1:NBT,Ngrids].
 
-Aout(idTvar) == 15*T    ! ..., NO3, ...           biological tracer
+Aout(idTvar) == 14*T    ! ..., NO3, ...           biological tracer
 
-Aout(idTTav) == 15*F    ! ..., NO3_2, ...         quadratic <t*t> tracer terms
-Aout(idUTav) == 15*F    ! ..., u_NO3, ...         quadratic <u*t> tracer terms
-Aout(idVTav) == 15*F    ! ..., v_NO3, ...         quadratic <v*t> tracer terms
-Aout(iHUTav) == 15*F    ! ..., Huon_NO3, ...      tracer volume flux, <Huon*t>
-Aout(iHVTav) == 15*F    ! ..., Hvom_NO3, ...      tracer volume flux, <Hvom*t>
+Aout(idTTav) == 14*F    ! ..., NO3_2, ...         quadratic <t*t> tracer terms
+Aout(idUTav) == 14*F    ! ..., u_NO3, ...         quadratic <u*t> terms
+Aout(idVTav) == 14*F    ! ..., v_NO3, ...         quadratic <v*t> terms
+Aout(iHUTav) == 14*F    ! ..., Huon_NO3, ...      tracer volume flux terms
+Aout(iHVTav) == 14*F    ! ..., Hvom_NO3, ...      tracer volume flux terms
 
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged,
 ! biological tracer diagnostic terms into DIAGNOSTIC output file:
 ! [1:NBT,Ngrids].
 
-Dout(iTrate) == 15*T    ! ..., NO3_rate, ...      time rate of change
-Dout(iThadv) == 15*T    ! ..., NO3_hadv, ...      horizontal total advection
-Dout(iTxadv) == 15*T    ! ..., NO3_xadv, ...      horizontal XI-advection
-Dout(iTyadv) == 15*T    ! ..., NO3_yadv, ...      horizontal ETA-advection
-Dout(iTvadv) == 15*T    ! ..., NO3_vadv, ...      vertical advection
-Dout(iThdif) == 15*T    ! ..., NO3_hdiff, ...     horizontal total diffusion
-Dout(iTxdif) == 15*T    ! ..., NO3_xdiff, ...     horizontal XI-diffusion
-Dout(iTydif) == 15*T    ! ..., NO3_ydiff, ...     horizontal ETA-diffusion
-Dout(iTsdif) == 15*T    ! ..., NO3_sdiff, ...     horizontal S-diffusion
-Dout(iTvdif) == 15*T    ! ..., NO3_vdiff, ...     vertical diffusion
+Dout(iTrate) == 14*T    ! ..., NO3_rate, ...      time rate of change
+Dout(iThadv) == 14*T    ! ..., NO3_hadv, ...      horizontal total advection
+Dout(iTxadv) == 14*T    ! ..., NO3_xadv, ...     horizontal XI-advection
+Dout(iTyadv) == 14*T    ! ..., NO3_yadv, ...     horizontal ETA-advection
+Dout(iTvadv) == 14*T    ! ..., NO3_vadv, ...     vertical advection
+Dout(iThdif) == 14*T    ! ..., NO3_hdiff, ...     horizontal total diffusion
+Dout(iTxdif) == 14*T    ! ..., NO3_xdiff, ...     horizontal XI-diffusion
+Dout(iTydif) == 14*T    ! ..., NO3_ydiff, ...     horizontal ETA-diffusion
+Dout(iTsdif) == 14*T    ! ..., NO3_sdiff, ...     horizontal S-diffusion
+Dout(iTvdif) == 14*T    ! ..., NO3_vdiff, ...     vertical diffusion
 
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged,
 ! biological processes diagnostics terms into DIAGNOSTIC output file [Ngrids].
