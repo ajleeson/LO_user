@@ -130,7 +130,7 @@ vns = ['dTIC','dTA']
 
 d0= '2020.05.31'
 # d1 = '2020.06.30'
-d1 = '2020.06.09'
+d1 = '2020.06.24'
 
 # d0= '2020.06.29'
 # d1 = '2020.06.30'
@@ -216,7 +216,7 @@ for vn in vns:
             raise ValueError(f"No vertical dimension found for {vn}")
 
         # Compute strict difference (True where different, False where equal)
-        diff_mask = v.isnull()
+        diff_mask = v > 0
         diff_2d = diff_mask.any(dim=vert_dim)
 
         # Mask out locations where both are NaN at all depths
