@@ -129,8 +129,7 @@ def get_fn_list(list_type, Ldir, ds0, ds1, roms_out, his_num=2):
 vns = ['dTIC','dTA']
 
 d0= '2020.05.31'
-# d1 = '2020.06.30'
-d1 = '2020.06.24'
+d1 = '2020.06.30'
 
 # d0= '2020.06.29'
 # d1 = '2020.06.30'
