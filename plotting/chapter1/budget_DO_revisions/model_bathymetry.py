@@ -260,7 +260,7 @@ del sta_dict['killsut']
 inlets = ['dyes','sinclair','quartermaster','case','crescent','carr',
           'elliot','commencement','penn','portsusan','holmes','dabob','lynchcove']
 
-for stn,station in enumerate(sta_dict): # stations: 
+for stn,station in enumerate(inlets):
     # get segment information
     seg_name = Ldir['LOo'] / 'extract' / 'tef2' / 'seg_info_dict_cas7_c21_traps00.p'
     seg_df = pd.read_pickle(seg_name)
@@ -271,9 +271,8 @@ for stn,station in enumerate(sta_dict): # stations:
     # first make everything a nan
     inlet_loc = np.full(zm.shape, np.nan) 
     # set values of 1 for everything that is in the inlet
-    inlet_loc[jj,ii] = 55
+    inlet_loc[jj,ii] = 55 # I chose 55 just to make the colors pretty on the plot, it has no meaning
     # add inlet locations
-    # plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=65, cmap=plt.get_cmap('coolwarm'))
     plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=100, cmap=plt.get_cmap(cmocean.cm.ice))
     # plt.pcolormesh(plon, plat, inlet_loc, linewidth=0.5, vmin=0, vmax=60, cmap='Greys')
 
