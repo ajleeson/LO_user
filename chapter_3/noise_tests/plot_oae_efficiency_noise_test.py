@@ -50,13 +50,18 @@ lats = ds_base.coords['lat_rho'].values
 ##                  Get time series data                    ##
 ##############################################################
 
-# get the deltas for the baseline and perturbed runs
+# get the deltas for the original and twin var runs
 fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'coastal_oae_patch_noisetest_ogmodel_2020.05.31_2020.06.30.nc'
 ds_ogmodel = xr.open_dataset(fp)
+fp = Ldir['LOo'] / 'chapter_3' / 'data' / 'coastal_oae_patch_noisetest_twinvar_2020.05.31_2020.06.30.nc'
+ds_twinvar = xr.open_dataset(fp)
+
 
 time = ds_ogmodel.ocean_time.values
 delta_DIC_ogmodel = ds_ogmodel.delta_DIC_full.values # kmol
 delta_Alk_ogmodel = ds_ogmodel.delta_Alk_full.values # kmol
+delta_DIC_twinvar = ds_twinvar.delta_DIC_full.values # kmol
+delta_Alk_twinvar = ds_twinvar.delta_Alk_full.values # kmol
 
 ###################################################################
 ##                         Plotting                              ##  
@@ -97,14 +102,16 @@ total_alk_added = np.nansum(delta_Alk_init * vol_all)/1000/1000 # [kmol eq]
 
 
 # plot efficiency (delta DIC / total alkalinity added) over time
-ax.plot(time,delta_DIC_ogmodel/total_alk_added, linewidth=3, color='royalblue',alpha=0.3, label='OG model')
+ax.plot(time,delta_DIC_ogmodel/total_alk_added, linewidth=4, color='royalblue',alpha=0.3, label='OG model')
+ax.plot(time,delta_DIC_twinvar/total_alk_added, linewidth=2, color='royalblue',alpha=0.8, linestyle=':', label='Twin var')
 
 # format figure
-ax.set_ylim([0,1])
+ax.legend(loc='upper left', fontsize=12)
+ax.set_ylim([0,0.5])
 ax.set_ylabel(r'$\eta = \Delta$ DIC / $\Delta$ Alk', fontsize=14)
 ax.grid(True, color='silver', linestyle=':')
 ax.tick_params(axis='both', labelsize=12, rotation=30)  
-loc = mdates.MonthLocator(interval=1)
+loc = mdates.DayLocator(interval=5)
 ax.xaxis.set_major_locator(loc)
-ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+ax.xaxis.set_major_formatter(mdates.DateFormatter('%b-%d'))
 ax.set_xlim([np.datetime64('2020-05-31'), np.datetime64('2020-06-30')])
