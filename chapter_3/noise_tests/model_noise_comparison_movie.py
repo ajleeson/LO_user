@@ -367,6 +367,7 @@ for vn in vns:
             )
             his_ax.set_xlim(his_min, his_max)
             his_ax.set_yscale('log')
+            his_ax.set_ylim(10**-0.5, 10**6)
             his_ax.grid(True, color='silver', linestyle=':')
             his_ax.set_ylabel('Count', fontsize=12)
             his_ax.set_xlabel('Vertical Integral Difference (mmol/m2)', fontsize=12)
